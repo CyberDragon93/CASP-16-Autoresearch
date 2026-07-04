@@ -1,4 +1,5 @@
 {
+  "domain_definition_count": 85,
   "official_root": "/scratch/10992/liaorunlong93/casp16-leaderboard/data/official",
   "score_record_count": 95268,
   "score_table_counts": {
@@ -22,5 +23,6 @@
     "M": 22,
     "R": 52,
     "T": 156
-  }
+  },
+  "target_reference_count": 88
 }

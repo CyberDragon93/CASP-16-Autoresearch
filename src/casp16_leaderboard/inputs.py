@@ -5,7 +5,7 @@ import json
 import re
 import string
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Sequence
 
 from .official import OfficialPaths, ensure_dir, read_tsv, write_tsv
 
@@ -57,10 +57,12 @@ def generate_protenix_inputs(
             "target_id": target_id,
             "target_prefix": target_id[:1],
             "description": target.get("Description", ""),
+            "oligo_state": target.get("Oligo.State", ""),
             "status": "ok",
             "skip_reason": "",
             "sequence_records": len(records),
             "entity_count": 0,
+            "chain_count": 0,
             "total_len": 0,
             "output_json": str(output_json),
         }
@@ -70,7 +72,7 @@ def generate_protenix_inputs(
             manifest_rows.append(manifest)
             continue
         try:
-            job, entity_count, total_len = build_protenix_job(target_id, records)
+            job, entity_count, chain_count, total_len = build_protenix_job(target_id, records, oligo_state=target.get("Oligo.State", ""))
         except ValueError as exc:
             manifest["status"] = "skipped"
             manifest["skip_reason"] = str(exc)
@@ -78,6 +80,7 @@ def generate_protenix_inputs(
             continue
         jobs.append(job)
         manifest["entity_count"] = entity_count
+        manifest["chain_count"] = chain_count
         manifest["total_len"] = total_len
         manifest_rows.append(manifest)
         selected += 1
@@ -93,10 +96,12 @@ def generate_protenix_inputs(
             "target_id",
             "target_prefix",
             "description",
+            "oligo_state",
             "status",
             "skip_reason",
             "sequence_records",
             "entity_count",
+            "chain_count",
             "total_len",
             "output_json",
         ],
@@ -139,26 +144,47 @@ def target_lookup_aliases(target_id: str) -> set[str]:
     return aliases
 
 
-def build_protenix_job(target_id: str, records: Sequence[dict[str, str]]) -> tuple[dict[str, object], int, int]:
+def build_protenix_job(target_id: str, records: Sequence[dict[str, str]], *, oligo_state: str = "") -> tuple[dict[str, object], int, int, int]:
+    counts = oligo_state_counts(oligo_state, len(records))
     sequences: list[dict[str, object]] = []
     total_len = 0
+    chain_index = 0
     for index, record in enumerate(records):
         kind = record["sequence_kind"]
         sequence = sanitize_sequence(kind, record["sequence"])
         if not sequence:
             raise ValueError(f"empty_sequence:{record.get('record_id', index)}")
-        chain_id = chain_id_for(index)
+        count = counts[index]
+        chain_ids = [chain_id_for(chain_index + offset) for offset in range(count)]
+        chain_index += count
         if kind == "proteinChain":
-            payload = {"proteinChain": {"sequence": sequence, "count": 1, "id": [chain_id]}}
+            payload = {"proteinChain": {"sequence": sequence, "count": count, "id": chain_ids}}
         elif kind == "rnaSequence":
-            payload = {"rnaSequence": {"sequence": sequence, "count": 1, "id": [chain_id]}}
+            payload = {"rnaSequence": {"sequence": sequence, "count": count, "id": chain_ids}}
         elif kind == "dnaSequence":
-            payload = {"dnaSequence": {"sequence": sequence, "count": 1, "id": [chain_id]}}
+            payload = {"dnaSequence": {"sequence": sequence, "count": count, "id": chain_ids}}
         else:
             raise ValueError(f"unsupported_sequence_kind:{kind}")
         sequences.append(payload)
-        total_len += len(sequence)
-    return {"name": target_id, "sequences": sequences, "covalent_bonds": []}, len(sequences), total_len
+        total_len += len(sequence) * count
+    return {"name": target_id, "sequences": sequences, "covalent_bonds": []}, len(sequences), chain_index, total_len
+
+
+def oligo_state_counts(oligo_state: str, record_count: int) -> list[int]:
+    if record_count < 1:
+        return []
+    text = (oligo_state or "").strip().upper()
+    if not text or text == "-":
+        return [1] * record_count
+    entries = re.findall(r"[A-Z]+(\d+)", text)
+    if not entries:
+        return [1] * record_count
+    counts = [int(value) for value in entries]
+    if len(counts) != record_count:
+        raise ValueError(f"ambiguous_oligo_state:{oligo_state}:records={record_count}")
+    if any(count < 1 for count in counts):
+        raise ValueError(f"invalid_oligo_state:{oligo_state}")
+    return counts
 
 
 def sanitize_sequence(kind: str, sequence: str) -> str:

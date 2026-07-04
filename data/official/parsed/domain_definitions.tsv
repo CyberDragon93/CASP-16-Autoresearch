@@ -1,0 +1,86 @@
+target_id	target_len	domain_id	residue_ranges	domain_len	difficulty	pdb_ids	source
+T1201	210	T1201-D1	3-203	201	medium	8bwd	domains_summary.cgi
+T1206	237	T1206-D1	8-237	230	easy	9cp0	domains_summary.cgi
+T1207	144	T1207-D1	1-133	133	hard		domains_summary.cgi
+T1208S1	646	T1208S1-D1	17-328	312	easy		domains_summary.cgi
+T1208S2	646	T1208S2-D1	6-312	307	easy		domains_summary.cgi
+T1210	1770	T1210-D1	19-1651	1633	hard	9enr	domains_summary.cgi
+T1212	466	T1212-D1	1-466	466	medium	9b0l	domains_summary.cgi
+T1214	677	T1214-D1	16-676	661	easy	9c4o	domains_summary.cgi
+T1218	1164	T1218-D1	64-657	594	medium		domains_summary.cgi
+T1218	1164	T1218-D2	658-1027	370	medium		domains_summary.cgi
+T1218	1164	T1218-D3	1028-1164	137	easy		domains_summary.cgi
+T1220S1	2551	T1220S1-D1	19-1711	1693	hard	9h1g	domains_summary.cgi
+T1226	123	T1226-D1	1-123	123	hard		domains_summary.cgi
+T1227S1	5689	T1227S1-D1	27-418	392	medium	9n8w	domains_summary.cgi
+T1228V1	545	T1228V1-D1	1-164	164	medium		domains_summary.cgi
+T1228V1	545	T1228V1-D2	165-300	136	easy		domains_summary.cgi
+T1228V1	545	T1228V1-D3	301-401,468-535	169	hard		domains_summary.cgi
+T1228V1	545	T1228V1-D4	402-467	66	medium		domains_summary.cgi
+T1228V2	545	T1228V2-D1	1-164	164	medium		domains_summary.cgi
+T1228V2	545	T1228V2-D2	165-300	136	easy		domains_summary.cgi
+T1228V2	545	T1228V2-D3	301-401,468-535	169	hard		domains_summary.cgi
+T1228V2	545	T1228V2-D4	402-467	66	medium		domains_summary.cgi
+T1230S1	984	T1230S1-D1	45-745	701	medium		domains_summary.cgi
+T1231	143	T1231-D1	1-142	142	easy		domains_summary.cgi
+T1234	413	T1234-D1	37-413	377	easy	8qpq	domains_summary.cgi
+T1235	115	T1235-D1	10-115	106	easy	8qpq	domains_summary.cgi
+T1237	488	T1237-D1	7-488	482	medium		domains_summary.cgi
+T1239V1	620	T1239V1-D1	1-164	164	medium	9dxd	domains_summary.cgi
+T1239V1	620	T1239V1-D2	165-300	136	easy	9dxd	domains_summary.cgi
+T1239V1	620	T1239V1-D3	301-401,468-620	254	medium	9dxd	domains_summary.cgi
+T1239V1	620	T1239V1-D4	402-467	66	easy	9dxd	domains_summary.cgi
+T1239V2	620	T1239V2-D1	1-164	164	medium	9dxd	domains_summary.cgi
+T1239V2	620	T1239V2-D2	165-300	136	easy	9dxd	domains_summary.cgi
+T1239V2	620	T1239V2-D3	301-401,468-620	254	medium	9dxd	domains_summary.cgi
+T1239V2	620	T1239V2-D4	402-467	66	easy	9dxd	domains_summary.cgi
+T1240	653	T1240-D1	375-478	104	easy		domains_summary.cgi
+T1240	653	T1240-D2	490-638	149	medium		domains_summary.cgi
+T1243	293	T1243-D1	28-293	266	medium		domains_summary.cgi
+T1244S1	850	T1244S1-D1	3-87	85	medium		domains_summary.cgi
+T1245S1	317	T1245S1-D1	6-175	170	easy		domains_summary.cgi
+T1245S2	317	T1245S2-D1	18-133	116	easy		domains_summary.cgi
+T1246	168	T1246-D1	1-168	168	easy		domains_summary.cgi
+T1249V1	488	T1249V1-D1	59-412	354	medium	9fya	domains_summary.cgi
+T1249V2	488	T1249V2-D1	59-415	357	medium	9fyg	domains_summary.cgi
+T1257	1263	T1257-D1	214-969	756	hard		domains_summary.cgi
+T1259	243	T1259-D1	40-243	204	easy		domains_summary.cgi
+T1266	336	T1266-D1	42-336	295	medium	8qfb	domains_summary.cgi
+T1267S1	926	T1267S1-D1	6-162	157	medium		domains_summary.cgi
+T1267S1	926	T1267S1-D2	163-437	275	medium		domains_summary.cgi
+T1267S2	926	T1267S2-D1	2-481	480	medium		domains_summary.cgi
+T1269	1410	T1269-D1	1-357	357	medium	9gvq	domains_summary.cgi
+T1269	1410	T1269-D2	358-762	405	medium	9gvq	domains_summary.cgi
+T1269	1410	T1269-D3	763-1155	393	medium	9gvq	domains_summary.cgi
+T1270	437	T1270-D1	9-237	229	medium		domains_summary.cgi
+T1270	437	T1270-D2	238-437	200	medium		domains_summary.cgi
+T1271S1	4354	T1271S1-D1	99-519	421	hard		domains_summary.cgi
+T1271S2	4354	T1271S2-D1	44-319	276	medium		domains_summary.cgi
+T1271S3	4354	T1271S3-D1	11-269	259	medium		domains_summary.cgi
+T1271S4	4354	T1271S4-D1	53-368	316	medium		domains_summary.cgi
+T1271S5	4354	T1271S5-D1	487-566	80	medium		domains_summary.cgi
+T1271S5	4354	T1271S5-D2	625-762	138	medium		domains_summary.cgi
+T1271S6	4354	T1271S6-D1	489-560,567-587	93	easy		domains_summary.cgi
+T1271S7	4354	T1271S7-D1	286-393	108	medium		domains_summary.cgi
+T1271S8	4354	T1271S8-D1	12-48	37	medium		domains_summary.cgi
+T1271S8	4354	T1271S8-D2	66-218	153	medium		domains_summary.cgi
+T1272S2	6879	T1272S2-D1	1-227	227	medium	9c3c	domains_summary.cgi
+T1272S6	6879	T1272S6-D1	466-624	159	medium	9c3c	domains_summary.cgi
+T1272S8	6879	T1272S8-D1	1-291	291	medium	9c3c	domains_summary.cgi
+T1272S9	6879	T1272S9-D1	42-216	175	medium	9c3c	domains_summary.cgi
+T1274	167	T1274-D1	77-167	91	easy		domains_summary.cgi
+T1276	229	T1276-D1	3-196	194	easy		domains_summary.cgi
+T1278	380	T1278-D1	34-370	337	easy		domains_summary.cgi
+T1279	428	T1279-D1	44-163	120	easy		domains_summary.cgi
+T1279	428	T1279-D2	164-423	260	medium		domains_summary.cgi
+T1280	237	T1280-D1	2-237	236	easy	9f5m	domains_summary.cgi
+T1284	120	T1284-D1	2-120	119	medium		domains_summary.cgi
+T1292	196	T1292-D1	1-193	193	easy		domains_summary.cgi
+T1294V1	214	T1294V1-D1	8-214	207	easy		domains_summary.cgi
+T1294V2	214	T1294V2-D1	8-214	207	easy		domains_summary.cgi
+T1295	515	T1295-D1	2-161	160	medium		domains_summary.cgi
+T1295	515	T1295-D2	162-299	138	easy		domains_summary.cgi
+T1295	515	T1295-D3	308-463	156	medium		domains_summary.cgi
+T1298	341	T1298-D1	1-119	119	medium	9sfa	domains_summary.cgi
+T1298	341	T1298-D2	120-340	221	medium	9sfa	domains_summary.cgi
+T1299	168	T1299-D1	1-168	168	easy	9fjl	domains_summary.cgi

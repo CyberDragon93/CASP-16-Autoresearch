@@ -6,12 +6,15 @@ import re
 import statistics
 import urllib.request
 from dataclasses import dataclass
+from html.parser import HTMLParser
 from io import StringIO
 from pathlib import Path
 from typing import Iterable, Sequence
 
 
 TARGET_LIST_URL = "https://predictioncenter.org/casp16/targetlist.cgi?type=csv"
+TARGET_LIST_HTML_URL = "https://predictioncenter.org/casp16/targetlist.cgi"
+DOMAINS_SUMMARY_URL = "https://predictioncenter.org/casp16/domains_summary.cgi"
 BASE_DOWNLOAD_URL = "https://predictioncenter.org/download_area/CASP16"
 
 SEQUENCE_FILES = {
@@ -31,6 +34,8 @@ SCORE_TABLES = {
 TARGET_TOKEN_RE = re.compile(r"\b([THRDML]\d{4}(?:s\d+|v\d+)?)\b", re.IGNORECASE)
 MODEL_TARGET_RE = re.compile(r"\b([A-Z]\d{4}(?:v\d+)?)TS", re.IGNORECASE)
 FLOAT_RE = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?")
+DOMAIN_DEF_RE = re.compile(r"\b([A-Z]\d{4}(?:S\d+|V\d+)?-D\d+)\s*:\s*(.+)$", re.IGNORECASE)
+PDB_ID_RE = re.compile(r"\b([0-9](?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{3})\b")
 
 PRIMARY_METRIC_CANDIDATES = {
     "prot_domains": ("GDT_TS", "LDDT", "TMscore"),
@@ -54,6 +59,14 @@ class OfficialPaths:
         return self.root / "sequences"
 
     @property
+    def domains_dir(self) -> Path:
+        return self.root / "domains"
+
+    @property
+    def references_dir(self) -> Path:
+        return self.root / "references"
+
+    @property
     def tables_dir(self) -> Path:
         return self.root / "results" / "tables"
 
@@ -66,12 +79,28 @@ class OfficialPaths:
         return self.targets_dir / "casp16_targets.csv"
 
     @property
+    def target_html(self) -> Path:
+        return self.targets_dir / "casp16_targetlist.html"
+
+    @property
+    def domain_summary_html(self) -> Path:
+        return self.domains_dir / "casp16_domains_summary.html"
+
+    @property
     def targets_tsv(self) -> Path:
         return self.parsed_dir / "targets.tsv"
 
     @property
+    def target_references_tsv(self) -> Path:
+        return self.parsed_dir / "target_references.tsv"
+
+    @property
     def sequences_tsv(self) -> Path:
         return self.parsed_dir / "sequences.tsv"
+
+    @property
+    def domains_tsv(self) -> Path:
+        return self.parsed_dir / "domain_definitions.tsv"
 
     @property
     def scores_tsv(self) -> Path:
@@ -123,6 +152,124 @@ def parse_targets_text(text: str) -> list[dict[str, str]]:
         clean["target_prefix"] = target_id[0]
         rows.append(clean)
     return rows
+
+
+class _DomainSummaryParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.rows: list[list[tuple[str, list[str]]]] = []
+        self._in_row = False
+        self._in_cell = False
+        self._current_cells: list[tuple[str, list[str]]] = []
+        self._current_text: list[str] = []
+        self._current_links: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        if tag == "tr":
+            self._in_row = True
+            self._current_cells = []
+        elif tag in {"td", "th"} and self._in_row:
+            self._in_cell = True
+            self._current_text = []
+            self._current_links = []
+        elif tag == "a" and self._in_cell:
+            for key, value in attrs:
+                if key.lower() == "href" and value:
+                    self._current_links.append(value)
+
+    def handle_data(self, data: str) -> None:
+        if self._in_cell:
+            self._current_text.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.lower()
+        if tag in {"td", "th"} and self._in_cell:
+            text = " ".join("".join(self._current_text).split())
+            self._current_cells.append((text, list(self._current_links)))
+            self._in_cell = False
+        elif tag == "tr" and self._in_row:
+            if self._current_cells:
+                self.rows.append(self._current_cells)
+            self._in_row = False
+
+
+def parse_domain_summary_text(text: str) -> list[dict[str, str]]:
+    parser = _DomainSummaryParser()
+    parser.feed(text)
+    rows: list[dict[str, str]] = []
+    for cells in parser.rows:
+        values = [text for text, _ in cells]
+        if len(values) < 6:
+            continue
+        if not values[0].rstrip(".").isdigit():
+            continue
+        domain_text = values[3]
+        match = DOMAIN_DEF_RE.search(domain_text)
+        if not match:
+            continue
+        domain_id = match.group(1).upper()
+        target_id = domain_id.split("-D", 1)[0]
+        pdb_ids = sorted(_pdb_ids_from_cells(cells))
+        rows.append(
+            {
+                "target_id": target_id,
+                "target_len": values[2],
+                "domain_id": domain_id,
+                "residue_ranges": match.group(2).strip(),
+                "domain_len": values[4],
+                "difficulty": values[5],
+                "pdb_ids": ",".join(pdb_ids),
+                "source": "domains_summary.cgi",
+            }
+        )
+    return rows
+
+
+def parse_target_reference_text(text: str) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    seen: set[str] = set()
+    target_anchor_re = re.compile(r'<a[^>]+href="target\.cgi[^"]*"[^>]*>\s*([THRDML]\d{4}(?:s\d+|v\d+)?)\s*</a>', re.IGNORECASE)
+    matches = list(target_anchor_re.finditer(text))
+    for index, match in enumerate(matches):
+        target_id = match.group(1).upper()
+        if target_id in seen:
+            continue
+        next_start = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        chunk = text[match.start() : next_start]
+        pdb_ids = sorted(_pdb_ids_from_target_chunk(chunk))
+        if not pdb_ids:
+            continue
+        seen.add(target_id)
+        rows.append({"target_id": target_id, "pdb_ids": ",".join(pdb_ids), "source": "targetlist.cgi"})
+    return rows
+
+
+def _pdb_ids_from_cells(cells: Sequence[tuple[str, list[str]]]) -> set[str]:
+    ids: set[str] = set()
+    for text, links in cells:
+        for match in PDB_ID_RE.findall(text):
+            ids.add(match.lower())
+        for href in links:
+            for match in re.findall(r"(?:structureId=|/structure/)([0-9][A-Za-z0-9]{3})", href, re.IGNORECASE):
+                ids.add(match.lower())
+    return ids
+
+
+def _pdb_ids_from_target_chunk(chunk: str) -> set[str]:
+    ids = {
+        match.lower()
+        for match in re.findall(r"(?:structureId=|/structure/)([0-9][A-Za-z0-9]{3})", chunk, re.IGNORECASE)
+        if PDB_ID_RE.fullmatch(match)
+    }
+    if ids:
+        return ids
+    text = re.sub(r"<[^>]+>", " ", chunk)
+    match = re.search(r"PDB codes?:?\s*([0-9A-Za-z,\s]+)", text, re.IGNORECASE)
+    if match:
+        for pdb_id in PDB_ID_RE.findall(match.group(1)):
+            ids.add(pdb_id.lower())
+    return ids
 
 
 def parse_fasta_text(text: str, source_file: str) -> list[dict[str, str]]:
@@ -234,9 +381,7 @@ def parse_score_table_text(text: str, category: str, source_name: str) -> list[d
             values = parts
         else:
             continue
-        if len(values) < len(headers):
-            values = values + [""] * (len(headers) - len(values))
-        metrics = dict(zip(headers, values[: len(headers)]))
+        metrics = align_score_values(headers, values)
         model = metrics.get("Model", "")
         target_id = current_target or infer_target_from_model(model)
         primary_metric, primary_score = choose_primary_score(category, metrics)
@@ -259,6 +404,17 @@ def parse_score_table_text(text: str, category: str, source_name: str) -> list[d
 
 def _split_header(line: str) -> list[str]:
     return line.lstrip("#").strip().split()
+
+
+def align_score_values(headers: Sequence[str], values: Sequence[str]) -> dict[str, str]:
+    if len(values) < len(headers):
+        padded = list(values) + [""] * (len(headers) - len(values))
+        return dict(zip(headers, padded))
+    if len(values) <= len(headers):
+        return dict(zip(headers, values))
+    head = list(values[: len(headers) - 1])
+    tail = " ".join(values[len(headers) - 1 :])
+    return dict(zip(headers, [*head, tail]))
 
 
 def infer_target_from_model(model: str) -> str:
@@ -318,6 +474,27 @@ def ingest_official_data(root: Path, *, force: bool = False) -> dict[str, object
         ],
     )
 
+    target_html = download_text(TARGET_LIST_HTML_URL, paths.target_html, force=force)
+    target_reference_rows = parse_target_reference_text(target_html)
+    write_tsv(paths.target_references_tsv, target_reference_rows, ["target_id", "pdb_ids", "source"])
+
+    domain_text = download_text(DOMAINS_SUMMARY_URL, paths.domain_summary_html, force=force)
+    domain_rows = parse_domain_summary_text(domain_text)
+    write_tsv(
+        paths.domains_tsv,
+        domain_rows,
+        [
+            "target_id",
+            "target_len",
+            "domain_id",
+            "residue_ranges",
+            "domain_len",
+            "difficulty",
+            "pdb_ids",
+            "source",
+        ],
+    )
+
     sequence_rows: list[dict[str, str]] = []
     for family, filename in SEQUENCE_FILES.items():
         url = f"{BASE_DOWNLOAD_URL}/sequences/{filename}"
@@ -368,8 +545,10 @@ def ingest_official_data(root: Path, *, force: bool = False) -> dict[str, object
     summary = {
         "target_count": len(targets),
         "target_prefix_counts": _count(row["target_prefix"] for row in targets),
+        "target_reference_count": len(target_reference_rows),
         "sequence_record_count": len(sequence_rows),
         "sequence_kind_counts": _count(row["sequence_kind"] for row in sequence_rows),
+        "domain_definition_count": len(domain_rows),
         "score_record_count": len(score_rows),
         "score_table_counts": table_counts,
         "official_root": str(root),

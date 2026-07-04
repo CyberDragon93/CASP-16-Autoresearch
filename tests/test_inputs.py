@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from casp16_leaderboard.inputs import build_protenix_job, chain_id_for, index_sequences_by_target, sanitize_sequence
+import pytest
+
+from casp16_leaderboard.inputs import build_protenix_job, chain_id_for, index_sequences_by_target, oligo_state_counts, sanitize_sequence
 
 
 def test_build_protenix_job_mixed_entities() -> None:
@@ -9,13 +11,34 @@ def test_build_protenix_job_mixed_entities() -> None:
         {"record_id": "M1", "sequence_kind": "rnaSequence", "sequence": "ACGT"},
         {"record_id": "M1", "sequence_kind": "dnaSequence", "sequence": "ACGU"},
     ]
-    job, entity_count, total_len = build_protenix_job("M0001", records)
+    job, entity_count, chain_count, total_len = build_protenix_job("M0001", records)
     assert job["name"] == "M0001"
     assert entity_count == 3
+    assert chain_count == 3
     assert total_len == 13
     assert job["sequences"][0]["proteinChain"]["sequence"] == "ACDXX"
     assert job["sequences"][1]["rnaSequence"]["sequence"] == "ACGU"
     assert job["sequences"][2]["dnaSequence"]["sequence"] == "ACGT"
+
+
+def test_build_protenix_job_uses_oligo_state_counts() -> None:
+    records = [
+        {"record_id": "H1", "sequence_kind": "proteinChain", "sequence": "ACD"},
+        {"record_id": "H2", "sequence_kind": "proteinChain", "sequence": "EFG"},
+    ]
+    job, entity_count, chain_count, total_len = build_protenix_job("H0001", records, oligo_state="A2B3")
+    assert entity_count == 2
+    assert chain_count == 5
+    assert total_len == 15
+    assert job["sequences"][0]["proteinChain"]["count"] == 2
+    assert job["sequences"][0]["proteinChain"]["id"] == ["A", "B"]
+    assert job["sequences"][1]["proteinChain"]["count"] == 3
+    assert job["sequences"][1]["proteinChain"]["id"] == ["C", "D", "E"]
+
+
+def test_oligo_state_mismatch_is_explicit() -> None:
+    with pytest.raises(ValueError, match="ambiguous_oligo_state"):
+        oligo_state_counts("A2B2", 1)
 
 
 def test_chain_ids_extend_after_z() -> None:

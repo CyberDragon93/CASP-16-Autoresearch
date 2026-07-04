@@ -1,0 +1,2 @@
+run_id	benchmark	status	backend	strategy	model_name	seeds	sample	rank_eligible	run_dir
+baseline_no_msa	casp16_protein_v1	pending	protenix	baseline_no_msa	protenix-v2	101	1	True	/scratch/10992/liaorunlong93/casp16-leaderboard/runs/baseline_no_msa

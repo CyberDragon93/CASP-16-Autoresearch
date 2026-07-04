@@ -4,4 +4,4 @@ Local runs are collected from `runs/*/run_spec.json`; structure metrics require 
 
 | run | backend | strategy | model | expected | structures | confidence | coverage | status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| baseline_no_msa | protenix | baseline_no_msa | protenix-v2 | 202 | 0 | 0 | none | not_started |
+| baseline_no_msa | protenix | baseline_no_msa | protenix-v2 | 128 | 0 | 0 | none | not_started |

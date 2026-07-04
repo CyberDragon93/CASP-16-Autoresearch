@@ -1,0 +1,47 @@
+{
+  "budget": {
+    "backend": "protenix",
+    "sample": 1,
+    "seed": "101",
+    "selected_model_policy": "first_output_only"
+  },
+  "description": "Locked CASP16 protein-first local leaderboard benchmark.",
+  "files": {
+    "domain_definitions": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_protein_v1/domain_definitions.tsv",
+      "sha256": "ef404b6d98b50cfe79358c444fb45c638b8ec5b7142652d002d93f9f94156cb9"
+    },
+    "input_manifest": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_protein_v1/input_manifest.tsv",
+      "sha256": "f2fd3b53e672f429cfd02a3acecda689e489cf12eed02e6421256e89b5e30253"
+    },
+    "inputs": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_protein_v1/inputs.json",
+      "sha256": "77ba5300fdc03924b3bd0abd3a86061584ad26a3b0f25a3180e8a16e43e08305"
+    },
+    "references": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_protein_v1/references.tsv",
+      "sha256": "989369eb137806e2852afeb3b28c2f2709fccc114b64ab0f5291f5dc5d718fa7"
+    },
+    "scoring_policy": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_protein_v1/scoring_policy.md",
+      "sha256": "04f549c1beb6290b09b64dbd26d95d1c784b1ef9cb6c15294fb98ff28d27aa94"
+    },
+    "targets": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_protein_v1/targets.tsv",
+      "sha256": "65c7d6df7d119ffbe059dc927e72cf0f10217d11b3d6ba1900c4719146e7d3db"
+    }
+  },
+  "missing_target_score": 0.0,
+  "name": "casp16_protein_v1",
+  "ranked_tracks": [
+    "protein_domain",
+    "protein_oligo"
+  ],
+  "source_urls": {
+    "domain_summary": "https://predictioncenter.org/casp16/domains_summary.cgi",
+    "download_area": "https://predictioncenter.org/download_area/CASP16",
+    "target_list": "https://predictioncenter.org/casp16/targetlist.cgi?type=csv"
+  },
+  "version": "1"
+}

@@ -1,0 +1,90 @@
+# Agent Operating Rules
+
+This file is the entry point for any agent or human making leaderboard-facing
+changes in this repository. Read it before creating a run, changing a strategy,
+or interpreting leaderboard outputs.
+
+## Goal
+
+The goal is to improve local CASP16 prediction strategies while preserving a
+stable, fair, reproducible leaderboard. Treat the benchmark as a protocol, not
+as a mutable result table.
+
+## Required Workflow
+
+Use the CLI path for every ranked run:
+
+```bash
+./casp16 run-spec --run-id <run_id> --benchmark casp16_protein_v1
+./casp16 run-next --benchmark casp16_protein_v1
+./casp16 score --benchmark casp16_protein_v1
+./casp16 leaderboard --benchmark casp16_protein_v1
+```
+
+Use this read-only check before launching work:
+
+```bash
+./casp16 list-runs --benchmark casp16_protein_v1
+./casp16 run-next --benchmark casp16_protein_v1 --dry-run
+```
+
+## Allowed Changes
+
+- Add new run specs, logs, manifests, predictions, and notes under
+  `runs/<run_id>/`.
+- Add strategy code or scripts that create new run specs without changing the
+  locked benchmark.
+- Add documentation that explains a strategy, failure mode, or result.
+- Regenerate leaderboard artifacts only through the documented `./casp16`
+  commands.
+
+## Protected Files
+
+Do not hand-edit these paths for a normal strategy iteration:
+
+- `benchmarks/casp16_protein_v1/*`
+- `leaderboards/*`
+- `data/official/parsed/official_scores.tsv`
+- cached reference structures under `data/official/references/`
+
+Changes to benchmark eligibility, reference mapping, metric parsing, fixed
+budget, or scoring policy require a new benchmark version. Do not silently
+rewrite `casp16_protein_v1`.
+
+## Data Access Rules
+
+Allowed during strategy design and prediction:
+
+- benchmark inputs and target metadata
+- run specs and run manifests
+- stdout/stderr logs
+- coverage summaries and failure summaries
+- public method documentation and model documentation
+
+Forbidden during strategy design and prediction:
+
+- native/reference structures for per-target tuning
+- official score tables for choosing target-specific behavior
+- previous `target_scores.csv` rows for per-target parameter selection
+- leaderboard outputs as an oracle for changing individual targets
+
+Scoring may read references and official-derived metadata only inside the
+benchmark scoring pipeline.
+
+## Ranking Rules
+
+- Ranked benchmark: `casp16_protein_v1`.
+- Ranked tracks: `protein_domain` and `protein_oligo`.
+- Fixed budget: backend `protenix`, seed `101`, sample `1`, selected model
+  policy `first_output_only`.
+- Missing predictions, failed metrics, missing references, and unavailable
+  metric tools score `0`.
+- Confidence files are diagnostics only. Do not use confidence as a quality
+  score or as a replacement for structure metrics.
+
+## Strategy Notes
+
+Create a short strategy record using `docs/STRATEGY_TEMPLATE.md` when adding a
+new run. The record should make it clear what changed, what stayed fixed, which
+commands were used, and whether the result is rank-eligible.
+

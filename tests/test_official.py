@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from casp16_leaderboard.official import (
+    align_score_values,
     base_target_id,
+    parse_domain_summary_text,
     parse_fasta_text,
     parse_score_table_text,
+    parse_target_reference_text,
     parse_targets_text,
 )
 
@@ -87,3 +90,36 @@ def test_missing_score_does_not_fall_back_to_model_digits() -> None:
 def test_base_target_keeps_variants_and_strips_subunits() -> None:
     assert base_target_id("T1208s1") == "T1208"
     assert base_target_id("M1228v1") == "M1228V1"
+
+
+def test_parse_domain_summary_text() -> None:
+    html = """
+<table id="table_results">
+<tr><th>#</th><th>Target</th><th>Residues</th><th>Domains</th><th>Residues in domain</th><th>Class</th><th>PDB</th></tr>
+<tr><td>1.</td><td>T1201</td><td>210</td><td>T1201-D1: 3-203</td><td>201</td><td>easy</td><td><a href="https://www.rcsb.org/structure/8bwd">8bwd</a></td></tr>
+</table>
+"""
+    rows = parse_domain_summary_text(html)
+    assert rows == [
+        {
+            "target_id": "T1201",
+            "target_len": "210",
+            "domain_id": "T1201-D1",
+            "residue_ranges": "3-203",
+            "domain_len": "201",
+            "difficulty": "easy",
+            "pdb_ids": "8bwd",
+            "source": "domains_summary.cgi",
+        }
+    ]
+
+
+def test_align_score_values_keeps_variable_tail_together() -> None:
+    metrics = align_score_values(["Model", "GR#", "GDT_TS", "Notes"], ["T1TS001_1", "001", "99.1", "a", "b"])
+    assert metrics["GDT_TS"] == "99.1"
+    assert metrics["Notes"] == "a b"
+
+
+def test_parse_target_reference_text() -> None:
+    html = '<tr><td><a href="target.cgi?id=1">H1202</a></td><td>2024-05-16 to 2024-05-19<br>complex<br>PDB code <a href="https://www.rcsb.org/structure/8bwl">8bwl</a></td></tr>'
+    assert parse_target_reference_text(html) == [{"target_id": "H1202", "pdb_ids": "8bwl", "source": "targetlist.cgi"}]

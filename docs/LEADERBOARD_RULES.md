@@ -1,0 +1,69 @@
+# CASP16 Leaderboard Rules
+
+These rules define the fair local leaderboard for `casp16_protein_v1`.
+
+## Benchmark Identity
+
+- Benchmark name: `casp16_protein_v1`.
+- Ranked tracks: `protein_domain`, `protein_oligo`.
+- Coverage-only tracks remain visible but are not ranked.
+- The fixed eligible target set is defined by
+  `benchmarks/casp16_protein_v1/targets.tsv`.
+
+## Fixed Budget
+
+Ranked submissions must use:
+
+- backend: `protenix`
+- seed: `101`
+- sample count: `1`
+- selected model policy: `first_output_only`
+
+The run spec must record the benchmark name, input hash, reference manifest
+hash, command, stdout path, stderr path, and tool environment.
+
+## Scoring
+
+- Ranking uses the fixed eligible target set for each track.
+- A missing prediction scores `0`.
+- A failed metric scores `0`.
+- An unavailable metric tool scores `0`.
+- A missing or unavailable reference scores `0`.
+- Confidence values are diagnostics only and never contribute to ranking.
+- Protein-domain scoring uses normalized GDT-TS/TM-like metrics when available.
+- Protein-oligo scoring uses DockQ-derived metrics when available.
+
+## Official Tables
+
+Official group tables are diagnostic comparisons. They are aggregated over the
+fixed category target set, with missing targets scored as `0`. They must not be
+used as an oracle for target-specific strategy choices.
+
+## Anti-Oracle Rules
+
+During prediction or strategy design, do not use:
+
+- native/reference structures for per-target tuning
+- official score tables to choose target-specific settings
+- previous `target_scores.csv` values to tune individual targets
+- manual inspection of references to alter a target prediction
+
+References may be read by scoring code only after predictions already exist.
+
+## Regeneration
+
+Ranked artifacts must be regenerated through:
+
+```bash
+./casp16 score --benchmark casp16_protein_v1
+./casp16 leaderboard --benchmark casp16_protein_v1
+```
+
+Do not hand-edit `leaderboards/casp16_protein_v1/*`.
+
+## Versioning
+
+Any change to target eligibility, reference mapping, scoring metrics, fixed
+budget, selected model policy, or benchmark inputs requires a new benchmark
+version. Do not overwrite `casp16_protein_v1` to make a result look better.
+

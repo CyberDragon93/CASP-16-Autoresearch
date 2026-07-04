@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -18,6 +19,11 @@ def write_csv(path: Path, rows: Sequence[Mapping[str, Any]], fieldnames: Sequenc
         writer.writeheader()
         for row in rows:
             writer.writerow({key: row.get(key, "") for key in fieldnames})
+
+
+def read_csv(path: Path) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle))
 
 
 def markdown_table(rows: Sequence[Mapping[str, Any]], columns: Sequence[tuple[str, str]]) -> str:
@@ -59,10 +65,13 @@ def generate_official_leaderboard(*, official_root: Path, output_dir: Path, top_
             "category",
             "rank",
             "group",
-            "target_count",
-            "mean_primary_score",
-            "median_primary_score",
-            "best_primary_score",
+            "eligible_target_count",
+            "submitted_target_count",
+            "missing_target_count",
+            "mean_fixed_score",
+            "mean_submitted_score",
+            "median_submitted_score",
+            "best_score",
             "primary_metric",
         ],
     )
@@ -93,6 +102,7 @@ def normalize_official_records(score_rows: Sequence[dict[str, str]]) -> list[dic
                 "submitted_model_rank": row.get("submitted_model_rank", ""),
                 "primary_metric": row.get("primary_metric", ""),
                 "primary_score": f"{score:.6f}",
+                "normalized_score": f"{normalize_primary_score(row.get('primary_metric', ''), score):.6f}",
                 "table": row.get("table", ""),
             }
         )
@@ -109,45 +119,70 @@ def infer_group_from_model(model: str) -> str:
 def summarize_official_groups(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
     best_by_target: dict[tuple[str, str], dict[str, float]] = defaultdict(dict)
     metrics_by_group: dict[tuple[str, str], set[str]] = defaultdict(set)
+    targets_by_category: dict[str, set[str]] = defaultdict(set)
     for row in rows:
         category = str(row["category"])
         group = str(row["group"])
         target = str(row["target_id"])
-        score = float(row["primary_score"])
+        if not category or not group or not target:
+            continue
+        score = float(row.get("normalized_score") or normalize_primary_score(str(row.get("primary_metric", "")), float(row["primary_score"])))
         key = (category, group)
         best_by_target[key][target] = max(score, best_by_target[key].get(target, float("-inf")))
+        targets_by_category[category].add(target)
         if row.get("primary_metric"):
             metrics_by_group[key].add(str(row["primary_metric"]))
 
     summaries: list[dict[str, Any]] = []
     by_category: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for (category, group), target_scores in best_by_target.items():
-        values = list(target_scores.values())
+        eligible_targets = sorted(targets_by_category[category])
+        fixed_values = [target_scores.get(target, 0.0) for target in eligible_targets]
+        submitted_values = list(target_scores.values())
         by_category[category].append(
             {
                 "category": category,
                 "rank": "",
                 "group": group,
-                "target_count": len(values),
-                "mean_primary_score": f"{mean(values):.6f}",
-                "median_primary_score": f"{median(values):.6f}",
-                "best_primary_score": f"{max(values):.6f}",
+                "eligible_target_count": len(eligible_targets),
+                "submitted_target_count": len(submitted_values),
+                "missing_target_count": len(eligible_targets) - len(submitted_values),
+                "mean_fixed_score": f"{mean(fixed_values):.6f}",
+                "mean_submitted_score": f"{mean(submitted_values):.6f}",
+                "median_submitted_score": f"{median(submitted_values):.6f}",
+                "best_score": f"{max(submitted_values):.6f}",
                 "primary_metric": ",".join(sorted(metrics_by_group[(category, group)])),
             }
         )
 
     for category, category_rows in sorted(by_category.items()):
-        category_rows.sort(key=lambda row: float(row["mean_primary_score"]), reverse=True)
+        category_rows.sort(key=lambda row: (float(row["mean_fixed_score"]), int(row["submitted_target_count"])), reverse=True)
         for rank, row in enumerate(category_rows, start=1):
             row["rank"] = rank
             summaries.append(row)
     return summaries
 
 
+def normalize_primary_score(metric: str, score: float) -> float:
+    metric_low = metric.lower()
+    if metric_low == "rmsd":
+        return 1.0 / (1.0 + max(score, 0.0))
+    if metric_low in {"gdt_ts", "gdt-ha", "gdt_ha"} or score > 1.0:
+        return max(0.0, min(score / 100.0, 1.0))
+    return max(0.0, min(score, 1.0))
+
+
+def _count(values: Iterable[str]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for value in values:
+        counts[value] = counts.get(value, 0) + 1
+    return counts
+
+
 def write_official_markdown(path: Path, rows: Sequence[Mapping[str, Any]], *, top_n: int) -> None:
     categories = sorted({str(row["category"]) for row in rows})
     lines = ["# CASP16 Official-Compatible Leaderboard", ""]
-    lines.append("Scores are aggregated from official CASP16 score tables. Each group keeps its best model per target, then ranks by mean primary score within category.")
+    lines.append("Scores are aggregated from official CASP16 score tables over each fixed category target set. Missing targets score 0; submitted-target mean is diagnostic only.")
     for category in categories:
         category_rows = [row for row in rows if row["category"] == category][:top_n]
         lines.extend(
@@ -160,10 +195,12 @@ def write_official_markdown(path: Path, rows: Sequence[Mapping[str, Any]], *, to
                     [
                         ("rank", "rank"),
                         ("group", "group"),
-                        ("targets", "target_count"),
-                        ("mean", "mean_primary_score"),
-                        ("median", "median_primary_score"),
-                        ("best", "best_primary_score"),
+                        ("eligible", "eligible_target_count"),
+                        ("submitted", "submitted_target_count"),
+                        ("missing", "missing_target_count"),
+                        ("fixed mean", "mean_fixed_score"),
+                        ("submitted mean", "mean_submitted_score"),
+                        ("best", "best_score"),
                         ("metric", "primary_metric"),
                     ],
                 ),
@@ -171,6 +208,212 @@ def write_official_markdown(path: Path, rows: Sequence[Mapping[str, Any]], *, to
         )
     ensure_dir(path.parent)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def generate_benchmark_leaderboard(
+    *,
+    project_root: Path,
+    benchmark: str,
+    output_dir: Path | None = None,
+    official_root: Path | None = None,
+    top_n: int = 25,
+) -> dict[str, object]:
+    benchmark_dir = project_root / "benchmarks" / benchmark
+    output_dir = (output_dir or (project_root / "leaderboards" / benchmark)).resolve()
+    targets = read_tsv(benchmark_dir / "targets.tsv")
+    target_scores_path = output_dir / "target_scores.csv"
+    score_rows = read_csv(target_scores_path) if target_scores_path.exists() else []
+    run_rows = summarize_benchmark_runs(score_rows, targets)
+    write_csv(
+        output_dir / "runs.csv",
+        run_rows,
+        [
+            "rank",
+            "run_id",
+            "track",
+            "rank_status",
+            "mean_score",
+            "eligible_targets",
+            "ok_targets",
+            "missing_targets",
+            "failed_targets",
+            "metric_unavailable_targets",
+            "artifact_path",
+        ],
+    )
+    write_results_markdown(output_dir / "RESULTS.md", run_rows, top_n=top_n)
+    write_benchmark_coverage(output_dir / "coverage.md", targets, score_rows)
+    if official_root is not None:
+        official_rows = summarize_official_groups(normalize_official_records(read_tsv(OfficialPaths(official_root).scores_tsv)))
+        official_rows = [row for row in official_rows if row["category"] in {"prot_domains", "prot_oligo"}]
+        write_csv(
+            output_dir / "official_groups.csv",
+            official_rows,
+            [
+                "category",
+                "rank",
+                "group",
+                "eligible_target_count",
+                "submitted_target_count",
+                "missing_target_count",
+                "mean_fixed_score",
+                "mean_submitted_score",
+                "median_submitted_score",
+                "best_score",
+                "primary_metric",
+            ],
+        )
+    artifacts = write_artifacts_manifest(output_dir, ["RESULTS.md", "runs.csv", "target_scores.csv", "coverage.md", "official_groups.csv"])
+    return {
+        "benchmark": benchmark,
+        "runs": len(run_rows),
+        "results_markdown": str(output_dir / "RESULTS.md"),
+        "runs_csv": str(output_dir / "runs.csv"),
+        "artifacts_manifest": artifacts,
+    }
+
+
+def summarize_benchmark_runs(score_rows: Sequence[Mapping[str, str]], targets: Sequence[Mapping[str, str]]) -> list[dict[str, Any]]:
+    eligible_by_track: dict[str, int] = defaultdict(int)
+    for target in targets:
+        if target.get("track") in {"protein_domain", "protein_oligo"} and str(target.get("rank_eligible", "")).lower() == "true":
+            eligible_by_track[str(target["track"])] += 1
+
+    rows_by_key: dict[tuple[str, str], list[Mapping[str, str]]] = defaultdict(list)
+    for row in score_rows:
+        rows_by_key[(str(row.get("run_id", "")), str(row.get("track", "")))].append(row)
+
+    summaries: list[dict[str, Any]] = []
+    for (run_id, track), rows in sorted(rows_by_key.items()):
+        eligible = eligible_by_track.get(track, 0)
+        ranked_rows = [row for row in rows if str(row.get("rank_eligible", "")).lower() == "true"]
+        scores = [parse_float(row.get("score", "")) or 0.0 for row in ranked_rows]
+        status_counts = _count(str(row.get("status", "")) for row in ranked_rows)
+        ok = status_counts.get("ok", 0)
+        missing = status_counts.get("missing_prediction", 0) + max(eligible - len(ranked_rows), 0)
+        failed = status_counts.get("metric_failed", 0) + status_counts.get("metric_unparseable", 0) + status_counts.get("missing_reference", 0)
+        metric_unavailable = status_counts.get("metric_unavailable", 0)
+        rank_status = "ranked"
+        if eligible == 0:
+            rank_status = "unranked:no_eligible_targets"
+        elif metric_unavailable:
+            rank_status = "unranked:metric_unavailable"
+        elif ok == 0:
+            rank_status = "pending:no_scored_targets"
+        summaries.append(
+            {
+                "rank": "",
+                "run_id": run_id,
+                "track": track,
+                "rank_status": rank_status,
+                "mean_score": f"{(sum(scores) / eligible if eligible else 0.0):.6f}",
+                "eligible_targets": eligible,
+                "ok_targets": ok,
+                "missing_targets": missing,
+                "failed_targets": failed,
+                "metric_unavailable_targets": metric_unavailable,
+                "artifact_path": _artifact_path_for_run(rows),
+            }
+        )
+
+    by_track: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in summaries:
+        by_track[str(row["track"])].append(row)
+    ranked: list[dict[str, Any]] = []
+    for track, rows in sorted(by_track.items()):
+        rows.sort(key=lambda row: (row["rank_status"] != "ranked", -float(row["mean_score"]), -int(row["ok_targets"]), row["run_id"]))
+        for rank, row in enumerate(rows, start=1):
+            row["rank"] = rank if row["rank_status"] == "ranked" else ""
+            ranked.append(row)
+    return ranked
+
+
+def _artifact_path_for_run(rows: Sequence[Mapping[str, str]]) -> str:
+    for row in rows:
+        prediction_path = row.get("prediction_path", "")
+        if prediction_path:
+            path = Path(prediction_path)
+            return str(path.parents[2] if len(path.parents) > 2 else path.parent)
+    return ""
+
+
+def write_results_markdown(path: Path, rows: Sequence[Mapping[str, Any]], *, top_n: int) -> None:
+    lines = ["# CASP16 Protein V1 Results", ""]
+    lines.append("Runs are ranked over fixed eligible target sets. Missing predictions, failed metrics, and unavailable metrics score 0.")
+    for track in sorted({str(row["track"]) for row in rows}):
+        track_rows = [row for row in rows if row["track"] == track][:top_n]
+        lines.extend(
+            [
+                "",
+                f"## {track}",
+                "",
+                markdown_table(
+                    track_rows,
+                    [
+                        ("rank", "rank"),
+                        ("run", "run_id"),
+                        ("status", "rank_status"),
+                        ("mean", "mean_score"),
+                        ("eligible", "eligible_targets"),
+                        ("ok", "ok_targets"),
+                        ("missing", "missing_targets"),
+                        ("failed", "failed_targets"),
+                        ("metric unavailable", "metric_unavailable_targets"),
+                    ],
+                ),
+            ]
+        )
+    ensure_dir(path.parent)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def write_benchmark_coverage(path: Path, targets: Sequence[Mapping[str, str]], score_rows: Sequence[Mapping[str, str]]) -> None:
+    coverage_rows: list[dict[str, Any]] = []
+    for track in sorted({str(row.get("track", "")) for row in targets}):
+        track_targets = [row for row in targets if row.get("track") == track]
+        coverage_rows.append(
+            {
+                "track": track,
+                "targets": len(track_targets),
+                "input_ok": sum(1 for row in track_targets if row.get("input_status") == "ok"),
+                "rank_eligible": sum(1 for row in track_targets if str(row.get("rank_eligible", "")).lower() == "true"),
+                "unranked": sum(1 for row in track_targets if str(row.get("rank_eligible", "")).lower() != "true"),
+            }
+        )
+    score_status_rows: list[dict[str, Any]] = []
+    for status in sorted({str(row.get("status", "")) for row in score_rows if row.get("status")}):
+        score_status_rows.append({"status": status, "target_scores": sum(1 for row in score_rows if row.get("status") == status)})
+    lines = [
+        "# CASP16 Protein V1 Coverage",
+        "",
+        "## Benchmark Targets",
+        "",
+        markdown_table(coverage_rows, [("track", "track"), ("targets", "targets"), ("input ok", "input_ok"), ("rank eligible", "rank_eligible"), ("unranked", "unranked")]),
+        "",
+        "## Score Status",
+        "",
+        markdown_table(score_status_rows, [("status", "status"), ("target scores", "target_scores")]),
+    ]
+    ensure_dir(path.parent)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def write_artifacts_manifest(output_dir: Path, filenames: Sequence[str]) -> str:
+    rows: dict[str, dict[str, str]] = {}
+    for filename in filenames:
+        path = output_dir / filename
+        rows[filename] = {"path": str(path), "sha256": sha256_path(path) if path.exists() else ""}
+    manifest_path = output_dir / "artifacts_manifest.json"
+    manifest_path.write_text(json.dumps(rows, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return str(manifest_path)
+
+
+def sha256_path(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def collect_local_runs(*, project_root: Path, output_dir: Path) -> dict[str, object]:
