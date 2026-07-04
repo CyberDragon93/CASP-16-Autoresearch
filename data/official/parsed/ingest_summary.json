@@ -1,0 +1,26 @@
+{
+  "official_root": "/scratch/10992/liaorunlong93/casp16-leaderboard/data/official",
+  "score_record_count": 95268,
+  "score_table_counts": {
+    "hybrid": 2497,
+    "prot_domains": 49696,
+    "prot_oligo": 33079,
+    "rna_mono": 8536,
+    "rna_oligo": 1460
+  },
+  "sequence_kind_counts": {
+    "dnaSequence": 22,
+    "proteinChain": 152,
+    "rnaSequence": 59
+  },
+  "sequence_record_count": 233,
+  "target_count": 301,
+  "target_prefix_counts": {
+    "D": 1,
+    "H": 64,
+    "L": 6,
+    "M": 22,
+    "R": 52,
+    "T": 156
+  }
+}

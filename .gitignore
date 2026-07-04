@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Reproducible official downloads / large parsed tables.
+data/official/results/
+data/official/parsed/official_scores.tsv
+
+# Large derived table; regenerate with `./casp16 leaderboard`.
+leaderboards/official_records.csv
+
+# Runtime outputs from local predictions.
+runs/*/predictions/
+runs/*/logs/
+
+# Local editor or OS files.
+.DS_Store

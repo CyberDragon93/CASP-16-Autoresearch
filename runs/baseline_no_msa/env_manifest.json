@@ -1,0 +1,46 @@
+{
+  "created_at_utc": "2026-07-04T02:43:29.847384+00:00",
+  "cwd": "/scratch/10992/liaorunlong93/casp16-leaderboard",
+  "tools": {
+    "DockQ": {
+      "configured_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/DockQ",
+      "exists": true,
+      "resolved_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/DockQ"
+    },
+    "TMscore": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": ""
+    },
+    "TMscore64": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": ""
+    },
+    "USalign": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": ""
+    },
+    "lddt": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": ""
+    },
+    "lddt_stereo": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": ""
+    },
+    "protenix": {
+      "configured_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/protenix",
+      "exists": true,
+      "resolved_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/protenix"
+    }
+  }
+}

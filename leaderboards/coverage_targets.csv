@@ -1,0 +1,7 @@
+target_prefix,target_count,sequence_input_covered,sequence_input_missing
+D,1,1,0
+H,64,22,42
+L,6,0,6
+M,22,17,5
+R,52,34,18
+T,156,62,94

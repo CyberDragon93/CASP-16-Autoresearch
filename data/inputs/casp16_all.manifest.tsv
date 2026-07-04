@@ -1,0 +1,302 @@
+target_id	target_prefix	description	status	skip_reason	sequence_records	entity_count	total_len	output_json
+T1201	T	Q9GZX9 8bwd	ok		1	1	210	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1202	H	Q9GZX9_plus_P43026 8bwl	ok		2	2	190	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1203	R	Rev response element stem-loop II 8uo6	ok		1	1	134	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1204	H	Human hemoglobin in complex with nanobody 8vyl	ok		3	3	429	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+L1000	L	Chymase	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+L2000	L	Cathepsin G	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+L3000	L	Autotaxin	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+L4000	L	MPro	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1205	R	xrRNA 9cfn	ok		1	1	59	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0206	T	Porcine astrovirus 4 capsid spike	ok		1	1	237	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1207	T	Q9YLS4, 2A protein part of viral polyprotein	ok		1	1	144	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0208	H	dahAB	ok		2	2	646	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0208S1	T	dahAB   subunit 1	ok		1	1	328	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0208S2	T	dahAB   subunit 2	ok		1	1	318	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0215	H	mNeonGreen with bound nanobody	ok		2	2	369	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1209	M	FAB - HIV-I RRE stem loop II  9c2k	ok		6	6	1040	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1209	R	FAB - HIV-I RRE stem loop II  9c2k  RNA component	ok		1	1	72	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1210	T	Q868N5 9enr	ok		1	1	1770	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1211	M	CVB3 cloverleaf RNA in complex with 3C protease 9dcf	ok		2	2	282	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1211	R	CVB3 cloverleaf RNA in complex with 3C protease 9dcf  RNA component	ok		1	1	90	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1214	T	YncD (NP_415968) 9c4o	ok		1	1	677	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1212	M	Fanzor2 ternary structure 9b0l	ok		4	4	809	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1212	R	Fanzor2 ternary structure 9b0l  RNA component	ok		1	1	247	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1212	T	Fanzor2 ternary structure 9b0l  protein subunit of M1212	ok		2	2	578	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0213	H	DP71_eIF2_PP1_complex   <em><font color=red>Canceled - released with wrong sequence.</font></em>	ok		5	5	1373	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1216	M	Tetrameric SPARSAgRNA�target ssDNA complex	ok		4	4	1106	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2201	T	Q9GZX9	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0217	H	AcP10_eIF2B_complex	ok		6	6	2939	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2202	H	Q9GZX9_plus_P43026	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2204	H	Human hemoglobin in complex with nanobody	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0218	T	Cry26Aa	ok		1	1	1164	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1219	T	HD6 uniprot Q01524	ok		1	1	32	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0220	H	BoDV-1 Replication complex	ok		2	2	434	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0220S1	T	BoDV-1 Replication complex    subunit 1	ok		1	1	394	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1206	T	Porcine astrovirus 4 capsid spike 9cp0	ok		1	1	237	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2207	T	Q9YLS4, 2A protein part of viral polyprotein	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1208	H	dahAB	ok		2	2	646	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1221	M	RNase P enzyme-substrate complex	ok		3	3	509	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1221S2	R	RNase P enzyme-substrate complex   RNA subunit 2	ok		1	1	398	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1221S3	R	RNase P enzyme-substrate complex   RNA subunit 3	ok		1	1	86	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1208S1	T	dahAB   subunit 1	ok		1	1	328	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1208S2	T	dahAB   subunit 2	ok		1	1	318	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0222	H	RSV G - Fab 2B11 complex	ok		3	3	485	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1215	H	mNeonGreen with bound nanobody	ok		2	2	369	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0223	H	RSV G - Fab 1G8 complex	ok		3	3	486	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1224	M	RNase P enzyme-substrate complex	ok		3	3	502	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1224S2	R	RNase P enzyme-substrate complex   RNA subunit 2	ok		1	1	395	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1224S3	R	RNase P enzyme-substrate complex   RNA subunit 3	ok		1	1	86	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0225	H	RSV G - Fab 1G1 complex	ok		3	3	483	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1226	T	TuAsV-2A3 (part of polyprotein)	ok		1	1	123	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0227	H	LetA (P0AD03) and LetB (P76272)	ok		2	2	1304	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1213	H	DP71_eIF2_PP1_complex 9nb9	ok		5	5	1373	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1241	R	group II intron	ok		1	1	480	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0227S1	T	LetA (P0AD03) and LetB (P76272)	ok		1	1	427	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1249V1	T	Arenaviral spike complex 9fya	ok		1	1	488	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1249V2	T	Arenaviral spike complex 9fyg	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1228V1	M	SPbeta_int_DNA	ok		5	5	239	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1228V2	M	SPbeta_int_DNA	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1228V1	T	SPbeta_int_DNA   protein subunit of M1228v1	ok		1	1	121	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1228V2	T	SPbeta_int_DNA   protein subunit of M1228v2	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0229	H	ORF61/A3A	ok		2	2	987	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0230	H	ORF61/A3B	ok		2	2	984	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1242	R	RaiA RNA motif, C. acetobutylicum 9ely	ok		1	1	205	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1217	H	AcP10_eIF2B_complex	ok		6	6	2939	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1231	T	A0A0E4G3H6	ok		1	1	142	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2210	T	Q868N5	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0232	H	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex	ok		2	2	462	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1248	R	GOLLD 3primedomain env46	ok		1	1	407	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1218	T	Cry26Aa	ok		1	1	1164	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2219	T	HD6 uniprot Q01524	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0233	H	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex	ok		3	3	658	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1220	H	BoDV-1 Replication complex  9h1g	ok		2	2	434	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1255	R	SL5 SARS-CoV-2: rotated junction	ok		1	1	124	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1220S1	T	BoDV-1 Replication complex  9h1g	ok		1	1	394	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2206	T	Porcine astrovirus 4 capsid spike	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0236	H	Haloferax tailed virus 1	ok		2	2	528	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2208	H	dahAB	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0234	T	YP_010355913.1	ok		1	1	413	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0235	T	A0A410N6V5.2	ok		1	1	115	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1222	H	RSV G - Fab 2B11 complex 9cqd	ok		3	3	485	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2215	H	mNeonGreen with bound nanobody	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1256	R	SL5 Bt-CoV-HKU5: SL5c truncated	ok		1	1	127	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0237	T	Bd3071	ok		1	1	488	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1223	H	RSV G - Fab 1G8 complex 9cqb	ok		3	3	486	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1239V1	M	SPbeta_intRDF_DNA 9dxd	ok		5	5	259	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1239V2	M	SPbeta_intRDF_DNA 9dxd	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0238	T	Bd2098	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1239V1	T	SPbeta_intRDF_DNA 9dxd  protein subunit of M1239v1	ok		1	1	141	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1239V2	T	SPbeta_intRDF_DNA 9dxd  protein subunit of M1239v2	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1225	H	RSV G - Fab 1G1 complex 9cqa	ok		3	3	483	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1260	R	Ribozyme solvent shell 9cbu, 9cbx	ok		1	1	387	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0240	T	Bd3442	ok		1	1	653	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2226	T	TuAsV-2A3 (part of polyprotein)	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0244	H	BJCNb48	ok		3	3	425	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1227	H	LetA (P0AD03) and LetB (P76272) 9n8w	ok		2	2	1304	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0244S1	T	BJCNb48	ok		1	1	157	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0244S2	T	BJCNb48	ok		1	1	129	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1227S1	T	LetA (P0AD03) and LetB (P76272) 9n8w	ok		1	1	427	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1243	T	MTMA3 (UNIPROT ID: P0CH91)	ok		1	1	293	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2249V1	T	Arenaviral spike complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2249V2	T	Arenaviral spike complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0245	H	FUNcomplex	ok		2	2	317	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2213	H	DP71_eIF2_PP1_complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0245S1	T	FUNcomplex	ok		1	1	183	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0245S2	T	FUNcomplex	ok		1	1	134	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0246	T	DcmC	ok		1	1	168	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1229	H	ORF61/A3A	ok		2	2	987	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1230	H	ORF61/A3B	ok		2	2	984	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1261	R	ZTP riboswitch 9bzc	ok		1	1	89	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1229S1	T	ORF61/A3A   <em><font color=red>Canceled - lower resolution copy of T1230s1.</font></em>	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1230S1	T	ORF61/A3B	ok		1	1	788	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1247	T	PilK   <em><font color=red>Canceled - no structure.</font></em>	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0258	H	LRRK2/14-3-3 complex	ok		2	2	2827	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2217	H	AcP10_eIF2B_complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1262	R	ZTP riboswitch with AICA 9bz1	ok		1	1	89	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0257	T	P13390	ok		1	1	1263	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2231	T	A0A0E4G3H6	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1232	H	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex 9cn2	ok		2	2	462	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R0254	R	GOLLD 3primedomain env38	ok		1	1	413	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0259	T	AZI86_00190	ok		1	1	243	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2218	T	Cry26Aa	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0265	H	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	ok		2	2	293	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1233	H	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex 9cbn	ok		3	3	658	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2220	H	BoDV-1 Replication complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R0252	R	ROOL UCC118	ok		1	1	520	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R0253	R	ROOL env209	ok		1	1	574	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1236	H	Haloferax tailed virus 1 8qpq	ok		2	2	528	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1234	T	YP_010355913.1 8qpq	ok		1	1	413	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1235	T	A0A410N6V5.2 8qpq	ok		1	1	115	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1266	T	Q99549  8qfb	ok		1	1	336	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0267	H	XauSPARDA	ok		2	2	926	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2222	H	RSV G - Fab 2B11 complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1263	R	ZTP riboswitch with m-1-pyridinyl AICA 8vqv	ok		1	1	64	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1237	T	Bd3071	ok		1	1	488	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2223	H	RSV G - Fab 1G8 complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M0268	M	Activated XauSPARDA with nucleic acids	ok		6	6	996	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1264	R	ZTP riboswitch with AICA derivative 8vvj	ok		1	1	64	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1238	T	Bd2098   <em><font color=red>Canceled - no structure.</font></em>	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2225	H	RSV G - Fab 1G1 complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1240	T	Bd3442	ok		1	1	653	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1269	T	MUC5AC uniprot P98088 9gvq	ok		1	1	1410	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1244	H	BJCNb48	ok		3	3	425	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2227	H	LetA (P0AD03) and LetB (P76272)	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0270	T	HtrA	ok		1	1	437	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1244S1	T	BJCNb48	ok		1	1	157	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1244S2	T	BJCNb48	ok		1	1	129	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2243	T	MTMA3 (UNIPROT ID: P0CH91)	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1245	H	FUNcomplex	ok		2	2	317	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M0271	M	RECC	ok		12	12	4431	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R0271	R	RECC	ok		1	1	77	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0271S1	T	RECC	ok		1	1	818	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0271S2	T	RECC	ok		1	1	414	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0271S3	T	RECC	ok		1	1	384	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0271S4	T	RECC	ok		1	1	368	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0271S5	T	RECC	ok		1	1	762	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0271S6	T	RECC	ok		1	1	587	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0271S7	T	RECC	ok		1	1	393	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0271S8	T	RECC	ok		1	1	218	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1245S1	T	FUNcomplex	ok		1	1	183	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1245S2	T	FUNcomplex	ok		1	1	134	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1246	T	DcmC	ok		1	1	168	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2229	H	ORF61/A3A	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2230	H	ORF61/A3B	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2247	T	PilK   <em><font color=red>Canceled - no structure.</font></em>	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+D1273	D	RKEC1 9hio	ok		1	1	27	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1258	H	LRRK2/14-3-3 complex 9ci3	ok		2	2	2827	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1257	T	P13390	ok		1	1	1263	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2232	H	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1271	M	RECC	ok		12	12	4431	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R0250	R	GOLLD full env46	ok		1	1	744	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R0251	R	GOLLD full env38	ok		1	1	833	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1254	R	GOLLD 3primedomain env38	ok		1	1	413	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1271	R	RECC	ok		1	1	77	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1259	T	AZI86_00190	ok		1	1	243	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1271S1	T	RECC	ok		1	1	818	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1271S2	T	RECC	ok		1	1	414	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1271S3	T	RECC	ok		1	1	384	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1271S4	T	RECC	ok		1	1	368	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1271S5	T	RECC	ok		1	1	762	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1271S6	T	RECC	ok		1	1	587	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1271S7	T	RECC	ok		1	1	393	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1271S8	T	RECC	ok		1	1	218	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1265	H	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	ok		2	2	293	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2233	H	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1252	R	ROOL UCC118	ok		1	1	520	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1253V1	R	ROOL env209	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1253V2	R	ROOL env209	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1274	T	CAB14884.3	ok		1	1	167	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2236	H	Haloferax tailed virus 1	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2234	T	YP_010355913.1	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2235	T	A0A410N6V5.2	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2266	T	Q99549	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H0272	H	dystrophin-glycoprotein complex (DGC) 9c3c	ok		9	9	6879	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1267	H	XauSPARDA	ok		2	2	926	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0272S2	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	363	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0272S3	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	318	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0272S4	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	289	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0272S5	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	291	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0272S6	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	624	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0272S7	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	242	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0272S8	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	818	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T0272S9	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	238	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1267S1	T	XauSPARDA	ok		1	1	444	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1267S2	T	XauSPARDA	ok		1	1	482	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2237	T	Bd3071	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M0276	M	One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	ok		2	2	73	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2238	T	Bd2098	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1268	M	Activated XauSPARDA with nucleic acids	ok		6	6	996	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1275	T	C12orf29   <em><font color=red>Canceled - bioRxiv preprint available.</font></em>	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2240	T	Bd3442	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2269	T	MUC5AC uniprot P98088	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2244	H	BJCNb48	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1270	T	HtrA	ok		1	1	437	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1277	T	Tue1   <em><font color=red>Canceled - bioRxiv preprint available.</font></em>	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2245	H	FUNcomplex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1286	R	Lactobacillus ncRNA 9j6y	ok		1	1	526	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2246	T	DcmC	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R0281	R	2F RNA 6-helix bundle dimer	ok		1	1	718	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1278	T	Dehydrogenase	ok		1	1	380	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1279	T	Bd1369	ok		1	1	428	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2258	H	LRRK2/14-3-3 complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1282	M	Spike-RBD/Aptamer complex	ok		2	2	249	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1280	T	C-terminal domain of bacteriophage K gp155 9f5m	ok		1	1	237	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2257	T	P13390	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M0287	M	Q0X0A9_STRLS	ok		2	2	852	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1250	R	GOLLD full env46	ok		1	1	744	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1251	R	GOLLD full env38 9mee	ok		1	1	833	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2259	T	AZI86_00190	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2265	H	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R0283	R	Enterococcus ncRNA	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2274	T	CAB14884.3	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R0285	R	OLE	ok		1	1	577	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1284	T	gp62	ok		1	1	120	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H1272	H	dystrophin-glycoprotein complex (DGC) 9c3c	ok		9	9	6879	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2267	H	XauSPARDA	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R0290	R	HYER1-withoutTRS	ok		1	1	627	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1272S2	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	363	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1272S3	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	318	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1272S4	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	289	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1272S5	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	291	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1272S6	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	624	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1272S7	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	242	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1272S8	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	818	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1272S9	T	dystrophin-glycoprotein complex (DGC) 9c3c	ok		1	1	238	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1276	M	One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	ok		2	2	73	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1289	R	Precursor tRNA	ok		1	1	284	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1276	T	One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	ok		1	1	40	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1288	R	SAMURI	ok		1	1	58	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2271S1	T	RECC	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2271S2	T	RECC	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2271S3	T	RECC	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2271S4	T	RECC	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2271S5	T	RECC	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2271S6	T	RECC	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2271S7	T	RECC	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2271S8	T	RECC	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1291	R	O.I.intron-fulllength	ok		1	1	480	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2270	T	HtrA	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1293	M	Translation enhancer motif	ok		3	3	524	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1293	R	Translation enhancer motif	ok		1	1	82	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1292	T	isocyanide hydratase-like iron binding protein	ok		1	1	196	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1281	R	2F RNA 6-helix bundle dimer	ok		1	1	718	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2278	T	Dehydrogenase	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2279	T	Bd1369	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1294V1	T	Isocyanide hydratase	ok		1	1	214	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1294V2	T	Isocyanide hydratase	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2280	T	C-terminal domain of bacteriophage K gp155 9f5m	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1287	M	Q0X0A9_STRLS	ok		2	2	852	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1200	T	WT_ZLBT-C	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1295	T	TM_Ag	ok		1	1	469	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1300	T	Gly6_ZLBT-C	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1296	M	G34U mutant of M1209 complex 9c75	ok		3	3	520	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1283V1	R	Enterococcus ncRNA 9isv	ok		1	1	580	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1283V2	R	Enterococcus ncRNA 9j3r	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1283V3	R	Enterococcus ncRNA 9j3t	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1296	R	G34U mutant of M1209 complex 9c75	ok		1	1	72	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+M1297	M	Telomerase	ok		6	6	1887	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1285	R	OLE 9mcw	ok		1	1	577	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2284	T	gp62	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+H2272	H	dystrophin-glycoprotein complex (DGC) 9c3c	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1290	R	HYER1-withoutTRS	ok		1	1	627	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1269V1	T	MUC5AC uniprot P98088 9gvq	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1298	T	Cyclic nucleotide-binding protein  9sfa	ok		1	1	342	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2272S2	T	dystrophin-glycoprotein complex (DGC) 9c3c	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2272S3	T	dystrophin-glycoprotein complex (DGC) 9c3c	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2272S4	T	dystrophin-glycoprotein complex (DGC) 9c3c	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2272S5	T	dystrophin-glycoprotein complex (DGC) 9c3c	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2272S6	T	dystrophin-glycoprotein complex (DGC) 9c3c	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2272S7	T	dystrophin-glycoprotein complex (DGC) 9c3c	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2272S8	T	dystrophin-glycoprotein complex (DGC) 9c3c	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2272S9	T	dystrophin-glycoprotein complex (DGC) 9c3c	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1219V1	T	HD6 uniprot Q01524	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1219V2	T	HD6 uniprot Q01524	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T1299	T	9FJL 9fjl	ok		1	1	168	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+T2276	T	One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+L5001	L	WDR55_apo	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+L5001V1	L	WDR55_apo	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1261V1	R	ZTP riboswitch 9bzc	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1262V1	R	ZTP riboswitch with AICA 9bz1	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1263V1	R	ZTP riboswitch with m-1-pyridinyl AICA 8vqv	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json
+R1264V1	R	ZTP riboswitch with AICA derivative 8vvj	skipped	no_sequence_record	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/data/inputs/casp16_all.json

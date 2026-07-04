@@ -1,0 +1,2 @@
+run_id,backend,strategy,model_name,seeds,sample,expected_targets,structure_files,confidence_files,mean_ranking_score,mean_plddt,mean_ptm,mean_iptm,metric_coverage,official_compatible_score,status,artifact_path
+baseline_no_msa,protenix,baseline_no_msa,protenix-v2,101,1,202,0,0,,,,,none,,not_started,/scratch/10992/liaorunlong93/casp16-leaderboard/runs/baseline_no_msa

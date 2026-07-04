@@ -1,0 +1,13 @@
+[project]
+name = "casp16-leaderboard"
+version = "0.1.0"
+description = "Local CASP16 leaderboard infrastructure with official-compatible static outputs."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+casp16 = "casp16_leaderboard.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
