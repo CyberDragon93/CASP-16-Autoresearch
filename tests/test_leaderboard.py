@@ -33,3 +33,20 @@ def test_local_summary_uses_fixed_denominator() -> None:
     assert rows[0]["mean_score"] == "0.600000"
     assert rows[1]["run_id"] == "one_hit"
     assert rows[1]["mean_score"] == "0.500000"
+
+
+def test_local_summary_does_not_rank_ineligible_runs() -> None:
+    targets = [
+        {"target_id": "T1", "track": "protein_domain", "rank_eligible": "true"},
+    ]
+    scores = [
+        {"run_id": "diagnostic", "track": "protein_domain", "target_id": "T1", "rank_eligible": "true", "score": "1.0", "status": "ok"},
+        {"run_id": "official", "track": "protein_domain", "target_id": "T1", "rank_eligible": "true", "score": "0.5", "status": "ok"},
+    ]
+    rows = summarize_benchmark_runs(scores, targets, run_rank_eligible={"diagnostic": False, "official": True})
+
+    assert rows[0]["run_id"] == "official"
+    assert rows[0]["rank"] == 1
+    assert rows[1]["run_id"] == "diagnostic"
+    assert rows[1]["rank"] == ""
+    assert rows[1]["rank_status"] == "unranked:run_not_rank_eligible"

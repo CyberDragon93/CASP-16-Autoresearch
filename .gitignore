@@ -13,8 +13,22 @@ data/official/references/mmcif/
 leaderboards/official_records.csv
 
 # Runtime outputs from local predictions.
+runs/*/__pycache__/
+runs/*/features
+runs/*/features/
+runs/*/inputs
+runs/*/inputs/
 runs/*/predictions/
 runs/*/logs/
+runs/*/prepared_inputs
+runs/*/prepared_inputs/
+runs/*/prepared_ranked_protein_inputs
+runs/*/prepared_ranked_protein_inputs/
+runs/*/prepared_ranked_protein_manifest.tsv
+runs/*/raw_inputs
+runs/*/raw_inputs/
+runs/*/tmp_inputs
+runs/*/tmp_inputs/
 
 # Local editor or OS files.
 .DS_Store

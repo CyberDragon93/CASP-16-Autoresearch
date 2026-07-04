@@ -10,7 +10,7 @@ import hashlib
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 
 from .official import ensure_dir
 
@@ -236,7 +236,7 @@ def create_run_spec(
     )
     write_run_script(run_dir / "run.sh", command, protenix_root_dir=protenix_root_dir, protenix_bin=protenix_bin)
     append_status(project_root, run_id=run_id, benchmark=benchmark_name, status="pending", message="run_spec_created")
-    write_runs_manifest(project_root)
+    register_run_spec(project_root, spec_dict)
     return {"run_dir": str(run_dir), "run_spec": str(run_dir / "run_spec.json"), "script": str(run_dir / "run.sh")}
 
 
@@ -283,7 +283,7 @@ def check_environment(*, project_root: Path | None = None, protenix_bin: Path = 
     }
 
 
-def load_run_specs(runs_dir: Path) -> list[dict[str, object]]:
+def _scan_run_specs(runs_dir: Path) -> list[dict[str, object]]:
     specs: list[dict[str, object]] = []
     if not runs_dir.exists():
         return specs
@@ -293,6 +293,56 @@ def load_run_specs(runs_dir: Path) -> list[dict[str, object]]:
         spec["_run_dir"] = str(path.parent)
         specs.append(spec)
     return specs
+
+
+def _read_manifest_rows(runs_dir: Path) -> list[dict[str, str]]:
+    path = runs_dir / "manifest.tsv"
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle, delimiter="\t"))
+
+
+def _load_manifest_run_specs(runs_dir: Path) -> list[dict[str, object]]:
+    specs: list[dict[str, object]] = []
+    seen: set[str] = set()
+    for row in _read_manifest_rows(runs_dir):
+        run_id = row.get("run_id", "")
+        if not run_id or run_id in seen:
+            continue
+        run_dir_text = row.get("run_dir", "")
+        run_dir = Path(run_dir_text) if run_dir_text else runs_dir / run_id
+        path = run_dir / "run_spec.json"
+        if not path.exists():
+            continue
+        with path.open(encoding="utf-8") as handle:
+            spec = json.load(handle)
+        spec["_run_dir"] = str(path.parent)
+        specs.append(spec)
+        seen.add(run_id)
+    return specs
+
+
+def load_run_specs(runs_dir: Path, *, registered_only: bool = False) -> list[dict[str, object]]:
+    if registered_only and (runs_dir / "manifest.tsv").exists():
+        return _load_manifest_run_specs(runs_dir)
+    return _scan_run_specs(runs_dir)
+
+
+def run_row_from_spec(spec: Mapping[str, Any], status_by_run: Mapping[str, Mapping[str, str]]) -> dict[str, Any]:
+    run_id = str(spec.get("run_id", ""))
+    return {
+        "run_id": run_id,
+        "benchmark": spec.get("benchmark_name", ""),
+        "status": status_by_run.get(run_id, {}).get("status", "pending"),
+        "backend": spec.get("backend", ""),
+        "strategy": spec.get("strategy", ""),
+        "model_name": spec.get("model_name", ""),
+        "seeds": spec.get("seeds", ""),
+        "sample": spec.get("sample", ""),
+        "rank_eligible": spec.get("rank_eligible", ""),
+        "run_dir": spec.get("_run_dir", ""),
+    }
 
 
 def file_sha256(path: Path | None) -> str:
@@ -353,34 +403,25 @@ def latest_status_by_run(project_root: Path) -> dict[str, dict[str, str]]:
     return latest
 
 
-def list_run_rows(project_root: Path, *, benchmark: str | None = None) -> list[dict[str, Any]]:
+def list_run_rows(project_root: Path, *, benchmark: str | None = None, registered_only: bool = True) -> list[dict[str, Any]]:
     status_by_run = latest_status_by_run(project_root)
     rows: list[dict[str, Any]] = []
-    for spec in load_run_specs(project_root / "runs"):
+    for spec in load_run_specs(project_root / "runs", registered_only=registered_only):
         run_id = str(spec.get("run_id", ""))
         if benchmark and spec.get("benchmark_name") != benchmark:
             continue
-        status = status_by_run.get(run_id, {}).get("status", "pending")
-        rows.append(
-            {
-                "run_id": run_id,
-                "benchmark": spec.get("benchmark_name", ""),
-                "status": status,
-                "backend": spec.get("backend", ""),
-                "strategy": spec.get("strategy", ""),
-                "model_name": spec.get("model_name", ""),
-                "seeds": spec.get("seeds", ""),
-                "sample": spec.get("sample", ""),
-                "rank_eligible": spec.get("rank_eligible", ""),
-                "run_dir": spec.get("_run_dir", ""),
-            }
-        )
+        rows.append(run_row_from_spec(spec, status_by_run))
     return rows
 
 
-def write_runs_manifest(project_root: Path) -> Path:
+def write_runs_manifest(project_root: Path, specs: Sequence[Mapping[str, Any]] | None = None) -> Path:
     path = project_root / "runs" / "manifest.tsv"
-    rows = list_run_rows(project_root)
+    status_by_run = latest_status_by_run(project_root)
+    rows = (
+        [run_row_from_spec(_with_run_dir(project_root, spec), status_by_run) for spec in specs]
+        if specs is not None
+        else list_run_rows(project_root)
+    )
     ensure_dir(path.parent)
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(
@@ -393,6 +434,23 @@ def write_runs_manifest(project_root: Path) -> Path:
         for row in rows:
             writer.writerow(row)
     return path
+
+
+def register_run_spec(project_root: Path, spec: Mapping[str, Any]) -> Path:
+    run_id = str(spec.get("run_id", ""))
+    manifest_path = project_root / "runs" / "manifest.tsv"
+    registered_specs = load_run_specs(project_root / "runs", registered_only=True) if manifest_path.exists() else []
+    registered_specs = [row for row in registered_specs if str(row.get("run_id", "")) != run_id]
+    registered_specs.append(_with_run_dir(project_root, spec))
+    return write_runs_manifest(project_root, specs=registered_specs)
+
+
+def _with_run_dir(project_root: Path, spec: Mapping[str, Any]) -> dict[str, Any]:
+    row = dict(spec)
+    run_id = str(row.get("run_id", ""))
+    if run_id and not row.get("_run_dir"):
+        row["_run_dir"] = str(project_root / "runs" / run_id)
+    return row
 
 
 def run_next(project_root: Path, *, benchmark: str | None = None, dry_run: bool = False) -> dict[str, object]:

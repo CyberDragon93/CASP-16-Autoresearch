@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from casp16_leaderboard.scoring import parse_dockq_output, parse_tmscore_output, score_target
+from casp16_leaderboard.scoring import find_prediction_for_target, parse_dockq_output, parse_tmscore_output, score_target
 
 
 def test_parse_tmscore_output_normalizes_gdt() -> None:
@@ -12,6 +12,7 @@ def test_parse_tmscore_output_normalizes_gdt() -> None:
 def test_parse_dockq_output() -> None:
     assert parse_dockq_output("DockQ 0.642 other columns")["dockq"] == 0.642
     assert parse_dockq_output("DockQ=0.321")["dockq"] == 0.321
+    assert parse_dockq_output("Total DockQ over 3 native interfaces: 0.296\nDockQ 0.733")["dockq"] == 0.296
 
 
 def test_missing_prediction_scores_zero(tmp_path) -> None:
@@ -27,3 +28,27 @@ def test_missing_prediction_scores_zero(tmp_path) -> None:
     )
     assert row["score"] == "0.000000"
     assert row["status"] == "missing_prediction"
+
+
+def test_prediction_lookup_does_not_fallback_to_other_target(tmp_path) -> None:
+    pred_dir = tmp_path / "predictions" / "T1299" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    prediction = pred_dir / "T1299_sample_0.cif"
+    prediction.write_text("data_T1299\n", encoding="utf-8")
+
+    assert find_prediction_for_target(tmp_path, "T1299") == prediction
+    assert find_prediction_for_target(tmp_path, "T1201") is None
+
+
+def test_prediction_lookup_ignores_target_id_in_run_directory(tmp_path) -> None:
+    output_dir = tmp_path / "runs" / "retry_H1258" / "predictions" / "opendde_v1"
+    wrong_dir = output_dir / "H0222" / "seed_101" / "predictions"
+    right_dir = output_dir / "H1258" / "seed_101" / "predictions"
+    wrong_dir.mkdir(parents=True)
+    right_dir.mkdir(parents=True)
+    wrong_prediction = wrong_dir / "H0222_sample_0.cif"
+    right_prediction = right_dir / "sample_0.cif"
+    wrong_prediction.write_text("data_H0222\n", encoding="utf-8")
+    right_prediction.write_text("data_H1258\n", encoding="utf-8")
+
+    assert find_prediction_for_target(output_dir, "H1258") == right_prediction

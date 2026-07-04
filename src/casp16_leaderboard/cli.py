@@ -90,6 +90,8 @@ def build_parser() -> argparse.ArgumentParser:
     leaderboard.add_argument("--benchmark", default="", help=f"Generate benchmark leaderboard, e.g. {BENCHMARK_NAME}.")
     leaderboard.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
     leaderboard.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards.")
+    leaderboard.add_argument("--tmscore-bin", type=Path, default=None)
+    leaderboard.add_argument("--dockq-bin", type=Path, default=None)
     leaderboard.add_argument("--top-n", type=int, default=25)
 
     return parser
@@ -204,7 +206,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         official_dir = (args.official_dir or (root / "data" / "official")).resolve()
         if args.benchmark:
             output_dir = (args.output_dir or (root / "leaderboards" / args.benchmark)).resolve()
-            score_summary = score_benchmark_runs(project_root=root, benchmark=args.benchmark, output_dir=output_dir)
+            score_summary = score_benchmark_runs(
+                project_root=root,
+                benchmark=args.benchmark,
+                output_dir=output_dir,
+                tmscore_bin=args.tmscore_bin,
+                dockq_bin=args.dockq_bin or None,
+            )
             summary = {
                 "score": score_summary,
                 "leaderboard": generate_benchmark_leaderboard(project_root=root, benchmark=args.benchmark, output_dir=output_dir, official_root=official_dir, top_n=args.top_n),

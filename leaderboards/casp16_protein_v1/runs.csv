@@ -1,3 +1,9 @@
 rank,run_id,track,rank_status,mean_score,eligible_targets,ok_targets,missing_targets,failed_targets,metric_unavailable_targets,artifact_path
+1,opendde_v1_t1299_no_msa,protein_domain,ranked,0.018325,16,1,15,0,0,/scratch/10992/liaorunlong93/casp16-leaderboard/runs/opendde_v1_t1299_no_msa/predictions/opendde_v1/T1299
+,opendde_v1_full_msa_template,protein_domain,unranked:run_not_rank_eligible,0.177875,16,13,3,0,0,/scratch/10992/liaorunlong93/casp16-leaderboard/runs/opendde_v1_full_msa_template/predictions/opendde_v1/T1201
+,opendde_v1_t1299_msa,protein_domain,unranked:run_not_rank_eligible,0.059338,16,1,15,0,0,/scratch/10992/liaorunlong93/casp16-leaderboard/runs/opendde_v1_t1299_msa/predictions/opendde_v1/T1299
 ,baseline_no_msa,protein_domain,pending:no_scored_targets,0.000000,16,0,16,0,0,
 ,baseline_no_msa,protein_oligo,pending:no_scored_targets,0.000000,15,0,15,0,0,
+,opendde_v1_full_msa_template,protein_oligo,unranked:run_not_rank_eligible,0.000000,15,0,8,7,0,/scratch/10992/liaorunlong93/casp16-leaderboard/runs/opendde_v1_full_msa_template/predictions/opendde_v1/H1202
+,opendde_v1_t1299_msa,protein_oligo,unranked:run_not_rank_eligible,0.000000,15,0,15,0,0,
+,opendde_v1_t1299_no_msa,protein_oligo,pending:no_scored_targets,0.000000,15,0,15,0,0,

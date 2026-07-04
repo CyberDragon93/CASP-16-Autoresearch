@@ -53,6 +53,9 @@ def parse_tmscore_output(text: str) -> dict[str, float]:
 
 
 def parse_dockq_output(text: str) -> dict[str, float]:
+    total_match = re.search(r"\bTotal\s+DockQ\b[^\n:=]*[=:]\s*([0-9.]+)", text, re.IGNORECASE)
+    if total_match:
+        return {"dockq": float(total_match.group(1))}
     for pattern in (
         r"\bDockQ(?:_Avg)?\s*[=:]\s*([0-9.]+)",
         r"\bDockQ\s+([0-9.]+)",
@@ -68,8 +71,16 @@ def find_prediction_for_target(output_dir: Path, target_id: str) -> Path | None:
         return None
     target_low = target_id.lower()
     candidates = sorted(output_dir.glob("**/*.cif")) + sorted(output_dir.glob("**/*.pdb"))
-    matched = [path for path in candidates if target_low in path.name.lower() or target_low in str(path.parent).lower()]
-    return (matched or candidates or [None])[0]
+    matched = []
+    for path in candidates:
+        try:
+            rel_parts = path.relative_to(output_dir).parts
+        except ValueError:
+            rel_parts = path.parts
+        rel_parts_low = [part.lower() for part in rel_parts]
+        if target_low in path.name.lower() or target_low in rel_parts_low[:-1]:
+            matched.append(path)
+    return matched[0] if matched else None
 
 
 def run_metric(command: Sequence[str], *, timeout_seconds: int = 300) -> tuple[int, str, str]:
@@ -88,7 +99,7 @@ def score_benchmark_runs(
     output_dir = (output_dir or (project_root / "leaderboards" / benchmark)).resolve()
     targets = read_benchmark_targets(project_root, benchmark)
     references = {row["target_id"]: row for row in read_benchmark_references(project_root, benchmark)}
-    specs = [spec for spec in load_run_specs(project_root / "runs") if spec.get("benchmark_name", benchmark) == benchmark]
+    specs = [spec for spec in load_run_specs(project_root / "runs", registered_only=True) if spec.get("benchmark_name", benchmark) == benchmark]
     tm_tool = resolve_tool(tmscore_bin, ["TMscore", "TMscore64", "USalign"])
     dockq_tool = resolve_tool(dockq_bin, ["DockQ"])
 

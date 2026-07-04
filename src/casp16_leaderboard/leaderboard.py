@@ -223,7 +223,11 @@ def generate_benchmark_leaderboard(
     targets = read_tsv(benchmark_dir / "targets.tsv")
     target_scores_path = output_dir / "target_scores.csv"
     score_rows = read_csv(target_scores_path) if target_scores_path.exists() else []
-    run_rows = summarize_benchmark_runs(score_rows, targets)
+    run_rank_eligible = {
+        str(spec.get("run_id", "")): bool(spec.get("rank_eligible", True))
+        for spec in load_run_specs(project_root / "runs", registered_only=True)
+    }
+    run_rows = summarize_benchmark_runs(score_rows, targets, run_rank_eligible=run_rank_eligible)
     write_csv(
         output_dir / "runs.csv",
         run_rows,
@@ -273,7 +277,12 @@ def generate_benchmark_leaderboard(
     }
 
 
-def summarize_benchmark_runs(score_rows: Sequence[Mapping[str, str]], targets: Sequence[Mapping[str, str]]) -> list[dict[str, Any]]:
+def summarize_benchmark_runs(
+    score_rows: Sequence[Mapping[str, str]],
+    targets: Sequence[Mapping[str, str]],
+    *,
+    run_rank_eligible: Mapping[str, bool] | None = None,
+) -> list[dict[str, Any]]:
     eligible_by_track: dict[str, int] = defaultdict(int)
     for target in targets:
         if target.get("track") in {"protein_domain", "protein_oligo"} and str(target.get("rank_eligible", "")).lower() == "true":
@@ -300,6 +309,8 @@ def summarize_benchmark_runs(score_rows: Sequence[Mapping[str, str]], targets: S
             rank_status = "unranked:metric_unavailable"
         elif ok == 0:
             rank_status = "pending:no_scored_targets"
+        if run_rank_eligible is not None and not run_rank_eligible.get(run_id, True):
+            rank_status = "unranked:run_not_rank_eligible"
         summaries.append(
             {
                 "rank": "",
@@ -417,7 +428,7 @@ def sha256_path(path: Path) -> str:
 
 
 def collect_local_runs(*, project_root: Path, output_dir: Path) -> dict[str, object]:
-    specs = load_run_specs(project_root / "runs")
+    specs = load_run_specs(project_root / "runs", registered_only=True)
     rows: list[dict[str, Any]] = []
     for spec in specs:
         run_dir = Path(str(spec["_run_dir"]))

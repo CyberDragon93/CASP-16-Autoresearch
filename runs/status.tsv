@@ -1,2 +1,10 @@
 timestamp	benchmark	run_id	status	message
 2026-07-04T03:13:24.846524+00:00	casp16_protein_v1	baseline_no_msa	pending	run_spec_created
+2026-07-04T03:47:17.931214+00:00	casp16_protein_v1	opendde_v1_full_msa_template	running	full_msa_template_started
+2026-07-04T03:49:08.155133+00:00	casp16_protein_v1	opendde_v1_full_msa_template	failed:aborted_query_only_msa	aborted because public MSA DNS fallback produced query-only A3M
+2026-07-04T04:14:40.213900+00:00	casp16_protein_v1	opendde_v1_t1299_no_msa	pending	openDDE_single_target_created
+2026-07-04T04:14:46.805957+00:00	casp16_protein_v1	opendde_v1_t1299_no_msa	running	structure_prediction_started
+2026-07-04T04:16:19.259295+00:00	casp16_protein_v1	opendde_v1_t1299_no_msa	ok	structure_prediction_finished
+2026-07-04T04:23:21.896024+00:00	casp16_protein_v1	opendde_v1_t1299_msa	pending	opendde_t1299_msa_created
+2026-07-04T04:23:27.249123+00:00	casp16_protein_v1	opendde_v1_t1299_msa	running	msa_structure_prediction_started
+2026-07-04T04:25:24.361027+00:00	casp16_protein_v1	opendde_v1_t1299_msa	ok	msa_structure_prediction_finished

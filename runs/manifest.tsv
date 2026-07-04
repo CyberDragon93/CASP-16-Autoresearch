@@ -1,2 +1,5 @@
 run_id	benchmark	status	backend	strategy	model_name	seeds	sample	rank_eligible	run_dir
 baseline_no_msa	casp16_protein_v1	pending	protenix	baseline_no_msa	protenix-v2	101	1	True	/scratch/10992/liaorunlong93/casp16-leaderboard/runs/baseline_no_msa
+opendde_v1_full_msa_template	casp16_protein_v1	failed:aborted_query_only_msa	opendde	full_msa_template	opendde_v1	101	1	False	/scratch/10992/liaorunlong93/casp16-leaderboard/runs/opendde_v1_full_msa_template
+opendde_v1_t1299_msa	casp16_protein_v1	ok	opendde	msa_single_target_t1299	opendde_v1	101	1	False	/scratch/10992/liaorunlong93/casp16-leaderboard/runs/opendde_v1_t1299_msa
+opendde_v1_t1299_no_msa	casp16_protein_v1	ok	opendde	no_msa_single_target_t1299	opendde_v1	101	1	True	/scratch/10992/liaorunlong93/casp16-leaderboard/runs/opendde_v1_t1299_no_msa
