@@ -16,12 +16,13 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | P1 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `yang_terminal_tag_cleanup_v1` | `strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending, blocked while baseline is running | Obvious terminal expression tags can distract AF3-like predictors; target-agnostic cleanup may improve domain/complex placement without using references |
 | P2 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `yang_antibody_fv_cleanup_v1` | `strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | Antibody-antigen targets may benefit from Fv-style constructs while preserving all 106 server jobs |
 | P3 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `yang_terminal_tag_antibody_fv_cleanup_v1` | `strategies/yang_terminal_tag_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind individual ablations | Combined terminal-tag plus antibody-Fv cleanup tests whether non-overlapping construct fixes compose |
+| P4 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `yang_epitope_tag_cleanup_v1` | `strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind combined cleanup | Broader epitope/His/TEV tag cleanup may rescue H1258/H0258-style expression artifacts while staying sequence-only |
 
-Both run specs already exist. `./casp16 run-next --benchmark
+All four queued run specs already exist. `./casp16 run-next --benchmark
 casp16_server_protein_v1 --dry-run` will intentionally report
 `blocked_by_running_run` until `server_protenix_full_msa_template_seed101`
 finishes. After that, the same command should select terminal-tag cleanup,
-antibody Fv cleanup, and then the combined cleanup run.
+antibody Fv cleanup, the combined cleanup run, and then epitope tag cleanup.
 
 Generation commands used:
 
@@ -53,17 +54,25 @@ Generation commands used:
   --strategy yang_terminal_tag_antibody_fv_cleanup_v1 \
   --use-msa --use-template --use-default-params \
   --enable-cache --enable-fusion
+./casp16 strategy-inputs --benchmark casp16_server_protein_v1 --strategy yang_epitope_tag_cleanup_v1
+./casp16 run-spec \
+  --run-id server_protenix_yang_epitope_tag_cleanup_seed101 \
+  --benchmark casp16_server_protein_v1 \
+  --input-json strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/inputs.json \
+  --input-manifest strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/manifest.tsv \
+  --strategy yang_epitope_tag_cleanup_v1 \
+  --use-msa --use-template --use-default-params \
+  --enable-cache --enable-fusion
 ```
 
-Both queued Protenix reruns intentionally match the baseline engine flags:
+All queued Protenix reruns intentionally match the baseline engine flags:
 MSA, templates, default params, cache, fusion, and TF32 are enabled.
 
 ## Backlog
 
 | Priority | Strategy | Status | Reason To Try | Stop Condition |
 | --- | --- | --- | --- | --- |
-| P4 | Install OpenStructure `ost` for QSglob | not started | Oligo server scores are not rank-comparable without QSglob | If install becomes a build rabbit hole, keep oligos diagnostic and score domains first |
-| P5 | `yang_epitope_tag_cleanup_v1` | artifacts generated, not queued | H1258/H0258 contain obvious epitope/His/TEV expression prefixes not covered by the conservative queued cleanup run | Queue only after baseline results, or if we decide to skip the conservative ablation |
+| P5 | Install OpenStructure `ost` for QSglob | not started | Oligo server scores are not rank-comparable without QSglob | If install becomes a build rabbit hole, keep oligos diagnostic and score domains first |
 | P6 | `yang_low_complexity_terminal_cleanup_v1` | artifacts generated, not queued | H0217/H0272/H1217/H1272 have short terminal low-complexity regions that match Yang-style construct cleanup | Queue only after tag cleanup helps or baseline failures justify more aggressive trimming |
 | P7 | `yang_hydrophobic_leader_cleanup_v1` | artifacts generated, not queued | T0240/T1210/T1240-style N termini contain signal-like hydrophobic leaders; construct cleanup may improve folded-core prediction | Risky branch; queue only after baseline or conservative cleanup evidence |
 | P8 | `yang_domain_fragment_inputs_v1` | target-lab artifacts generated, not queued | Domain decomposition is a major winner recipe; CASP domain-summary fragments give a fast diagnostic upper bound | Not server-ranked; promote only via new benchmark version or predeclared segmentation rule |

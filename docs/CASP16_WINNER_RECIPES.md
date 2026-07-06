@@ -49,7 +49,7 @@ benchmark target set or inspect references.
 | --- | --- | --- | --- | --- |
 | D1 | Construct trimming | Yang-lab reports removed intrinsically disordered regions and CASP16 monomer assessment highlights fragment/construct design | create target-agnostic sequence-window variants from disorder/low-complexity predictors; never choose windows from reference scores | improves full `protein_domain` mean, not only a handpicked target |
 | D1a | Terminal tag cleanup | Yang-style optimized inputs are a low-risk place to remove non-native expression artifacts before harder construct work | `./casp16 strategy-inputs --strategy yang_terminal_tag_cleanup_v1` removes obvious terminal His/expression tags without changing benchmark files | improves or does not regress full server-domain mean after the full baseline |
-| D1b | Epitope/TEV tag cleanup | some server inputs visibly include longer N-terminal epitope/His/TEV expression artifacts | `./casp16 strategy-inputs --strategy yang_epitope_tag_cleanup_v1` extends D1a to FLAG-like and His-TEV prefixes while staying sequence-only | queue only after the baseline or after deciding to skip the conservative D1a ablation |
+| D1b | Epitope/TEV tag cleanup | some server inputs visibly include longer N-terminal epitope/His/TEV expression artifacts | `./casp16 strategy-inputs --strategy yang_epitope_tag_cleanup_v1` extends D1a to FLAG-like and His-TEV prefixes while staying sequence-only | queued behind lower-risk construct ablations; judge only by full-set mean |
 | D1c | Terminal low-complexity cleanup | Yang-style construct refinement often removes disordered terminal noise; CASP monomer assessment highlights construct design | `./casp16 strategy-inputs --strategy yang_low_complexity_terminal_cleanup_v1` trims only 40-aa terminal low-complexity windows after tag cleanup | queue only after conservative tag cleanup helps or baseline failures justify the extra risk |
 | D1d | Hydrophobic leader cleanup | construct refinement can remove signal-like N-terminal leaders that are not part of the scored folded core | `./casp16 strategy-inputs --strategy yang_hydrophobic_leader_cleanup_v1` trims a small set of sequence-only hydrophobic-leader candidates after D1c | risky branch; queue only after baseline or tag-cleanup evidence justifies it |
 | D1e | Conservative construct stack | non-overlapping low-risk construct cleanups may compose better than either ablation alone | `./casp16 strategy-inputs --strategy yang_terminal_tag_antibody_fv_cleanup_v1` stacks terminal tag cleanup with antibody Fv cleanup on the full server set | queue after individual ablations; judge only by full-set mean |
@@ -115,30 +115,33 @@ Useful strategy hypotheses:
    from 35 reused local predictions toward all 106 generated server jobs.
 2. `yang_terminal_tag_cleanup_v1`: first automatic optimized-input rerun after
    the full Protenix baseline, targeting obvious terminal expression artifacts.
-3. `yang_epitope_tag_cleanup_v1`, `yang_low_complexity_terminal_cleanup_v1`,
-   and `yang_hydrophobic_leader_cleanup_v1`: generated as risk-increasing
+3. `yang_antibody_fv_cleanup_v1`: generated as a full-set sequence-only
+   ranked-candidate artifact for the O5 antibody-complex branch; queued after
+   the baseline and lower-risk terminal-tag cleanup rather than before them.
+4. `yang_terminal_tag_antibody_fv_cleanup_v1`: generated as a full-set
+   combined construct-cleanup artifact; queued after the individual ablations
+   to test whether the non-overlapping changes compose.
+5. `yang_epitope_tag_cleanup_v1`: queued after the lower-risk construct
+   ablations to test broader epitope/His/TEV tag cleanup on the fixed full
+   server set.
+6. `yang_low_complexity_terminal_cleanup_v1` and
+   `yang_hydrophobic_leader_cleanup_v1`: generated as risk-increasing
    construct-cleanup artifacts; promote only after baseline or conservative
    cleanup evidence.
-4. QSglob scorer installation/integration: without this, oligo server runs
+7. QSglob scorer installation/integration: without this, oligo server runs
    remain diagnostic no matter how good the structures look.
-5. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
+8. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
    CASP domain-summary metadata; useful for learning whether domain
    decomposition helps, but not a server-ranked strategy as-is.
-6. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
+9. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
    for antibody-antigen complexes, trimming antibody constant regions while
    preserving antigen chains; useful for O5 learning, not a server-ranked
    strategy as-is.
-7. `yang_antibody_fv_cleanup_v1`: generated as a full-set sequence-only
-   ranked-candidate artifact for the O5 antibody-complex branch; queue after
-   the baseline and lower-risk terminal-tag cleanup rather than before them.
-8. `yang_terminal_tag_antibody_fv_cleanup_v1`: generated as a full-set
-   combined construct-cleanup artifact; queue after the individual ablations to
-   test whether the non-overlapping changes compose.
-9. Domain crop/chain mapping: needed before domain scores can be trusted on
+10. Domain crop/chain mapping: needed before domain scores can be trusted on
    multi-domain or multi-chain targets.
-10. H1258/H1232 target_lab loop: use these as fast learning targets for
+11. H1258/H1232 target_lab loop: use these as fast learning targets for
    stoichiometry, construct refinement, and antibody-complex behavior, then
    promote only target-agnostic changes.
-11. Model-selection research: collect confidence/consensus after predictions,
+12. Model-selection research: collect confidence/consensus after predictions,
    but keep ranked `first_output_only` unless a new benchmark version is
    created.

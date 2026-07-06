@@ -13,6 +13,7 @@ leaderboard progress.
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | pending, blocked while baseline runs | target-agnostic Yang-style terminal tag cleanup rerun | yes, after baseline frees the GH200 |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | full-set antibody Fv constant-region cleanup rerun | yes, after lower-risk cleanup ablation |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind individual ablations | combined terminal-tag plus antibody-Fv cleanup rerun | yes, after individual ablations |
+| `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | pending behind combined cleanup | broader epitope/His/TEV tag cleanup rerun | yes, after lower-risk construct ablations |
 
 ## Current Score Truth
 
@@ -51,12 +52,16 @@ leaderboard progress.
 5. Run queued `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101`
    after the two individual ablations to test whether their non-overlapping
    construct changes compose on the full server target set.
-6. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
+6. Run queued `server_protenix_yang_epitope_tag_cleanup_seed101` after the
+   lower-risk construct ablations. It changes 11 sequences across 9 targets,
+   including H1258/H0258-style epitope/His/TEV prefixes, while matching the
+   baseline MSA/template/cache/fusion/seed/sample budget.
+7. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
    the oligo track.
-7. Start target_lab loops on H1258 and H1232 only as diagnostics for
+8. Start target_lab loops on H1258 and H1232 only as diagnostics for
    stoichiometry/construct tricks; promotion requires a target-agnostic full
    benchmark rerun.
-8. Add domain cropping and chain/residue mapping before drawing conclusions
+9. Add domain cropping and chain/residue mapping before drawing conclusions
    from hard multi-domain domain targets.
 
 ## Strategy Decision Log
@@ -108,6 +113,19 @@ eligibility.
 
 Launch gate: queue with the same Protenix/MSA/template/cache/fusion/seed/sample
 budget after the individual terminal-tag and antibody-Fv ablations.
+
+### 2026-07-05 Epitope/TEV Tag Full-Set Candidate
+
+Decision: queue `yang_epitope_tag_cleanup_v1` as a full-set sequence-only
+server benchmark candidate behind the lower-risk construct ablations.
+
+Rationale: H1258/H0258-style inputs include obvious epitope/His/TEV expression
+prefixes not covered by the conservative terminal-tag cleanup. The strategy
+preserves all 106 server jobs, audits 172 protein chains, and changes 11
+protein sequences across 9 targets without reading references or scores.
+
+Launch gate: run only after the queued terminal-tag, antibody-Fv, and combined
+construct ablations unless the queue is intentionally reprioritized.
 
 ### 2026-07-05 Dynamic Terminal IDR Scan
 

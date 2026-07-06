@@ -27,6 +27,7 @@ Current generation summary:
 - protein sequences audited: 172
 - changed sequences: 11
 - changed targets: 9
+- output sha256: `0d07bd99e4424f947b0e7ab907a98de7ef8ec345c964e440ff66bab3155eb10a`
 
 Changed targets:
 
@@ -42,17 +43,11 @@ Changed targets:
 
 ## Launch Gate
 
-This strategy is not queued as a full run yet. The conservative
-`server_protenix_yang_terminal_tag_cleanup_seed101` run is already queued.
+This strategy is queued as `server_protenix_yang_epitope_tag_cleanup_seed101`.
+It remains behind the lower-risk terminal-tag, antibody-Fv, and combined
+construct-cleanup ablations so the queue preserves interpretable comparisons.
 
-After `server_protenix_full_msa_template_seed101` finishes and its first
-scores/coverage are known, either:
-
-- keep the conservative queued run if we want the cleanest ablation, or
-- replace/skip to this epitope cleanup run if H1258/H0258-style expression tags
-  look like a likely high-leverage failure mode.
-
-Potential full-run spec command:
+Full-run spec command:
 
 ```bash
 ./casp16 run-spec \
@@ -61,8 +56,10 @@ Potential full-run spec command:
   --input-json strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/inputs.json \
   --input-manifest strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/manifest.tsv \
   --strategy yang_epitope_tag_cleanup_v1 \
-  --use-msa --use-template --use-default-params
+  --use-msa --use-template --use-default-params \
+  --enable-cache --enable-fusion
 ```
 
 Use the same fixed budget as the baseline: backend `protenix`, seed `101`,
-sample `1`, and selected model policy `first_output_only`.
+sample `1`, selected model policy `first_output_only`, MSA/templates/default
+params enabled, and cache/fusion/TF32 enabled.
