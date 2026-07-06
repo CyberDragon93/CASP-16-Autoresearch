@@ -50,6 +50,22 @@ leaderboard progress.
 
 ## Strategy Decision Log
 
+### 2026-07-05 Antibody Fv Target-Lab Branch
+
+Decision: generate `yang_antibody_fv_fragment_inputs_v1` as a target-lab
+artifact, not as a ranked server run.
+
+Rationale: the broad dynamic-IDR scan found antibody constant-like C-terminal
+regions, but trimming all such regions in a ranked strategy would be too broad
+without evidence. The narrower Fv branch uses antibody heavy/light prefixes and
+variable-domain terminal motifs to trim only obvious constant regions. It
+changes 8 antibody-antigen jobs and 16 antibody chains while preserving antigen
+chains unchanged.
+
+Use this branch to test whether Fv-only constructs improve antibody-antigen
+assembly behavior. Any leaderboard-facing promotion must become a predeclared
+target-agnostic antibody-complex rule and run across the full eligible set.
+
 ### 2026-07-05 Dynamic Terminal IDR Scan
 
 Decision: do not implement the first dynamic terminal-IDR cleanup heuristic as

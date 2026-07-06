@@ -4,6 +4,7 @@ import csv
 import json
 
 from casp16_leaderboard.strategies import (
+    clean_antibody_fv_chain,
     clean_epitope_expression_tags,
     clean_hydrophobic_leader_regions,
     clean_low_complexity_terminal_regions,
@@ -273,3 +274,71 @@ def test_derive_domain_fragment_strategy_skips_non_contiguous_ranges(tmp_path) -
         rows = list(csv.DictReader(handle, delimiter="\t"))
     assert rows[0]["status"] == "skip"
     assert rows[0]["skip_reason"] == "non_contiguous_domain"
+
+
+def test_clean_antibody_fv_chain_trims_heavy_and_light_constant_regions() -> None:
+    heavy_variable = "QVQLVQSGAEVKKPGSSVKVPCKASGGTFSTYPISWVRQAPGQGLEWMGRIIPDPPMANIAQKFQGRVSFSADKSTTIVYMELSSLRSEDTAVYFCAREILQSPPFAVDVWGQGTMVAVSS"
+    light_variable = "QSALTQPASVSGSPGQSITISCTGSSSDVGGYSHVSWYQQHPGKVPKLIISEVSNRPSGISNRFSGSKSANTASLTISGLQPEDEADYYCGSYASTNILHYVFGTGTKVTVL"
+    constant = "ASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKVEPKSC"
+
+    heavy = clean_antibody_fv_chain(heavy_variable + constant)
+    light = clean_antibody_fv_chain(light_variable + constant)
+
+    assert heavy.sequence == heavy_variable
+    assert heavy.removed_c == len(constant)
+    assert heavy.rules == (f"trim_c_antibody_constant:{len(heavy_variable)}",)
+    assert light.sequence == light_variable
+    assert light.removed_c == len(constant)
+
+
+def test_clean_antibody_fv_chain_keeps_short_antigen_like_chain() -> None:
+    antigen = "SKPNNDFHFEVFNFVPCSICSNNPTCWAICKRIPNKKPGKK"
+    cleaned = clean_antibody_fv_chain(antigen)
+    assert cleaned.sequence == antigen
+    assert cleaned.rules == ()
+
+
+def test_derive_antibody_fv_strategy_generates_target_lab_complex(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "antibody_fv" / "inputs.json"
+    manifest = tmp_path / "antibody_fv" / "manifest.tsv"
+    antigen = "SKPNNDFHFEVFNFVPCSICSNNPTCWAICKRIPNKKPGKK"
+    heavy_variable = "QVQLVQSGAEVKKPGSSVKVPCKASGGTFSTYPISWVRQAPGQGLEWMGRIIPDPPMANIAQKFQGRVSFSADKSTTIVYMELSSLRSEDTAVYFCAREILQSPPFAVDVWGQGTMVAVSS"
+    light_variable = "QSALTQPASVSGSPGQSITISCTGSSSDVGGYSHVSWYQQHPGKVPKLIISEVSNRPSGISNRFSGSKSANTASLTISGLQPEDEADYYCGSYASTNILHYVFGTGTKVTVL"
+    constant = "ASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKVEPKSC"
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "H1222",
+                    "sequences": [
+                        {"proteinChain": {"sequence": antigen, "count": 1, "id": ["A"]}},
+                        {"proteinChain": {"sequence": heavy_variable + constant, "count": 1, "id": ["B"]}},
+                        {"proteinChain": {"sequence": light_variable + constant, "count": 1, "id": ["C"]}},
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_antibody_fv_fragment_inputs_v1",
+    )
+
+    assert summary["fv_jobs"] == 1
+    assert summary["changed_chains"] == 2
+    fv_jobs = json.loads(output_json.read_text(encoding="utf-8"))
+    assert fv_jobs[0]["name"] == "H1222__fv"
+    assert fv_jobs[0]["sequences"][0]["proteinChain"]["sequence"] == antigen
+    assert fv_jobs[0]["sequences"][1]["proteinChain"]["sequence"] == heavy_variable
+    assert fv_jobs[0]["sequences"][2]["proteinChain"]["sequence"] == light_variable
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["status"] == "unchanged"
+    assert rows[1]["status"] == "trimmed"
+    assert rows[2]["status"] == "trimmed"

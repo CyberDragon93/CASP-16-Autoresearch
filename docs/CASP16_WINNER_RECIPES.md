@@ -83,7 +83,7 @@ wrong assemblies should score poorly on the oligo track.
 | O2 | Construct refinement | complex assessment highlights partial constructs over full sequences | generate target-agnostic construct variants from sequence/domain annotations for large complexes | improves fixed-set QSglob once scorer exists; DockQ-only wins stay diagnostic |
 | O3 | Customized MSA/template | top complex groups beat default AFM/AF3 via customized MSAs, templates, and sampling | full MSA/template baseline first, then compare MSA-cache and template modes | full server target coverage increases before target_lab tuning |
 | O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | keep ranked budget at sample 1; run extra samples only as `target_lab` diagnostics for ranking research | promotion requires a predeclared first-output policy or a new benchmark version |
-| O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | target_lab branch for H1232/H1223/H1225 using docking-style assembly refinement | must become target-agnostic for antibody complexes before leaderboard use |
+| O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `./casp16 strategy-inputs --strategy yang_antibody_fv_fragment_inputs_v1` creates Fv-only antibody-antigen target_lab inputs for H0222/H0223/H0225/H0233 and server aliases | must become target-agnostic and full-set before leaderboard use |
 | O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
 
 ## AF3-Style Systems
@@ -123,11 +123,15 @@ Useful strategy hypotheses:
 5. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
    CASP domain-summary metadata; useful for learning whether domain
    decomposition helps, but not a server-ranked strategy as-is.
-6. Domain crop/chain mapping: needed before domain scores can be trusted on
+6. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
+   for antibody-antigen complexes, trimming antibody constant regions while
+   preserving antigen chains; useful for O5 learning, not a server-ranked
+   strategy as-is.
+7. Domain crop/chain mapping: needed before domain scores can be trusted on
    multi-domain or multi-chain targets.
-7. H1258/H1232 target_lab loop: use these as fast learning targets for
+8. H1258/H1232 target_lab loop: use these as fast learning targets for
    stoichiometry, construct refinement, and antibody-complex behavior, then
    promote only target-agnostic changes.
-8. Model-selection research: collect confidence/consensus after predictions,
+9. Model-selection research: collect confidence/consensus after predictions,
    but keep ranked `first_output_only` unless a new benchmark version is
    created.

@@ -17,12 +17,14 @@ STRATEGY_YANG_EPITOPE_TAG_CLEANUP = "yang_epitope_tag_cleanup_v1"
 STRATEGY_YANG_LOW_COMPLEXITY_TERMINAL_CLEANUP = "yang_low_complexity_terminal_cleanup_v1"
 STRATEGY_YANG_HYDROPHOBIC_LEADER_CLEANUP = "yang_hydrophobic_leader_cleanup_v1"
 STRATEGY_YANG_DOMAIN_FRAGMENT_INPUTS = "yang_domain_fragment_inputs_v1"
+STRATEGY_YANG_ANTIBODY_FV_INPUTS = "yang_antibody_fv_fragment_inputs_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
     STRATEGY_YANG_LOW_COMPLEXITY_TERMINAL_CLEANUP,
     STRATEGY_YANG_HYDROPHOBIC_LEADER_CLEANUP,
     STRATEGY_YANG_DOMAIN_FRAGMENT_INPUTS,
+    STRATEGY_YANG_ANTIBODY_FV_INPUTS,
 )
 MIN_REMAINING_PROTEIN_LENGTH = 30
 LOW_COMPLEXITY_TRIM_WINDOW = 40
@@ -75,6 +77,37 @@ DOMAIN_FRAGMENT_MANIFEST_FIELDS = [
     "fragment_len",
     "chain_ids",
 ]
+ANTIBODY_FV_MANIFEST_FIELDS = [
+    "target_id",
+    "fv_job_id",
+    "sequence_index",
+    "chain_ids",
+    "status",
+    "original_len",
+    "optimized_len",
+    "removed_c",
+    "rules",
+]
+ANTIBODY_HEAVY_PREFIXES = ("QVQL", "EVQL", "QLQL", "QVHL", "QVQLK")
+ANTIBODY_LIGHT_PREFIXES = (
+    "QSALTQ",
+    "EIVVTQ",
+    "SFELTQ",
+    "QAVVTQ",
+    "DIQMTQ",
+    "ELTQP",
+    "QSVLTQ",
+)
+ANTIBODY_VARIABLE_END_MOTIFS = (
+    "WGQGTMVAVSS",
+    "WGQGTLVTVSS",
+    "WGQGTLVSVSS",
+    "WGQGTSVTVSS",
+    "FGTGTKVTVL",
+    "FGPGTTVDSK",
+    "FGIGTKVTVL",
+    "FGGGTKLTVL",
+)
 
 
 @dataclass(frozen=True)
@@ -239,6 +272,12 @@ def derive_strategy_inputs(
             manifest_path=manifest_path,
             domain_definitions_path=domain_definitions_path,
             targets_path=targets_path,
+        )
+    if strategy == STRATEGY_YANG_ANTIBODY_FV_INPUTS:
+        return derive_antibody_fv_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
         )
 
     with input_json.open(encoding="utf-8") as handle:
@@ -494,3 +533,110 @@ def write_manifest(path: Path, rows: Sequence[Mapping[str, str]], fieldnames: Se
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
+
+
+def derive_antibody_fv_inputs(*, input_json: Path, output_json: Path, manifest_path: Path) -> dict[str, object]:
+    with input_json.open(encoding="utf-8") as handle:
+        jobs = json.load(handle)
+
+    fv_jobs: list[dict[str, Any]] = []
+    manifest_rows: list[dict[str, str]] = []
+    changed_targets: set[str] = set()
+    changed_chains = 0
+    audited_protein_chains = 0
+
+    for job in jobs:
+        target_id = str(job.get("name", ""))
+        protein_audits: list[tuple[int, dict[str, Any], AntibodyFvCleanup]] = []
+        changed = False
+        for sequence_index, entity in enumerate(job.get("sequences", [])):
+            protein = entity.get("proteinChain") if isinstance(entity, dict) else None
+            if not isinstance(protein, dict):
+                continue
+            audited_protein_chains += 1
+            cleanup = clean_antibody_fv_chain(str(protein.get("sequence", "")))
+            if cleanup.sequence != str(protein.get("sequence", "")):
+                changed = True
+                changed_chains += 1
+            protein_audits.append((sequence_index, protein, cleanup))
+
+        if not changed:
+            continue
+
+        fv_job = _copy_json_dict(job)
+        fv_job_id = f"{target_id}__fv"
+        fv_job["name"] = fv_job_id
+        cleanup_by_index = {index: cleanup for index, _, cleanup in protein_audits}
+        for sequence_index, entity in enumerate(fv_job.get("sequences", [])):
+            protein = entity.get("proteinChain") if isinstance(entity, dict) else None
+            if not isinstance(protein, dict):
+                continue
+            cleanup = cleanup_by_index[sequence_index]
+            protein["sequence"] = cleanup.sequence
+            manifest_rows.append(
+                {
+                    "target_id": target_id,
+                    "fv_job_id": fv_job_id,
+                    "sequence_index": str(sequence_index),
+                    "chain_ids": ",".join(str(item) for item in _as_sequence(protein.get("id", []))) or "none",
+                    "status": "trimmed" if cleanup.rules else "unchanged",
+                    "original_len": str(cleanup.original_len),
+                    "optimized_len": str(len(cleanup.sequence)),
+                    "removed_c": str(cleanup.removed_c),
+                    "rules": ",".join(cleanup.rules) if cleanup.rules else "none",
+                }
+            )
+        fv_jobs.append(fv_job)
+        changed_targets.add(target_id)
+
+    ensure_dir(output_json.parent)
+    output_json.write_text(json.dumps(fv_jobs, indent=2) + "\n", encoding="utf-8")
+    write_manifest(manifest_path, manifest_rows, ANTIBODY_FV_MANIFEST_FIELDS)
+    return {
+        "strategy": STRATEGY_YANG_ANTIBODY_FV_INPUTS,
+        "input_json": str(input_json),
+        "output_json": str(output_json),
+        "manifest": str(manifest_path),
+        "input_sha256": file_sha256(input_json),
+        "output_sha256": file_sha256(output_json),
+        "fv_jobs": len(fv_jobs),
+        "changed_targets": len(changed_targets),
+        "changed_chains": changed_chains,
+        "audited_protein_chains": audited_protein_chains,
+    }
+
+
+@dataclass(frozen=True)
+class AntibodyFvCleanup:
+    sequence: str
+    original_len: int
+    removed_c: int
+    rules: tuple[str, ...]
+
+
+def clean_antibody_fv_chain(sequence: str) -> AntibodyFvCleanup:
+    cut = detect_antibody_variable_domain_end(sequence)
+    if not cut:
+        return AntibodyFvCleanup(sequence=sequence, original_len=len(sequence), removed_c=0, rules=())
+    return AntibodyFvCleanup(
+        sequence=sequence[:cut],
+        original_len=len(sequence),
+        removed_c=len(sequence) - cut,
+        rules=(f"trim_c_antibody_constant:{cut}",),
+    )
+
+
+def detect_antibody_variable_domain_end(sequence: str) -> int:
+    if len(sequence) < 160:
+        return 0
+    if not (sequence.startswith(ANTIBODY_HEAVY_PREFIXES) or sequence.startswith(ANTIBODY_LIGHT_PREFIXES)):
+        return 0
+    best_cut = 0
+    for motif in ANTIBODY_VARIABLE_END_MOTIFS:
+        index = sequence.find(motif)
+        if index == -1:
+            continue
+        cut = index + len(motif)
+        if 85 <= cut <= 135 and len(sequence) - cut >= 50:
+            best_cut = cut if best_cut == 0 else min(best_cut, cut)
+    return best_cut
