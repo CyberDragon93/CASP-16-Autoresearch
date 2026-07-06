@@ -174,27 +174,32 @@ Useful strategy hypotheses:
     second queued 5-candidate attack run, using stacked sequence recovery,
     token-budget fallback, and token-safe stoichiometry inputs. It is not
     submitted yet.
-17. `casp16_server_attack_protenix25`: planned but not queued. It targets the
+17. `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101`: queued
+    as a v2 `dev_fixed` construct-cleanup ablation. It starts from the
+    alias-fixed coverage/stoich input, changes 27 sequences across 21 targets
+    with terminal tag/low-complexity cleanup, and must run after the v2
+    baseline is scored.
+18. `casp16_server_attack_protenix25`: planned but not queued. It targets the
     alias-fixed v2 server benchmark with seeds `101..125`, one sample per seed,
     and `protenix_confidence_v1`; the shard run ids and seed ranges are locked
     in `attack_budgets/casp16_server_attack_protenix25_shards.tsv`. Run as
     seed shards only after the current 5-seed attack and v2 dev baseline
     justify the larger spend.
-18. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
+19. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
     CASP domain-summary metadata; useful for learning whether domain
     decomposition helps, but not a server-ranked strategy as-is.
-19. `target_lab/domain_fragment_batch_v1`: generated and submitted as Slurm job
+20. `target_lab/domain_fragment_batch_v1`: generated and submitted as Slurm job
     `810862`. It runs 12 domain-fragment jobs from T1210, T1218, T1269, T1257,
     T1240, and T1270 to test the domain-decomposition recipe quickly.
-20. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
+21. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
     for antibody-antigen complexes, trimming antibody constant regions while
     preserving antigen chains; useful for O5 learning, not a server-ranked
     strategy as-is.
-21. Domain crop/chain mapping: needed before domain scores can be trusted on
+22. Domain crop/chain mapping: needed before domain scores can be trusted on
     multi-domain or multi-chain targets.
-22. H1258/H1232 target_lab loop: use these as fast learning targets for
+23. H1258/H1232 target_lab loop: use these as fast learning targets for
     stoichiometry, construct refinement, and antibody-complex behavior, then
     promote only target-agnostic changes.
-23. Model-selection research: collect confidence/consensus after predictions,
+24. Model-selection research: collect confidence/consensus after predictions,
     but keep ranked `first_output_only` unless a new benchmark version is
     created.

@@ -21,8 +21,9 @@ leaderboard progress.
 | `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes for domain track; oligo diagnostic until QSglob mapping is validated |
 | `server_attack_protenix_coverage_stoich_seed101_105` | `casp16_server_protein_v1` | queued, not submitted | five-seed attack run on stacked sequence-recovery, token-fallback, token-safe stoichiometry inputs | attack tier only |
 | `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` pending on dependency `810719` | first alias-fixed v2 `dev_fixed` baseline using stacked coverage + token-safe stoichiometry inputs | yes for domain track; oligo after QSglob mapping validation |
+| `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | pending behind v2 baseline | v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | yes for domain track; oligo after QSglob mapping validation |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
-| `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `810824` pending | compact exact-stoich and H1258-window learning batch | not rank eligible |
+| `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `810824` failed; resubmitted as `811114` pending | compact exact-stoich and H1258-window learning batch | not rank eligible |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob mapping or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -168,6 +169,17 @@ leaderboard progress.
     six-job target-lab batch with `H1232`, `H1233`, `H1236`, `H1244`, `H1267`,
     and the H1258 interaction-window job. The max job is 1929 tokens. Submitted
     as Slurm job `810824`, initially pending with reason `Priority`.
+    - Job `810824` started on `c641-002` and failed before inference because
+      `runner.batch_inference` resolved to the OpenDDE checkout instead of
+      `Protenix-Insta`.
+    - The target_lab Protenix scripts now prepend `Protenix-Insta` to
+      `PYTHONPATH`, add the protein conda env to `PATH` so `ninja` is visible,
+      and reuse the full benchmark CUDA/math library bootstrap.
+    - Import preflight now resolves
+      `/scratch/10992/liaorunlong93/Protenix-Insta/runner/batch_inference.py`
+      with `protenix_cli=True`.
+    - Resubmitted as Slurm job `811114`, initially pending with reason
+      `Priority`.
 18. Generated `server_attack_protenix_coverage_stoich_seed101_105`, the second
     `protenix5` attack-tier run spec. It uses the stacked
     `yang_oligo_stoichiometry_token_safe_v1` inputs, seeds
@@ -264,6 +276,32 @@ leaderboard progress.
       be accidentally selected by `run-next` or scored as missing predictions.
     - When the launch gate opens, create run specs from the shard TSV rather
       than inventing seeds or input artifacts on the fly.
+28. Generated and queued
+    `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` as the
+    next v2 `dev_fixed` construct-cleanup ablation. It starts from
+    `yang_oligo_stoichiometry_token_safe_v1` v2 inputs and applies the existing
+    sequence-only low-complexity terminal cleanup.
+    - Generation summary: 163 jobs, 264 protein sequences audited, 27 changed
+      sequences across 21 targets.
+    - Notable edited classes: terminal His/expression tags on `T1201/T1266`
+      phase aliases, low-complexity complex segments on
+      `H0217/H0272/H1217/H1272` phase aliases, and H1258/H0258/H2258 tag
+      cleanup.
+    - Queue check: `run-next --benchmark casp16_server_protein_v2_aliasfix
+      --dry-run` still selects `server_v2_protenix_yang_coverage_stoich_seed101`
+      first. This new run waits behind the v2 baseline.
+29. Hardened target_lab Protenix launch scripts for
+    `small_complex_stoich_batch_v1`, `domain_fragment_batch_v1`, and
+    `h1258_interaction_window_v1` after the small-complex job exposed an
+    import-path collision. The scripts now set `PROTENIX_ROOT_DIR`,
+    `PROTENIX_DATA_ROOT`, protein-env `PATH`, `PYTHONNOUSERSITE`,
+    `Protenix-Insta` `PYTHONPATH`, and CUDA/math-library paths before invoking
+    Protenix.
+    - This changes no benchmark score and keeps all target_lab outputs
+      unranked.
+    - It prevents target_lab diagnostics from silently importing OpenDDE's
+      `runner.batch_inference` while the ranked Protenix workflows use
+      `Protenix-Insta`.
 
 ## Strategy Decision Log
 

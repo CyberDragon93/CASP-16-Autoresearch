@@ -45,3 +45,4 @@ timestamp	benchmark	run_id	status	message
 2026-07-06T16:47:09.385130+00:00	casp16_server_protein_v1	server_attack_protenix_terminal_tag_seed101_105	running	run_next_started
 2026-07-06T16:47:35.223765+00:00	casp16_server_protein_v1	server_attack_protenix_coverage_stoich_seed101_105	pending	run_spec_created
 2026-07-06T17:10:07.346191+00:00	casp16_server_protein_v2_aliasfix	server_v2_protenix_yang_coverage_stoich_seed101	pending	run_spec_created
+2026-07-06T18:03:32.463763+00:00	casp16_server_protein_v2_aliasfix	server_v2_protenix_yang_coverage_stoich_low_complexity_seed101	pending	run_spec_created

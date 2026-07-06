@@ -35,5 +35,10 @@ runs/*/raw_inputs/
 runs/*/tmp_inputs
 runs/*/tmp_inputs/
 
+# Runtime outputs from target-lab diagnostics.
+target_lab/*/logs/
+target_lab/*/predictions/
+target_lab/*/torch_extensions/
+
 # Local editor or OS files.
 .DS_Store

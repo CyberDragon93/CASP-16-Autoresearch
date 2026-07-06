@@ -93,6 +93,11 @@ where methods should change.
   `yang_oligo_stoichiometry_token_safe_v1` transform regenerated on v2,
   producing 163 jobs with 10 changed targets and no recovered job above the
   2560-token limit.
+- New v2 construct-cleanup candidate:
+  `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` is queued
+  behind the v2 baseline. It starts from the v2 coverage/stoich input and adds
+  sequence-only low-complexity terminal cleanup, changing 27 sequences across
+  21 targets under the same seed-101 `dev_fixed` budget.
 - New H1258 target-lab artifact:
   `target_lab/h1258_interaction_window_v1/` builds the public
   LRRK2-interaction-window clue as LRRK2 residues 861-1014 plus 14-3-3 A1B2.
@@ -101,8 +106,10 @@ where methods should change.
   `target_lab/small_complex_stoich_batch_v1/` combines 5 under-budget exact
   stoichiometry complexes with the H1258 interaction-window job for faster
   learning before full-benchmark promotion. It has been submitted as Slurm job
-  `810824` and now has `summarize_outputs.py` plus `score_dockq.py` for
-  post-run diagnostics.
+  `810824`, failed quickly due an OpenDDE/Protenix import-path collision, and
+  was resubmitted as job `811114` after the target_lab Protenix environment was
+  aligned with the full benchmark run scripts. It has `summarize_outputs.py`
+  plus `score_dockq.py` for post-run diagnostics.
 - New domain-fragment target-lab batch:
   `target_lab/domain_fragment_batch_v1/` turns the domain-decomposition recipe
   into 12 runnable Protenix fragment jobs. It has been submitted as Slurm job
@@ -200,7 +207,7 @@ competitive result.
 13. Run the H1258 target-lab interaction-window job when a small GH200 slot is
     available, then decide whether a target-agnostic window rule is worth a
     full benchmark candidate.
-14. Monitor target_lab job `810824` for
+14. Monitor target_lab job `811114` for
     `target_lab/small_complex_stoich_batch_v1`, then inspect predictions for
     exact-stoichiometry and H1258-window behavior before spending full
     benchmark compute. Regenerate `SUMMARY.md` with
@@ -229,6 +236,9 @@ competitive result.
 20. Keep `casp16_server_attack_protenix25` as the planned winner-scale upgrade
     path: execute only after `protenix5` and the v2 dev baseline are scored,
     and only as predeclared seed shards.
+21. After `server_v2_protenix_yang_coverage_stoich_seed101` is scored, run
+    `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` as the
+    next v2 `dev_fixed` construct-cleanup ablation if queue state permits.
 
 ## Run Discipline
 
