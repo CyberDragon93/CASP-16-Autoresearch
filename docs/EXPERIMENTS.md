@@ -380,6 +380,22 @@ finish before spending larger attack compute. In parallel, fix only the
 assembly mapping classes that create false zeros; do not sink a long detour
 into exhaustive mapping before the current runs report.
 
+### 2026-07-06 QSglob Mapping Diagnostics
+
+Decision: keep OpenStructure QSglob scores official-compatible, but preserve
+automatic mapping failures in `target_scores.csv` `message` so false-zero
+classes can be triaged.
+
+Implementation: `parse_ost_qs_json` now records unmapped model chains, empty
+chain mapping, empty chem mapping, and missing mapped interfaces. `score_target`
+keeps `status=ok` and the reported `QSglob` score, including zero, while adding
+diagnostic messages such as
+`ost_unmapped_model_chains:A,B;ost_empty_chain_mapping`.
+
+Next action: after active jobs finish, rescore server oligo rows and group the
+`message` diagnostics to choose target-agnostic mapping fixes. Do not hand-map
+individual targets in response to scores.
+
 ### 2026-07-06 QSglob Scorer Installed, Mapping Still Open
 
 Decision: use OpenStructure `ost compare-structures --qs-score` as the default

@@ -33,7 +33,10 @@ where methods should change.
   `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` and is the
   default QSglob-compatible scorer. The first H0220 probe returned
   `status=ok` but `QSglob=0` because automatic chain/chem mapping failed, so
-  assembly mapping is now the bottleneck for affected targets.
+  assembly mapping is now the bottleneck for affected targets. The scorer now
+  records OpenStructure mapping diagnostics in `target_scores.csv` `message`,
+  making false-zero classes visible without changing official-compatible
+  scores.
 - A six-target QSglob signal probe across the four completed server-v1
   Protenix dev runs produced nonzero scores on `H0222` and `T1249V1O`; QSglob
   is useful for strategy triage, but `H0220` remains a clear unmapped false-zero
@@ -152,8 +155,8 @@ then improve methods against that harder target set.
 - `docs/CASP16_SERVER_BENCHMARK.md`: plan for server-track comparison
 - `docs/CASP16_WINNER_RECIPES.md`: notes on known CASP16 winning approaches
 - `docs/SERVER_ATTACK_POLICY.md`: fixed multi-seed attack-budget rules
-- `docs/QSGLOB_SCORER.md`: installed OpenStructure QSglob scorer and mapping
-  validation notes
+- `docs/QSGLOB_SCORER.md`: installed OpenStructure QSglob scorer, mapping
+  diagnostics, and validation notes
 - `docs/REFERENCE_GAP_AUDIT.md`: server benchmark reference/input coverage gaps
 - `attack_budgets/`: JSON attack-budget definitions
 - `docs/AUTORESEARCH_QUEUE.md`: current execution queue for strategy attempts
@@ -200,7 +203,8 @@ competitive result.
 
 1. Validate OpenStructure `ost` QSglob assembly/chain mapping on server oligos
    where the signal probe found false-zero risk (`H0220`, partial empty chem
-   mapping cases such as `T0234O`/`T1249V1O`).
+   mapping cases such as `T0234O`/`T1249V1O`). Use the scorer `message`
+   diagnostics to identify target-agnostic false-zero classes.
 2. Add explicit domain cropping and chain/residue mapping for
    `casp16_server_protein_v2_aliasfix` domain `GDT_TS` scoring.
 3. Improve the reference/domain registry for the remaining 96 alias-fixed

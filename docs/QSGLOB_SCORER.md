@@ -35,6 +35,11 @@ Result:
 - The JSON reported no chain mapping for model chains `A/B` against the
   reference chem groups, so the zero is an assembly/chain-mapping signal, not a
   missing-tool failure.
+- The scorer now preserves these OpenStructure mapping diagnostics in the
+  `target_scores.csv` `message` column, for example
+  `ost_unmapped_model_chains:A,B;ost_empty_chain_mapping;ost_empty_chem_mapping`.
+  This keeps the official-compatible score unchanged while making false-zero
+  classes visible for triage.
 
 ## Oligo Signal Probe
 
@@ -66,7 +71,8 @@ Interpretation:
 
 - Score server oligo targets with `ost` once the active run is complete, so
   partial attack rows are not written into checked-in leaderboard artifacts.
-- Add explicit assembly/chain mapping for target classes where automatic
-  OpenStructure mapping gives false zeros.
+- Use the `message` column diagnostics to isolate target classes where
+  automatic OpenStructure mapping gives false zeros, then add explicit
+  assembly/chain mapping only for target-agnostic classes.
 - Keep DockQ as an interface diagnostic only; do not use it as a ranked QSglob
   replacement.

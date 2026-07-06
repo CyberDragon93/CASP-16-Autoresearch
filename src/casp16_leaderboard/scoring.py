@@ -90,7 +90,7 @@ def parse_qsglob_output(text: str) -> dict[str, float]:
     return {}
 
 
-def parse_ost_qs_json(text: str) -> dict[str, float]:
+def parse_ost_qs_json(text: str) -> dict[str, Any]:
     try:
         payload = json.loads(text)
     except json.JSONDecodeError:
@@ -100,10 +100,35 @@ def parse_ost_qs_json(text: str) -> dict[str, float]:
         value = payload.get("QSglob")
     if value is None:
         value = payload.get("qsglob")
+    parsed: dict[str, Any] = {}
     try:
-        return {"qsglob": float(value)} if value is not None else {}
+        if value is not None:
+            parsed["qsglob"] = float(value)
     except (TypeError, ValueError):
-        return {}
+        pass
+    diagnostic = ost_qs_diagnostic(payload)
+    if diagnostic:
+        parsed["diagnostic"] = diagnostic
+    return parsed
+
+
+def ost_qs_diagnostic(payload: Mapping[str, Any]) -> str:
+    notes: list[str] = []
+    unmapped = payload.get("mdl_chains_without_chem_mapping")
+    if isinstance(unmapped, list) and unmapped:
+        notes.append("ost_unmapped_model_chains:" + ",".join(str(item) for item in unmapped))
+    chain_mapping = payload.get("chain_mapping")
+    if isinstance(chain_mapping, dict) and not chain_mapping and payload.get("model_chains"):
+        notes.append("ost_empty_chain_mapping")
+    chem_mapping = payload.get("chem_mapping")
+    if isinstance(chem_mapping, list) and chem_mapping and all(not item for item in chem_mapping):
+        notes.append("ost_empty_chem_mapping")
+    reference_interfaces = payload.get("qs_reference_interfaces")
+    model_interfaces = payload.get("qs_model_interfaces")
+    mapped_interfaces = payload.get("qs_interfaces")
+    if reference_interfaces and model_interfaces and isinstance(mapped_interfaces, list) and not mapped_interfaces:
+        notes.append("ost_no_mapped_interfaces")
+    return ";".join(notes)
 
 
 def prediction_candidates_for_target(output_dir: Path, target_id: str) -> list[Path]:
@@ -276,7 +301,7 @@ def is_openstructure_tool(tool: str) -> bool:
     return Path(tool).name == "ost"
 
 
-def run_openstructure_qsglob(tool: str, prediction_path: Path, reference_path: Path) -> tuple[int, dict[str, float], str]:
+def run_openstructure_qsglob(tool: str, prediction_path: Path, reference_path: Path) -> tuple[int, dict[str, Any], str]:
     with tempfile.TemporaryDirectory(prefix="casp16_ost_qs_") as tmp_dir:
         output_json = Path(tmp_dir) / "qs.json"
         code, stdout, stderr = run_metric(
@@ -296,7 +321,8 @@ def run_openstructure_qsglob(tool: str, prediction_path: Path, reference_path: P
         if code != 0:
             return code, {}, stderr
         text = output_json.read_text(encoding="utf-8") if output_json.exists() else stdout
-        return code, parse_ost_qs_json(text), stderr
+        diagnostics = "\n".join(part for part in (stdout.strip(), stderr.strip()) if part)
+        return code, parse_ost_qs_json(text), diagnostics
 
 
 def score_benchmark_runs(
@@ -477,8 +503,17 @@ def score_target(
                 parsed = parse_qsglob_output(stdout)
             score = parsed.get("qsglob")
             if score is None:
-                return {**base, "metric": "QSglob", "status": "metric_unparseable", "message": "no_QSglob"}
-            return {**base, "metric": "QSglob", "score": f"{score:.6f}", "qsglob": _fmt(score), "status": "ok"}
+                diagnostic = str(parsed.get("diagnostic", ""))
+                message = "no_QSglob" if not diagnostic else f"no_QSglob;{diagnostic}"
+                return {**base, "metric": "QSglob", "status": "metric_unparseable", "message": message}
+            return {
+                **base,
+                "metric": "QSglob",
+                "score": f"{score:.6f}",
+                "qsglob": _fmt(score),
+                "status": "ok",
+                "message": str(parsed.get("diagnostic", "")),
+            }
         if not dockq_tool:
             return {**base, "metric": "DockQ", "status": "metric_unavailable", "message": "DockQ_not_found"}
         code, stdout, stderr = run_metric([
