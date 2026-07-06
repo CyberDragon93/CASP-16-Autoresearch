@@ -84,9 +84,13 @@ budget were identical.
 
 Budget tier is machine-readable. `dev_fixed` means one declared candidate per
 target under the fixed development protocol. `server_attack` means more than
-one seed/sample or any non-first-output selector, and it stays out of the
-single-seed rank even when the selector is `first_output_only`. `candidate_count`
-is `seed_count * sample`; hidden extra candidates invalidate the row.
+one seed/sample, any non-first-output selector, or any predeclared total
+candidate budget greater than one. It stays out of the single-seed rank even
+when the selector is `first_output_only`. By default, `candidate_count` is
+`seed_count * sample`, but attack runs may declare a larger total when they use
+model/backend variants, MSA/template variants, refinement passes, ranking
+passes, or submitted-model selection. Declared `candidate_count` must never be
+lower than `seed_count * sample`; hidden extra candidates invalidate the row.
 Incomplete attack targets are fail-closed: if fewer candidate files are observed
 than the declared `candidate_count`, the target status is `partial_candidates`
 and the target scores `0`.

@@ -13,7 +13,7 @@ from typing import Any, Mapping, Sequence
 from .benchmark import BENCHMARK_NAME, default_benchmark_dir, is_server_protein_benchmark, read_benchmark_references, read_benchmark_targets
 from .leaderboard import write_csv
 from .official import ensure_dir, parse_float
-from .runs import DEFAULT_DOCKQ_BIN, DEFAULT_QSGLOB_BIN, DEFAULT_TMSCORE_BIN, DEFAULT_USALIGN_BIN, candidate_count, infer_budget_tier, load_run_specs, spec_bool
+from .runs import DEFAULT_DOCKQ_BIN, DEFAULT_QSGLOB_BIN, DEFAULT_TMSCORE_BIN, DEFAULT_USALIGN_BIN, candidate_count, effective_budget_tier, explicit_candidate_count, infer_budget_tier, load_run_specs, spec_bool
 
 
 TARGET_SCORE_FIELDS = [
@@ -371,13 +371,15 @@ def score_target(
     spec_fixed_budget = spec_bool(spec.get("fixed_budget"), default=True)
     spec_rank_eligible = spec_bool(spec.get("rank_eligible"), default=True)
     expected_candidates = int(spec.get("candidate_count") or candidate_count(spec_seeds, spec_sample))
-    budget_tier = str(spec.get("budget_tier", "") or infer_budget_tier(
+    inferred_tier = infer_budget_tier(
         seeds=spec_seeds,
         sample=spec_sample,
         fixed_budget=spec_fixed_budget,
         selected_model_policy=selected_model_policy,
         rank_eligible=spec_rank_eligible,
-    ))
+        declared_candidates=explicit_candidate_count(expected_candidates),
+    )
+    budget_tier = effective_budget_tier(spec.get("budget_tier", ""), inferred_tier)
     reference_value = str(reference.get("reference_path", "") or target.get("reference_path", "")).strip()
     reference_path = Path(reference_value) if reference_value else Path()
     rank_eligible = target.get("rank_eligible", "").lower() == "true"

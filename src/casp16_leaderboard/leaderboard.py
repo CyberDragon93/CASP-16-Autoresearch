@@ -10,7 +10,7 @@ from typing import Any, Iterable, Mapping, Sequence
 from .benchmark import benchmark_display_name, is_server_protein_benchmark
 from .inputs import ok_manifest_targets
 from .official import OfficialPaths, ensure_dir, mean, median, parse_float, read_tsv
-from .runs import candidate_count, infer_budget_tier, load_run_specs, spec_bool
+from .runs import candidate_count, effective_budget_tier, explicit_candidate_count, infer_budget_tier, load_run_specs, spec_bool
 
 
 def write_csv(path: Path, rows: Sequence[Mapping[str, Any]], fieldnames: Sequence[str]) -> None:
@@ -339,14 +339,16 @@ def summarize_benchmark_runs(
         metadata_sample = metadata.get("sample", 1)
         metadata_fixed_budget = spec_bool(metadata.get("fixed_budget"), default=True)
         metadata_rank_eligible = spec_bool(metadata.get("rank_eligible"), default=True)
-        budget_tier = str(metadata.get("budget_tier", "") or infer_budget_tier(
+        candidates = metadata.get("candidate_count") or candidate_count(metadata_seeds, metadata_sample)
+        inferred_tier = infer_budget_tier(
             seeds=metadata_seeds,
             sample=metadata_sample,
             fixed_budget=metadata_fixed_budget,
             selected_model_policy=metadata_policy,
             rank_eligible=metadata_rank_eligible,
-        ))
-        candidates = metadata.get("candidate_count") or candidate_count(metadata_seeds, metadata_sample)
+            declared_candidates=explicit_candidate_count(candidates),
+        )
+        budget_tier = effective_budget_tier(metadata.get("budget_tier", ""), inferred_tier)
         ok = status_counts.get("ok", 0)
         missing = status_counts.get("missing_prediction", 0) + max(eligible - len(ranked_rows), 0)
         partial_candidates = status_counts.get("partial_candidates", 0)
@@ -514,13 +516,15 @@ def collect_local_runs(*, project_root: Path, output_dir: Path) -> dict[str, obj
         fixed_budget = spec_bool(spec.get("fixed_budget"), default=True)
         selected_model_policy = str(spec.get("selected_model_policy", "") or "first_output_only")
         rank_eligible = spec_bool(spec.get("rank_eligible"), default=True)
-        budget_tier = str(spec.get("budget_tier", "") or infer_budget_tier(
+        inferred_tier = infer_budget_tier(
             seeds=seeds,
             sample=sample,
             fixed_budget=fixed_budget,
             selected_model_policy=selected_model_policy,
             rank_eligible=rank_eligible,
-        ))
+            declared_candidates=explicit_candidate_count(spec.get("candidate_count") or candidate_count(seeds, sample)),
+        )
+        budget_tier = effective_budget_tier(spec.get("budget_tier", ""), inferred_tier)
         rows.append(
             {
                 "run_id": spec.get("run_id", run_dir.name),

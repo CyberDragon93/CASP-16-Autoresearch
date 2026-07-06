@@ -94,6 +94,31 @@ def candidate_count(seeds: str, sample: int | str) -> int:
     return max(seed_count(seeds), 1) * max(sample_count, 1)
 
 
+def explicit_candidate_count(value: Any) -> int | None:
+    if value is None or value == "":
+        return None
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"candidate_count must be an integer, got {value!r}") from exc
+    if parsed <= 0:
+        raise ValueError(f"candidate_count must be positive, got {parsed}")
+    return parsed
+
+
+def declared_candidate_count(seeds: str, sample: int | str, candidate_count_override: Any = None) -> int:
+    base_count = candidate_count(seeds, sample)
+    override = explicit_candidate_count(candidate_count_override)
+    if override is None:
+        return base_count
+    if override < base_count:
+        raise ValueError(
+            f"candidate_count {override} is lower than seeds*sample baseline {base_count}; "
+            "do not underdeclare hidden candidates"
+        )
+    return override
+
+
 def infer_budget_tier(
     *,
     seeds: str,
@@ -101,14 +126,29 @@ def infer_budget_tier(
     fixed_budget: bool,
     selected_model_policy: str,
     rank_eligible: bool,
+    declared_candidates: int | None = None,
 ) -> str:
     if not rank_eligible:
         return "diagnostic"
-    if candidate_count(seeds, sample) > 1 or (selected_model_policy or "first_output_only") != "first_output_only":
+    if (declared_candidates or candidate_count(seeds, sample)) > 1 or (selected_model_policy or "first_output_only") != "first_output_only":
         return "server_attack"
     if fixed_budget:
         return "dev_fixed"
     return "diagnostic"
+
+
+def effective_budget_tier(requested_tier: Any, inferred_tier: str) -> str:
+    requested = str(requested_tier or "").strip()
+    if requested == "dev_fixed" and inferred_tier == "server_attack":
+        return "server_attack"
+    return requested or inferred_tier
+
+
+def resolve_budget_tier(requested_tier: Any, inferred_tier: str) -> str:
+    requested = str(requested_tier or "").strip()
+    if requested == "dev_fixed" and inferred_tier == "server_attack":
+        raise ValueError("budget_tier=dev_fixed is invalid for a multi-candidate or non-first-output run")
+    return requested or inferred_tier
 
 
 def build_protenix_command(
@@ -190,6 +230,7 @@ def create_run_spec(
     protenix_root_dir: Path = DEFAULT_PROTENIX_ROOT,
     seeds: str = "101",
     sample: int = 1,
+    candidate_count_override: int | None = None,
     budget_tier: str = "",
     fixed_budget: bool = True,
     selected_model_policy: str = "first_output_only",
@@ -218,6 +259,7 @@ def create_run_spec(
         runtime_input_json = run_dir / "inputs" / input_json.name
         ensure_dir(runtime_input_json.parent)
         shutil.copy2(input_json, runtime_input_json)
+    declared_candidates = declared_candidate_count(seeds, sample, candidate_count_override)
     command = build_protenix_command(
         protenix_bin=protenix_bin,
         input_json=runtime_input_json,
@@ -257,15 +299,18 @@ def create_run_spec(
         protenix_root_dir=str(protenix_root_dir),
         seeds=seeds,
         sample=sample,
-        budget_tier=budget_tier
-        or infer_budget_tier(
-            seeds=seeds,
-            sample=sample,
-            fixed_budget=fixed_budget,
-            selected_model_policy=selected_model_policy,
-            rank_eligible=rank_eligible,
+        budget_tier=resolve_budget_tier(
+            budget_tier,
+            infer_budget_tier(
+                seeds=seeds,
+                sample=sample,
+                fixed_budget=fixed_budget,
+                selected_model_policy=selected_model_policy,
+                rank_eligible=rank_eligible,
+                declared_candidates=declared_candidates,
+            ),
         ),
-        candidate_count=candidate_count(seeds, sample),
+        candidate_count=declared_candidates,
         fixed_budget=fixed_budget,
         selected_model_policy=selected_model_policy,
         rank_eligible=rank_eligible,
@@ -316,6 +361,7 @@ def register_existing_run(
     source_run_id: str = "",
     seeds: str = "101",
     sample: int = 1,
+    candidate_count_override: int | None = None,
     budget_tier: str = "",
     fixed_budget: bool = False,
     selected_model_policy: str = "first_output_only",
@@ -338,6 +384,7 @@ def register_existing_run(
     ensure_dir(run_dir / "logs")
     prediction_count = sum(1 for _ in output_dir.glob("**/*.cif")) + sum(1 for _ in output_dir.glob("**/*.pdb"))
     command = ["registered_existing_predictions", str(output_dir)]
+    declared_candidates = declared_candidate_count(seeds, sample, candidate_count_override)
     spec = RunSpec(
         run_id=run_id,
         backend=backend,
@@ -357,15 +404,18 @@ def register_existing_run(
         protenix_root_dir="",
         seeds=seeds,
         sample=sample,
-        budget_tier=budget_tier
-        or infer_budget_tier(
-            seeds=seeds,
-            sample=sample,
-            fixed_budget=fixed_budget,
-            selected_model_policy=selected_model_policy,
-            rank_eligible=rank_eligible,
+        budget_tier=resolve_budget_tier(
+            budget_tier,
+            infer_budget_tier(
+                seeds=seeds,
+                sample=sample,
+                fixed_budget=fixed_budget,
+                selected_model_policy=selected_model_policy,
+                rank_eligible=rank_eligible,
+                declared_candidates=declared_candidates,
+            ),
         ),
-        candidate_count=candidate_count(seeds, sample),
+        candidate_count=declared_candidates,
         fixed_budget=fixed_budget,
         selected_model_policy=selected_model_policy,
         rank_eligible=rank_eligible,
@@ -554,14 +604,16 @@ def run_row_from_spec(spec: Mapping[str, Any], status_by_run: Mapping[str, Mappi
     fixed_budget = spec_bool(spec.get("fixed_budget"), default=True)
     selected_model_policy = str(spec.get("selected_model_policy", "") or "first_output_only")
     rank_eligible = spec_bool(spec.get("rank_eligible"), default=True)
-    budget_tier = str(spec.get("budget_tier", "") or infer_budget_tier(
+    candidates = spec.get("candidate_count") or candidate_count(seeds, sample)
+    inferred_tier = infer_budget_tier(
         seeds=seeds,
         sample=sample,
         fixed_budget=fixed_budget,
         selected_model_policy=selected_model_policy,
         rank_eligible=rank_eligible,
-    ))
-    candidates = spec.get("candidate_count") or candidate_count(seeds, sample)
+        declared_candidates=explicit_candidate_count(candidates),
+    )
+    budget_tier = effective_budget_tier(spec.get("budget_tier", ""), inferred_tier)
     return {
         "run_id": run_id,
         "benchmark": spec.get("benchmark_name", ""),

@@ -48,9 +48,13 @@ model ranking. Do not translate that hidden compute into an assumed literal
 Protenix seed count. In this repo, `seed`, `sample`, engine choice, input/MSA
 variant, refinement/ranking pass, and selection policy are all part of the
 candidate budget and must be declared before scoring.
-Run specs and manifests expose this as `budget_tier` plus `candidate_count`,
-where `candidate_count = seed_count * sample`. Extra hidden candidates, or
-target-specific manual candidate selection, invalidate the row.
+Run specs and manifests expose this as `budget_tier` plus `candidate_count`.
+By default, `candidate_count = seed_count * sample`; if a run uses additional
+model/backend variants, input/MSA variants, refinement/ranking passes, or
+submitted-model selection, it must predeclare a larger total with
+`./casp16 run-spec --candidate-count <n>`. Declared `candidate_count` may be
+larger than `seed_count * sample`, but never smaller. Extra hidden candidates,
+or target-specific manual candidate selection, invalidate the row.
 
 Five candidates per target is intentionally a starter attack budget. It is more
 realistic than single-seed `dev_fixed`, but it should not be described as

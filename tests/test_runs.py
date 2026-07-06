@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, register_existing_run, register_run_spec, run_next, write_run_script, write_runs_manifest
 
 
@@ -218,6 +220,106 @@ def test_create_run_spec_marks_multiseed_attack_budget(tmp_path) -> None:
     rows = list_run_rows(tmp_path, benchmark="casp16_server_protein_v1")
     assert rows[0]["budget_tier"] == "server_attack"
     assert rows[0]["candidate_count"] == 6
+
+
+def test_create_run_spec_accepts_explicit_winner_scale_candidate_budget(tmp_path) -> None:
+    benchmark_dir = tmp_path / "benchmarks" / "casp16_server_protein_v1"
+    benchmark_dir.mkdir(parents=True)
+    input_json = benchmark_dir / "inputs.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    input_json.write_text('[{"name":"T1","sequences":[]}]\n', encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\n", encoding="utf-8")
+    references.write_text("target_id\treference_path\n", encoding="utf-8")
+    protenix_bin = tmp_path / "protenix"
+    protenix_bin.write_text("#!/usr/bin/env bash\necho protenix-test\n", encoding="utf-8")
+    protenix_bin.chmod(0o755)
+
+    summary = create_run_spec(
+        project_root=tmp_path,
+        run_id="server_attack_variant_budget",
+        input_json=input_json,
+        input_manifest=input_manifest,
+        benchmark_name="casp16_server_protein_v1",
+        benchmark_version="1",
+        benchmark_dir=benchmark_dir,
+        references_manifest=references,
+        protenix_bin=protenix_bin,
+        protenix_root_dir=tmp_path / "protenix_data",
+        seeds="101",
+        sample=1,
+        candidate_count_override=4,
+    )
+
+    spec = json.loads(Path(str(summary["run_spec"])).read_text(encoding="utf-8"))
+    assert spec["budget_tier"] == "server_attack"
+    assert spec["candidate_count"] == 4
+    rows = list_run_rows(tmp_path, benchmark="casp16_server_protein_v1")
+    assert rows[0]["budget_tier"] == "server_attack"
+    assert rows[0]["candidate_count"] == 4
+
+
+def test_create_run_spec_rejects_underdeclared_candidate_budget(tmp_path) -> None:
+    benchmark_dir = tmp_path / "benchmarks" / "casp16_server_protein_v1"
+    benchmark_dir.mkdir(parents=True)
+    input_json = benchmark_dir / "inputs.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    input_json.write_text('[{"name":"T1","sequences":[]}]\n', encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\n", encoding="utf-8")
+    references.write_text("target_id\treference_path\n", encoding="utf-8")
+    protenix_bin = tmp_path / "protenix"
+    protenix_bin.write_text("#!/usr/bin/env bash\necho protenix-test\n", encoding="utf-8")
+    protenix_bin.chmod(0o755)
+
+    with pytest.raises(ValueError, match="lower than seeds\\*sample"):
+        create_run_spec(
+            project_root=tmp_path,
+            run_id="server_attack_underdeclared",
+            input_json=input_json,
+            input_manifest=input_manifest,
+            benchmark_name="casp16_server_protein_v1",
+            benchmark_version="1",
+            benchmark_dir=benchmark_dir,
+            references_manifest=references,
+            protenix_bin=protenix_bin,
+            protenix_root_dir=tmp_path / "protenix_data",
+            seeds="101,102",
+            sample=2,
+            candidate_count_override=3,
+        )
+
+
+def test_create_run_spec_rejects_dev_fixed_label_for_candidate_budget(tmp_path) -> None:
+    benchmark_dir = tmp_path / "benchmarks" / "casp16_server_protein_v1"
+    benchmark_dir.mkdir(parents=True)
+    input_json = benchmark_dir / "inputs.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    input_json.write_text('[{"name":"T1","sequences":[]}]\n', encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\n", encoding="utf-8")
+    references.write_text("target_id\treference_path\n", encoding="utf-8")
+    protenix_bin = tmp_path / "protenix"
+    protenix_bin.write_text("#!/usr/bin/env bash\necho protenix-test\n", encoding="utf-8")
+    protenix_bin.chmod(0o755)
+
+    with pytest.raises(ValueError, match="budget_tier=dev_fixed"):
+        create_run_spec(
+            project_root=tmp_path,
+            run_id="server_attack_mislabel",
+            input_json=input_json,
+            input_manifest=input_manifest,
+            benchmark_name="casp16_server_protein_v1",
+            benchmark_version="1",
+            benchmark_dir=benchmark_dir,
+            references_manifest=references,
+            protenix_bin=protenix_bin,
+            protenix_root_dir=tmp_path / "protenix_data",
+            seeds="101",
+            sample=1,
+            candidate_count_override=4,
+            budget_tier="dev_fixed",
+        )
 
 
 def test_run_next_blocks_pending_when_benchmark_run_is_running(tmp_path) -> None:

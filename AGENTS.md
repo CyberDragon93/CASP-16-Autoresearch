@@ -101,10 +101,10 @@ seed list, sample count, backend/model variants, MSA/template policy, selection
 rule, and allowed selection signals.
 
 Run specs, run manifests, collected runs, and leaderboard summaries must expose
-`budget_tier` and `candidate_count`. A multi-seed, multi-sample, or
-confidence-selected row is `server_attack`, even if the selected-model policy is
-`first_output_only`. Single-seed `dev_fixed` rows are for ablation and pipeline
-debugging only.
+`budget_tier` and `candidate_count`. A multi-seed, multi-sample,
+multi-variant, or confidence-selected row is `server_attack`, even if the
+selected-model policy is `first_output_only`. Single-seed `dev_fixed` rows are
+for ablation and pipeline debugging only.
 For `server_attack`, a target with fewer observed candidate files than the
 declared `candidate_count` is `partial_candidates` and scores `0` until the
 declared budget is complete.

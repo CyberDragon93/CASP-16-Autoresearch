@@ -79,6 +79,12 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec.add_argument("--protenix-root-dir", type=Path, default=DEFAULT_PROTENIX_ROOT)
     run_spec.add_argument("--seeds", default="101")
     run_spec.add_argument("--sample", type=int, default=1)
+    run_spec.add_argument(
+        "--candidate-count",
+        type=int,
+        default=None,
+        help="Explicit total candidates per target. Must be >= seeds*sample; use for multi-model/MSA/refinement attack budgets.",
+    )
     run_spec.add_argument("--budget-tier", default="", help="Defaults to dev_fixed, server_attack, or diagnostic inferred from seeds/sample/policy.")
     run_spec.add_argument("--selected-model-policy", default="first_output_only")
     run_spec.add_argument("--rank-eligible", action=argparse.BooleanOptionalAction, default=True)
@@ -107,6 +113,12 @@ def build_parser() -> argparse.ArgumentParser:
     register_existing.add_argument("--input-manifest", type=Path, default=None, help="Defaults to <root>/benchmarks/<benchmark>/input_manifest.tsv.")
     register_existing.add_argument("--seeds", default="101")
     register_existing.add_argument("--sample", type=int, default=1)
+    register_existing.add_argument(
+        "--candidate-count",
+        type=int,
+        default=None,
+        help="Explicit total candidates per target. Must be >= seeds*sample.",
+    )
     register_existing.add_argument("--budget-tier", default="", help="Defaults to diagnostic for unranked registered runs.")
     register_existing.add_argument("--selected-model-policy", default="first_output_only")
     register_existing.add_argument("--rank-eligible", action=argparse.BooleanOptionalAction, default=False)
@@ -240,6 +252,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             protenix_root_dir=args.protenix_root_dir,
             seeds=args.seeds,
             sample=args.sample,
+            candidate_count_override=args.candidate_count,
             budget_tier=args.budget_tier,
             selected_model_policy=args.selected_model_policy,
             rank_eligible=args.rank_eligible,
@@ -280,6 +293,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             source_run_id=args.source_run_id,
             seeds=args.seeds,
             sample=args.sample,
+            candidate_count_override=args.candidate_count,
             budget_tier=args.budget_tier,
             selected_model_policy=args.selected_model_policy,
             rank_eligible=args.rank_eligible,
