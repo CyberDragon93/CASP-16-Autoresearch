@@ -459,6 +459,131 @@ def register_existing_run(
     }
 
 
+def merge_prediction_shards(
+    *,
+    project_root: Path,
+    run_id: str,
+    benchmark_name: str,
+    shard_run_ids: Sequence[str],
+    candidate_count_override: int | None = None,
+    rank_eligible: bool = True,
+) -> dict[str, object]:
+    """Register a merged attack-budget run from completed shard output dirs.
+
+    The merge is intentionally file-light: prediction files are symlinked into a
+    new run directory, preserving the original Protenix relative layout so the
+    scorer can discover per-target candidates and confidence JSONs.
+    """
+
+    if not shard_run_ids:
+        raise ValueError("at least one shard_run_id is required")
+    all_specs = load_run_specs(project_root / "runs", registered_only=False)
+    specs_by_id = {str(spec.get("run_id", "")): spec for spec in all_specs}
+    missing = [shard_id for shard_id in shard_run_ids if shard_id not in specs_by_id]
+    if missing:
+        raise FileNotFoundError(f"missing shard run specs: {', '.join(missing)}")
+    shard_specs = [specs_by_id[shard_id] for shard_id in shard_run_ids]
+    benchmarks = {str(spec.get("benchmark_name", "")) for spec in shard_specs}
+    if benchmarks != {benchmark_name}:
+        raise ValueError(f"all shard specs must target benchmark {benchmark_name!r}, got {sorted(benchmarks)!r}")
+    model_names = {str(spec.get("model_name", "")) for spec in shard_specs}
+    if len(model_names) != 1:
+        raise ValueError(f"all shard specs must use the same model_name, got {sorted(model_names)!r}")
+    input_hashes = {str(spec.get("input_sha256", "")) for spec in shard_specs}
+    if len(input_hashes) != 1:
+        raise ValueError("all shard specs must use the same input artifact")
+    selected_policies = {str(spec.get("selected_model_policy", "") or "first_output_only") for spec in shard_specs}
+    if len(selected_policies) != 1:
+        raise ValueError(f"all shard specs must use the same selection policy, got {sorted(selected_policies)!r}")
+
+    first = shard_specs[0]
+    model_name = str(first.get("model_name", "protenix-v2"))
+    run_dir = project_root / "runs" / run_id
+    merged_output_dir = run_dir / "predictions" / model_name
+    if merged_output_dir.exists() and any(merged_output_dir.rglob("*")):
+        raise FileExistsError(f"merged output directory is not empty: {merged_output_dir}")
+    ensure_dir(merged_output_dir)
+
+    linked_files = 0
+    source_output_dirs: list[str] = []
+    for spec in shard_specs:
+        source_output = Path(str(spec.get("output_dir", "")))
+        if not source_output.exists():
+            raise FileNotFoundError(f"shard output directory does not exist: {source_output}")
+        source_output_dirs.append(str(source_output))
+        for source_path in sorted(path for path in source_output.rglob("*") if path.is_file()):
+            rel_path = source_path.relative_to(source_output)
+            dest_path = merged_output_dir / rel_path
+            ensure_dir(dest_path.parent)
+            if dest_path.exists() or dest_path.is_symlink():
+                raise FileExistsError(f"merged shard path collision: {dest_path}")
+            dest_path.symlink_to(source_path)
+            linked_files += 1
+
+    seeds = combined_seed_list(str(spec.get("seeds", "")) for spec in shard_specs)
+    sample_values = {int(spec.get("sample", 1) or 1) for spec in shard_specs}
+    if len(sample_values) != 1:
+        raise ValueError(f"all shard specs must use the same sample count, got {sorted(sample_values)!r}")
+    sample = sample_values.pop()
+    declared_candidates = candidate_count_override or candidate_count(seeds, sample)
+    benchmark_payload_dir = Path(str(first.get("benchmark_dir", ""))) if first.get("benchmark_dir") else project_root / "benchmarks" / benchmark_name
+    summary = register_existing_run(
+        project_root=project_root,
+        run_id=run_id,
+        output_dir=merged_output_dir,
+        input_json=Path(str(first.get("input_json", ""))),
+        input_manifest=Path(str(first.get("input_manifest", ""))),
+        benchmark_name=benchmark_name,
+        benchmark_version=str(first.get("benchmark_version", "")),
+        benchmark_dir=benchmark_payload_dir,
+        references_manifest=Path(str(first.get("references_manifest", ""))) if first.get("references_manifest") else None,
+        backend=str(first.get("backend", "protenix")),
+        strategy=f"{first.get('strategy', 'merged_shards')}_merged",
+        model_name=model_name,
+        source_run_id=",".join(shard_run_ids),
+        seeds=seeds,
+        sample=sample,
+        candidate_count_override=declared_candidates,
+        budget_tier="server_attack",
+        fixed_budget=spec_bool(first.get("fixed_budget"), default=True),
+        selected_model_policy=str(first.get("selected_model_policy", "") or "first_output_only"),
+        rank_eligible=rank_eligible,
+        dtype=str(first.get("dtype", "")),
+        cycle=first.get("cycle"),
+        step=first.get("step"),
+        use_msa=spec_bool(first.get("use_msa"), default=True),
+        use_template=spec_bool(first.get("use_template"), default=True),
+        use_default_params=spec_bool(first.get("use_default_params"), default=False),
+    )
+    spec_path = run_dir / "run_spec.json"
+    spec_payload = json.loads(spec_path.read_text(encoding="utf-8"))
+    spec_payload["merged_prediction_shards"] = True
+    spec_payload["source_run_ids"] = list(shard_run_ids)
+    spec_payload["source_output_dirs"] = source_output_dirs
+    spec_payload["linked_file_count"] = linked_files
+    spec_path.write_text(json.dumps(spec_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    register_run_spec(project_root, spec_payload)
+    return {
+        **summary,
+        "source_run_ids": list(shard_run_ids),
+        "seeds": seeds,
+        "candidate_count": declared_candidates,
+        "linked_file_count": linked_files,
+    }
+
+
+def combined_seed_list(seed_lists: Sequence[str]) -> str:
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for seed_text in seed_lists:
+        for seed in str(seed_text or "").split(","):
+            seed = seed.strip()
+            if seed and seed not in seen:
+                ordered.append(seed)
+                seen.add(seed)
+    return ",".join(ordered) or "101"
+
+
 def write_run_script(path: Path, command: Sequence[str], *, protenix_root_dir: Path, protenix_bin: Path = DEFAULT_PROTENIX_BIN) -> None:
     lines = [
         "#!/usr/bin/env bash",

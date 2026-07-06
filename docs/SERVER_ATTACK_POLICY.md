@@ -116,6 +116,24 @@ For the nofail tier, use the shard TSV rows from
 `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`; do not
 reuse the older `protenix25` input artifact by accident.
 
+After every shard has completed, register the merged attack row before scoring:
+
+```bash
+./casp16 merge-shards \
+  --run-id server_v2_attack_oligo_recovery_nofail_protenix25_seed101_125 \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --candidate-count 25 \
+  --shard-run-id server_v2_attack_oligo_recovery_nofail_protenix25_shard1_seed101_105 \
+  --shard-run-id server_v2_attack_oligo_recovery_nofail_protenix25_shard2_seed106_110 \
+  --shard-run-id server_v2_attack_oligo_recovery_nofail_protenix25_shard3_seed111_115 \
+  --shard-run-id server_v2_attack_oligo_recovery_nofail_protenix25_shard4_seed116_120 \
+  --shard-run-id server_v2_attack_oligo_recovery_nofail_protenix25_shard5_seed121_125
+```
+
+`merge-shards` symlinks completed shard predictions into one registered run
+directory. It does not launch predictions, select models, or make a partial
+shard rank-eligible as the complete 25-candidate budget.
+
 ## Execution Semantics
 
 Protenix accepts comma-separated seeds, but the runner iterates as:

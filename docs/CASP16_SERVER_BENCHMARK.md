@@ -97,6 +97,10 @@ input includes protein-oligo sequence recovery and has 0 jobs above the
 Protenix 2560-token limit. The shard manifest is
 `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
 
+For seed-sharded attack budgets, a single shard remains partial by design. Use
+`./casp16 merge-shards` only after every predeclared shard has completed; then
+score the merged run with the full declared `candidate_count`.
+
 Existing prediction directories can be registered for diagnostic reuse without
 creating a runnable job:
 

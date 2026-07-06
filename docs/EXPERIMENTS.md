@@ -741,6 +741,21 @@ Interpretation: if the v2 nofail baseline earns a larger attack budget, the
 stack rather than the older coverage/stoich-only nofail artifact. This does not
 queue or submit the 25-seed run.
 
+### 2026-07-06 Seed-Shard Merge Path
+
+Decision: add `./casp16 merge-shards` so a future 25-candidate attack can be
+scored as one declared budget after all five seed shards finish.
+
+Rationale: individual five-seed shards should remain `partial_candidates`
+against a 25-candidate budget. The merge command symlinks completed shard
+prediction files into one registered run, preserves per-target confidence JSON
+discovery, records `source_run_ids`, and exposes the merged `candidate_count`
+for scoring.
+
+Interpretation: this closes the planned `protenix25` execution loop without
+launching any extra GPU work or weakening the fail-closed partial-candidate
+rule.
+
 ### 2026-07-06 Terminal Tag Cleanup Result
 
 Decision: keep `yang_terminal_tag_cleanup_v1` as a weak positive construct

@@ -114,6 +114,17 @@ of the true winner budget. Larger multi-seed, multi-sample, multi-engine, or
 stronger-ranker attempts require a new predeclared attack-budget version and
 must be reported separately from `dev_fixed` rows.
 
+For seed-sharded attack budgets, do not score an individual shard as the full
+row. After every predeclared shard finishes, register the combined prediction
+tree, then score the merged run:
+
+```bash
+./casp16 merge-shards --benchmark <benchmark> --run-id <merged_id> \
+  --shard-run-id <shard1> ...
+```
+
+The merged `candidate_count` must equal the declared total budget.
+
 ## Strategy Notes
 
 Create a short strategy record using `docs/STRATEGY_TEMPLATE.md` when adding a

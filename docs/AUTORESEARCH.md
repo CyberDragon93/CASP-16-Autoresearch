@@ -205,6 +205,8 @@ then improve methods against that harder target set.
   diagnostics, and validation notes
 - `docs/REFERENCE_GAP_AUDIT.md`: server benchmark reference/input coverage gaps
 - `attack_budgets/`: JSON attack-budget definitions
+- `./casp16 merge-shards`: registers completed seed-sharded attack predictions
+  as one merged run before scoring
 - `docs/AUTORESEARCH_QUEUE.md`: current execution queue for strategy attempts
 - `docs/EXPERIMENTS.md`: append-only autoresearch experiment log
 - `docs/TARGET_LAB_PROMOTION.md`: promotion gates from target_lab diagnostics

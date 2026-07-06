@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, register_existing_run, register_run_spec, run_next, write_run_script, write_runs_manifest
+from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, register_run_spec, run_next, write_run_script, write_runs_manifest
 
 
 def test_build_protenix_command_contains_strategy_knobs() -> None:
@@ -320,6 +320,79 @@ def test_create_run_spec_rejects_dev_fixed_label_for_candidate_budget(tmp_path) 
             candidate_count_override=4,
             budget_tier="dev_fixed",
         )
+
+
+def test_merge_prediction_shards_registers_attack_budget_run(tmp_path) -> None:
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    benchmark_dir = tmp_path / "benchmarks" / benchmark
+    benchmark_dir.mkdir(parents=True)
+    input_json = benchmark_dir / "inputs.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    input_json.write_text('[{"name":"T1234","sequences":[]}]\n', encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\nT1234\tok\n", encoding="utf-8")
+    references.write_text("target_id\treference_path\n", encoding="utf-8")
+
+    shard_ids = ["attack_shard1", "attack_shard2"]
+    for seed, shard_id in zip(("101", "102"), shard_ids, strict=True):
+        run_dir = tmp_path / "runs" / shard_id
+        pred_dir = run_dir / "predictions" / "protenix-v2" / "T1234" / f"seed_{seed}" / "predictions"
+        pred_dir.mkdir(parents=True)
+        (pred_dir / "T1234_sample_0.cif").write_text(f"data_seed_{seed}\n", encoding="utf-8")
+        (pred_dir / "T1234_summary_confidence_sample_0.json").write_text('{"plddt": 80.0, "ptm": 0.5, "iptm": 0.1}\n', encoding="utf-8")
+        spec = {
+            "run_id": shard_id,
+            "backend": "protenix",
+            "strategy": "yang_oligo_sequence_stoich_low_complexity_large_fallback_v1_server_attack_protenix25",
+            "benchmark_name": benchmark,
+            "benchmark_version": "2",
+            "benchmark_dir": str(benchmark_dir),
+            "model_name": "protenix-v2",
+            "input_json": str(input_json),
+            "input_manifest": str(input_manifest),
+            "input_sha256": "same-input",
+            "input_manifest_sha256": "same-manifest",
+            "references_manifest": str(references),
+            "output_dir": str(run_dir / "predictions" / "protenix-v2"),
+            "seeds": seed,
+            "sample": 1,
+            "candidate_count": 2,
+            "budget_tier": "server_attack",
+            "fixed_budget": True,
+            "selected_model_policy": "protenix_confidence_v1",
+            "rank_eligible": True,
+            "dtype": "bf16",
+            "use_msa": True,
+            "use_template": True,
+            "use_default_params": True,
+        }
+        (run_dir / "run_spec.json").write_text(json.dumps(spec), encoding="utf-8")
+
+    summary = merge_prediction_shards(
+        project_root=tmp_path,
+        run_id="attack_merged_seed101_102",
+        benchmark_name=benchmark,
+        shard_run_ids=shard_ids,
+    )
+
+    merged_output = Path(str(summary["output_dir"]))
+    merged_prediction = merged_output / "T1234" / "seed_101" / "predictions" / "T1234_sample_0.cif"
+    assert merged_prediction.is_symlink()
+    assert summary["candidate_count"] == 2
+    assert summary["linked_file_count"] == 4
+
+    spec = json.loads((tmp_path / "runs" / "attack_merged_seed101_102" / "run_spec.json").read_text(encoding="utf-8"))
+    assert spec["merged_prediction_shards"] is True
+    assert spec["source_run_ids"] == shard_ids
+    assert spec["seeds"] == "101,102"
+    assert spec["candidate_count"] == 2
+    assert spec["budget_tier"] == "server_attack"
+
+    rows = list_run_rows(tmp_path, benchmark=benchmark)
+    merged = [row for row in rows if row["run_id"] == "attack_merged_seed101_102"][0]
+    assert merged["status"] == "ok"
+    assert merged["candidate_count"] == 2
+    assert merged["budget_tier"] == "server_attack"
 
 
 def test_run_next_blocks_pending_when_benchmark_run_is_running(tmp_path) -> None:

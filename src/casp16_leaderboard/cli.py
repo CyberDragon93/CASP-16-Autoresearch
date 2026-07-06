@@ -17,7 +17,7 @@ from .benchmark import (
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
 from .official import ingest_official_data
-from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, register_existing_run, run_next
+from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, merge_prediction_shards, register_existing_run, run_next
 from .scoring import score_benchmark_runs
 from .strategies import STRATEGY_YANG_TERMINAL_TAG_CLEANUP, derive_strategy_inputs
 
@@ -127,6 +127,13 @@ def build_parser() -> argparse.ArgumentParser:
     register_existing.add_argument("--step", type=int, default=None)
     register_existing.add_argument("--use-msa", action=argparse.BooleanOptionalAction, default=True)
     register_existing.add_argument("--use-template", action=argparse.BooleanOptionalAction, default=True)
+
+    merge_shards = subparsers.add_parser("merge-shards", help="Symlink completed prediction shards into one registered attack-budget run.")
+    merge_shards.add_argument("--run-id", required=True)
+    merge_shards.add_argument("--benchmark", required=True)
+    merge_shards.add_argument("--shard-run-id", action="append", required=True, help="Shard run id; repeat in seed order.")
+    merge_shards.add_argument("--candidate-count", type=int, default=None, help="Declared total candidates per target. Defaults to merged seeds*sample.")
+    merge_shards.add_argument("--rank-eligible", action=argparse.BooleanOptionalAction, default=True)
 
     collect = subparsers.add_parser("collect", help="Collect local run artifacts into CSV/Markdown.")
     collect.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards.")
@@ -302,6 +309,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             step=args.step,
             use_msa=args.use_msa,
             use_template=args.use_template,
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "merge-shards":
+        summary = merge_prediction_shards(
+            project_root=root,
+            run_id=args.run_id,
+            benchmark_name=args.benchmark,
+            shard_run_ids=args.shard_run_id,
+            candidate_count_override=args.candidate_count,
+            rank_eligible=args.rank_eligible,
         )
         print_json(summary)
         return 0
