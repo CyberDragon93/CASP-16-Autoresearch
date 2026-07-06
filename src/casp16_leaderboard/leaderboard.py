@@ -236,6 +236,7 @@ def generate_benchmark_leaderboard(
             "run_id",
             "track",
             "rank_status",
+            "selected_model_policy",
             "mean_score",
             "eligible_targets",
             "ok_targets",
@@ -321,6 +322,8 @@ def summarize_benchmark_runs(
         ranked_rows = [row for row in rows if str(row.get("rank_eligible", "")).lower() == "true"]
         scores = [parse_float(row.get("score", "")) or 0.0 for row in ranked_rows]
         status_counts = _count(str(row.get("status", "")) for row in ranked_rows)
+        selected_policies = sorted({str(row.get("selected_model_policy", "") or "first_output_only") for row in rows})
+        selected_model_policy = ",".join(selected_policies)
         ok = status_counts.get("ok", 0)
         missing = status_counts.get("missing_prediction", 0) + max(eligible - len(ranked_rows), 0)
         failed = status_counts.get("metric_failed", 0) + status_counts.get("metric_unparseable", 0) + status_counts.get("missing_reference", 0)
@@ -334,12 +337,15 @@ def summarize_benchmark_runs(
             rank_status = "pending:no_scored_targets"
         if run_rank_eligible is not None and not run_rank_eligible.get(run_id, True):
             rank_status = "unranked:run_not_rank_eligible"
+        elif rank_status == "ranked" and selected_model_policy not in {"", "first_output_only"}:
+            rank_status = f"attack:{selected_model_policy}"
         summaries.append(
             {
                 "rank": "",
                 "run_id": run_id,
                 "track": track,
                 "rank_status": rank_status,
+                "selected_model_policy": selected_model_policy,
                 "mean_score": f"{(sum(scores) / eligible if eligible else 0.0):.6f}",
                 "eligible_targets": eligible,
                 "ok_targets": ok,
@@ -388,6 +394,7 @@ def write_results_markdown(path: Path, rows: Sequence[Mapping[str, Any]], *, top
                         ("rank", "rank"),
                         ("run", "run_id"),
                         ("status", "rank_status"),
+                        ("policy", "selected_model_policy"),
                         ("mean", "mean_score"),
                         ("eligible", "eligible_targets"),
                         ("ok", "ok_targets"),
