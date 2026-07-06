@@ -287,6 +287,8 @@ def test_server_oligo_uses_sequence_lookup_prediction_alias(tmp_path) -> None:
 
     assert row["status"] == "ok"
     assert row["prediction_path"] == str(prediction)
+    assert row["prediction_match_type"] == "sequence_lookup"
+    assert row["prediction_match_alias"] == "T0206"
     assert row["qsglob"] == "0.321000"
 
 
@@ -307,6 +309,39 @@ def test_prediction_candidate_index_for_targets_prefers_exact_alias(tmp_path) ->
     )
 
     assert indexed["T0206O"] == [exact, lookup]
+
+
+def test_score_target_records_exact_prediction_match(tmp_path) -> None:
+    output_dir = tmp_path / "predictions"
+    exact_dir = output_dir / "T0206O" / "seed_101" / "predictions"
+    exact_dir.mkdir(parents=True)
+    prediction = exact_dir / "T0206O_sample_0.cif"
+    prediction.write_text("data_exact\n", encoding="utf-8")
+    reference = tmp_path / "ref.cif"
+    reference.write_text("data_ref\n", encoding="utf-8")
+    ost = _write_fake_ost(tmp_path / "ost", 0.654)
+
+    row = score_target(
+        {"run_id": "r1", "output_dir": str(output_dir)},
+        {
+            "target_id": "T0206O",
+            "sequence_lookup_id": "T0206",
+            "track": "protein_oligo",
+            "rank_eligible": "true",
+            "official_metric": "QSglob",
+        },
+        {"reference_path": str(reference)},
+        benchmark="casp16_server_protein_v2_aliasfix",
+        tm_tool="",
+        dockq_tool="",
+        qsglob_tool=ost,
+    )
+
+    assert row["status"] == "ok"
+    assert row["prediction_path"] == str(prediction)
+    assert row["prediction_match_type"] == "exact"
+    assert row["prediction_match_alias"] == "T0206O"
+    assert row["qsglob"] == "0.654000"
 
 
 def test_server_oligo_openstructure_zero_keeps_mapping_diagnostic(tmp_path) -> None:

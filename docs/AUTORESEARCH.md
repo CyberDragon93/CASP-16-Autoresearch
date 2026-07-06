@@ -158,6 +158,12 @@ where methods should change.
   rows were scorer-ok, but only `T1249V1O` was nonzero (`QSglob=0.096`). This
   is a weak early signal: wait for the full v2 dev row before spending the
   larger `protenix25` budget.
+- `2026-07-06 18:34 CDT` scorer-alias audit: `target_scores.csv` now records
+  `prediction_match_type` and `prediction_match_alias`. The eight current v2
+  oligo `ok` rows above are all `sequence_lookup` matches (`T0206O -> T0206`,
+  `T0234O -> T0234`, etc.), not exact `*O` prediction artifacts. Treat their
+  zeros as alias/assembly diagnostics until exact oligo jobs finish; they are
+  not enough evidence to launch a larger seed budget.
 - Filtered scoring is now available through `./casp16 score --run-id <run_id>`.
   Use it with an explicit `--output-dir diagnostics/...` for the first readout
   of completed runs while attack rows are still pending or partial. The first

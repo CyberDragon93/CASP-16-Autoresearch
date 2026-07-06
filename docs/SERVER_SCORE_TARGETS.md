@@ -51,6 +51,10 @@ is still dominated by coverage and mapping failures:
 | protein oligos | `0.000923` | 8/104 | 82/104 | 14/104 | 1 |
 
 The only nonzero v2 oligo diagnostic is `T1249V1O` with QSglob `0.096`.
+After adding scorer alias diagnostics, all eight current oligo `ok` rows are
+`sequence_lookup` matches rather than exact `*O` prediction matches. These rows
+are useful for detecting alias/assembly false-zero classes, but they are not a
+strong exact-oligo quality signal yet.
 Before spending another winner-scale budget, the high-leverage work is still
 reference recovery, prediction coverage, and QSglob assembly mapping. More
 seeds cannot rescue targets that are missing predictions, missing references,

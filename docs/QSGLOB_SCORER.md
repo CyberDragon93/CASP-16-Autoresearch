@@ -131,6 +131,13 @@ nonzero (`QSglob=0.096`). Treat this as an early diagnostic only; the active
 run is still incomplete and must not be written into official leaderboard
 artifacts until all jobs finish.
 
+The scorer now writes `prediction_match_type` and `prediction_match_alias` to
+`target_scores.csv`. This separates exact target predictions from
+`sequence_lookup_id` fallback predictions. In the current v2 partial
+leaderboard, all eight oligo `ok` rows are `sequence_lookup` matches such as
+`T0206O -> T0206`, so their zeros should be interpreted as alias/assembly
+diagnostics rather than as final exact-oligo job quality.
+
 ## Next Work
 
 - Score server oligo targets with `ost` once the active run is complete, so

@@ -27,6 +27,8 @@ TARGET_SCORE_FIELDS = [
     "candidate_count",
     "observed_candidate_count",
     "prediction_path",
+    "prediction_match_type",
+    "prediction_match_alias",
     "confidence_path",
     "selection_score",
     "reference_path",
@@ -145,6 +147,18 @@ def prediction_aliases_for_target(target: Mapping[str, str]) -> list[str]:
         if value and value not in aliases:
             aliases.append(value)
     return aliases
+
+
+def prediction_match_for_target(output_dir: Path, target: Mapping[str, str], prediction_path: Path) -> dict[str, str]:
+    aliases = {
+        "exact": str(target.get("target_id", "") or "").strip(),
+        "sequence_lookup": str(target.get("sequence_lookup_id", "") or "").strip(),
+        "official_target": str(target.get("official_target_id", "") or "").strip(),
+    }
+    for match_type, alias in aliases.items():
+        if alias and filter_prediction_candidates([prediction_path], output_dir, alias):
+            return {"prediction_match_type": match_type, "prediction_match_alias": alias}
+    return {"prediction_match_type": "unknown", "prediction_match_alias": ""}
 
 
 def prediction_candidates_for_aliases(output_dir: Path, aliases: Sequence[str]) -> list[Path]:
@@ -545,6 +559,8 @@ def score_target(
         "candidate_count": expected_candidates,
         "observed_candidate_count": "",
         "prediction_path": "",
+        "prediction_match_type": "",
+        "prediction_match_alias": "",
         "confidence_path": "",
         "selection_score": "",
         "reference_path": reference_value,
@@ -583,6 +599,7 @@ def score_target(
         return {**base, "status": selection.get("status", "selection_failed"), "message": selection.get("message", "selection_failed")}
     prediction_path = Path(str(selection["prediction_path"]))
     base["prediction_path"] = str(prediction_path)
+    base.update(prediction_match_for_target(output_dir, target, prediction_path))
     base["confidence_path"] = selection.get("confidence_path", "")
     base["selection_score"] = selection.get("selection_score", "")
     if not reference_value:
