@@ -935,3 +935,81 @@ def test_oligo_stoichiometry_recovery_restores_official_counts(tmp_path) -> None
     t1201 = next(row for row in rows if row["target_id"] == "T1201")
     assert t1201["status"] == "unchanged"
     assert t1201["skip_reason"] == "not_protein_oligo"
+
+
+def test_oligo_stoichiometry_token_safe_skips_oversize_recovery(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "stoich_safe" / "inputs.json"
+    manifest = tmp_path / "stoich_safe" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    official_targets = tmp_path / "official_targets.tsv"
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "H1258",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "A" * 2000, "count": 1, "id": ["A"]}},
+                        {"proteinChain": {"sequence": "C" * 300, "count": 1, "id": ["B"]}},
+                    ],
+                },
+                {
+                    "name": "H1232",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "D" * 100, "count": 1, "id": ["A"]}},
+                        {"proteinChain": {"sequence": "E" * 200, "count": 1, "id": ["B"]}},
+                    ],
+                },
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "track", "oligo_state"]),
+                "\t".join(["H1258", "protein_oligo", "UNK"]),
+                "\t".join(["H1232", "protein_oligo", "UNK"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    official_targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "Oligo.State"]),
+                "\t".join(["H1258", "A1B2"]),
+                "\t".join(["H1232", "A2B2"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_oligo_stoichiometry_token_safe_v1",
+        targets_path=targets,
+        official_targets_path=official_targets,
+    )
+
+    assert summary["changed_targets"] == 1
+    assert summary["oversize_after_recovery"] == 0
+    assert summary["skipped_oversize_after_recovery"] == 1
+    optimized = {job["name"]: job for job in json.loads(output_json.read_text(encoding="utf-8"))}
+    assert optimized["H1258"]["sequences"][1]["proteinChain"]["count"] == 1
+    assert optimized["H1258"]["sequences"][1]["proteinChain"]["id"] == ["B"]
+    assert optimized["H1232"]["sequences"][0]["proteinChain"]["count"] == 2
+    assert optimized["H1232"]["sequences"][0]["proteinChain"]["id"] == ["A", "B"]
+    assert optimized["H1232"]["sequences"][1]["proteinChain"]["count"] == 2
+    assert optimized["H1232"]["sequences"][1]["proteinChain"]["id"] == ["C", "D"]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    h1258 = next(row for row in rows if row["target_id"] == "H1258")
+    assert h1258["status"] == "unchanged"
+    assert h1258["skip_reason"] == "oversize_after_recovery"
+    assert h1258["rules"] == "would_recover_official_oligo_state,benchmark_state_was_unknown,skip_oversize_after_recovery:2560"

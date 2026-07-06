@@ -28,6 +28,7 @@ STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK = "yang_large_target_split_or_fallb
 STRATEGY_YANG_SEQUENCE_RECOVERY = "yang_sequence_recovery_v1"
 STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK = "yang_sequence_recovery_large_target_fallback_v1"
 STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY = "yang_oligo_stoichiometry_recovery_v1"
+STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE = "yang_oligo_stoichiometry_token_safe_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
@@ -42,6 +43,7 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_SEQUENCE_RECOVERY,
     STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK,
     STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY,
+    STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE,
 )
 PROTENIX_TOKEN_LIMIT = 2560
 MIN_REMAINING_PROTEIN_LENGTH = 30
@@ -445,6 +447,20 @@ def derive_strategy_inputs(
             manifest_path=manifest_path,
             targets_path=targets_path,
             official_targets_path=official_targets_path,
+        )
+    if strategy == STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE:
+        if targets_path is None:
+            raise ValueError("targets_path is required for token-safe oligo stoichiometry strategy")
+        if official_targets_path is None:
+            raise ValueError("official_targets_path is required for token-safe oligo stoichiometry strategy")
+        return derive_oligo_stoichiometry_recovery_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
+            targets_path=targets_path,
+            official_targets_path=official_targets_path,
+            strategy_name=STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE,
+            token_safe=True,
         )
 
     with input_json.open(encoding="utf-8") as handle:
@@ -1125,6 +1141,8 @@ def derive_oligo_stoichiometry_recovery_inputs(
     manifest_path: Path,
     targets_path: Path,
     official_targets_path: Path,
+    strategy_name: str = STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY,
+    token_safe: bool = False,
     token_limit: int = PROTENIX_TOKEN_LIMIT,
 ) -> dict[str, object]:
     with input_json.open(encoding="utf-8") as handle:
@@ -1136,6 +1154,7 @@ def derive_oligo_stoichiometry_recovery_inputs(
     manifest_rows: list[dict[str, str]] = []
     changed_targets: set[str] = set()
     oversize_after_recovery = 0
+    skipped_oversize_after_recovery = 0
 
     for job in jobs:
         optimized_job = _copy_json_dict(job)
@@ -1170,26 +1189,37 @@ def derive_oligo_stoichiometry_recovery_inputs(
                 skip_reason = "already_matches_official_oligo_state"
                 optimized_counts = desired_counts
             else:
-                chain_index = 0
-                optimized_chain_ids = []
-                for protein_index, protein, sequence, _count, _chain_ids in proteins:
-                    count = desired_counts[protein_index]
-                    chain_ids = [chain_id_for_strategy(chain_index + offset) for offset in range(count)]
-                    chain_index += count
-                    protein["count"] = count
-                    protein["id"] = chain_ids
-                    optimized_chain_ids.extend(chain_ids)
-                optimized_counts = desired_counts
-                optimized_total_len = sum(len(sequence) * count for (_, _, sequence, _old_count, _), count in zip(proteins, desired_counts, strict=True))
-                status = "changed"
-                skip_reason = "none"
-                rules.append("recover_official_oligo_state")
-                if benchmark_state in {"UNK", "", "-"}:
-                    rules.append("benchmark_state_was_unknown")
-                if optimized_total_len > token_limit:
-                    rules.append(f"oversize_after_recovery:{token_limit}")
-                    oversize_after_recovery += 1
-                changed_targets.add(target_id)
+                recovered_total_len = sum(len(sequence) * count for (_, _, sequence, _old_count, _), count in zip(proteins, desired_counts, strict=True))
+                if token_safe and recovered_total_len > token_limit:
+                    status = "unchanged"
+                    skip_reason = "oversize_after_recovery"
+                    rules.append("would_recover_official_oligo_state")
+                    if benchmark_state in {"UNK", "", "-"}:
+                        rules.append("benchmark_state_was_unknown")
+                    rules.append(f"skip_oversize_after_recovery:{token_limit}")
+                    skipped_oversize_after_recovery += 1
+                    optimized_total_len = original_total_len
+                else:
+                    chain_index = 0
+                    optimized_chain_ids = []
+                    for protein_index, protein, sequence, _count, _chain_ids in proteins:
+                        count = desired_counts[protein_index]
+                        chain_ids = [chain_id_for_strategy(chain_index + offset) for offset in range(count)]
+                        chain_index += count
+                        protein["count"] = count
+                        protein["id"] = chain_ids
+                        optimized_chain_ids.extend(chain_ids)
+                    optimized_counts = desired_counts
+                    optimized_total_len = recovered_total_len
+                    status = "changed"
+                    skip_reason = "none"
+                    rules.append("recover_official_oligo_state")
+                    if benchmark_state in {"UNK", "", "-"}:
+                        rules.append("benchmark_state_was_unknown")
+                    if optimized_total_len > token_limit:
+                        rules.append(f"oversize_after_recovery:{token_limit}")
+                        oversize_after_recovery += 1
+                    changed_targets.add(target_id)
 
         manifest_rows.append(
             {
@@ -1214,7 +1244,7 @@ def derive_oligo_stoichiometry_recovery_inputs(
     output_json.write_text(json.dumps(optimized_jobs, indent=2) + "\n", encoding="utf-8")
     write_manifest(manifest_path, manifest_rows, OLIGO_STOICHIOMETRY_RECOVERY_MANIFEST_FIELDS)
     return {
-        "strategy": STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY,
+        "strategy": strategy_name,
         "input_json": str(input_json),
         "output_json": str(output_json),
         "manifest": str(manifest_path),
@@ -1225,6 +1255,8 @@ def derive_oligo_stoichiometry_recovery_inputs(
         "jobs": len(optimized_jobs),
         "changed_targets": len(changed_targets),
         "oversize_after_recovery": oversize_after_recovery,
+        "skipped_oversize_after_recovery": skipped_oversize_after_recovery,
+        "token_safe": token_safe,
         "token_limit": token_limit,
     }
 

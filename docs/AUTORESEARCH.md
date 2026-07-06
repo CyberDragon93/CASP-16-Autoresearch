@@ -50,6 +50,10 @@ where methods should change.
   `Oligo.State` for protein-only oligo jobs where server inputs collapsed to
   one copy per entity. It changes 9 existing jobs; 5 stay under the Protenix
   limit and 4 require construct/domain-window handling.
+- New token-safe stoichiometry strategy:
+  `yang_oligo_stoichiometry_token_safe_v1`, generated on top of stacked
+  coverage recovery, restores exact copy counts for 5 under-budget oligo jobs
+  while keeping the largest optimized job at 2535 tokens.
 
 ## Main Objective
 
@@ -128,10 +132,13 @@ competitive result.
     `server_protenix_yang_sequence_recovery_large_target_fallback_seed101`
     candidate after the active pending jobs if the component coverage fixes
     still look complementary.
-11. Build a token-safe derivative of `yang_oligo_stoichiometry_recovery_v1`:
-    exact stoichiometry for under-budget targets, plus public/domain-window
-    experiments for oversize systems such as H1258.
-12. Implement strategy experiments inspired by CASP16 winners: disorder
+11. Queue the token-safe
+    `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` candidate
+    after the current coverage jobs if exact stoichiometry remains the next
+    useful oligo signal.
+12. Build public/domain-window experiments for oversize exact-stoichiometry
+    systems such as H1258.
+13. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.
 
