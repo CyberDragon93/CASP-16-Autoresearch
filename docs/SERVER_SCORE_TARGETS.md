@@ -44,6 +44,10 @@ partial-run examples do not count as server progress.
    The partial `2026-07-06 17:11 CDT` QSglob probe had 8 scorer-ok oligo rows
    but only one nonzero score, so it is not evidence to launch the planned
    25-candidate budget before the full v2 row is complete.
+   If other v2 rows are pending or partially running, use
+   `./casp16 score --benchmark casp16_server_protein_v2_aliasfix --run-id <run_id> --output-dir diagnostics/...`
+   for the first readout so pending attack rows do not contaminate a diagnostic
+   score table.
 2. Compare only `dev_fixed` to `dev_fixed`. A single-seed row can prove that an
    input strategy is worth more compute, but it is not winner-comparable.
 3. Score `server_attack` rows only after every declared candidate is present.

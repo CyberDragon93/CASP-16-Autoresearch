@@ -267,6 +267,7 @@ def build_parser() -> argparse.ArgumentParser:
     score = subparsers.add_parser("score", help="Score benchmark run predictions against available references.")
     score.add_argument("--benchmark", default=BENCHMARK_NAME)
     score.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards/<benchmark>.")
+    score.add_argument("--run-id", action="append", default=None, help="Score only this run id; repeat or comma-separate. Useful for diagnostics while other runs are pending.")
     score.add_argument("--tmscore-bin", type=Path, default=None)
     score.add_argument("--dockq-bin", type=Path, default=None)
     score.add_argument("--qsglob-bin", type=Path, default=None)
@@ -537,6 +538,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             tmscore_bin=args.tmscore_bin,
             dockq_bin=args.dockq_bin or None,
             qsglob_bin=args.qsglob_bin,
+            run_ids=split_csv_args(args.run_id),
         )
         print_json(summary)
         return 0

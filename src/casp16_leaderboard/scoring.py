@@ -375,6 +375,7 @@ def score_benchmark_runs(
     tmscore_bin: Path | None = None,
     dockq_bin: Path = DEFAULT_DOCKQ_BIN,
     qsglob_bin: Path | None = None,
+    run_ids: Sequence[str] | None = None,
 ) -> dict[str, object]:
     output_dir = (output_dir or (project_root / "leaderboards" / benchmark)).resolve()
     targets = read_benchmark_targets(project_root, benchmark)
@@ -384,6 +385,13 @@ def score_benchmark_runs(
         for spec in load_run_specs(project_root / "runs", registered_only=True)
         if spec.get("benchmark_name", benchmark) == benchmark
     ]
+    requested_runs = {run_id for run_id in run_ids or [] if run_id}
+    if requested_runs:
+        specs = [spec for spec in specs if str(spec.get("run_id", "")) in requested_runs]
+        found_runs = {str(spec.get("run_id", "")) for spec in specs}
+        missing_runs = requested_runs - found_runs
+        if missing_runs:
+            raise FileNotFoundError(f"run(s) not found for benchmark {benchmark}: {', '.join(sorted(missing_runs))}")
     tm_tool = resolve_tool(
         tmscore_bin or DEFAULT_TMSCORE_BIN,
         ["TMscore", "TMscore64", "USalign", str(DEFAULT_USALIGN_BIN)],
@@ -414,6 +422,7 @@ def score_benchmark_runs(
     return {
         "benchmark": benchmark,
         "runs": len(specs),
+        "run_ids": [str(spec.get("run_id", "")) for spec in specs],
         "target_scores": len(rows),
         "output_csv": str(output_dir / "target_scores.csv"),
     }

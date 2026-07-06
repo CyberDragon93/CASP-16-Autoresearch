@@ -124,6 +124,12 @@ where methods should change.
   rows were scorer-ok, but only `T1249V1O` was nonzero (`QSglob=0.096`). This
   is a weak early signal: wait for the full v2 dev row before spending the
   larger `protenix25` budget.
+- Filtered scoring is now available through `./casp16 score --run-id <run_id>`.
+  Use it with an explicit `--output-dir diagnostics/...` for the first readout
+  of completed runs while attack rows are still pending or partial. The first
+  partial v2 diagnostic is
+  `diagnostics/score_probes/server_v2_partial_filtered/target_scores.csv`;
+  it is not a leaderboard artifact.
 - New v2 hydrophobic-leader nofail derivative:
   `yang_oligo_sequence_stoich_low_complexity_hydrophobic_leader_large_fallback_v1`
   starts from the strongest v2 nofail stack and applies the existing

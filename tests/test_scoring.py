@@ -9,6 +9,7 @@ from casp16_leaderboard.scoring import (
     prediction_candidate_index,
     prediction_candidate_index_for_targets,
     probe_qsglob_targets,
+    score_benchmark_runs,
     score_target,
     select_prediction_for_target,
 )
@@ -377,6 +378,59 @@ def test_qsglob_probe_scores_selected_run_targets_without_leaderboard(tmp_path) 
     rows = output_csv.read_text(encoding="utf-8").splitlines()
     assert rows[0].startswith("run_id,benchmark,track,target_id")
     assert "probe_run,bench_qs,protein_oligo,H1202" in rows[1]
+    assert "0.456000" in rows[1]
+
+
+def test_score_benchmark_runs_filters_requested_run_ids(tmp_path) -> None:
+    benchmark = "bench_filter"
+    benchmark_dir = tmp_path / "benchmarks" / benchmark
+    benchmark_dir.mkdir(parents=True)
+    (benchmark_dir / "targets.tsv").write_text(
+        "target_id\ttrack\trank_eligible\tofficial_metric\n"
+        "H1202\tprotein_oligo\ttrue\tQSglob\n",
+        encoding="utf-8",
+    )
+    reference = tmp_path / "ref.cif"
+    reference.write_text("data_ref\n", encoding="utf-8")
+    (benchmark_dir / "references.tsv").write_text(
+        "target_id\ttrack\treference_path\treference_status\n"
+        f"H1202\tprotein_oligo\t{reference}\tavailable\n",
+        encoding="utf-8",
+    )
+    for run_id in ("wanted_run", "other_run"):
+        pred_dir = tmp_path / "runs" / run_id / "predictions" / "protenix-v2" / "H1202" / "seed_101" / "predictions"
+        pred_dir.mkdir(parents=True)
+        (pred_dir / "H1202_sample_0.cif").write_text(f"data_{run_id}\n", encoding="utf-8")
+        run_dir = tmp_path / "runs" / run_id
+        (run_dir / "run_spec.json").write_text(
+            (
+                "{"
+                f'"run_id":"{run_id}",'
+                f'"benchmark_name":"{benchmark}",'
+                f'"output_dir":"{tmp_path / "runs" / run_id / "predictions" / "protenix-v2"}",'
+                '"backend":"protenix",'
+                '"model_name":"protenix-v2"'
+                "}\n"
+            ),
+            encoding="utf-8",
+        )
+    _write_fake_ost(tmp_path / "ost", 0.456)
+    output_dir = tmp_path / "diagnostics" / "score_filter"
+
+    summary = score_benchmark_runs(
+        project_root=tmp_path,
+        benchmark=benchmark,
+        output_dir=output_dir,
+        qsglob_bin=tmp_path / "ost",
+        run_ids=["wanted_run"],
+    )
+
+    assert summary["runs"] == 1
+    assert summary["run_ids"] == ["wanted_run"]
+    rows = (output_dir / "target_scores.csv").read_text(encoding="utf-8").splitlines()
+    assert len(rows) == 2
+    assert "wanted_run,bench_filter,protein_oligo,H1202" in rows[1]
+    assert "other_run" not in rows[1]
     assert "0.456000" in rows[1]
 
 

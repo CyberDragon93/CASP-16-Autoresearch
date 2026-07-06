@@ -245,6 +245,15 @@ leaderboard progress.
       references produced 8 scorer-ok rows but only one nonzero target
       (`T1249V1O=0.096`). This is not enough evidence to launch the planned
       25-seed budget before the full v2 dev row is scored.
+    - `2026-07-06 17:16 CDT`: added and exercised filtered scoring with
+      `./casp16 score --run-id ... --output-dir diagnostics/...` so the active
+      v2 dev row can be read without mixing in pending attack rows. The partial
+      filtered output at
+      `diagnostics/score_probes/server_v2_partial_filtered/target_scores.csv`
+      has domain `13 ok / 32 missing_prediction / 26 missing_reference`,
+      partial fixed mean `0.049685`, and oligo `8 ok / 82 missing_prediction /
+      14 missing_reference`, with only `T1249V1O=0.096` nonzero. This remains
+      diagnostic only until the 165-job run completes.
 22. Installed OpenStructure 2.11.1 in the isolated conda env
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob` and configured
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` as the
