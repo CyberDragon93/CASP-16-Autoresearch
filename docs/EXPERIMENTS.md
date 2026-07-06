@@ -66,6 +66,22 @@ Use this branch to test whether Fv-only constructs improve antibody-antigen
 assembly behavior. Any leaderboard-facing promotion must become a predeclared
 target-agnostic antibody-complex rule and run across the full eligible set.
 
+### 2026-07-05 Antibody Fv Full-Set Candidate
+
+Decision: generate `yang_antibody_fv_cleanup_v1` as a full-set, sequence-only
+server benchmark candidate, but do not launch it before the baseline and
+lower-risk terminal-tag cleanup.
+
+Rationale: O5 needs a leaderboard-compatible path, not only changed-target
+diagnostics. The full-set candidate preserves all 106 server jobs and original
+target IDs, audits 172 protein chains, and trims 16 antibody heavy/light
+constant regions across 8 antibody-antigen targets. This keeps the benchmark
+coverage fixed while testing the Fv construct hypothesis.
+
+Launch gate: queue with the same Protenix/MSA/template/seed/sample budget only
+after the current baseline frees the GH200 and the conservative tag-cleanup
+ablation has either run or been intentionally skipped.
+
 ### 2026-07-05 Dynamic Terminal IDR Scan
 
 Decision: do not implement the first dynamic terminal-IDR cleanup heuristic as
