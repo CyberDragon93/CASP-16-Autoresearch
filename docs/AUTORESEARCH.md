@@ -63,7 +63,8 @@ where methods should change.
 - New small-complex target-lab batch:
   `target_lab/small_complex_stoich_batch_v1/` combines 5 under-budget exact
   stoichiometry complexes with the H1258 interaction-window job for faster
-  learning before full-benchmark promotion.
+  learning before full-benchmark promotion. It has been submitted as Slurm job
+  `810824`.
 
 ## Main Objective
 
@@ -151,8 +152,9 @@ competitive result.
 13. Run the H1258 target-lab interaction-window job when a small GH200 slot is
     available, then decide whether a target-agnostic window rule is worth a
     full benchmark candidate.
-14. Run `target_lab/small_complex_stoich_batch_v1` as a compact complex batch
-    to test exact stoichiometry and H1258 window behavior before spending full
+14. Monitor target_lab job `810824` for
+    `target_lab/small_complex_stoich_batch_v1`, then inspect predictions for
+    exact-stoichiometry and H1258-window behavior before spending full
     benchmark compute.
 15. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
