@@ -25,6 +25,10 @@ Preferred run creation path:
   --output-tsv data/msa_cache/index.tsv \
   --materialize-cache
 
+./casp16 msa-cache-report \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --input-json <new_inputs.json>
+
 ./casp16 check-msa-cache \
   --input-json <new_inputs.json> \
   --require-complete
@@ -49,6 +53,13 @@ fails before GPU allocation if cache coverage is lower than declared.
 uses the same exact-sequence matcher as `run-spec`, writes a diagnostics TSV,
 and can fail with `--require-complete` or `--min-reuse-fraction` before any
 run directory is created.
+
+`msa-cache-report` is the higher-level planning view. It summarizes global cache
+health, per-input chain and residue coverage, stale index rows ignored, and the
+longest target chains that would need fresh MSA search. Use it before deciding
+whether a strategy input is ready for an attack shard or should first wait for a
+cache-refresh/dev row. Its Markdown and TSV outputs live under
+`diagnostics/msa_cache/`.
 
 Manual input rewriting remains available for debugging or strategy artifact
 generation:
@@ -116,6 +127,10 @@ moving or deleting source run directories.
 - Treat `data/msa_cache/index.tsv`, `data/msa_cache/manifest.json`, and
   `data/msa_cache/store/` as derived local cache artifacts; rebuild them from
   run artifacts when source runs change.
+- Run `msa-cache-report` on any new MSA-heavy strategy input before creating
+  multi-seed or sharded run specs; if it reports fresh MSA chains, explicitly
+  decide whether the new sequences are intended strategy changes or avoidable
+  duplicate search.
 - Report `reused`, `kept_existing`, and `missing_source` counts in strategy
   notes before launching a cache-reused run.
 - Use a coverage guard (`--require-complete` or `--min-reuse-fraction`) for

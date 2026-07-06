@@ -77,6 +77,9 @@ completed MSA runs and attach it during `run-spec` creation:
 ```bash
 ./casp16 build-msa-cache --benchmark casp16_server_protein_v2_aliasfix \
   --materialize-cache
+./casp16 msa-cache-report \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --input-json <new_inputs.json>
 ./casp16 check-msa-cache --input-json <new_inputs.json> \
   --require-complete
 ./casp16 run-spec --run-id <run_id> --benchmark casp16_server_protein_v2_aliasfix \
@@ -94,6 +97,9 @@ block the run instead of falling back to another expensive MSA search.
 `--materialize-cache` keeps the reusable A3M files in ignored local storage
 under `data/msa_cache/store/`, so cache reuse does not depend on old run
 prediction directories staying in place.
+`msa-cache-report` writes `diagnostics/msa_cache/msa_cache_report.md` and a TSV
+summary showing cache health, chain/residue coverage, and the exact targets
+that would need fresh MSA search before a run is queued.
 
 ## Current Protein V1 Coverage
 

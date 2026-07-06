@@ -4,6 +4,7 @@ import csv
 import hashlib
 import json
 import shutil
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
@@ -335,6 +336,31 @@ def build_msa_cache_index(
     }
 
 
+def summarize_msa_cache_indexes(index_paths: Sequence[Path]) -> dict[str, object]:
+    """Return a small health summary for one or more exact-sequence MSA indexes."""
+
+    records, stats = load_msa_cache_records([path.resolve() for path in index_paths])
+    sequence_lengths = [record.sequence_len for record in records.values()]
+    source_runs = Counter(record.source_run_id or "<unknown>" for record in records.values())
+    paired_bytes = sum(record.paired_msa_size for record in records.values() if record.paired_msa_path)
+    unpaired_bytes = sum(record.unpaired_msa_size for record in records.values() if record.unpaired_msa_path)
+    return {
+        "index_paths": [str(path.resolve()) for path in index_paths],
+        **stats,
+        "sequence_records": len(records),
+        "records_with_paired_msa": sum(1 for record in records.values() if record.paired_msa_path),
+        "records_with_unpaired_msa": sum(1 for record in records.values() if record.unpaired_msa_path),
+        "paired_msa_bytes": paired_bytes,
+        "unpaired_msa_bytes": unpaired_bytes,
+        "total_msa_bytes": paired_bytes + unpaired_bytes,
+        "min_sequence_len": min(sequence_lengths) if sequence_lengths else 0,
+        "max_sequence_len": max(sequence_lengths) if sequence_lengths else 0,
+        "mean_sequence_len": (sum(sequence_lengths) / len(sequence_lengths)) if sequence_lengths else 0.0,
+        "source_run_count": len(source_runs),
+        "top_source_runs": [{"source_run_id": run_id, "records": count} for run_id, count in source_runs.most_common(10)],
+    }
+
+
 def _valid_index_path(row: Mapping[str, Any], path_key: str, size_key: str, sha_key: str) -> str:
     path_text = _existing_msa_path(row.get(path_key))
     if not path_text:
@@ -432,17 +458,22 @@ def _plan_reuse_rows(
     kept_existing = 0
     missing = 0
     protein_chain_count = 0
+    protein_residues = 0
+    covered_residues = 0
+    missing_source_residues = 0
 
     for task, chain_index, protein_chain in iter_protein_chains(tasks):
         protein_chain_count += 1
         task_name = str(task.get("name", ""))
         sequence = str(protein_chain.get("sequence", ""))
+        sequence_len = len(sequence)
+        protein_residues += sequence_len
         key = sequence_sha256(sequence)
         base = {
             "task_name": task_name,
             "chain_index": str(chain_index),
             "sequence_sha256": key,
-            "sequence_len": str(len(sequence)),
+            "sequence_len": str(sequence_len),
             "source_run_id": "",
             "source_task_name": "",
             "source_json": "",
@@ -451,11 +482,13 @@ def _plan_reuse_rows(
         }
         if not overwrite_existing and chain_has_usable_msa(protein_chain):
             kept_existing += 1
+            covered_residues += sequence_len
             rows.append({**base, "status": "kept_existing", "message": "input_already_has_existing_msa_paths"})
             continue
         record = records.get(key)
         if record is None:
             missing += 1
+            missing_source_residues += sequence_len
             rows.append({**base, "status": "missing_source", "message": "no_exact_sequence_msa_match"})
             continue
         if apply_paths:
@@ -464,6 +497,7 @@ def _plan_reuse_rows(
             if record.unpaired_msa_path:
                 protein_chain["unpairedMsaPath"] = record.unpaired_msa_path
         reused += 1
+        covered_residues += sequence_len
         rows.append(
             {
                 **base,
@@ -484,11 +518,15 @@ def _plan_reuse_rows(
         "source_sequence_records": len(records),
         "tasks": len(tasks),
         "protein_chains": protein_chain_count,
+        "protein_residues": protein_residues,
         "reused": reused,
         "kept_existing": kept_existing,
         "covered": reused + kept_existing,
+        "covered_residues": covered_residues,
         "coverage_fraction": ((reused + kept_existing) / protein_chain_count) if protein_chain_count else 1.0,
+        "residue_coverage_fraction": (covered_residues / protein_residues) if protein_residues else 1.0,
         "missing_source": missing,
+        "missing_source_residues": missing_source_residues,
     }
     if output_json is not None:
         summary["output_json"] = str(output_json)

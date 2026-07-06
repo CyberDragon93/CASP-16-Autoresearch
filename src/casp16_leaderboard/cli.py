@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,7 +18,7 @@ from .benchmark import (
 )
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
-from .msa_cache import audit_msa_reuse_report, build_msa_cache_index, file_sha256, plan_msa_reuse, reuse_msa_paths
+from .msa_cache import audit_msa_reuse_report, build_msa_cache_index, file_sha256, plan_msa_reuse, reuse_msa_paths, summarize_msa_cache_indexes
 from .official import ensure_dir, ingest_official_data
 from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, run_next
 from .scoring import probe_qsglob_targets, score_benchmark_runs
@@ -163,6 +164,144 @@ def validate_msa_reuse_summary(summary: dict[str, object], *, require_complete: 
             )
 
 
+MSA_CACHE_REPORT_FIELDS = [
+    "label",
+    "input_json",
+    "report_tsv",
+    "tasks",
+    "protein_chains",
+    "protein_residues",
+    "covered",
+    "covered_residues",
+    "coverage_fraction",
+    "residue_coverage_fraction",
+    "reused",
+    "kept_existing",
+    "fresh_msa_chains",
+    "fresh_msa_residues",
+    "cache_index_records",
+    "cache_index_stale_rows",
+    "status",
+]
+
+
+def safe_report_label(label: str) -> str:
+    safe = "".join(ch if ch.isalnum() or ch in {"-", "_", "."} else "_" for ch in label.strip())
+    return safe.strip("._") or "input"
+
+
+def unique_report_label(label: str, seen: set[str]) -> str:
+    base = safe_report_label(label)
+    candidate = base
+    suffix = 2
+    while candidate in seen:
+        candidate = f"{base}_{suffix}"
+        suffix += 1
+    seen.add(candidate)
+    return candidate
+
+
+def input_json_label(root: Path, input_json: Path) -> str:
+    resolved = input_json.resolve()
+    try:
+        relative = resolved.relative_to(root.resolve())
+        label = relative.with_suffix("").as_posix()
+    except ValueError:
+        label = resolved.with_suffix("").name
+    return safe_report_label(label)
+
+
+def read_tsv_rows(path: Path) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle, delimiter="\t"))
+
+
+def fraction_text(value: object) -> str:
+    try:
+        return f"{float(value):.3f}"
+    except (TypeError, ValueError):
+        return ""
+
+
+def write_msa_cache_report_tsv(path: Path, rows: Sequence[dict[str, object]]) -> None:
+    ensure_dir(path.parent)
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=MSA_CACHE_REPORT_FIELDS, delimiter="\t", lineterminator="\n")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({field: row.get(field, "") for field in MSA_CACHE_REPORT_FIELDS})
+
+
+def write_msa_cache_report_md(
+    path: Path,
+    *,
+    cache_summary: dict[str, object],
+    coverage_rows: Sequence[dict[str, object]],
+    missing_rows_by_label: dict[str, list[dict[str, str]]],
+) -> None:
+    ensure_dir(path.parent)
+    lines = [
+        "# MSA Cache Report",
+        "",
+        f"Generated: {datetime.now(timezone.utc).isoformat()}",
+        "",
+        "## Cache Health",
+        "",
+        f"- index paths: {', '.join(cache_summary.get('index_paths', []) or []) or '<none>'}",
+        f"- usable sequence records: {cache_summary.get('sequence_records', 0)}",
+        f"- stale index rows ignored: {cache_summary.get('cache_index_stale_rows', 0)}",
+        f"- paired/unpaired records: {cache_summary.get('records_with_paired_msa', 0)} / {cache_summary.get('records_with_unpaired_msa', 0)}",
+        f"- total indexed MSA bytes: {cache_summary.get('total_msa_bytes', 0)}",
+        f"- sequence length range: {cache_summary.get('min_sequence_len', 0)}-{cache_summary.get('max_sequence_len', 0)}",
+        "",
+    ]
+    top_source_runs = cache_summary.get("top_source_runs", [])
+    if isinstance(top_source_runs, list) and top_source_runs:
+        lines.extend(["Top source runs:", ""])
+        lines.append("| source run | records |")
+        lines.append("| --- | ---: |")
+        for row in top_source_runs[:10]:
+            if isinstance(row, dict):
+                lines.append(f"| `{row.get('source_run_id', '')}` | {row.get('records', '')} |")
+        lines.append("")
+
+    if coverage_rows:
+        lines.extend(["## Input Coverage", ""])
+        lines.append("| input | chains | residues | covered | chain coverage | residue coverage | fresh chains | status |")
+        lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |")
+        for row in coverage_rows:
+            lines.append(
+                "| "
+                f"`{row.get('label', '')}` | "
+                f"{row.get('protein_chains', '')} | "
+                f"{row.get('protein_residues', '')} | "
+                f"{row.get('covered', '')} | "
+                f"{fraction_text(row.get('coverage_fraction'))} | "
+                f"{fraction_text(row.get('residue_coverage_fraction'))} | "
+                f"{row.get('fresh_msa_chains', '')} | "
+                f"{row.get('status', '')} |"
+            )
+        lines.append("")
+
+    for label, rows in missing_rows_by_label.items():
+        if not rows:
+            continue
+        lines.extend([f"## Fresh MSA Needed: {label}", ""])
+        lines.append("| task | chain | residues | sequence sha256 |")
+        lines.append("| --- | ---: | ---: | --- |")
+        for row in rows:
+            lines.append(
+                "| "
+                f"`{row.get('task_name', '')}` | "
+                f"{row.get('chain_index', '')} | "
+                f"{row.get('sequence_len', '')} | "
+                f"`{row.get('sequence_sha256', '')[:12]}` |"
+            )
+        lines.append("")
+
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CASP16 local leaderboard infrastructure.")
     parser.add_argument("--root", type=Path, default=default_project_root(), help="Project root. Defaults to this checkout.")
@@ -231,6 +370,20 @@ def build_parser() -> argparse.ArgumentParser:
     check_msa_cache.add_argument("--overwrite-existing", action="store_true", help="Preview replacement of existing MSA paths when an exact match exists.")
     check_msa_cache.add_argument("--require-complete", action="store_true", help="Fail unless every protein chain has usable cached MSA paths.")
     check_msa_cache.add_argument("--min-reuse-fraction", type=float, default=None, help="Fail unless usable covered protein-chain fraction is at least this value.")
+
+    msa_cache_report = subparsers.add_parser("msa-cache-report", help="Write a cache health and input-coverage report for MSA-heavy runs.")
+    msa_cache_report.add_argument("--benchmark", action="append", default=None, help="Benchmark inputs.json to check; repeatable or comma-separated.")
+    msa_cache_report.add_argument("--input-json", type=Path, action="append", default=None, help="Additional input JSON to check; repeatable.")
+    msa_cache_report.add_argument("--msa-source-json", type=Path, action="append", default=None, help="Existing Protenix inputs-update-msa.json source; repeatable.")
+    msa_cache_report.add_argument("--source-run-id", action="append", default=None, help="Use runs/<run_id>/inputs/inputs-update-msa.json as an MSA source; repeatable.")
+    msa_cache_report.add_argument("--cache-index", type=Path, action="append", default=None, help="Exact-sequence MSA cache index TSV; defaults to data/msa_cache/index.tsv when present.")
+    msa_cache_report.add_argument("--report-dir", type=Path, default=None, help="Per-input TSV directory. Defaults to <root>/diagnostics/msa_cache/report_inputs.")
+    msa_cache_report.add_argument("--output-md", type=Path, default=None, help="Defaults to <root>/diagnostics/msa_cache/msa_cache_report.md.")
+    msa_cache_report.add_argument("--output-tsv", type=Path, default=None, help="Defaults to <root>/diagnostics/msa_cache/msa_cache_report.tsv.")
+    msa_cache_report.add_argument("--overwrite-existing", action="store_true", help="Report replacement of existing MSA paths when an exact match exists.")
+    msa_cache_report.add_argument("--require-complete", action="store_true", help="Fail unless every checked protein chain has usable cached MSA paths.")
+    msa_cache_report.add_argument("--min-reuse-fraction", type=float, default=None, help="Fail unless covered protein-chain fraction is at least this value.")
+    msa_cache_report.add_argument("--top-missing", type=int, default=20, help="Maximum fresh-MSA rows to show per input in Markdown.")
 
     run_spec = subparsers.add_parser("run-spec", help="Create a reproducible Protenix run spec and run.sh.")
     run_spec.add_argument("--run-id", required=True)
@@ -508,6 +661,96 @@ def main(argv: Sequence[str] | None = None) -> int:
         if int(audit.get("stale_covered", 0) or 0):
             raise RuntimeError(f"MSA cache check found {audit['stale_covered']} stale covered chain(s)")
         print_json({"summary": summary, "audit": audit})
+        return 0
+
+    if args.command == "msa-cache-report":
+        msa_source_jsons = (
+            resolve_msa_source_jsons(root, args.msa_source_json, args.source_run_id)
+            if (args.msa_source_json or args.source_run_id)
+            else []
+        )
+        msa_cache_indexes = resolve_msa_cache_indexes(root, args.cache_index, default_if_available=True)
+        benchmarks = split_csv_args(args.benchmark)
+        input_specs: list[tuple[str, Path]] = []
+        seen_labels: set[str] = set()
+        for benchmark_name in benchmarks:
+            benchmark_payload = load_benchmark(root, benchmark_name)
+            benchmark_dir = Path(str(benchmark_payload["_benchmark_dir"]))
+            input_specs.append((unique_report_label(benchmark_name, seen_labels), (benchmark_dir / "inputs.json").resolve()))
+        for index, input_json in enumerate(args.input_json or [], start=1):
+            label = input_json_label(root, input_json) if input_json.stem else f"input_{index}"
+            input_specs.append((unique_report_label(label, seen_labels), input_json.resolve()))
+        if input_specs and not msa_source_jsons and not msa_cache_indexes:
+            raise ValueError("provide at least one --cache-index, --msa-source-json, or --source-run-id")
+        if not input_specs and not msa_cache_indexes:
+            raise ValueError("no cache index or input JSONs to report")
+
+        output_md = (args.output_md or (root / "diagnostics" / "msa_cache" / "msa_cache_report.md")).resolve()
+        output_tsv = (args.output_tsv or (root / "diagnostics" / "msa_cache" / "msa_cache_report.tsv")).resolve()
+        report_dir = (args.report_dir or (root / "diagnostics" / "msa_cache" / "report_inputs")).resolve()
+        cache_summary = summarize_msa_cache_indexes(msa_cache_indexes)
+        coverage_rows: list[dict[str, object]] = []
+        missing_rows_by_label: dict[str, list[dict[str, str]]] = {}
+
+        for label, input_json in input_specs:
+            report_label = safe_report_label(label)
+            report_tsv = report_dir / f"{report_label}.tsv"
+            summary = plan_msa_reuse(
+                input_json=input_json,
+                msa_source_jsons=msa_source_jsons,
+                msa_cache_indexes=msa_cache_indexes,
+                report_tsv=report_tsv,
+                overwrite_existing=args.overwrite_existing,
+            )
+            validate_msa_reuse_summary(
+                summary,
+                require_complete=args.require_complete,
+                min_reuse_fraction=args.min_reuse_fraction,
+            )
+            audit = audit_msa_reuse_report(report_tsv)
+            if int(audit.get("stale_covered", 0) or 0):
+                raise RuntimeError(f"MSA cache report found {audit['stale_covered']} stale covered chain(s) for {label}")
+            fresh_chains = int(summary.get("missing_source", 0) or 0)
+            row = {
+                "label": label,
+                "input_json": str(input_json),
+                "report_tsv": str(report_tsv),
+                "tasks": summary.get("tasks", 0),
+                "protein_chains": summary.get("protein_chains", 0),
+                "protein_residues": summary.get("protein_residues", 0),
+                "covered": summary.get("covered", 0),
+                "covered_residues": summary.get("covered_residues", 0),
+                "coverage_fraction": f"{float(summary.get('coverage_fraction', 0.0) or 0.0):.6f}",
+                "residue_coverage_fraction": f"{float(summary.get('residue_coverage_fraction', 0.0) or 0.0):.6f}",
+                "reused": summary.get("reused", 0),
+                "kept_existing": summary.get("kept_existing", 0),
+                "fresh_msa_chains": fresh_chains,
+                "fresh_msa_residues": summary.get("missing_source_residues", 0),
+                "cache_index_records": summary.get("cache_index_records", 0),
+                "cache_index_stale_rows": summary.get("cache_index_stale_rows", 0),
+                "status": "complete" if fresh_chains == 0 else "fresh_msa_needed",
+            }
+            coverage_rows.append(row)
+            missing_rows = [row for row in read_tsv_rows(report_tsv) if row.get("status") == "missing_source"]
+            missing_rows.sort(key=lambda item: int(item.get("sequence_len", "0") or 0), reverse=True)
+            missing_rows_by_label[label] = missing_rows[: max(args.top_missing, 0)]
+
+        write_msa_cache_report_tsv(output_tsv, coverage_rows)
+        write_msa_cache_report_md(
+            output_md,
+            cache_summary=cache_summary,
+            coverage_rows=coverage_rows,
+            missing_rows_by_label=missing_rows_by_label,
+        )
+        print_json(
+            {
+                "cache": cache_summary,
+                "coverage": coverage_rows,
+                "output_md": str(output_md),
+                "output_tsv": str(output_tsv),
+                "report_dir": str(report_dir),
+            }
+        )
         return 0
 
     if args.command == "run-spec":

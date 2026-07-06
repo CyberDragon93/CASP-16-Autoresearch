@@ -75,6 +75,9 @@ Allowed during strategy design and prediction:
   with `--materialize-cache`, create run specs with `--reuse-global-msa-cache`,
   and use `--msa-reuse-require-complete` or a declared minimum reuse fraction
   before launch
+- before queuing a new MSA-heavy strategy or shard, run `msa-cache-report` on
+  its input JSON and record whether fresh MSA chains are intended strategy
+  changes or avoidable duplicate search
 
 Forbidden during strategy design and prediction:
 

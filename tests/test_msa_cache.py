@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from casp16_leaderboard.cli import discover_msa_source_jsons, resolve_msa_cache_indexes, resolve_msa_source_jsons, validate_msa_reuse_summary
-from casp16_leaderboard.msa_cache import audit_msa_reuse_report, build_msa_cache_index, plan_msa_reuse, reuse_msa_paths
+from casp16_leaderboard.msa_cache import audit_msa_reuse_report, build_msa_cache_index, plan_msa_reuse, reuse_msa_paths, summarize_msa_cache_indexes
 
 
 def test_reuse_msa_paths_matches_exact_sequence_only(tmp_path: Path) -> None:
@@ -243,11 +243,23 @@ def test_build_msa_cache_index_and_reuse_from_index(tmp_path: Path) -> None:
 
     assert reuse_summary["reused"] == 1
     assert reuse_summary["missing_source"] == 1
+    assert reuse_summary["protein_residues"] == 8
+    assert reuse_summary["covered_residues"] == 4
+    assert reuse_summary["missing_source_residues"] == 4
+    assert reuse_summary["residue_coverage_fraction"] == 0.5
     assert reuse_summary["cache_index_rows"] == 1
     payload = json.loads(output_json.read_text(encoding="utf-8"))
     chain = payload[0]["sequences"][0]["proteinChain"]
     assert chain["pairedMsaPath"] == str(paired_complete)
     assert chain["unpairedMsaPath"] == str(unpaired_complete)
+
+    cache_summary = summarize_msa_cache_indexes([index_tsv])
+
+    assert cache_summary["sequence_records"] == 1
+    assert cache_summary["records_with_paired_msa"] == 1
+    assert cache_summary["records_with_unpaired_msa"] == 1
+    assert cache_summary["total_msa_bytes"] == paired_complete.stat().st_size + unpaired_complete.stat().st_size
+    assert cache_summary["top_source_runs"] == [{"source_run_id": "source_b", "records": 1}]
 
 
 def test_materialized_msa_cache_survives_source_run_cleanup(tmp_path: Path) -> None:
