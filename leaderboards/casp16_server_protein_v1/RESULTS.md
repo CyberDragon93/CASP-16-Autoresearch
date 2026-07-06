@@ -14,6 +14,7 @@ Runs are ranked over fixed eligible target sets. Missing predictions, failed met
 |  | server_attack_protenix_terminal_tag_seed101_105 | pending:no_scored_targets | protenix_confidence_v1 | 0.000000 | 71 | 0 | 71 | 0 | 0 |
 |  | server_protenix_yang_epitope_tag_cleanup_seed101 | pending:no_scored_targets | first_output_only | 0.000000 | 71 | 0 | 71 | 0 | 0 |
 |  | server_protenix_yang_large_target_split_or_fallback_seed101 | pending:no_scored_targets | first_output_only | 0.000000 | 71 | 0 | 71 | 0 | 0 |
+|  | server_protenix_yang_sequence_recovery_seed101 | pending:no_scored_targets | first_output_only | 0.000000 | 71 | 0 | 71 | 0 | 0 |
 |  | server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101 | pending:no_scored_targets | first_output_only | 0.000000 | 71 | 0 | 71 | 0 | 0 |
 
 ## protein_oligo
@@ -27,5 +28,6 @@ Runs are ranked over fixed eligible target sets. Missing predictions, failed met
 |  | server_protenix_yang_epitope_tag_cleanup_seed101 | pending:no_scored_targets | first_output_only | 0.000000 | 104 | 0 | 104 | 0 | 0 |
 |  | server_protenix_yang_large_target_split_or_fallback_seed101 | pending:no_scored_targets | first_output_only | 0.000000 | 104 | 0 | 104 | 0 | 0 |
 |  | server_protenix_yang_oversize_domain_monomer_fallback_seed101 | unranked:metric_unavailable | first_output_only | 0.000000 | 104 | 0 | 47 | 30 | 27 |
+|  | server_protenix_yang_sequence_recovery_seed101 | pending:no_scored_targets | first_output_only | 0.000000 | 104 | 0 | 104 | 0 | 0 |
 |  | server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101 | pending:no_scored_targets | first_output_only | 0.000000 | 104 | 0 | 104 | 0 | 0 |
 |  | server_protenix_yang_terminal_tag_cleanup_seed101 | unranked:metric_unavailable | first_output_only | 0.000000 | 104 | 0 | 47 | 30 | 27 |

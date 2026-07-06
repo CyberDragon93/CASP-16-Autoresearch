@@ -109,9 +109,9 @@ competitive result.
 8. Submit `server_protenix_yang_large_target_split_or_fallback_seed101` after
    the active attack job if coverage recovery remains the highest-leverage next
    move.
-9. Queue `yang_sequence_recovery_v1` after the active coverage jobs if
-   recovering `T1212`, `T1239V1/V2`, and `T2280` looks higher leverage than
-   another construct-only run.
+9. Submit `server_protenix_yang_sequence_recovery_seed101` after the active
+   pending jobs if recovering `T1212`, `T1239V1/V2`, and `T2280` looks higher
+   leverage than another construct-only run.
 10. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.

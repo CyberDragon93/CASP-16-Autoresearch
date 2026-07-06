@@ -12,6 +12,6 @@
 | status | target scores |
 | --- | --- |
 | metric_unavailable | 127 |
-| missing_prediction | 1154 |
+| missing_prediction | 1329 |
 | missing_reference | 225 |
 | ok | 69 |

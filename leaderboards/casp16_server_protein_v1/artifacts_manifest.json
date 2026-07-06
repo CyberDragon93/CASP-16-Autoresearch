@@ -1,11 +1,11 @@
 {
   "RESULTS.md": {
     "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v1/RESULTS.md",
-    "sha256": "7a5cd555139e95bb8a4a791204d2cc32d552b3be6a9904c6dafb8051d16c892b"
+    "sha256": "a016f2b52e1177b2a16d4c97b265a51c19ea8c398acde3f1f2a29174e3bd4f9f"
   },
   "coverage.md": {
     "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v1/coverage.md",
-    "sha256": "c4fb38377d5a5e1466c0537670e3fc5b299fd5c5d5a9a715df990efb865c05f2"
+    "sha256": "4ab6fbf4536833153f639de277be28bfd286e053032ef6e9c0bafec22683a83f"
   },
   "official_all_groups.csv": {
     "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v1/official_all_groups.csv",
@@ -21,10 +21,10 @@
   },
   "runs.csv": {
     "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v1/runs.csv",
-    "sha256": "0121dacafea0cb7944ea8263d9d7859906499bd92fe68997a63c9570770d775e"
+    "sha256": "e3c0ceb91ebb762ffba6a62dc6be32fd625ebdffc47a7aca77393e356adbf842"
   },
   "target_scores.csv": {
     "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v1/target_scores.csv",
-    "sha256": "67107fdf854ba301422f639bad10f614fa6ae1ef1c493b85be217bd88453e3ce"
+    "sha256": "75e7094dbb7f8a18d7bcd6efe3b3b3cb00467fd6c33c00bb35dcb7cced64f445"
   }
 }
