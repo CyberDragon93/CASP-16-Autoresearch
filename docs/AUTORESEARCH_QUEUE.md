@@ -19,14 +19,16 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 | Priority | Run | Strategy | Artifact | Benchmark | Status | Hypothesis |
 | --- | --- | --- | --- | --- | --- | --- |
-| P1 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `yang_antibody_fv_cleanup_v1` | `strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | Antibody-antigen targets may benefit from Fv-style constructs while preserving all 106 server jobs |
-| P2 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `yang_terminal_tag_antibody_fv_cleanup_v1` | `strategies/yang_terminal_tag_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind individual ablations | Combined terminal-tag plus antibody-Fv cleanup tests whether non-overlapping construct fixes compose |
-| P3 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `yang_epitope_tag_cleanup_v1` | `strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind combined cleanup | Broader epitope/His/TEV tag cleanup may rescue H1258/H0258-style expression artifacts while staying sequence-only |
+| P1 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `yang_oversize_domain_monomer_fallback_v1` | `strategies/yang_oversize_domain_monomer_fallback_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | Rescue the known `T1295` server-domain zero caused by Protenix `n_token > 2560` by replacing only a single-entity domain `A8` job with one representative chain |
+| P2 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `yang_antibody_fv_cleanup_v1` | `strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind oversize-domain fallback | Antibody-antigen targets may benefit from Fv-style constructs while preserving all 106 server jobs |
+| P3 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `yang_terminal_tag_antibody_fv_cleanup_v1` | `strategies/yang_terminal_tag_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind individual ablations | Combined terminal-tag plus antibody-Fv cleanup tests whether non-overlapping construct fixes compose |
+| P4 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `yang_epitope_tag_cleanup_v1` | `strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind combined cleanup | Broader epitope/His/TEV tag cleanup may rescue H1258/H0258-style expression artifacts while staying sequence-only |
 
 The terminal-tag run is currently active. `./casp16 run-next --benchmark
 casp16_server_protein_v1 --dry-run` should report `blocked_by_running_run`
-until it finishes. After that, the same command should select antibody Fv
-cleanup, the combined cleanup run, and then epitope tag cleanup.
+until it finishes. After that, the same command should select oversize-domain
+monomer fallback, antibody Fv cleanup, the combined cleanup run, and then
+epitope tag cleanup.
 
 Generation commands used:
 
@@ -38,6 +40,15 @@ Generation commands used:
   --input-json strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/inputs.json \
   --input-manifest strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/manifest.tsv \
   --strategy yang_terminal_tag_cleanup_v1 \
+  --use-msa --use-template --use-default-params \
+  --enable-cache --enable-fusion
+./casp16 strategy-inputs --benchmark casp16_server_protein_v1 --strategy yang_oversize_domain_monomer_fallback_v1
+./casp16 run-spec \
+  --run-id server_protenix_yang_oversize_domain_monomer_fallback_seed101 \
+  --benchmark casp16_server_protein_v1 \
+  --input-json strategies/yang_oversize_domain_monomer_fallback_v1/casp16_server_protein_v1/inputs.json \
+  --input-manifest strategies/yang_oversize_domain_monomer_fallback_v1/casp16_server_protein_v1/manifest.tsv \
+  --strategy yang_oversize_domain_monomer_fallback_v1 \
   --use-msa --use-template --use-default-params \
   --enable-cache --enable-fusion
 ./casp16 strategy-inputs --benchmark casp16_server_protein_v1 --strategy yang_antibody_fv_cleanup_v1
@@ -76,7 +87,6 @@ MSA, templates, default params, cache, fusion, and TF32 are enabled.
 
 | Priority | Strategy | Status | Reason To Try | Stop Condition |
 | --- | --- | --- | --- | --- |
-| P4 | `yang_large_target_split_or_fallback_v1` | not started | Baseline lost 8 server jobs to Protenix `n_token > 2560`; a predeclared split/fallback rule is higher leverage than another small tag tweak | Keep server-v1 claims separate unless the rule preserves fixed budget and target IDs; otherwise create a new benchmark version |
 | P5 | Install OpenStructure `ost` for QSglob | not started | Oligo server scores are not rank-comparable without QSglob | If install becomes a build rabbit hole, keep oligos diagnostic and score domains first |
 | P6 | `yang_low_complexity_terminal_cleanup_v1` | artifacts generated, not queued | H0217/H0272/H1217/H1272 have short terminal low-complexity regions that match Yang-style construct cleanup | Queue only after tag cleanup helps or baseline failures justify more aggressive trimming |
 | P7 | `yang_hydrophobic_leader_cleanup_v1` | artifacts generated, not queued | T0240/T1210/T1240-style N termini contain signal-like hydrophobic leaders; construct cleanup may improve folded-core prediction | Risky branch; queue only after baseline or conservative cleanup evidence |

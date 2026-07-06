@@ -11,6 +11,7 @@ leaderboard progress.
 | `server_eval_opendde_v1_full_msa_template_bf16_h1220_t1220s1` | `casp16_server_protein_v1` | scored diagnostic | reuse 35 existing OpenDDE local-v1 predictions to expose server coverage gap | no |
 | `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | scored | full server-target Protenix baseline with real MSA/template settings | yes for domain track |
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | running | target-agnostic Yang-style terminal tag cleanup rerun | yes, after predictions and scoring |
+| `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | single-entity oversize domain fallback to recover the known `T1295` token-limit zero | yes, after predictions and scoring |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | full-set antibody Fv constant-region cleanup rerun | yes, after lower-risk cleanup ablation |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind individual ablations | combined terminal-tag plus antibody-Fv cleanup rerun | yes, after individual ablations |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | pending behind combined cleanup | broader epitope/His/TEV tag cleanup rerun | yes, after lower-risk construct ablations |
@@ -49,28 +50,34 @@ leaderboard progress.
    - Run scripts now load or infer CUDA and math libraries before Protenix
      import; the relaunch reached Protenix MSA search at `2026-07-06T05:15Z`.
 3. Score terminal-tag cleanup immediately after predictions finish.
-4. Run queued `server_protenix_yang_antibody_fv_cleanup_seed101` as the first
+4. Run queued `server_protenix_yang_oversize_domain_monomer_fallback_seed101`
+   to recover the known `T1295` server-domain token-limit failure. The strategy
+   preserves all 106 server jobs, changes only `T1295` from `A8` to one
+   representative chain, and keeps MSA/templates/default params/seed/sample
+   fixed. This is the first coverage-recovery run after terminal-tag cleanup
+   because missing predictions score as zero.
+5. Run queued `server_protenix_yang_antibody_fv_cleanup_seed101` as the first
    full-set antibody construct attempt after the lower-risk terminal cleanup.
    It preserves all 106 server jobs while trimming 16 antibody constant-region
    chains across 8 antibody-antigen targets. Cache, fusion, and TF32 are
    enabled to match the baseline engine flags.
-5. Run queued `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101`
+6. Run queued `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101`
    after the two individual ablations to test whether their non-overlapping
    construct changes compose on the full server target set.
-6. Run queued `server_protenix_yang_epitope_tag_cleanup_seed101` after the
+7. Run queued `server_protenix_yang_epitope_tag_cleanup_seed101` after the
    lower-risk construct ablations. It changes 11 sequences across 9 targets,
    including H1258/H0258-style epitope/His/TEV prefixes, while matching the
    baseline MSA/template/cache/fusion/seed/sample budget.
-7. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
+8. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
    the oligo track.
-8. Start target_lab loops on H1258 and H1232 only as diagnostics for
+9. Start target_lab loops on H1258 and H1232 only as diagnostics for
    stoichiometry/construct tricks; promotion requires a target-agnostic full
    benchmark rerun.
-9. Add domain cropping and chain/residue mapping before drawing conclusions
+10. Add domain cropping and chain/residue mapping before drawing conclusions
    from hard multi-domain domain targets.
-10. Design `yang_large_target_split_or_fallback_v1` from the 8 Protenix
-    `n_token > 2560` failures. This should be predeclared and automatic; if it
-    changes budget or target semantics, it belongs in a new benchmark version.
+11. Design a broader `yang_large_target_split_or_fallback_v1` only after the
+    conservative `T1295` fallback is scored. Multi-entity oligo/domain failures
+    still need a separate predeclared split rule or a new benchmark version.
 
 ## Strategy Decision Log
 
@@ -118,6 +125,20 @@ preserves all 106 server jobs, audits 172 protein chains, and changes 23
 protein sequences across 15 targets. This is a cheap way to test whether two
 winner-style construct adjustments compose without changing benchmark
 eligibility.
+
+### 2026-07-06 Oversize Domain Monomer Fallback
+
+Decision: generate and queue `yang_oversize_domain_monomer_fallback_v1` ahead
+of the remaining construct ablations.
+
+Rationale: the full Protenix baseline lost 8 jobs to the Protenix
+`n_token > 2560` guard. Seven failures are multi-entity oligo or complex cases
+that need a more explicit split policy. One failure, `T1295`, is a
+`protein_domain` job with a single protein entity expanded to `A8`, totaling
+3752 residues. The fallback preserves the fixed target set and run budget but
+changes that one domain job to a single representative chain, reducing it to
+469 residues. This is sequence/metadata driven and does not read references,
+official score tables, or previous target scores.
 
 Launch gate: queue with the same Protenix/MSA/template/cache/fusion/seed/sample
 budget after the individual terminal-tag and antibody-Fv ablations.

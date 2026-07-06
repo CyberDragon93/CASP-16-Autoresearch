@@ -20,6 +20,7 @@ STRATEGY_YANG_DOMAIN_FRAGMENT_INPUTS = "yang_domain_fragment_inputs_v1"
 STRATEGY_YANG_ANTIBODY_FV_INPUTS = "yang_antibody_fv_fragment_inputs_v1"
 STRATEGY_YANG_ANTIBODY_FV_CLEANUP = "yang_antibody_fv_cleanup_v1"
 STRATEGY_YANG_TERMINAL_TAG_ANTIBODY_FV_CLEANUP = "yang_terminal_tag_antibody_fv_cleanup_v1"
+STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK = "yang_oversize_domain_monomer_fallback_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
@@ -29,7 +30,9 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_ANTIBODY_FV_INPUTS,
     STRATEGY_YANG_ANTIBODY_FV_CLEANUP,
     STRATEGY_YANG_TERMINAL_TAG_ANTIBODY_FV_CLEANUP,
+    STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK,
 )
+PROTENIX_TOKEN_LIMIT = 2560
 MIN_REMAINING_PROTEIN_LENGTH = 30
 LOW_COMPLEXITY_TRIM_WINDOW = 40
 LOW_COMPLEXITY_MIN_REMAINING_LENGTH = 80
@@ -90,6 +93,20 @@ ANTIBODY_FV_MANIFEST_FIELDS = [
     "original_len",
     "optimized_len",
     "removed_c",
+    "rules",
+]
+OVERSIZE_DOMAIN_MONOMER_MANIFEST_FIELDS = [
+    "target_id",
+    "track",
+    "status",
+    "skip_reason",
+    "sequence_index",
+    "original_total_len",
+    "optimized_total_len",
+    "original_count",
+    "optimized_count",
+    "original_chain_ids",
+    "optimized_chain_ids",
     "rules",
 ]
 ANTIBODY_HEAVY_PREFIXES = ("QVQL", "EVQL", "QLQL", "QVHL", "QVQLK")
@@ -303,6 +320,15 @@ def derive_strategy_inputs(
             input_json=input_json,
             output_json=output_json,
             manifest_path=manifest_path,
+        )
+    if strategy == STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK:
+        if targets_path is None:
+            raise ValueError("targets_path is required for oversize domain monomer fallback strategy")
+        return derive_oversize_domain_monomer_fallback_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
+            targets_path=targets_path,
         )
 
     with input_json.open(encoding="utf-8") as handle:
@@ -562,6 +588,145 @@ def write_manifest(path: Path, rows: Sequence[Mapping[str, str]], fieldnames: Se
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
+
+
+def derive_oversize_domain_monomer_fallback_inputs(
+    *,
+    input_json: Path,
+    output_json: Path,
+    manifest_path: Path,
+    targets_path: Path,
+    token_limit: int = PROTENIX_TOKEN_LIMIT,
+) -> dict[str, object]:
+    with input_json.open(encoding="utf-8") as handle:
+        jobs = json.load(handle)
+
+    target_tracks = load_target_tracks(targets_path)
+    optimized_jobs: list[dict[str, Any]] = []
+    manifest_rows: list[dict[str, str]] = []
+    changed_targets: set[str] = set()
+
+    for job in jobs:
+        optimized_job = _copy_json_dict(job)
+        target_id = str(optimized_job.get("name", ""))
+        track = target_tracks.get(target_id, "")
+        sequences = optimized_job.get("sequences", [])
+        proteins: list[tuple[int, dict[str, Any], str, int]] = []
+        original_total_len = 0
+
+        if isinstance(sequences, list):
+            for sequence_index, entity in enumerate(sequences):
+                protein = entity.get("proteinChain") if isinstance(entity, dict) else None
+                if not isinstance(protein, dict):
+                    continue
+                sequence = str(protein.get("sequence", ""))
+                count = _positive_count(protein.get("count", 1))
+                original_total_len += len(sequence) * count
+                proteins.append((sequence_index, protein, sequence, count))
+
+        status = "unchanged"
+        skip_reason = "none"
+        sequence_index = ""
+        original_count = ""
+        optimized_count = ""
+        original_chain_ids = "none"
+        optimized_chain_ids = "none"
+        optimized_total_len = original_total_len
+        rules = "none"
+
+        if not track:
+            skip_reason = "target_metadata_missing"
+        elif track != "protein_domain":
+            skip_reason = "not_protein_domain"
+        elif not isinstance(sequences, list) or len(sequences) != len(proteins):
+            skip_reason = "requires_protein_only_job"
+        elif original_total_len <= token_limit:
+            skip_reason = "within_token_limit"
+        elif optimized_job.get("covalent_bonds"):
+            skip_reason = "unsupported_covalent_bonds"
+        elif len(proteins) != 1:
+            skip_reason = "requires_single_protein_entity"
+        else:
+            protein_index, protein, sequence, count = proteins[0]
+            chain_ids = _as_sequence(protein.get("id", []))
+            sequence_index = str(protein_index)
+            original_count = str(count)
+            original_chain_ids = ",".join(str(item) for item in chain_ids) or "none"
+            if count <= 1:
+                skip_reason = "count_already_one"
+            else:
+                kept_chain_id = str(chain_ids[0]) if chain_ids else "A"
+                protein["count"] = 1
+                protein["id"] = [kept_chain_id]
+                optimized_total_len = len(sequence)
+                optimized_count = "1"
+                optimized_chain_ids = kept_chain_id
+                status = "changed"
+                skip_reason = "none"
+                rules = f"domain_oversize_count_to_one:count={count}"
+                changed_targets.add(target_id)
+
+        if status != "changed" and proteins:
+            protein_index, protein, _, count = proteins[0]
+            sequence_index = str(protein_index)
+            original_count = str(count)
+            optimized_count = str(count)
+            chain_ids = _as_sequence(protein.get("id", []))
+            original_chain_ids = ",".join(str(item) for item in chain_ids) or "none"
+            optimized_chain_ids = original_chain_ids
+
+        manifest_rows.append(
+            {
+                "target_id": target_id,
+                "track": track or "unknown",
+                "status": status,
+                "skip_reason": skip_reason,
+                "sequence_index": sequence_index,
+                "original_total_len": str(original_total_len),
+                "optimized_total_len": str(optimized_total_len),
+                "original_count": original_count,
+                "optimized_count": optimized_count,
+                "original_chain_ids": original_chain_ids,
+                "optimized_chain_ids": optimized_chain_ids,
+                "rules": rules,
+            }
+        )
+        optimized_jobs.append(optimized_job)
+
+    ensure_dir(output_json.parent)
+    output_json.write_text(json.dumps(optimized_jobs, indent=2) + "\n", encoding="utf-8")
+    write_manifest(manifest_path, manifest_rows, OVERSIZE_DOMAIN_MONOMER_MANIFEST_FIELDS)
+    return {
+        "strategy": STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK,
+        "input_json": str(input_json),
+        "output_json": str(output_json),
+        "manifest": str(manifest_path),
+        "targets": str(targets_path),
+        "input_sha256": file_sha256(input_json),
+        "output_sha256": file_sha256(output_json),
+        "jobs": len(optimized_jobs),
+        "changed_targets": len(changed_targets),
+        "token_limit": token_limit,
+    }
+
+
+def load_target_tracks(path: Path) -> dict[str, str]:
+    tracks: dict[str, str] = {}
+    with path.open(encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle, delimiter="\t"):
+            target_id = row.get("target_id", "")
+            track = row.get("track", "")
+            if target_id:
+                tracks[target_id] = track
+    return tracks
+
+
+def _positive_count(value: object) -> int:
+    try:
+        count = int(value)
+    except (TypeError, ValueError):
+        return 1
+    return count if count > 0 else 1
 
 
 def derive_antibody_fv_inputs(*, input_json: Path, output_json: Path, manifest_path: Path) -> dict[str, object]:

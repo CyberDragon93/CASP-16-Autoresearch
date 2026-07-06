@@ -119,6 +119,114 @@ def test_derive_strategy_inputs_preserves_counts_and_writes_manifest(tmp_path) -
     assert rows[1]["rules"] == "none"
 
 
+def test_derive_oversize_domain_monomer_fallback_caps_domain_copy_count(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "oversize_domain" / "inputs.json"
+    manifest = tmp_path / "oversize_domain" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    sequence = "ACDEFGHIKLMNPQRSTVWY" * 24
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1295",
+                    "sequences": [
+                        {
+                            "proteinChain": {
+                                "sequence": sequence,
+                                "count": 8,
+                                "id": ["A", "B", "C", "D", "E", "F", "G", "H"],
+                            }
+                        }
+                    ],
+                },
+                {
+                    "name": "T1295O",
+                    "sequences": [
+                        {
+                            "proteinChain": {
+                                "sequence": sequence,
+                                "count": 8,
+                                "id": ["A", "B", "C", "D", "E", "F", "G", "H"],
+                            }
+                        }
+                    ],
+                },
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\t".join(["target_id", "track"]) + "\n" + "\t".join(["T1295", "protein_domain"]) + "\n" + "\t".join(["T1295O", "protein_oligo"]) + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_oversize_domain_monomer_fallback_v1",
+        targets_path=targets,
+    )
+
+    assert summary["changed_targets"] == 1
+    optimized = json.loads(output_json.read_text(encoding="utf-8"))
+    assert optimized[0]["sequences"][0]["proteinChain"]["count"] == 1
+    assert optimized[0]["sequences"][0]["proteinChain"]["id"] == ["A"]
+    assert optimized[1]["sequences"][0]["proteinChain"]["count"] == 8
+    assert optimized[1]["sequences"][0]["proteinChain"]["id"] == ["A", "B", "C", "D", "E", "F", "G", "H"]
+
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["status"] == "changed"
+    assert rows[0]["rules"] == "domain_oversize_count_to_one:count=8"
+    assert rows[0]["original_total_len"] == str(len(sequence) * 8)
+    assert rows[0]["optimized_total_len"] == str(len(sequence))
+    assert rows[1]["status"] == "unchanged"
+    assert rows[1]["skip_reason"] == "not_protein_domain"
+
+
+def test_derive_oversize_domain_monomer_fallback_skips_multi_entity_domains(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "oversize_domain" / "inputs.json"
+    manifest = tmp_path / "oversize_domain" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    long_a = "ACDEFGHIKLMNPQRSTVWY" * 70
+    long_b = "ACDEFGHIKLMNPQRSTVWY" * 70
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "H0217",
+                    "sequences": [
+                        {"proteinChain": {"sequence": long_a, "count": 1, "id": ["A"]}},
+                        {"proteinChain": {"sequence": long_b, "count": 1, "id": ["B"]}},
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text("\t".join(["target_id", "track"]) + "\n" + "\t".join(["H0217", "protein_domain"]) + "\n", encoding="utf-8")
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_oversize_domain_monomer_fallback_v1",
+        targets_path=targets,
+    )
+
+    assert summary["changed_targets"] == 0
+    assert json.loads(output_json.read_text(encoding="utf-8"))[0]["sequences"][1]["proteinChain"]["id"] == ["B"]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["status"] == "unchanged"
+    assert rows[0]["skip_reason"] == "requires_single_protein_entity"
+
+
 def test_derive_epitope_strategy_uses_extended_rules(tmp_path) -> None:
     input_json = tmp_path / "inputs.json"
     output_json = tmp_path / "epitope" / "inputs.json"
