@@ -939,6 +939,75 @@ def test_protein_oligo_sequence_stoich_token_safe_composes_recovery_and_counts(t
     ]
 
 
+def test_scoreable_target_subset_keeps_only_jobs_with_available_reference_aliases(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "scoreable" / "inputs.json"
+    manifest = tmp_path / "scoreable" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T0206",
+                    "sequences": [{"proteinChain": {"sequence": "A" * 80, "count": 1, "id": ["A"]}}],
+                    "covalent_bonds": [],
+                },
+                {
+                    "name": "T1295",
+                    "sequences": [{"proteinChain": {"sequence": "C" * 400, "count": 1, "id": ["A"]}}],
+                    "covalent_bonds": [],
+                },
+                {
+                    "name": "T1295O",
+                    "sequences": [{"proteinChain": {"sequence": "D" * 400, "count": 8, "id": list("ABCDEFGH")}}],
+                    "covalent_bonds": [],
+                },
+                {
+                    "name": "H0208",
+                    "sequences": [{"proteinChain": {"sequence": "E" * 100, "count": 1, "id": ["A"]}}],
+                    "covalent_bonds": [],
+                },
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "official_target_id", "sequence_lookup_id", "track", "reference_status"]),
+                "\t".join(["T0206O", "T0206O", "T0206", "protein_oligo", "available"]),
+                "\t".join(["T1295", "T1295", "T1295", "protein_domain", "no_reference_pdb"]),
+                "\t".join(["T1295O", "T1295O", "T1295", "protein_oligo", "no_reference_pdb"]),
+                "\t".join(["H0208", "H0208", "H0208", "protein_domain", "no_reference_pdb"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="scoreable_target_subset_v1",
+        targets_path=targets,
+    )
+
+    assert summary["original_jobs"] == 4
+    assert summary["kept_jobs"] == 1
+    assert summary["skipped_jobs"] == 3
+    optimized = json.loads(output_json.read_text(encoding="utf-8"))
+    assert [job["name"] for job in optimized] == ["T0206"]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = {row["job_name"]: row for row in csv.DictReader(handle, delimiter="\t")}
+    assert rows["T0206"]["status"] == "kept"
+    assert rows["T0206"]["kept_for_targets"] == "T0206O"
+    assert rows["T1295"]["status"] == "skipped"
+    assert rows["T1295O"]["status"] == "skipped"
+    assert rows["T1295O"]["rules"] == "no_available_reference_for_job_aliases"
+
+
 def test_sequence_recovery_large_target_fallback_composes_recovery_and_token_budget(tmp_path) -> None:
     input_json = tmp_path / "inputs.json"
     output_json = tmp_path / "combo" / "inputs.json"

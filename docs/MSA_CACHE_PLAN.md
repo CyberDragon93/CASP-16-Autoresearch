@@ -95,14 +95,19 @@ The JSON summary reports `reused`, `kept_existing`, `covered`,
 ## Priority Use Cases
 
 1. Reuse the current v2 no-over-token dev row's validated
-   `inputs-update-msa.json` for the next attack run. The generated artifact
-   `inputs_msa_reuse_from_dev_seed101.json` reused 268/268 protein-chain MSA
-   records and now backs
-   `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`.
-2. For planned `protenix25_nofail` seed shards, build every shard input from
+   `inputs-update-msa.json` for the next attack run, and filter prediction
+   inputs to jobs that have at least one locally scoreable benchmark alias.
+   The scoreable-subset artifact keeps 74/165 jobs and the run-spec reuses
+   141/141 protein-chain MSA paths via `data/msa_cache/index.tsv`. It now backs
+   `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
+2. Keep the older full-input MSA-reuse attack as an ablation only until the
+   missing references are recovered. Its 165-job input repeats expensive
+   no-reference jobs such as `T1295/T1295O`, which cannot improve current local
+   score because missing references score 0.
+3. For planned `protenix25_nofail` seed shards, build every shard input from
    the same MSA cache index or the same MSA-reused artifact. The five shards
    should not each repeat MSA search for the same 165 jobs.
-3. For strategy ablations, reuse only unchanged chains. The TSV report should
+4. For strategy ablations, reuse only unchanged chains. The TSV report should
    show which changed chains will force fresh MSA search.
 
 ## Next Upgrade Path

@@ -24,8 +24,9 @@ leaderboard progress.
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 stack plus large-target fallback for the 11 remaining over-token jobs | keep only as ablation |
 | `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` running; 39/165 CIFs at `2026-07-06 17:11 CDT` | current strongest v2 no-over-token `dev_fixed` input stack with protein-oligo sequence recovery | yes for domain track; oligo after QSglob mapping validation |
-| `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | Slurm job `811751` pending on `afterany:810938` | five-seed attack on the current strongest v2 no-over-token stack with exact-sequence MSA reuse and confidence-only model selection | attack tier only |
-| `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `811754` pending on `afterany:811751` | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | yes for domain track; oligo after QSglob mapping validation |
+| `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending; `run-next --dry-run` selects it after the active v2 dev row clears | five-seed attack on the current strongest v2 nofail stack, filtered to 74 locally scoreable jobs with 141/141 exact-sequence MSA paths reused | attack tier only; skipped no-reference targets still score 0 locally |
+| `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:scoreable_subset_attack; Slurm wrapper job `811751` remains pending on `afterany:810938` | full 165-job MSA-reuse predecessor that repeats no-reference heavy jobs before reference recovery | attack tier only; run only as ablation |
+| `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | deferred:wait_scoreable_attack; Slurm wrapper job `811754` remains pending on `afterany:811751` | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | re-enable only after scoreable attack/full v2 score |
 | `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:msa_reuse_attack | non-reuse predecessor of the current five-seed v2 no-over-token attack | attack tier only; run only as ablation |
 | `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending; superseded candidate | older five-seed no-over-token attack that lacks protein-oligo sequence recovery | attack tier only; run only as ablation |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
@@ -254,6 +255,13 @@ leaderboard progress.
       partial fixed mean `0.049685`, and oligo `8 ok / 82 missing_prediction /
       14 missing_reference`, with only `T1249V1O=0.096` nonzero. This remains
       diagnostic only until the 165-job run completes.
+    - `2026-07-06 17:25 CDT`: added the scoreable-subset MSA attack and
+      append-only superseded the old full-input attack row. The existing Slurm
+      wrapper job `811751` still calls `run-next`, but `run-next --dry-run`
+      now selects
+      `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`
+      after the active v2 dev row clears. The hydrophobic-leader row is
+      append-only deferred.
 22. Installed OpenStructure 2.11.1 in the isolated conda env
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob` and configured
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` as the
@@ -421,8 +429,52 @@ leaderboard progress.
     - MSA reuse report: 260/268 protein chains reused; the 8 changed sequences
       intentionally miss and will run fresh MSA search.
     - This is a queued `dev_fixed` ablation, not an attack-budget result.
+35. Added `scoreable_target_subset_v1` to avoid spending repeated MSA/inference
+    time on locally unscorable v2 jobs before reference recovery.
+    - Source input:
+      `strategies/yang_oligo_sequence_stoich_low_complexity_large_fallback_v1/casp16_server_protein_v2_aliasfix/inputs.json`,
+      165 jobs.
+    - New strategy artifact:
+      `strategies/scoreable_target_subset_v1/casp16_server_protein_v2_aliasfix/`,
+      74 kept jobs and 91 skipped jobs. A job is kept only if one of its target
+      aliases has `reference_status=available` in the fixed benchmark metadata.
+    - New run:
+      `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`,
+      same five-candidate `server_attack` budget and confidence-only selector,
+      with 141/141 protein-chain MSA paths reused from `data/msa_cache/index.tsv`.
+    - Queue update: the older full-input MSA attack is
+      `superseded:scoreable_subset_attack`, and the hydrophobic-leader ablation
+      is `deferred:wait_scoreable_attack`. `run-next --dry-run` now selects the
+      scoreable-subset attack after the active v2 dev row clears.
+    - Guardrail: this does not change benchmark scoring. The fixed 175 server
+      targets remain in scoring, and skipped no-reference targets score 0
+      locally. This is a compute-saving local-measurement tactic, not an
+      official server-comparable shortcut.
 
 ## Strategy Decision Log
+
+### 2026-07-06 Scoreable-Subset MSA Attack
+
+Decision: for the next v2 `protenix5` attack, run only Protenix jobs that can
+currently affect the local score, while keeping the benchmark target set fixed.
+
+Rationale: the active v2 dev run spent substantial time on `T1295`, but
+`T1295/T1295O` are `no_reference_pdb` in the local server benchmark. Predicting
+such jobs before reference recovery cannot improve the local leaderboard because
+missing-reference targets score 0 either way. Exact-sequence MSA reuse removes
+the repeated MSA cost for unchanged scoreable jobs; scoreable-subset filtering
+removes local no-op prediction cost.
+
+Implementation: `scoreable_target_subset_v1` maps job names through CASP target
+aliases and keeps a job only when at least one alias has
+`reference_status=available`. The generated v2 artifact keeps 74/165 jobs and
+the new run-spec requires complete MSA reuse, with 141/141 protein-chain paths
+injected from `data/msa_cache/index.tsv`.
+
+Guardrail: do not interpret this as official server-track completeness. The
+fixed benchmark scoring set stays at 175 targets, and skipped no-reference
+targets remain 0 locally. Recovering references is still required before a
+full official-compatible server claim.
 
 ### 2026-07-06 Hydrophobic Leader Nofail Derivative
 
@@ -759,11 +811,18 @@ Artifact summary:
   `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`,
   same declared budget and selector, but using
   `inputs_msa_reuse_from_dev_seed101.json` so Protenix can skip MSA search for
-  exact sequence matches.
+  exact sequence matches. This full 165-job row is now superseded by the
+  scoreable-subset run until missing references are recovered.
+- Scoreable-subset MSA-reuse successor run spec:
+  `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`,
+  same declared budget and selector, but using only the 74 jobs from the v2
+  nofail stack that can currently affect local score. Its run-spec reuses
+  141/141 protein-chain MSA paths and requires complete reuse.
 
 Interpretation: this is the current best v2 input stack to spend future attack
-compute on. The older `server_v2_attack_nofail_protenix5_seed101_105` should
-be treated as superseded unless an explicit ablation is needed.
+compute on. The local-measurement attack should use the scoreable subset while
+references are incomplete; the older full-input attack rows should be treated
+as ablations unless reference recovery makes them scoreable.
 
 ### 2026-07-06 Exact-Sequence MSA Reuse
 
@@ -777,10 +836,11 @@ seed shards can waste hours on identical searches unless the paths are carried
 forward explicitly.
 
 Implementation: `./casp16 reuse-msa` builds a new input JSON plus TSV audit by
-sequence SHA256, not target id. For the v2 nofail stack, the current dev row
-provided valid MSA paths for 268/268 protein chains. The next `protenix5`
-attack and planned `protenix25_nofail` shards now point to the MSA-reused
-artifact.
+sequence SHA256, not target id. `./casp16 build-msa-cache` now writes a reusable
+index from completed run-local `inputs-update-msa.json` files, and `run-spec`
+can inject that index with a complete-coverage guard. For the scoreable v2
+attack subset, the current dev row provides valid MSA paths for 141/141 protein
+chains.
 
 Guardrail: this is infrastructure only. It does not disable MSA, does not read
 references or scores, and does not change benchmark eligibility or scoring.

@@ -31,6 +31,7 @@ STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK = "yang_sequence_recovery_
 STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY = "yang_oligo_stoichiometry_recovery_v1"
 STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE = "yang_oligo_stoichiometry_token_safe_v1"
 STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_STOICH_TOKEN_SAFE = "yang_protein_oligo_sequence_stoich_token_safe_v1"
+STRATEGY_SCOREABLE_TARGET_SUBSET = "scoreable_target_subset_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
@@ -48,6 +49,7 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY,
     STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE,
     STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_STOICH_TOKEN_SAFE,
+    STRATEGY_SCOREABLE_TARGET_SUBSET,
 )
 PROTENIX_TOKEN_LIMIT = 2560
 MIN_REMAINING_PROTEIN_LENGTH = 30
@@ -182,6 +184,13 @@ OLIGO_STOICHIOMETRY_RECOVERY_MANIFEST_FIELDS = [
     "optimized_chain_ids",
     "original_total_len",
     "optimized_total_len",
+    "rules",
+]
+SCOREABLE_TARGET_SUBSET_MANIFEST_FIELDS = [
+    "job_name",
+    "status",
+    "kept_for_targets",
+    "skipped_target_refs",
     "rules",
 ]
 ANTIBODY_HEAVY_PREFIXES = ("QVQL", "EVQL", "QLQL", "QVHL", "QVQLK")
@@ -495,6 +504,15 @@ def derive_strategy_inputs(
             official_sequences_path=official_sequences_path,
             official_targets_path=official_targets_path,
         )
+    if strategy == STRATEGY_SCOREABLE_TARGET_SUBSET:
+        if targets_path is None:
+            raise ValueError("targets_path is required for scoreable target subset strategy")
+        return derive_scoreable_target_subset_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
+            targets_path=targets_path,
+        )
 
     with input_json.open(encoding="utf-8") as handle:
         jobs = json.load(handle)
@@ -753,6 +771,92 @@ def write_manifest(path: Path, rows: Sequence[Mapping[str, str]], fieldnames: Se
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
+
+
+def derive_scoreable_target_subset_inputs(
+    *,
+    input_json: Path,
+    output_json: Path,
+    manifest_path: Path,
+    targets_path: Path,
+) -> dict[str, object]:
+    with input_json.open(encoding="utf-8") as handle:
+        jobs = json.load(handle)
+
+    scoreable_by_alias = scoreable_target_alias_index(load_target_rows(targets_path))
+    kept_jobs: list[dict[str, Any]] = []
+    rows: list[dict[str, str]] = []
+    skipped = 0
+    for job in jobs:
+        job_name = str(job.get("name", ""))
+        aliases = job_target_aliases(job_name)
+        kept_for = sorted({target_id for alias in aliases for target_id in scoreable_by_alias.get(alias, set())})
+        if kept_for:
+            kept_jobs.append(job)
+            rows.append(
+                {
+                    "job_name": job_name,
+                    "status": "kept",
+                    "kept_for_targets": ",".join(kept_for),
+                    "skipped_target_refs": "",
+                    "rules": "has_available_reference",
+                }
+            )
+            continue
+        skipped += 1
+        rows.append(
+            {
+                "job_name": job_name,
+                "status": "skipped",
+                "kept_for_targets": "",
+                "skipped_target_refs": ",".join(aliases),
+                "rules": "no_available_reference_for_job_aliases",
+            }
+        )
+
+    ensure_dir(output_json.parent)
+    output_json.write_text(json.dumps(kept_jobs, indent=2) + "\n", encoding="utf-8")
+    write_manifest(manifest_path, rows, SCOREABLE_TARGET_SUBSET_MANIFEST_FIELDS)
+    return {
+        "strategy": STRATEGY_SCOREABLE_TARGET_SUBSET,
+        "input_json": str(input_json),
+        "output_json": str(output_json),
+        "manifest": str(manifest_path),
+        "input_sha256": file_sha256(input_json),
+        "output_sha256": file_sha256(output_json),
+        "jobs": len(kept_jobs),
+        "original_jobs": len(jobs),
+        "kept_jobs": len(kept_jobs),
+        "skipped_jobs": skipped,
+    }
+
+
+def scoreable_target_alias_index(target_rows: Sequence[Mapping[str, str]]) -> dict[str, set[str]]:
+    by_alias: dict[str, set[str]] = {}
+    for row in target_rows:
+        if str(row.get("reference_status", "")) != "available":
+            continue
+        target_id = str(row.get("target_id", "")).strip()
+        if not target_id:
+            continue
+        aliases = job_target_aliases(target_id)
+        lookup_id = str(row.get("sequence_lookup_id", "")).strip()
+        official_id = str(row.get("official_target_id", "")).strip()
+        aliases.extend(alias for alias in (lookup_id, official_id) if alias)
+        for alias in dict.fromkeys(aliases):
+            by_alias.setdefault(alias.upper(), set()).add(target_id)
+    return by_alias
+
+
+def job_target_aliases(target_id: str) -> list[str]:
+    target_id = str(target_id or "").strip().upper()
+    aliases = [target_id] if target_id else []
+    aliases.extend(alias.upper() for alias in target_lookup_aliases(target_id))
+    if target_id.endswith("O"):
+        aliases.append(target_id[:-1])
+    else:
+        aliases.append(f"{target_id}O")
+    return list(dict.fromkeys(alias for alias in aliases if alias))
 
 
 def derive_oversize_domain_monomer_fallback_inputs(

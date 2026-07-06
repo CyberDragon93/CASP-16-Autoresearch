@@ -101,16 +101,23 @@ where methods should change.
   low-complexity cleanup + large-target fallback input. It has 165 jobs, 0 jobs
   above the Protenix token limit, and candidate_count `5`, but is now
   superseded by the exact-sequence MSA-reuse successor.
-- MSA-reused queued v2 no-over-token attack run spec:
+- Superseded full-input MSA-reused v2 no-over-token attack run spec:
   `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`
   uses the same 165-job input stack plus exact-sequence MSA paths from the
   current v2 dev row's `inputs-update-msa.json`. The reuse report has 268
-  protein chains reused, 0 missing sources, and 0 kept-existing rows. This
-  supersedes the non-reuse attack row for the next v2 `protenix5` launch.
-  Slurm job `811751` is submitted with dependency `afterany:810938`; when the
-  active v2 dev row clears, it will call
-  `./casp16 run-next --benchmark casp16_server_protein_v2_aliasfix` and should
-  select this MSA-reuse attack if queue state remains unchanged.
+  protein chains reused, 0 missing sources, and 0 kept-existing rows. It is now
+  superseded by the scoreable-subset attack below because the full 165-job input
+  repeats no-reference heavy jobs such as `T1295/T1295O` before those targets
+  can improve the local score.
+- Queued scoreable-subset MSA-reused v2 attack run spec:
+  `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`
+  keeps the same five-candidate `server_attack` budget and selector, but filters
+  prediction inputs to 74/165 jobs that have at least one locally available
+  reference alias. Its run-spec injects exact-sequence MSA paths from
+  `data/msa_cache/index.tsv` for 141/141 protein chains and requires complete
+  reuse before launch. The fixed 175-target server benchmark scoring set is not
+  changed: skipped no-reference targets still score 0 locally. `run-next
+  --dry-run` now selects this row after the active v2 dev run clears.
 - Active v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   is running as Slurm job `810938`. The `2026-07-06 17:11 CDT` check found
@@ -139,9 +146,9 @@ where methods should change.
   MSA paths and intentionally misses the 8 changed sequences. It is registered
   as
   `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101`.
-  Slurm job `811754` is submitted with dependency `afterany:811751`, so it can
-  run after the MSA-reuse `protenix5` attack if the queue still selects this
-  ablation.
+  Slurm job `811754` is submitted with dependency `afterany:811751`, but the
+  run row is now deferred until the scoreable-subset attack and full v2 dev
+  score clarify whether this ablation deserves a slot.
 - New coverage-recovery strategy:
   `yang_large_target_split_or_fallback_v1`, which predeclares a token-budget
   fallback for the eight known Protenix `n_token > 2560` failures.
@@ -210,8 +217,9 @@ where methods should change.
   optimized length 2535, and 0 jobs above 2560 tokens. It is registered as
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   for `dev_fixed` comparison and
-  `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`
-  for the five-candidate MSA-reused `server_attack` tier.
+  `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`
+  for the current five-candidate scoreable-subset MSA-reused `server_attack`
+  tier while local references are incomplete.
 - New H1258 target-lab artifact:
   `target_lab/h1258_interaction_window_v1/` builds the public
   LRRK2-interaction-window clue as LRRK2 residues 861-1014 plus 14-3-3 A1B2.
@@ -314,9 +322,10 @@ competitive result.
    server-benchmark targets that currently lack a cached reference mapping.
 4. Add oligo assembly mapping.
 5. Done: superseded the older v2 nofail attack rows with
-   `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`.
-   It keeps the current best runnable input stack and avoids repeated
-   cross-run MSA search by exact protein sequence hash.
+   `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
+   It keeps the current best runnable input stack for locally scoreable jobs,
+   avoids repeated cross-run MSA search by exact protein sequence hash, and
+   leaves no-reference targets as fixed-set local zeros.
 6. Queue and score the generated large-target split/fallback policy for the
    eight `n_token > 2560` failures after the active attack job.
 7. Re-score current OpenDDE and Protenix-style baselines on the server
@@ -385,12 +394,12 @@ competitive result.
     before deciding whether to launch the corresponding five-candidate attack
     or jump directly to a larger predeclared budget.
 25. Prefer
-    `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`
-    over both older v2 nofail attack rows for the first v2 five-candidate
-    no-over-token attack, unless an explicit ablation requires running a
-    non-reuse stack.
+    `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`
+    for the first v2 five-candidate no-over-token attack while local references
+    are incomplete. It preserves the fixed scoring set but avoids spending GPU
+    time on jobs that currently cannot affect local score.
 26. Run the hydrophobic-leader nofail `dev_fixed` derivative only after the
-    active v2 nofail row and queued MSA-reuse attack path are handled. It is a
+    active v2 nofail row and scoreable-subset MSA attack are handled. It is a
     narrow construct-cleanup ablation, not a replacement for the current main
     queue.
 
