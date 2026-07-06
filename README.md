@@ -65,7 +65,10 @@ only as diagnostics for `dev_fixed`. A separate `server_attack` tier may use
 the predeclared `protenix_confidence_v1` selector from
 `docs/SERVER_ATTACK_POLICY.md`, but it is not comparable to single-seed
 `dev_fixed` rows. The first five-candidate attack budget is a practical local
-probe, not an estimate of the true CASP16 winner seed/sample budget.
+probe, not an estimate of the true CASP16 winner candidate budget. In this
+repo, seeds are only one budget dimension; winner-scale comparisons must also
+account for samples, model/backend variants, MSA/template variants, refinement
+passes, ranking passes, and submitted models.
 
 ## Current Protein V1 Coverage
 

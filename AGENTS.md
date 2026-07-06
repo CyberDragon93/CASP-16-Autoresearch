@@ -92,11 +92,13 @@ benchmark scoring pipeline.
 ## Server Attack Budgets
 
 Do not treat a one-seed/one-sample development run as winner-comparable. CASP16
-server winners almost certainly used more than one internal candidate, and
-official server submissions could contain multiple models. Any server-track
-attack run must declare its candidate budget before prediction starts: seed
-list, sample count, backend/model variants, MSA/template policy, selection rule,
-and allowed selection signals.
+server winners almost certainly used more than one internal candidate, but do
+not assume that hidden compute maps to literal Protenix seeds. Count the whole
+candidate budget: stochastic seeds, samples, backend/model variants,
+MSA/template variants, refinement/ranking passes, and submitted models. Any
+server-track attack run must declare that budget before prediction starts:
+seed list, sample count, backend/model variants, MSA/template policy, selection
+rule, and allowed selection signals.
 
 Run specs, run manifests, collected runs, and leaderboard summaries must expose
 `budget_tier` and `candidate_count`. A multi-seed, multi-sample, or

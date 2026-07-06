@@ -403,9 +403,12 @@ minimal realism check, not an estimate of the true CASP16 winner budget.
 
 Rationale: strong server systems almost certainly generated more than one
 internal candidate per target, and official server submissions could include
-multiple models. A real attack row must declare seed list, sample count,
-backend/model variants, MSA/template policy, selection rule, and allowed
-selection signals before prediction starts.
+multiple models. This does not mean the hidden compute is literally a Protenix
+seed count; count seeds, samples, backend/model variants, MSA/template variants,
+refinement/ranking passes, and submitted models as candidate-budget dimensions.
+A real attack row must declare seed list, sample count, backend/model variants,
+MSA/template policy, selection rule, and allowed selection signals before
+prediction starts.
 
 Next action: compare `dev_fixed` only to `dev_fixed`; compare `server_attack`
 only to attack rows and official server groups, with candidate count and GPU

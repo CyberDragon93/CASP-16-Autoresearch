@@ -43,8 +43,10 @@ were generated against.
 Treat `protenix5` as the first local attack tier, not as a claim about the
 actual CASP16 winner compute. Strong CASP16 server systems likely generated
 multiple internal candidates per target through some mix of stochastic seeds,
-sampling, engines, MSA/template variants, and model ranking. In this repo,
-`seed`, `sample`, engine choice, and selection policy are all part of the
+sampling, engines, MSA/template variants, refinement, submitted models, and
+model ranking. Do not translate that hidden compute into an assumed literal
+Protenix seed count. In this repo, `seed`, `sample`, engine choice, input/MSA
+variant, refinement/ranking pass, and selection policy are all part of the
 candidate budget and must be declared before scoring.
 Run specs and manifests expose this as `budget_tier` plus `candidate_count`,
 where `candidate_count = seed_count * sample`. Extra hidden candidates, or
