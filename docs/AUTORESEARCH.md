@@ -21,6 +21,8 @@ where methods should change.
   `official_all_groups.csv` is diagnostic.
 - Server scoring now enforces metric identity: `GDT_TS` for domains and
   `QSglob` for oligos. DockQ cannot rank server oligo targets.
+- Current metric-tool probe: `TMscore` and `USalign` are present in the protein
+  conda env; `ost`/OpenStructure and `qsscore`/QSglob are not present yet.
 - Current best local server-domain `dev_fixed` run:
   `server_protenix_yang_terminal_tag_cleanup_seed101`, mean `0.066908`.
 - `server_protenix_yang_antibody_fv_cleanup_seed101` is a negative
@@ -69,6 +71,10 @@ where methods should change.
   learning before full-benchmark promotion. It has been submitted as Slurm job
   `810824` and now has `summarize_outputs.py` plus `score_dockq.py` for
   post-run diagnostics.
+- New domain-fragment target-lab batch:
+  `target_lab/domain_fragment_batch_v1/` turns the domain-decomposition recipe
+  into 12 runnable Protenix fragment jobs. It has been submitted as Slurm job
+  `810862` and must stay out of ranked server comparisons.
 
 ## Main Objective
 
@@ -164,8 +170,12 @@ competitive result.
     diagnostic `DOCKQ.md` with
     `python target_lab/small_complex_stoich_batch_v1/score_dockq.py`.
 15. Implement strategy experiments inspired by CASP16 winners: disorder
-   trimming, domain decomposition, MSA/template optimization, assembly-aware
-   multimer handling, and model ranking.
+    trimming, domain decomposition, MSA/template optimization, assembly-aware
+    multimer handling, and model ranking.
+16. Monitor target_lab job `810862` for
+    `target_lab/domain_fragment_batch_v1`, then inspect fragment coverage and
+    confidence diagnostics. Promote only a target-agnostic segmentation rule,
+    not CASP-domain-summary hand crops.
 
 ## Run Discipline
 

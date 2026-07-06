@@ -54,6 +54,7 @@ benchmark target set or inspect references.
 | D1d | Hydrophobic leader cleanup | construct refinement can remove signal-like N-terminal leaders that are not part of the scored folded core | `./casp16 strategy-inputs --strategy yang_hydrophobic_leader_cleanup_v1` trims a small set of sequence-only hydrophobic-leader candidates after D1c | risky branch; queue only after baseline or tag-cleanup evidence justifies it |
 | D1e | Conservative construct stack | non-overlapping low-risk construct cleanups may compose better than either ablation alone | `./casp16 strategy-inputs --strategy yang_terminal_tag_antibody_fv_cleanup_v1` stacks terminal tag cleanup with antibody Fv cleanup on the full server set | deferred after antibody-Fv cleanup was negative on domains and unmeasurable on oligos |
 | D2 | Domain decomposition | top monomer pipelines refined constructs and handled domains separately | `./casp16 strategy-inputs --strategy yang_domain_fragment_inputs_v1` creates post hoc CASP-domain fragment inputs for target-lab learning | not server-ranked; promotion needs a new benchmark version or predeclared segmentation rule |
+| D2a | Domain fragment batch | domain decomposition needs fast feedback before full benchmark promotion | `target_lab/domain_fragment_batch_v1/` runs 12 selected fragments from long and multidomain protein targets | target_lab only; use results to design target-agnostic segmentation |
 | D3 | MSA/template depth | Yang/trRosetta workflows emphasize optimized MSA/template inputs | full MSA/template Protenix/OpenDDE server run; record MSA source, template mode, cache paths | higher full-set coverage and no regression on positive controls |
 | D4 | AF3-style model selection | assessment says AF3 adoption improved confidence/model selection | `protenix_confidence_v1` is implemented for the separate `server_attack` tier; `dev_fixed` remains first-output-only | attack runs must use the locked seed/sample budget and never compare directly against `dev_fixed` rows |
 | D5 | Large-target split/fallback | top methods used target handling and construct/domain decomposition; baseline Protenix lost 8 jobs to `n_token > 2560` before prediction | `./casp16 strategy-inputs --strategy yang_large_target_split_or_fallback_v1` predeclares chain/copy fallback for all eight hard failures after the conservative `T1295` probe | treat as coverage recovery; assembly quality may regress when chains are dropped |
@@ -172,15 +173,18 @@ Useful strategy hypotheses:
 16. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
    CASP domain-summary metadata; useful for learning whether domain
    decomposition helps, but not a server-ranked strategy as-is.
-17. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
+17. `target_lab/domain_fragment_batch_v1`: generated and submitted as Slurm job
+   `810862`. It runs 12 domain-fragment jobs from T1210, T1218, T1269, T1257,
+   T1240, and T1270 to test the domain-decomposition recipe quickly.
+18. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
    for antibody-antigen complexes, trimming antibody constant regions while
    preserving antigen chains; useful for O5 learning, not a server-ranked
    strategy as-is.
-18. Domain crop/chain mapping: needed before domain scores can be trusted on
+19. Domain crop/chain mapping: needed before domain scores can be trusted on
    multi-domain or multi-chain targets.
-19. H1258/H1232 target_lab loop: use these as fast learning targets for
+20. H1258/H1232 target_lab loop: use these as fast learning targets for
    stoichiometry, construct refinement, and antibody-complex behavior, then
    promote only target-agnostic changes.
-20. Model-selection research: collect confidence/consensus after predictions,
+21. Model-selection research: collect confidence/consensus after predictions,
    but keep ranked `first_output_only` unless a new benchmark version is
    created.
