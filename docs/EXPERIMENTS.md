@@ -48,6 +48,31 @@ leaderboard progress.
 6. Add domain cropping and chain/residue mapping before drawing conclusions
    from hard multi-domain domain targets.
 
+## Strategy Decision Log
+
+### 2026-07-05 Dynamic Terminal IDR Scan
+
+Decision: do not implement the first dynamic terminal-IDR cleanup heuristic as
+a strategy artifact.
+
+Rationale: a sequence-only scan for 60-220 residue terminal disorder-like
+segments found 26 candidate protein chains, but the first heuristic was too
+broad. It would trim antibody constant-like C-terminal regions in
+H0222/H0223/H0225/H1222/H1223/H1225, trim T0240/T1240 C-terminal sequence that
+overlaps CASP domain-summary regions, and trim H0272/H1272 poly-alanine/signal
+like prefixes. That is too much risk for a ranked server-style rerun.
+
+Useful follow-up:
+
+- split this idea into narrower target-lab branches: antibody/Fv construct
+  trimming for the H1222/H1223/H1225 family, and predeclared sequence-only
+  terminal-disorder cleanup for long monomers only.
+- keep `yang_domain_fragment_inputs_v1` as the safer way to study domain
+  decomposition, because it is explicitly marked target-lab and post hoc.
+- do not queue a broad dynamic-IDR cleanup run until the rule avoids antibody
+  constant regions, avoids known domain-core overlap, and changes only a small
+  auditable target set.
+
 ## Promotion Rules
 
 - A target_lab improvement is not a leaderboard improvement.
