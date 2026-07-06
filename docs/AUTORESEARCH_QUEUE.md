@@ -83,6 +83,19 @@ Generation commands used:
 All queued Protenix reruns intentionally match the baseline engine flags:
 MSA, templates, default params, cache, fusion, and TF32 are enabled.
 
+## Budget Discipline
+
+The current queue is the `dev_fixed` tier: one seed (`101`), one sample, and
+`first_output_only`. It is deliberately strict so agents can compare strategy
+changes without compute-budget noise. It is not a claim that CASP16 winner
+servers used only one seed or one internal candidate.
+
+After single-seed failures and wins are scored, promote promising strategies to
+a separate `server_attack` tier with a fixed multi-seed or multi-sample budget
+and a predeclared confidence-only model selection rule. Do not mix
+`server_attack` rows into `dev_fixed` rankings, and do not choose the submitted
+model using references, official scores, or target-score feedback.
+
 ## Backlog
 
 | Priority | Strategy | Status | Reason To Try | Stop Condition |
@@ -93,7 +106,8 @@ MSA, templates, default params, cache, fusion, and TF32 are enabled.
 | P8 | `yang_domain_fragment_inputs_v1` | target-lab artifacts generated, not queued | Domain decomposition is a major winner recipe; CASP domain-summary fragments give a fast diagnostic upper bound | Not server-ranked; promote only via new benchmark version or predeclared segmentation rule |
 | P9 | `yang_antibody_fv_fragment_inputs_v1` | target-lab artifacts generated, not queued | Fv-only changed-target jobs are useful for fast antibody assembly diagnosis | Not server-ranked; keep separate from full-set claims |
 | P10 | Domain crop/chain mapping | not started | Domain GDT_TS can be noisy or wrong without explicit CASP domain crops | Stop after target classes with clear mapping; do not hand-map every hard outlier |
-| P11 | Extra sampling/ranking lab | diagnostic only | CASP16 reports show sampling helps, but ranking is fragile | Never use best-of-N for ranked v1 without a new benchmark version |
+| P11 | Define `server_attack` budget | not started | Winner-like server runs almost certainly use more than one internal candidate; local attack runs need fixed multi-seed/multi-sample rules | Add a separate policy and leaderboard tier before launching any multi-seed run |
+| P12 | Extra sampling/ranking lab | diagnostic only | CASP16 reports show sampling helps, but ranking is fragile | Never use best-of-N for ranked v1 without a new benchmark version |
 
 ## Evidence Links
 

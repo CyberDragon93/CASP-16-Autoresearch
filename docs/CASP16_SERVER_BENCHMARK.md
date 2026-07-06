@@ -40,6 +40,37 @@ Generated skeleton command:
 ./casp16 leaderboard --benchmark casp16_server_protein_v1
 ```
 
+## Budget Tiers
+
+`casp16_server_protein_v1` starts with a fixed single-seed development budget:
+backend `protenix`, seed `101`, sample `1`, and selected model policy
+`first_output_only`. This tier is for stable agent iteration and failure
+localization. It should not be described as a CASP16 winner-compute
+reproduction.
+
+A realistic server-attack tier should be added as a separate predeclared
+benchmark/run policy, not by mutating completed single-seed results. CASP16
+server submissions were automated under a 72-hour deadline and could include
+multiple submitted models; official analyses distinguish model-1 rankings from
+best-model analyses. A practical local attack budget should therefore allow
+fixed multi-seed or multi-sample generation, while keeping a locked model
+selection rule that does not inspect references or official scores.
+
+Candidate server-attack policy:
+
+- backend: `protenix`
+- seeds: fixed list such as `101,102,103,104,105`
+- samples: `1` per seed unless a new policy explicitly changes it
+- prediction inputs: identical target set and strategy transform for every seed
+- selection policy: predeclared confidence-only ranking, for example choose one
+  model by a fixed pLDDT/pTM/ipTM/PAE formula before scoring
+- forbidden selection signals: native/reference structures, official score
+  tables, previous target scores, or per-target manual intervention
+
+This keeps two questions separate: "did the strategy improve under a fair
+single-seed development budget?" and "how close can a realistic automated
+server budget get to the CASP16 server winners?"
+
 Existing prediction directories can be registered for diagnostic reuse without
 creating a runnable job:
 

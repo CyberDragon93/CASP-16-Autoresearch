@@ -74,3 +74,10 @@ for example `casp16_server_protein_v1`. It should use the official protein
 score-table target sets and official-compatible metrics (`GDT_TS` for protein
 domains, `QSglob` for protein oligos). Do not retrofit those rules into
 `casp16_protein_v1`.
+
+Server-track work may have multiple budget tiers. Keep single-seed development
+runs separate from realistic attack-budget runs. Any multi-seed, multi-sample,
+or confidence-selected attack run must declare its seed list, sample count,
+selection rule, and allowed signals before prediction starts. Never compare a
+multi-candidate attack run against a single-seed run as though the compute
+budget were identical.
