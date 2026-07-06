@@ -4,6 +4,7 @@ import csv
 import json
 import math
 import re
+import tempfile
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -25,6 +26,7 @@ STRATEGY_YANG_TERMINAL_TAG_ANTIBODY_FV_CLEANUP = "yang_terminal_tag_antibody_fv_
 STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK = "yang_oversize_domain_monomer_fallback_v1"
 STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK = "yang_large_target_split_or_fallback_v1"
 STRATEGY_YANG_SEQUENCE_RECOVERY = "yang_sequence_recovery_v1"
+STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK = "yang_sequence_recovery_large_target_fallback_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
@@ -37,6 +39,7 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK,
     STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK,
     STRATEGY_YANG_SEQUENCE_RECOVERY,
+    STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK,
 )
 PROTENIX_TOKEN_LIMIT = 2560
 MIN_REMAINING_PROTEIN_LENGTH = 30
@@ -141,6 +144,21 @@ SEQUENCE_RECOVERY_MANIFEST_FIELDS = [
     "optimized_entity_count",
     "original_total_len",
     "optimized_total_len",
+    "rules",
+]
+COMPOSED_STRATEGY_MANIFEST_FIELDS = [
+    "phase",
+    "target_id",
+    "track",
+    "status",
+    "skip_reason",
+    "source_target_id",
+    "source_record_ids",
+    "original_entity_count",
+    "optimized_entity_count",
+    "original_total_len",
+    "optimized_total_len",
+    "dropped_chain_ids",
     "rules",
 ]
 ANTIBODY_HEAVY_PREFIXES = ("QVQL", "EVQL", "QLQL", "QVHL", "QVQLK")
@@ -380,6 +398,18 @@ def derive_strategy_inputs(
         if official_sequences_path is None:
             raise ValueError("official_sequences_path is required for sequence recovery strategy")
         return derive_sequence_recovery_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
+            targets_path=targets_path,
+            official_sequences_path=official_sequences_path,
+        )
+    if strategy == STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK:
+        if targets_path is None:
+            raise ValueError("targets_path is required for sequence recovery + large target fallback strategy")
+        if official_sequences_path is None:
+            raise ValueError("official_sequences_path is required for sequence recovery + large target fallback strategy")
+        return derive_sequence_recovery_large_target_fallback_inputs(
             input_json=input_json,
             output_json=output_json,
             manifest_path=manifest_path,
@@ -999,6 +1029,85 @@ def derive_sequence_recovery_inputs(
         "output_sha256": file_sha256(output_json),
         "jobs": len(recovered_jobs),
         "changed_targets": len(changed_targets),
+    }
+
+
+def derive_sequence_recovery_large_target_fallback_inputs(
+    *,
+    input_json: Path,
+    output_json: Path,
+    manifest_path: Path,
+    targets_path: Path,
+    official_sequences_path: Path,
+) -> dict[str, object]:
+    with tempfile.TemporaryDirectory(prefix="casp16_strategy_") as tmp:
+        tmp_dir = Path(tmp)
+        recovered_json = tmp_dir / "sequence_recovery.inputs.json"
+        recovered_manifest = tmp_dir / "sequence_recovery.manifest.tsv"
+        fallback_manifest = tmp_dir / "large_target_fallback.manifest.tsv"
+        sequence_summary = derive_sequence_recovery_inputs(
+            input_json=input_json,
+            output_json=recovered_json,
+            manifest_path=recovered_manifest,
+            targets_path=targets_path,
+            official_sequences_path=official_sequences_path,
+        )
+        fallback_summary = derive_large_target_split_or_fallback_inputs(
+            input_json=recovered_json,
+            output_json=output_json,
+            manifest_path=fallback_manifest,
+            targets_path=targets_path,
+        )
+
+        manifest_rows: list[dict[str, str]] = []
+        changed_targets: set[str] = set()
+        for phase, path in (
+            ("sequence_recovery", recovered_manifest),
+            ("large_target_fallback", fallback_manifest),
+        ):
+            for row in load_tsv_rows(path):
+                composed = composed_manifest_row(phase, row)
+                manifest_rows.append(composed)
+                if composed["status"] == "changed":
+                    changed_targets.add(composed["target_id"])
+
+    write_manifest(manifest_path, manifest_rows, COMPOSED_STRATEGY_MANIFEST_FIELDS)
+    return {
+        "strategy": STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK,
+        "input_json": str(input_json),
+        "output_json": str(output_json),
+        "manifest": str(manifest_path),
+        "targets": str(targets_path),
+        "official_sequences": str(official_sequences_path),
+        "input_sha256": file_sha256(input_json),
+        "output_sha256": file_sha256(output_json),
+        "jobs": fallback_summary["jobs"],
+        "changed_targets": len(changed_targets),
+        "sequence_recovery_changed_targets": sequence_summary["changed_targets"],
+        "large_target_fallback_changed_targets": fallback_summary["changed_targets"],
+    }
+
+
+def load_tsv_rows(path: Path) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle, delimiter="\t"))
+
+
+def composed_manifest_row(phase: str, row: Mapping[str, str]) -> dict[str, str]:
+    return {
+        "phase": phase,
+        "target_id": row.get("target_id", ""),
+        "track": row.get("track", ""),
+        "status": row.get("status", ""),
+        "skip_reason": row.get("skip_reason", "none") or "none",
+        "source_target_id": row.get("source_target_id", "none") or "none",
+        "source_record_ids": row.get("source_record_ids", "none") or "none",
+        "original_entity_count": row.get("original_entity_count", ""),
+        "optimized_entity_count": row.get("optimized_entity_count", ""),
+        "original_total_len": row.get("original_total_len", ""),
+        "optimized_total_len": row.get("optimized_total_len", ""),
+        "dropped_chain_ids": row.get("dropped_chain_ids", "none") or "none",
+        "rules": row.get("rules", "none") or "none",
     }
 
 

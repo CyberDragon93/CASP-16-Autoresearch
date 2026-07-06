@@ -58,6 +58,7 @@ benchmark target set or inspect references.
 | D4 | AF3-style model selection | assessment says AF3 adoption improved confidence/model selection | `protenix_confidence_v1` is implemented for the separate `server_attack` tier; `dev_fixed` remains first-output-only | attack runs must use the locked seed/sample budget and never compare directly against `dev_fixed` rows |
 | D5 | Large-target split/fallback | top methods used target handling and construct/domain decomposition; baseline Protenix lost 8 jobs to `n_token > 2560` before prediction | `./casp16 strategy-inputs --strategy yang_large_target_split_or_fallback_v1` predeclares chain/copy fallback for all eight hard failures after the conservative `T1295` probe | treat as coverage recovery; assembly quality may regress when chains are dropped |
 | D6 | Sequence recovery | server-style coverage fails if target sequence archives are parsed or aliased incorrectly | `./casp16 strategy-inputs --strategy yang_sequence_recovery_v1 --input-json strategies/yang_terminal_tag_cleanup_v1/.../inputs.json` recovers protein-like records as `proteinChain` | queue after active jobs; do not use references or scores to choose recovered targets |
+| D7 | Coverage-first stack | realistic attack compute should not be spent on missing-sequence or token-limit hard zeros | `yang_sequence_recovery_large_target_fallback_v1` stacks sequence recovery with the large-target fallback on terminal-tag-cleaned inputs | queue after the component runs or when the queue needs a single combined coverage candidate |
 
 ## Protein Oligos
 
@@ -139,23 +140,27 @@ Useful strategy hypotheses:
 8. `yang_sequence_recovery_v1`: generated on top of terminal-tag cleanup to
    recover missing/misparsed protein-domain inputs such as `T1212`,
    `T1239V1/V2`, and `T2280`.
-9. QSglob scorer installation/integration: without this, oligo server runs
+9. `yang_sequence_recovery_large_target_fallback_v1`: generated on top of
+   terminal-tag cleanup to combine sequence recovery with token-budget
+   fallback. It changes 40 unique targets and keeps the largest optimized job
+   at 2535 tokens.
+10. QSglob scorer installation/integration: without this, oligo server runs
    remain diagnostic no matter how good the structures look.
-10. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
+11. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
    is the first queued 5-candidate terminal-tag attack run; use only for a
    separate multi-candidate comparison.
-11. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
+12. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
    CASP domain-summary metadata; useful for learning whether domain
    decomposition helps, but not a server-ranked strategy as-is.
-12. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
+13. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
    for antibody-antigen complexes, trimming antibody constant regions while
    preserving antigen chains; useful for O5 learning, not a server-ranked
    strategy as-is.
-13. Domain crop/chain mapping: needed before domain scores can be trusted on
+14. Domain crop/chain mapping: needed before domain scores can be trusted on
    multi-domain or multi-chain targets.
-14. H1258/H1232 target_lab loop: use these as fast learning targets for
+15. H1258/H1232 target_lab loop: use these as fast learning targets for
    stoichiometry, construct refinement, and antibody-complex behavior, then
    promote only target-agnostic changes.
-15. Model-selection research: collect confidence/consensus after predictions,
+16. Model-selection research: collect confidence/consensus after predictions,
    but keep ranked `first_output_only` unless a new benchmark version is
    created.

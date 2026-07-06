@@ -38,6 +38,11 @@ where methods should change.
 - New sequence-recovery strategy:
   `yang_sequence_recovery_v1`, generated on top of terminal-tag cleanup, repairs
   protein-domain inputs that were missing or locally misparsed as DNA/RNA.
+- New stacked coverage strategy:
+  `yang_sequence_recovery_large_target_fallback_v1`, generated on top of
+  terminal-tag cleanup, combines sequence recovery with token-budget fallback.
+  It changes 40 unique targets and keeps every optimized job under the 2560
+  Protenix token limit.
 
 ## Main Objective
 
@@ -112,7 +117,12 @@ competitive result.
 9. Submit `server_protenix_yang_sequence_recovery_seed101` after the active
    pending jobs if recovering `T1212`, `T1239V1/V2`, and `T2280` looks higher
    leverage than another construct-only run.
-10. Implement strategy experiments inspired by CASP16 winners: disorder
+10. Queue the stacked
+    `server_protenix_yang_sequence_recovery_large_target_fallback_seed101`
+    candidate after the component coverage runs, or sooner if the queue needs a
+    single coverage-first run that fixes both missing sequences and token-limit
+    failures.
+11. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.
 

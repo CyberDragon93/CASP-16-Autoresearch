@@ -778,3 +778,81 @@ def test_sequence_recovery_restores_protein_domain_inputs(tmp_path) -> None:
     assert [row["target_id"] for row in rows] == ["T1212", "T1239V1", "T1239V2", "T2280"]
     assert rows[2]["source_target_id"] == "T1239V1"
     assert rows[3]["source_target_id"] == "T1280"
+
+
+def test_sequence_recovery_large_target_fallback_composes_recovery_and_token_budget(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "combo" / "inputs.json"
+    manifest = tmp_path / "combo" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    sequences = tmp_path / "sequences.tsv"
+    protein_1239 = "MELKNIVNSYNITNILGYLRRSRQDMEREKRTGEDTLTEQKELMNKILTAIEIPYELKMEIGSGESIDGRPVFKEC"
+    tagged_main = "MGSDYKDHDGDYKDHDIDYKDDDDKLG" + ("A" * 2535)
+    partner = "MGSHHHHHHSGENLYFQG" + ("C" * 247)
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1239V1",
+                    "sequences": [
+                        {"dnaSequence": {"sequence": "NNNTNGTGTTNTAGGGCGAATGAGNTNATTGATAAGGAGNTANNG", "count": 1, "id": ["A"]}}
+                    ],
+                    "covalent_bonds": [],
+                },
+                {
+                    "name": "H1258",
+                    "sequences": [
+                        {"proteinChain": {"sequence": tagged_main, "count": 1, "id": ["A"]}},
+                        {"proteinChain": {"sequence": partner, "count": 1, "id": ["B"]}},
+                    ],
+                    "covalent_bonds": [],
+                },
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "track", "oligo_state"]),
+                "\t".join(["T1239V1", "protein_domain", "A1"]),
+                "\t".join(["H1258", "protein_oligo", "A1B1"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    sequences.write_text(
+        "\n".join(
+            [
+                "\t".join(["record_id", "target_ids", "sequence_family", "sequence_kind", "length", "sequence", "header", "source_file"]),
+                "\t".join(["T1239v1", "T1239V1", "T", "dnaSequence", str(len(protein_1239)), protein_1239, "T1239v1 protein subunit", "seq"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_sequence_recovery_large_target_fallback_v1",
+        targets_path=targets,
+        official_sequences_path=sequences,
+    )
+
+    assert summary["changed_targets"] == 2
+    assert summary["sequence_recovery_changed_targets"] == 1
+    assert summary["large_target_fallback_changed_targets"] == 1
+    optimized = {job["name"]: job for job in json.loads(output_json.read_text(encoding="utf-8"))}
+    assert optimized["T1239V1"]["sequences"][0]["proteinChain"]["sequence"] == protein_1239
+    assert len(optimized["H1258"]["sequences"]) == 1
+    assert optimized["H1258"]["sequences"][0]["proteinChain"]["id"] == ["A"]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    rows_by_phase_target = {(row["phase"], row["target_id"]): row for row in rows}
+    assert rows_by_phase_target[("sequence_recovery", "T1239V1")]["status"] == "changed"
+    assert rows_by_phase_target[("large_target_fallback", "H1258")]["status"] == "changed"
+    assert rows_by_phase_target[("large_target_fallback", "H1258")]["dropped_chain_ids"] == "B"
