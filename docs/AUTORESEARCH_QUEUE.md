@@ -160,6 +160,12 @@ artifact, and selector live in
 until the active `protenix5` run and the v2 alias-fixed development baseline
 justify the spend.
 
+The nofail 25-candidate tier is
+`attack_budgets/casp16_server_attack_protenix25_nofail.json`. It uses the same
+25 seeds and selector, but its shards now point at the current 165-job
+`yang_oligo_sequence_stoich_low_complexity_large_fallback_v1` artifact rather
+than the older coverage/stoich nofail input.
+
 The oversize-domain fallback result is a reminder to spend realistic attack
 compute carefully: extra seeds will not fix hard Protenix token-limit failures,
 missing references, or unvalidated QSglob mapping. Clean coverage, reference
@@ -195,9 +201,9 @@ internal candidate.
 | P19 | Domain fragment batch | Slurm job `810862` running on `c622-022`; Protenix import/env bootstrap passed | Fast learning set for domain decomposition on long/multidomain protein targets, max fragment 1633 residues | Use only as target_lab evidence; promote only target-agnostic segmentation or new benchmark version |
 | superseded | v2 low-complexity large fallback | queued as `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | Extra seeds cannot repair v2 jobs that still exceed Protenix's token limit, but this older row lacks protein-oligo sequence recovery | Keep only as ablation; current queue uses the oligo-recovery nofail stack |
 | done | `yang_protein_oligo_sequence_stoich_token_safe_v1` | composed into no-over-token stack | H0220/H1220/H2220-style false zeros may be bad input modality/sequence recovery problems before they are scorer problems | Next comparison should use the oligo-recovery nofail stack |
-| P22 | `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1` | run specs created for `dev_fixed` and `protenix5` | Current strongest runnable v2 input stack: fixes oligo sequence recovery and has 0 over-token jobs | Score the single-seed row or launch the five-candidate attack only after active attack/v2 queue state is resolved |
+| P22 | `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1` | `dev_fixed` job `810938` running; `protenix5` run spec created | Current strongest runnable v2 input stack: fixes oligo sequence recovery and has 0 over-token jobs | Score the single-seed row before launching the five-candidate attack or larger budget |
 | P23 | `protenix25` attack tier | budget JSON and shard TSV created, not queued | Winner-scale comparison needs more than the starter five candidates | Wait for `protenix5` and v2 dev baseline evidence; run only as seed-sharded attack budget |
-| P24 | `protenix25_nofail` attack tier | budget JSON and shard TSV created, not queued | If the no-over-token v2 stack wins, spend 25 seeds on runnable jobs instead of guaranteed Protenix failures | Regenerate/replace shard input with the oligo-recovery nofail artifact before launch |
+| P24 | `protenix25_nofail` attack tier | budget JSON and shard TSV updated to the oligo-recovery nofail artifact, not queued | If the no-over-token v2 stack wins, spend 25 seeds on runnable jobs instead of guaranteed Protenix failures | Launch only after the v2 nofail dev row and `protenix5` evidence justify the GPU-hours |
 
 ## Evidence Links
 

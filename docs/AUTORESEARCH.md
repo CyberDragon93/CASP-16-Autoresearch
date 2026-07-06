@@ -57,8 +57,10 @@ where methods should change.
   yet.
 - A no-over-token larger planned attack tier now exists as
   `attack_budgets/casp16_server_attack_protenix25_nofail.json`: same 25 seeds
-  and selector, but using the v2 coverage/stoich/low-complexity/large-fallback
-  input with 0 jobs above Protenix's token limit. Shards are locked in
+  and selector, but now using the v2 oligo-recovery nofail stack with
+  protein-oligo sequence recovery, token-safe stoichiometry, low-complexity
+  cleanup, large-target fallback, 165 jobs, and 0 jobs above Protenix's token
+  limit. Shards are locked in
   `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`. It is
   not queued yet.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
@@ -124,8 +126,9 @@ where methods should change.
   oligo-recovery nofail stack. Because the Slurm wrapper calls
   `./casp16 run-next --benchmark casp16_server_protein_v2_aliasfix`, dry-run
   now selects
-  `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
-  when that dependency releases.
+  `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`.
+  The old dependency was cleared with `scontrol update JobId=810938
+  Dependency=` and the job is now running the current v2 nofail row.
 - Superseded v2 construct-cleanup candidate:
   `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` is queued
   only as an ablation. It starts from the v2 coverage/stoich input and adds
@@ -319,9 +322,8 @@ competitive result.
     explicit ablations.
 23. Keep `casp16_server_attack_protenix25_nofail` as the stronger planned
     winner-scale budget if the no-over-token v2 stack scores well enough to
-    justify 25-seed compute, but regenerate/version the shard manifest against
-    `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1` before
-    launch.
+    justify 25-seed compute. Its JSON and shard manifest now point at
+    `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`.
 24. Score
     `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
     before deciding whether to launch the corresponding five-candidate attack

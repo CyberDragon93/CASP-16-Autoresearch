@@ -79,17 +79,12 @@ Shard run ids, seed ranges, and input artifacts are locked in
 `attack_budgets/casp16_server_attack_protenix25_nofail.json` is a separate
 planned tier for the no-over-token v2 stack. It uses the same 25 seeds and
 selector, but points every shard at
-`yang_coverage_stoich_low_complexity_large_fallback_v1`, whose generated input
-has 163 jobs and 0 jobs above Protenix's 2560-token limit. Its shard manifest
-is `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
-
-Important update: the stronger current no-over-token v2 input is now
 `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, with 165 jobs,
 protein-oligo sequence recovery, token-safe stoichiometry, and 0 jobs above
-2560 tokens. Before launching any 25-candidate nofail tier, regenerate or
-version the shard manifest to point at that oligo-recovery artifact. Do not
+2560 tokens. Its shard manifest is
+`attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`. Do not
 spend winner-scale compute on the older nofail artifact unless the run is
-explicitly an ablation.
+explicitly labeled as an ablation.
 
 Because Protenix loops serially over seeds, this budget must be executed as
 five predeclared five-seed shards and merged only after all shards finish. A
@@ -97,8 +92,8 @@ partial 25-seed attempt is unranked unless it is explicitly reported as
 partial. Launch this tier only after the current `protenix5` attack and the
 v2 alias-fixed `dev_fixed` baseline have produced evidence that the extra
 candidate spend is worth the GPU-hours. For the nofail tier, also score the
-v2 no-over-token fallback ablation first, or explicitly record why the attack
-supersedes it.
+v2 oligo-recovery no-over-token dev baseline first, or explicitly record why
+the attack supersedes it.
 
 When the launch gate opens, generate each shard with the TSV row's fields:
 
@@ -106,12 +101,13 @@ When the launch gate opens, generate each shard with the TSV row's fields:
 ./casp16 run-spec \
   --run-id <run_id> \
   --benchmark casp16_server_protein_v2_aliasfix \
-  --input-json strategies/yang_oligo_stoichiometry_token_safe_v1/casp16_server_protein_v2_aliasfix/inputs.json \
-  --input-manifest strategies/yang_oligo_stoichiometry_token_safe_v1/casp16_server_protein_v2_aliasfix/manifest.tsv \
-  --strategy yang_coverage_stoich_token_safe_v1_server_attack_protenix25 \
+  --input-json <input_json_from_shard_tsv> \
+  --input-manifest <input_manifest_from_shard_tsv> \
+  --strategy <strategy_from_shard_tsv> \
   --seeds <shard_seeds> \
   --sample 1 \
   --selected-model-policy protenix_confidence_v1 \
+  --candidate-count 25 \
   --use-msa --use-template --use-default-params \
   --enable-cache --enable-fusion
 ```

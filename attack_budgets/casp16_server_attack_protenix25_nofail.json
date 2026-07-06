@@ -6,12 +6,12 @@
   "active_run_id": "",
   "backend": "protenix",
   "model_name": "protenix-v2",
-  "strategy": "yang_coverage_stoich_low_complexity_large_fallback_v1_server_attack_protenix25",
-  "input_json": "strategies/yang_coverage_stoich_low_complexity_large_fallback_v1/casp16_server_protein_v2_aliasfix/inputs.json",
-  "input_manifest": "strategies/yang_coverage_stoich_low_complexity_large_fallback_v1/casp16_server_protein_v2_aliasfix/manifest.tsv",
-  "input_sha256": "e480cf42d9d680d83c4a67b2f87b1532a7f2214624ba42ee0ad61a01f2d6e72f",
-  "input_manifest_sha256": "1922f24b4b2260fabdc9164f027f18bcecc59899cb6cbd2dfa03feaa01056932",
-  "input_jobs": 163,
+  "strategy": "yang_oligo_sequence_stoich_low_complexity_large_fallback_v1_server_attack_protenix25",
+  "input_json": "strategies/yang_oligo_sequence_stoich_low_complexity_large_fallback_v1/casp16_server_protein_v2_aliasfix/inputs.json",
+  "input_manifest": "strategies/yang_oligo_sequence_stoich_low_complexity_large_fallback_v1/casp16_server_protein_v2_aliasfix/manifest.tsv",
+  "input_sha256": "9ea5de4ffa1f7693de8f7e61374c0e51d0c54760f8efeea9839de9005a21f54e",
+  "input_manifest_sha256": "3199521f45afdec9127f9728b870b73810faa05eae2e42659e830ac8ffab31c2",
+  "input_jobs": 165,
   "oversize_jobs_after_strategy": 0,
   "seeds": [
     "101",
@@ -85,10 +85,10 @@
   "launch_gate": [
     "score the active protenix5 attack run first, or explicitly supersede it with a recorded reason",
     "score the v2 alias-fixed dev baseline before spending this budget",
-    "score the v2 no-over-token fallback dev ablation, or explicitly record why the attack supersedes it",
+    "score the v2 oligo-recovery no-over-token dev baseline, or explicitly record why the attack supersedes it",
     "use the same input artifact for every shard",
     "do not score a complete row until all 25 declared candidates are present or the row is explicitly partial/unranked",
     "record expected GPU-hours and actual wall time per shard"
   ],
-  "budget_note": "This is a separate planned attack tier from casp16_server_attack_protenix25. It avoids spending 25 seeds on jobs that are guaranteed to fail Protenix's 2560-token guard, but cropped oligo assemblies must be interpreted as coverage-recovery evidence until QSglob mapping is validated."
+  "budget_note": "This is a separate planned attack tier from casp16_server_attack_protenix25. It avoids spending 25 seeds on jobs that are guaranteed to fail Protenix's 2560-token guard, and it includes protein-oligo sequence recovery before token-safe stoichiometry and large-target fallback. Cropped oligo assemblies must still be interpreted as coverage-recovery evidence until QSglob mapping is validated."
 }

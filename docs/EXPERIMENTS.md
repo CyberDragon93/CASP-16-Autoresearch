@@ -708,6 +708,39 @@ and NVIDIA math libraries to `LD_LIBRARY_PATH`, `LIBRARY_PATH`, and `CPATH`.
 Outcome: the terminal-tag cleanup relaunch reached Protenix environment
 initialization and MSA search under the same fixed inference budget.
 
+### 2026-07-06 V2 Nofail Baseline Launch
+
+Decision: remove the dependency from Slurm job `810938` so the current
+alias-fixed v2 no-over-token baseline starts immediately instead of waiting for
+the older v1 terminal-tag attack to finish.
+
+Evidence: `run-next --benchmark casp16_server_protein_v2_aliasfix --dry-run`
+selected
+`server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`.
+After `scontrol update JobId=810938 Dependency=`, `squeue` showed job `810938`
+running on `c619-011`, and `list-runs` marked that v2 nofail run as `running`.
+
+Interpretation: this keeps the main line aimed at the strongest runnable v2
+input stack. The result is still `dev_fixed` only: one seed, one sample, and
+`first_output_only`.
+
+### 2026-07-06 Protenix25 Nofail Budget Retarget
+
+Decision: update the planned `casp16_server_attack_protenix25_nofail` budget
+to use the current oligo-recovery nofail input artifact.
+
+Change: the JSON and shard TSV now point at
+`yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, with 165 jobs,
+input hash `9ea5de4ffa1f7693de8f7e61374c0e51d0c54760f8efeea9839de9005a21f54e`,
+manifest hash
+`3199521f45afdec9127f9728b870b73810faa05eae2e42659e830ac8ffab31c2`, and
+25 declared candidates per target across five fixed seed shards.
+
+Interpretation: if the v2 nofail baseline earns a larger attack budget, the
+25-seed path will spend compute on the latest protein-oligo sequence recovery
+stack rather than the older coverage/stoich-only nofail artifact. This does not
+queue or submit the 25-seed run.
+
 ### 2026-07-06 Terminal Tag Cleanup Result
 
 Decision: keep `yang_terminal_tag_cleanup_v1` as a weak positive construct

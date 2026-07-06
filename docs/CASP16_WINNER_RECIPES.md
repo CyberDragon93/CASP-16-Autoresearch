@@ -216,8 +216,10 @@ Useful strategy hypotheses:
     the same 25-seed budget on the v2 no-over-token fallback input, with shard
     rows locked in
     `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
-    Regenerate or version this budget against the oligo-recovery nofail stack
-    before launch.
+    The budget now points at
+    `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, so any
+    launch spends the 25-seed tier on the current protein-oligo sequence
+    recovery nofail stack.
 24. `server_v2_attack_nofail_protenix5_seed101_105`: queued but not submitted
     as the first five-candidate attack on the no-over-token v2 stack. It uses
     seeds `101..105` and `protenix_confidence_v1`, and waits behind the three
