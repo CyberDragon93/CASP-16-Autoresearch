@@ -76,7 +76,11 @@ completed MSA runs and attach it during `run-spec` creation:
 
 ```bash
 ./casp16 build-msa-cache --benchmark casp16_server_protein_v2_aliasfix
+./casp16 check-msa-cache --input-json <new_inputs.json> \
+  --cache-index data/msa_cache/index.tsv \
+  --require-complete
 ./casp16 run-spec --run-id <run_id> --benchmark casp16_server_protein_v2_aliasfix \
+  --input-json <new_inputs.json> \
   --use-msa --use-template --use-default-params \
   --msa-cache-index data/msa_cache/index.tsv \
   --msa-reuse-require-complete
@@ -84,7 +88,9 @@ completed MSA runs and attach it during `run-spec` creation:
 
 The run spec records the cache source hashes, reuse coverage, and
 `runs/<run_id>/inputs/msa_reuse.tsv`, so repeated strategy runs do not silently
-pay full MSA search cost.
+pay full MSA search cost. `run-next --dry-run` and `run-next` both verify that
+the recorded MSA paths still exist before launching Protenix; stale cache paths
+block the run instead of falling back to another expensive MSA search.
 
 ## Current Protein V1 Coverage
 

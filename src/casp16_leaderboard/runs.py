@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from .msa_cache import reuse_msa_paths
+from .msa_cache import audit_msa_reuse_report, reuse_msa_paths
 from .official import ensure_dir
 
 
@@ -239,6 +239,56 @@ def _validate_msa_reuse_summary(
                 f"MSA reuse coverage {coverage_fraction:.3f} is below required {min_reuse_fraction:.3f} "
                 f"({covered}/{protein_chains} protein chains covered)"
             )
+
+
+def _validate_msa_reuse_audit(
+    audit: Mapping[str, object],
+    *,
+    require_complete: bool,
+    min_reuse_fraction: float | None,
+) -> None:
+    stale = int(audit.get("stale_covered", 0) or 0)
+    protein_chains = int(audit.get("protein_chains", 0) or 0)
+    usable_covered = int(audit.get("usable_covered", 0) or 0)
+    coverage_fraction = float(audit.get("coverage_fraction", 1.0) or 0.0)
+    if stale:
+        raise RuntimeError(
+            f"MSA reuse preflight found {stale} stale covered chain(s); "
+            "rebuild the cache index or recreate the run spec before launch"
+        )
+    if require_complete and usable_covered != protein_chains:
+        raise RuntimeError(
+            f"MSA reuse preflight incomplete: {usable_covered}/{protein_chains} protein chains have usable cached MSA paths"
+        )
+    if min_reuse_fraction is not None:
+        if min_reuse_fraction < 0.0 or min_reuse_fraction > 1.0:
+            raise ValueError("msa_reuse_min_fraction must be between 0 and 1")
+        if coverage_fraction < min_reuse_fraction:
+            raise RuntimeError(
+                f"MSA reuse preflight coverage {coverage_fraction:.3f} is below required {min_reuse_fraction:.3f} "
+                f"({usable_covered}/{protein_chains} protein chains covered)"
+            )
+
+
+def preflight_msa_reuse(spec: Mapping[str, Any]) -> dict[str, object]:
+    msa_reuse = spec.get("msa_reuse") or {}
+    if not isinstance(msa_reuse, Mapping) or not msa_reuse:
+        return {"checked": False}
+    report_text = str(msa_reuse.get("report_tsv", "") or "").strip()
+    if not report_text:
+        raise RuntimeError("MSA reuse preflight cannot find report_tsv in run_spec.json")
+    report_path = Path(report_text)
+    if not report_path.exists():
+        raise RuntimeError(f"MSA reuse preflight report is missing: {report_path}")
+    audit = audit_msa_reuse_report(report_path)
+    min_fraction_raw = msa_reuse.get("min_reuse_fraction")
+    min_fraction = float(min_fraction_raw) if min_fraction_raw not in (None, "") else None
+    _validate_msa_reuse_audit(
+        audit,
+        require_complete=spec_bool(msa_reuse.get("require_complete"), default=False),
+        min_reuse_fraction=min_fraction,
+    )
+    return {"checked": True, **audit}
 
 
 def _path_hash_rows(paths: Sequence[Path]) -> list[dict[str, str]]:
@@ -980,8 +1030,18 @@ def run_next(project_root: Path, *, benchmark: str | None = None, dry_run: bool 
     run_id = str(row["run_id"])
     run_dir = Path(str(row["run_dir"]))
     script = run_dir / "run.sh"
+    spec_path = run_dir / "run_spec.json"
+    with spec_path.open(encoding="utf-8") as handle:
+        spec = json.load(handle)
+    try:
+        msa_preflight = preflight_msa_reuse(spec)
+    except RuntimeError as exc:
+        if not dry_run:
+            append_status(project_root, run_id=run_id, benchmark=str(row.get("benchmark", "")), status="blocked:msa_preflight", message=str(exc))
+            write_runs_manifest(project_root)
+        return {"selected": run_id, "status": "blocked:msa_preflight", "message": str(exc)}
     if dry_run:
-        return {"selected": run_id, "status": "dry_run", "script": str(script)}
+        return {"selected": run_id, "status": "dry_run", "script": str(script), "msa_preflight": msa_preflight}
     append_status(project_root, run_id=run_id, benchmark=str(row.get("benchmark", "")), status="running", message="run_next_started")
     completed = subprocess.run(["bash", str(script)], cwd=run_dir, check=False)
     status = "ok" if completed.returncode == 0 else f"failed:{completed.returncode}"

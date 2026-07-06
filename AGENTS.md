@@ -69,7 +69,8 @@ Allowed during strategy design and prediction:
 - public method documentation and model documentation
 - previous Protenix `inputs-update-msa.json` MSA paths only through
   exact-sequence reuse or a derived `build-msa-cache` index, with a recorded
-  reuse report and a coverage guard for queued attack runs
+  reuse report, `check-msa-cache`/`run-next --dry-run` preflight, and a coverage
+  guard for queued attack runs
 
 Forbidden during strategy design and prediction:
 

@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from casp16_leaderboard.cli import discover_msa_source_jsons, resolve_msa_source_jsons, validate_msa_reuse_summary
-from casp16_leaderboard.msa_cache import build_msa_cache_index, reuse_msa_paths
+from casp16_leaderboard.msa_cache import audit_msa_reuse_report, build_msa_cache_index, plan_msa_reuse, reuse_msa_paths
 
 
 def test_reuse_msa_paths_matches_exact_sequence_only(tmp_path: Path) -> None:
@@ -248,6 +248,76 @@ def test_build_msa_cache_index_and_reuse_from_index(tmp_path: Path) -> None:
     chain = payload[0]["sequences"][0]["proteinChain"]
     assert chain["pairedMsaPath"] == str(paired_complete)
     assert chain["unpairedMsaPath"] == str(unpaired_complete)
+
+
+def test_plan_msa_reuse_writes_auditable_report_without_rewriting_input(tmp_path: Path) -> None:
+    msa_dir = tmp_path / "msa"
+    msa_dir.mkdir()
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_json = tmp_path / "runs" / "source" / "inputs" / "inputs-update-msa.json"
+    source_json.parent.mkdir(parents=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "source_target",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"], "unpairedMsaPath": str(unpaired)}}
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    input_json = tmp_path / "inputs.json"
+    original_text = json.dumps([{"name": "T1", "sequences": [{"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}}]}])
+    input_json.write_text(original_text, encoding="utf-8")
+    report_tsv = tmp_path / "diagnostics" / "msa_cache.tsv"
+
+    summary = plan_msa_reuse(input_json=input_json, msa_source_jsons=[source_json], report_tsv=report_tsv)
+
+    assert summary["reused"] == 1
+    assert input_json.read_text(encoding="utf-8") == original_text
+    audit = audit_msa_reuse_report(report_tsv)
+    assert audit["usable_covered"] == 1
+    assert audit["stale_covered"] == 0
+
+
+def test_audit_msa_reuse_report_detects_stale_cached_paths(tmp_path: Path) -> None:
+    msa_dir = tmp_path / "msa"
+    msa_dir.mkdir()
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_json = tmp_path / "runs" / "source" / "inputs" / "inputs-update-msa.json"
+    source_json.parent.mkdir(parents=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "source_target",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"], "unpairedMsaPath": str(unpaired)}}
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    input_json = tmp_path / "inputs.json"
+    input_json.write_text(
+        json.dumps([{"name": "T1", "sequences": [{"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}}]}]),
+        encoding="utf-8",
+    )
+    report_tsv = tmp_path / "msa_reuse.tsv"
+    reuse_msa_paths(input_json=input_json, msa_source_jsons=[source_json], output_json=tmp_path / "out.json", report_tsv=report_tsv)
+    unpaired.unlink()
+
+    audit = audit_msa_reuse_report(report_tsv)
+
+    assert audit["usable_covered"] == 0
+    assert audit["stale_covered"] == 1
+    assert str(unpaired) in audit["missing_paths"]
 
 
 def test_resolve_msa_source_jsons_accepts_run_id(tmp_path: Path) -> None:

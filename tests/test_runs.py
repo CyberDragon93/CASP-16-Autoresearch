@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from casp16_leaderboard.msa_cache import reuse_msa_paths
 from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, register_run_spec, run_next, write_run_script, write_runs_manifest
 
 
@@ -527,3 +528,60 @@ def test_run_next_blocks_pending_when_benchmark_run_is_running(tmp_path) -> None
     assert result["status"] == "blocked_by_running_run"
     assert result["running_run_id"] == "server_full"
     assert result["pending_run_id"] == "server_cleanup"
+
+
+def test_run_next_blocks_stale_msa_reuse_before_launch(tmp_path) -> None:
+    msa_dir = tmp_path / "msa"
+    msa_dir.mkdir()
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_json = tmp_path / "runs" / "source" / "inputs" / "inputs-update-msa.json"
+    source_json.parent.mkdir(parents=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "source_target",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"], "unpairedMsaPath": str(unpaired)}}
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    input_json = tmp_path / "inputs.json"
+    input_json.write_text(
+        json.dumps([{"name": "T1", "sequences": [{"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}}]}]),
+        encoding="utf-8",
+    )
+    run_dir = tmp_path / "runs" / "cached_run"
+    report_tsv = run_dir / "inputs" / "msa_reuse.tsv"
+    reuse_msa_paths(input_json=input_json, msa_source_jsons=[source_json], output_json=run_dir / "inputs" / "inputs.msa-reuse.json", report_tsv=report_tsv)
+    unpaired.unlink()
+    script_marker = tmp_path / "script_ran"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "run.sh").write_text(f"#!/usr/bin/env bash\ntouch {script_marker}\n", encoding="utf-8")
+    (run_dir / "run.sh").chmod(0o755)
+    spec = {
+        "run_id": "cached_run",
+        "benchmark_name": "casp16_server_protein_v1",
+        "backend": "protenix",
+        "strategy": "cache_reuse",
+        "model_name": "protenix-v2",
+        "seeds": "101",
+        "sample": 1,
+        "rank_eligible": True,
+        "msa_reuse": {"report_tsv": str(report_tsv), "require_complete": True},
+    }
+    (run_dir / "run_spec.json").write_text(json.dumps(spec), encoding="utf-8")
+    register_run_spec(tmp_path, spec)
+
+    dry_run = run_next(tmp_path, benchmark="casp16_server_protein_v1", dry_run=True)
+    result = run_next(tmp_path, benchmark="casp16_server_protein_v1", dry_run=False)
+
+    assert dry_run["status"] == "blocked:msa_preflight"
+    assert result["status"] == "blocked:msa_preflight"
+    assert not script_marker.exists()
+    rows = list_run_rows(tmp_path, benchmark="casp16_server_protein_v1")
+    assert rows[0]["status"] == "blocked:msa_preflight"

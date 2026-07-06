@@ -24,6 +24,11 @@ Preferred run creation path:
   --benchmark casp16_server_protein_v2_aliasfix \
   --output-tsv data/msa_cache/index.tsv
 
+./casp16 check-msa-cache \
+  --input-json <new_inputs.json> \
+  --cache-index data/msa_cache/index.tsv \
+  --require-complete
+
 ./casp16 run-spec \
   --run-id <run_id> \
   --benchmark casp16_server_protein_v2_aliasfix \
@@ -39,6 +44,11 @@ Preferred run creation path:
 the cache-reused input, and stores the reuse summary plus source/index hashes in
 `run_spec.json`. This is the default path for queued attack runs because it
 fails before GPU allocation if cache coverage is lower than declared.
+
+`check-msa-cache` is the read-only preflight for planning and queue notes. It
+uses the same exact-sequence matcher as `run-spec`, writes a diagnostics TSV,
+and can fail with `--require-complete` or `--min-reuse-fraction` before any
+run directory is created.
 
 Manual input rewriting remains available for debugging or strategy artifact
 generation:
@@ -75,7 +85,14 @@ For attack shards that are expected to reuse every unchanged chain, use
 `--require-complete`. For ablations where some sequences intentionally change,
 use `--min-reuse-fraction <fraction>` and inspect the TSV report before launch.
 The JSON summary reports `reused`, `kept_existing`, `covered`,
-`coverage_fraction`, and `missing_source`.
+`coverage_fraction`, and `missing_source`. The TSV report also records whether
+each paired/unpaired MSA path exists and its current file size.
+
+`run-next --dry-run` and `run-next` now audit `runs/<run_id>/inputs/msa_reuse.tsv`
+before launch. If a path that was recorded as reused or kept-existing has gone
+stale, the run is blocked as `blocked:msa_preflight` instead of silently letting
+Protenix redo MSA search. Rebuild the index and recreate the run spec after
+moving or deleting source run directories.
 
 ## Rules
 
@@ -83,6 +100,7 @@ The JSON summary reports `reused`, `kept_existing`, `covered`,
 - Do not reuse by target id alone; construct changes can share a target id but
   require a new MSA.
 - Missing or stale MSA path means no reuse.
+- A cache-reused run must pass `run-next --dry-run` before Slurm submission.
 - Treat MSA source JSON and reuse report as run artifacts, not benchmark files.
 - Treat `data/msa_cache/index.tsv` as a derived local cache manifest; rebuild it
   from run artifacts when source runs change.
@@ -114,9 +132,10 @@ The JSON summary reports `reused`, `kept_existing`, `covered`,
 
 1. Keep the current index as the default while source run directories are stable.
    It is cheap, exact-sequence safe, and avoids copying large MSA artifacts.
-2. Add a preflight gate before submitting new Slurm attack jobs: rebuild the
-   index, run `run-spec` with `--msa-reuse-require-complete` or a declared
-   `--msa-reuse-min-fraction`, and include the JSON summary in the job notes.
+2. Keep the preflight gate in every Slurm wrapper: rebuild the index when
+   sources change, run `check-msa-cache`, create the run spec with
+   `--msa-reuse-require-complete` or a declared `--msa-reuse-min-fraction`, and
+   include the JSON summary in the job notes.
 3. If run directories start getting deleted or moved, promote the cache to a
    content-addressed local store under ignored scratch storage, keyed by
    sequence SHA256 and MSA file SHA256. The index should then point at stable

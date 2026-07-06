@@ -20,7 +20,11 @@ MSA_REUSE_FIELDS = [
     "source_task_name",
     "source_json",
     "paired_msa_path",
+    "paired_msa_exists",
+    "paired_msa_size",
     "unpaired_msa_path",
+    "unpaired_msa_exists",
+    "unpaired_msa_size",
     "message",
 ]
 
@@ -104,6 +108,19 @@ def _path_size(path_text: str) -> int:
         return 0
     path = Path(path_text)
     return path.stat().st_size if path.exists() else 0
+
+
+def _path_report_fields(paired: Any, unpaired: Any) -> dict[str, str]:
+    paired_text = str(paired or "").strip()
+    unpaired_text = str(unpaired or "").strip()
+    return {
+        "paired_msa_path": paired_text,
+        "paired_msa_exists": str(bool(paired_text and Path(paired_text).exists())).lower(),
+        "paired_msa_size": str(_path_size(paired_text)),
+        "unpaired_msa_path": unpaired_text,
+        "unpaired_msa_exists": str(bool(unpaired_text and Path(unpaired_text).exists())).lower(),
+        "unpaired_msa_size": str(_path_size(unpaired_text)),
+    }
 
 
 def _infer_source_run_id(source_json: Path) -> str:
@@ -248,22 +265,39 @@ def chain_has_usable_msa(protein_chain: Mapping[str, Any]) -> bool:
     return bool(paths) and all(Path(path).exists() for path in paths)
 
 
-def reuse_msa_paths(
+def _load_reuse_records(
     *,
-    input_json: Path,
-    msa_source_jsons: Sequence[Path] = (),
-    msa_cache_indexes: Sequence[Path] = (),
-    output_json: Path,
-    report_tsv: Path,
-    overwrite_existing: bool = False,
-) -> dict[str, object]:
-    tasks = load_json_list(input_json)
-    if not msa_source_jsons and not msa_cache_indexes:
-        raise ValueError("provide at least one MSA source JSON or cache index")
+    msa_source_jsons: Sequence[Path],
+    msa_cache_indexes: Sequence[Path],
+) -> tuple[dict[str, MsaRecord], dict[str, int]]:
     records = collect_msa_records([path.resolve() for path in msa_source_jsons])
     cache_records, cache_stats = load_msa_cache_records([path.resolve() for path in msa_cache_indexes])
     for record in cache_records.values():
         _remember_record(records, record)
+    return records, cache_stats
+
+
+def _write_reuse_report(report_tsv: Path, rows: Sequence[Mapping[str, str]]) -> None:
+    ensure_dir(report_tsv.parent)
+    with report_tsv.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=MSA_REUSE_FIELDS, delimiter="\t", lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def _plan_reuse_rows(
+    *,
+    tasks: Sequence[dict[str, Any]],
+    records: Mapping[str, MsaRecord],
+    cache_stats: Mapping[str, int],
+    input_json: Path,
+    msa_source_jsons: Sequence[Path],
+    msa_cache_indexes: Sequence[Path],
+    output_json: Path | None,
+    report_tsv: Path | None,
+    overwrite_existing: bool,
+    apply_paths: bool,
+) -> tuple[list[dict[str, str]], dict[str, object]]:
     rows: list[dict[str, str]] = []
     reused = 0
     kept_existing = 0
@@ -283,8 +317,7 @@ def reuse_msa_paths(
             "source_run_id": "",
             "source_task_name": "",
             "source_json": "",
-            "paired_msa_path": str(protein_chain.get("pairedMsaPath", "") or ""),
-            "unpaired_msa_path": str(protein_chain.get("unpairedMsaPath", "") or ""),
+            **_path_report_fields(protein_chain.get("pairedMsaPath"), protein_chain.get("unpairedMsaPath")),
             "message": "",
         }
         if not overwrite_existing and chain_has_usable_msa(protein_chain):
@@ -296,10 +329,11 @@ def reuse_msa_paths(
             missing += 1
             rows.append({**base, "status": "missing_source", "message": "no_exact_sequence_msa_match"})
             continue
-        if record.paired_msa_path:
-            protein_chain["pairedMsaPath"] = record.paired_msa_path
-        if record.unpaired_msa_path:
-            protein_chain["unpairedMsaPath"] = record.unpaired_msa_path
+        if apply_paths:
+            if record.paired_msa_path:
+                protein_chain["pairedMsaPath"] = record.paired_msa_path
+            if record.unpaired_msa_path:
+                protein_chain["unpairedMsaPath"] = record.unpaired_msa_path
         reused += 1
         rows.append(
             {
@@ -308,24 +342,13 @@ def reuse_msa_paths(
                 "source_run_id": record.source_run_id,
                 "source_task_name": record.source_task_name,
                 "source_json": record.source_json,
-                "paired_msa_path": record.paired_msa_path,
-                "unpaired_msa_path": record.unpaired_msa_path,
+                **_path_report_fields(record.paired_msa_path, record.unpaired_msa_path),
                 "message": "exact_sequence_match",
             }
         )
 
-    ensure_dir(output_json.parent)
-    output_json.write_text(json.dumps(tasks, indent=4) + "\n", encoding="utf-8")
-    ensure_dir(report_tsv.parent)
-    with report_tsv.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=MSA_REUSE_FIELDS, delimiter="\t", lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(rows)
-
-    return {
+    summary = {
         "input_json": str(input_json),
-        "output_json": str(output_json),
-        "report_tsv": str(report_tsv),
         "msa_source_jsons": [str(path) for path in msa_source_jsons],
         "msa_cache_indexes": [str(path) for path in msa_cache_indexes],
         **cache_stats,
@@ -337,4 +360,121 @@ def reuse_msa_paths(
         "covered": reused + kept_existing,
         "coverage_fraction": ((reused + kept_existing) / protein_chain_count) if protein_chain_count else 1.0,
         "missing_source": missing,
+    }
+    if output_json is not None:
+        summary["output_json"] = str(output_json)
+    if report_tsv is not None:
+        summary["report_tsv"] = str(report_tsv)
+    return rows, summary
+
+
+def plan_msa_reuse(
+    *,
+    input_json: Path,
+    msa_source_jsons: Sequence[Path] = (),
+    msa_cache_indexes: Sequence[Path] = (),
+    report_tsv: Path | None = None,
+    overwrite_existing: bool = False,
+) -> dict[str, object]:
+    tasks = load_json_list(input_json)
+    if not msa_source_jsons and not msa_cache_indexes:
+        raise ValueError("provide at least one MSA source JSON or cache index")
+    records, cache_stats = _load_reuse_records(msa_source_jsons=msa_source_jsons, msa_cache_indexes=msa_cache_indexes)
+    rows, summary = _plan_reuse_rows(
+        tasks=tasks,
+        records=records,
+        cache_stats=cache_stats,
+        input_json=input_json,
+        msa_source_jsons=msa_source_jsons,
+        msa_cache_indexes=msa_cache_indexes,
+        output_json=None,
+        report_tsv=report_tsv,
+        overwrite_existing=overwrite_existing,
+        apply_paths=False,
+    )
+    if report_tsv is not None:
+        _write_reuse_report(report_tsv, rows)
+    return summary
+
+
+def reuse_msa_paths(
+    *,
+    input_json: Path,
+    msa_source_jsons: Sequence[Path] = (),
+    msa_cache_indexes: Sequence[Path] = (),
+    output_json: Path,
+    report_tsv: Path,
+    overwrite_existing: bool = False,
+) -> dict[str, object]:
+    tasks = load_json_list(input_json)
+    if not msa_source_jsons and not msa_cache_indexes:
+        raise ValueError("provide at least one MSA source JSON or cache index")
+    records, cache_stats = _load_reuse_records(msa_source_jsons=msa_source_jsons, msa_cache_indexes=msa_cache_indexes)
+    rows, summary = _plan_reuse_rows(
+        tasks=tasks,
+        records=records,
+        cache_stats=cache_stats,
+        input_json=input_json,
+        msa_source_jsons=msa_source_jsons,
+        msa_cache_indexes=msa_cache_indexes,
+        output_json=output_json,
+        report_tsv=report_tsv,
+        overwrite_existing=overwrite_existing,
+        apply_paths=True,
+    )
+
+    ensure_dir(output_json.parent)
+    output_json.write_text(json.dumps(tasks, indent=4) + "\n", encoding="utf-8")
+    _write_reuse_report(report_tsv, rows)
+
+    return summary
+
+
+def _report_row_paths(row: Mapping[str, Any]) -> list[str]:
+    return [str(row.get(key, "") or "").strip() for key in ("paired_msa_path", "unpaired_msa_path") if str(row.get(key, "") or "").strip()]
+
+
+def audit_msa_reuse_report(report_tsv: Path) -> dict[str, object]:
+    with report_tsv.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+
+    covered_statuses = {"reused", "kept_existing"}
+    usable_covered = 0
+    stale_covered = 0
+    missing_paths: list[str] = []
+    reused = 0
+    kept_existing = 0
+    missing_source = 0
+
+    for row in rows:
+        status = str(row.get("status", ""))
+        if status == "reused":
+            reused += 1
+        elif status == "kept_existing":
+            kept_existing += 1
+        elif status == "missing_source":
+            missing_source += 1
+        if status not in covered_statuses:
+            continue
+        paths = _report_row_paths(row)
+        missing_for_row = [path for path in paths if not Path(path).exists()]
+        if paths and not missing_for_row:
+            usable_covered += 1
+        else:
+            stale_covered += 1
+            missing_paths.extend(missing_for_row or ["<no_msa_path_recorded>"])
+
+    protein_chains = len(rows)
+    return {
+        "report_tsv": str(report_tsv),
+        "rows": protein_chains,
+        "protein_chains": protein_chains,
+        "reused": reused,
+        "kept_existing": kept_existing,
+        "missing_source": missing_source,
+        "covered": reused + kept_existing,
+        "usable_covered": usable_covered,
+        "stale_covered": stale_covered,
+        "coverage_fraction": (usable_covered / protein_chains) if protein_chains else 1.0,
+        "missing_paths": missing_paths,
     }

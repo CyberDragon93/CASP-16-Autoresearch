@@ -16,7 +16,7 @@ from .benchmark import (
 )
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
-from .msa_cache import build_msa_cache_index, reuse_msa_paths
+from .msa_cache import audit_msa_reuse_report, build_msa_cache_index, plan_msa_reuse, reuse_msa_paths
 from .official import ingest_official_data
 from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, run_next
 from .scoring import probe_qsglob_targets, score_benchmark_runs
@@ -178,6 +178,17 @@ def build_parser() -> argparse.ArgumentParser:
     reuse_msa.add_argument("--overwrite-existing", action="store_true", help="Replace existing MSA paths in the input JSON when an exact sequence match exists.")
     reuse_msa.add_argument("--require-complete", action="store_true", help="Fail unless every protein chain already has or receives usable MSA paths.")
     reuse_msa.add_argument("--min-reuse-fraction", type=float, default=None, help="Fail unless covered protein-chain fraction is at least this value.")
+
+    check_msa_cache = subparsers.add_parser("check-msa-cache", help="Preview exact-sequence MSA cache coverage without rewriting inputs.")
+    check_msa_cache.add_argument("--benchmark", default="", help="Benchmark whose inputs.json should be checked.")
+    check_msa_cache.add_argument("--input-json", type=Path, default=None, help="Defaults to <root>/benchmarks/<benchmark>/inputs.json when --benchmark is set.")
+    check_msa_cache.add_argument("--msa-source-json", type=Path, action="append", default=None, help="Existing Protenix inputs-update-msa.json; repeatable.")
+    check_msa_cache.add_argument("--source-run-id", action="append", default=None, help="Use runs/<run_id>/inputs/inputs-update-msa.json as an MSA source; repeatable.")
+    check_msa_cache.add_argument("--cache-index", type=Path, action="append", default=None, help="Exact-sequence MSA cache index TSV from build-msa-cache; repeatable.")
+    check_msa_cache.add_argument("--report-tsv", type=Path, default=None, help="Defaults to <root>/diagnostics/msa_cache/<benchmark-or-input>.tsv.")
+    check_msa_cache.add_argument("--overwrite-existing", action="store_true", help="Preview replacement of existing MSA paths when an exact match exists.")
+    check_msa_cache.add_argument("--require-complete", action="store_true", help="Fail unless every protein chain has usable cached MSA paths.")
+    check_msa_cache.add_argument("--min-reuse-fraction", type=float, default=None, help="Fail unless usable covered protein-chain fraction is at least this value.")
 
     run_spec = subparsers.add_parser("run-spec", help="Create a reproducible Protenix run spec and run.sh.")
     run_spec.add_argument("--run-id", required=True)
@@ -407,6 +418,51 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         validate_msa_reuse_summary(summary, require_complete=args.require_complete, min_reuse_fraction=args.min_reuse_fraction)
         print_json(summary)
+        return 0
+
+    if args.command == "check-msa-cache":
+        benchmark_dir = None
+        if args.benchmark:
+            benchmark_payload = load_benchmark(root, args.benchmark)
+            benchmark_dir = Path(str(benchmark_payload["_benchmark_dir"]))
+        if args.input_json is None and benchmark_dir is None:
+            raise ValueError("provide --input-json or --benchmark")
+        input_json = (args.input_json or (benchmark_dir / "inputs.json")).resolve()
+        msa_source_jsons = (
+            resolve_msa_source_jsons(root, args.msa_source_json, args.source_run_id)
+            if (args.msa_source_json or args.source_run_id)
+            else []
+        )
+        msa_cache_indexes = [path.resolve() for path in (args.cache_index or [])]
+        if not msa_source_jsons and not msa_cache_indexes:
+            raise ValueError("provide at least one --cache-index, --msa-source-json, or --source-run-id")
+        missing_indexes = [str(path) for path in msa_cache_indexes if not path.exists()]
+        if missing_indexes:
+            raise FileNotFoundError(f"MSA cache index not found: {', '.join(missing_indexes)}")
+        report_name = args.benchmark or input_json.stem
+        report_tsv = (args.report_tsv or (root / "diagnostics" / "msa_cache" / f"{report_name}.tsv")).resolve()
+        summary = plan_msa_reuse(
+            input_json=input_json,
+            msa_source_jsons=msa_source_jsons,
+            msa_cache_indexes=msa_cache_indexes,
+            report_tsv=report_tsv,
+            overwrite_existing=args.overwrite_existing,
+        )
+        validate_msa_reuse_summary(summary, require_complete=args.require_complete, min_reuse_fraction=args.min_reuse_fraction)
+        audit = audit_msa_reuse_report(report_tsv)
+        validate_msa_reuse_summary(
+            {
+                "protein_chains": audit["protein_chains"],
+                "covered": audit["usable_covered"],
+                "coverage_fraction": audit["coverage_fraction"],
+                "missing_source": int(audit["protein_chains"]) - int(audit["usable_covered"]),
+            },
+            require_complete=args.require_complete,
+            min_reuse_fraction=args.min_reuse_fraction,
+        )
+        if int(audit.get("stale_covered", 0) or 0):
+            raise RuntimeError(f"MSA cache check found {audit['stale_covered']} stale covered chain(s)")
+        print_json({"summary": summary, "audit": audit})
         return 0
 
     if args.command == "run-spec":

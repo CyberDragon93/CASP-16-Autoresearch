@@ -76,6 +76,11 @@ where methods should change.
   set through the benchmark `input_manifest.tsv` and requires complete
   exact-sequence MSA reuse from `data/msa_cache/index.tsv`. It is not queued
   yet; use it only if the running scoreable `protenix5` row is worth scaling.
+- MSA cache infra now has a read-only `check-msa-cache` preflight plus
+  `run-next` stale-path auditing. The scoreable v2 attack input checks at
+  141/141 reusable protein chains, 0 missing sources, and 0 stale cached paths
+  against `data/msa_cache/index.tsv`; future MSA-heavy shards should pass this
+  check before Slurm submission.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
   about chasing CASP16 server winners must report the attack budget, candidates
   per target, selector, and GPU cost. Run specs and manifests expose
