@@ -46,6 +46,25 @@ Result:
   Those targets need sequence/input recovery before scorer mapping alone can
   give a meaningful QSglob comparison.
 
+## Mapping Parameter Probe
+
+OpenStructure exposes `--chem-map-seqid-thresh`; setting it to `0` should make
+chemical mapping maximally permissive. A bounded 2026-07-06 probe compared the
+default setting against `--chem-map-seqid-thresh 0` on existing baseline
+predictions for representative oligo targets.
+
+| target | default QSglob | forced QSglob | default chain map count | forced chain map count | conclusion |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `H0220` | 0.000 | 0.000 | 0 | 0 | not fixed by permissive chem mapping; prioritize input sequence/modality recovery |
+| `T0234O` | 0.000 | 0.000 | 1 | 1 | mapping parameter does not rescue the zero |
+| `T1249V1O` | 0.090 | 0.090 | 3 | 3 | nonzero score is stable under the parameter |
+| `H1232` | 0.000 | 0.000 | 2 | 2 | mapping exists, so the zero is not the H0220-style unmapped-chain failure |
+
+Do not change the scorer default to `--chem-map-seqid-thresh 0` based on these
+targets. The higher-leverage fix remains better protein-oligo inputs and
+target-agnostic assembly handling, especially the v2 oligo-recovery nofail
+stack.
+
 ## Oligo Signal Probe
 
 Do not run a full `./casp16 score` while a large run is still producing partial
@@ -64,8 +83,8 @@ Interpretation:
 
 - QSglob is producing nonzero values and can distinguish strategies; it is not
   merely returning universal zeros.
-- `H0220` still has no model-chain mapping (`A/B` unmapped), so that target is
-  a likely false-zero mapping case.
+- `H0220` still has no model-chain mapping (`A/B` unmapped), and permissive
+  chemical mapping did not fix it; this reinforces the v2 input-recovery path.
 - `T0234O` and `T1249V1O` have empty chem-group mappings for some groups, so
   full oligo ranking still needs assembly mapping diagnostics.
 - The signal supports continuing token-safe stoichiometry/coverage runs before

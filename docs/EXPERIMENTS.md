@@ -184,9 +184,10 @@ leaderboard progress.
       with `protenix_cli=True`.
     - Resubmitted as Slurm job `811114`, initially pending with reason
       `Priority`.
-    - Latest recorded check: job `811114` is running on `c639-081` and has
-      started producing CIF files. Keep it target_lab-only; run
-      `summarize_outputs.py` and `score_dockq.py` only after completion.
+    - Job `811114` completed on `c639-081` with 6/6 structures and confidence
+      files. The regenerated diagnostic DockQ report shows H1233 as a strong
+      exact-stoichiometry positive, H1236 moderate, H1232 weak, and H1258
+      still blocked by chain mapping.
 18. Generated `server_attack_protenix_coverage_stoich_seed101_105`, the second
     `protenix5` attack-tier run spec. It uses the stacked
     `yang_oligo_stoichiometry_token_safe_v1` inputs, seeds
@@ -246,10 +247,10 @@ leaderboard progress.
 24. Audited the active `protenix5` attack budget execution. The run spec passes
     `-s 101,102,103,104,105`, and Protenix source confirms this is parsed as a
     comma-separated seed list. The runner then loops serially over seeds and
-    targets, so the live output currently contains only `seed_101` directories
-    while it is still in the first seed pass.
-    - Live observation: Slurm job `810719` is running on `c639-072`; output had
-      14 CIFs during the audit.
+    targets, so the live output can remain partial for a long time while each
+    seed pass finishes.
+    - Live observation: Slurm job `810719` is running on `c639-072`; the latest
+      count had 98 `seed_101` CIFs and 63 `seed_102` CIFs.
     - Guard: do not score `server_attack_protenix_terminal_tag_seed101_105` as
       a complete attack row until candidates for all declared seeds are present,
       or explicitly mark the row partial/unranked.
@@ -313,9 +314,9 @@ leaderboard progress.
       `runner.batch_inference` while the ranked Protenix workflows use
       `Protenix-Insta`.
     - Live validation: `target_lab/domain_fragment_batch_v1` job `810862`
-      started on `c622-022`, imported
-      `/scratch/10992/liaorunlong93/Protenix-Insta/runner/batch_inference.py`,
-      loaded the Protenix v2 checkpoint, and entered MSA search.
+      completed on `c622-022` with 12/12 structures and confidence files.
+      `SUMMARY.md` and `summary.tsv` are regenerated; keep the result
+      target-lab-only until a target-agnostic segmentation rule exists.
 30. Generated, then later superseded,
     `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`
     as the next v2 coverage-recovery ablation. It starts from the v2

@@ -77,8 +77,9 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
-  is running; the latest recorded check found only `seed_101` outputs, so it
-  is still incomplete and must not be scored as a five-candidate result.
+  is running; the latest recorded check found 98 `seed_101` CIFs and 63
+  `seed_102` CIFs, so it is still incomplete and must not be scored as a
+  five-candidate result.
 - Queued second attack run spec:
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
   sequence-recovery + large-target fallback + token-safe stoichiometry inputs
@@ -183,9 +184,11 @@ where methods should change.
   evidence for some complexes, but not H1258 hard-window promotion.
 - New domain-fragment target-lab batch:
   `target_lab/domain_fragment_batch_v1/` turns the domain-decomposition recipe
-  into 12 runnable Protenix fragment jobs. It has been submitted as Slurm job
-  `810862`, is running on `c622-022`, and must stay out of ranked server
-  comparisons.
+  into 12 runnable Protenix fragment jobs. Slurm job `810862` completed on
+  `c622-022` with 12/12 structures and confidence files; `SUMMARY.md` and
+  `summary.tsv` have been regenerated. This is useful D2 recipe evidence but
+  must stay out of ranked server comparisons unless converted into a
+  target-agnostic segmentation rule or a new benchmark version.
 
 ## Main Objective
 
@@ -291,20 +294,18 @@ competitive result.
 14. Run the H1258 target-lab interaction-window job when a small GH200 slot is
     available, then decide whether a target-agnostic window rule is worth a
     full benchmark candidate.
-15. Monitor target_lab job `811114` for
-    `target_lab/small_complex_stoich_batch_v1`, then inspect predictions for
-    exact-stoichiometry and H1258-window behavior before spending full
-    benchmark compute. Regenerate `SUMMARY.md` with
-    `python target_lab/small_complex_stoich_batch_v1/summarize_outputs.py` and
-    diagnostic `DOCKQ.md` with
-    `python target_lab/small_complex_stoich_batch_v1/score_dockq.py`.
+15. Completed target_lab job `811114` for
+    `target_lab/small_complex_stoich_batch_v1`, then regenerated its summary
+    and diagnostic DockQ report. Treat the strong H1233 exact-stoichiometry
+    signal as target-lab evidence only; do not promote H1258 hard-windowing
+    because DockQ chain mapping failed.
 16. Implement strategy experiments inspired by CASP16 winners: disorder
     trimming, domain decomposition, MSA/template optimization, assembly-aware
     multimer handling, and model ranking.
-17. Monitor target_lab job `810862` for
-    `target_lab/domain_fragment_batch_v1`. It is running on `c622-022` and has
-    passed the Protenix import/env bootstrap. After completion, inspect
-    fragment coverage and confidence diagnostics. Promote only a
+17. Completed target_lab job `810862` for
+    `target_lab/domain_fragment_batch_v1`. It produced 12/12 structures and
+    confidence files, with high confidence on most fragments. Next, inspect
+    fragment quality only as target-lab evidence and promote only a
     target-agnostic segmentation rule, not CASP-domain-summary hand crops.
 18. Keep `server_attack_protenix_coverage_stoich_seed101_105` queued as the
     next realistic attack-budget candidate. Submit it only when
