@@ -158,6 +158,8 @@ then improve methods against that harder target set.
 - `attack_budgets/`: JSON attack-budget definitions
 - `docs/AUTORESEARCH_QUEUE.md`: current execution queue for strategy attempts
 - `docs/EXPERIMENTS.md`: append-only autoresearch experiment log
+- `docs/TARGET_LAB_PROMOTION.md`: promotion gates from target_lab diagnostics
+  to full-benchmark strategy runs
 - `docs/STRATEGY_TEMPLATE.md`: template for each new strategy record
 - `target_lab/TARGET_RECOMMENDATIONS.txt`: target_lab diagnostics and
   non-ranked single-target learning targets

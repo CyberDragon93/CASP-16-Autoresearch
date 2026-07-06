@@ -14,6 +14,8 @@ Use `docs/AUTORESEARCH.md` as the working index for current experiments and
 `docs/CASP16_SERVER_BENCHMARK.md` for the planned official-server comparison
 benchmark. Do not treat either document as permission to change locked
 benchmark files in place.
+Use `docs/TARGET_LAB_PROMOTION.md` before turning target-lab diagnostics into
+full-benchmark strategy runs.
 
 ## Required Workflow
 
