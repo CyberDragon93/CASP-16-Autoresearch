@@ -7,28 +7,28 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 | Priority | Run | Benchmark | Status | Why It Matters | Next Gate |
 | --- | --- | --- | --- | --- | --- |
-| P0 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | running | First full optimized-input reproduction attempt after the baseline; tests obvious terminal His/expression-tag cleanup under the same real MSA/template budget | Score immediately after completion and compare full fixed-set domain mean against baseline |
+| P0 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | pending, next to launch | First coverage-recovery run after the scored terminal-tag ablation; rescues the known `T1295` server-domain zero caused by Protenix `n_token > 2560` | Run full fixed-budget inference, score immediately, and compare fixed-set domain mean against terminal-tag cleanup |
 
 ## Latest Baseline Result
 
 | Run | Status | Domain mean | Domain coverage | Oligo status | Key failure signal |
 | --- | --- | --- | --- | --- | --- |
 | `server_protenix_full_msa_template_seed101` | complete and scored | `0.063962` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | unranked until QSglob exists | 8 Protenix jobs failed with `n_token > 2560`: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`, `H1272`, `T1295O` |
+| `server_protenix_yang_terminal_tag_cleanup_seed101` | complete and scored | `0.066908` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | unranked until QSglob exists | Same 8 Protenix token-limit failures as baseline; small net domain gain from `T1234`, `T1298`, and `T1210` |
 
 ## Queued Next
 
 | Priority | Run | Strategy | Artifact | Benchmark | Status | Hypothesis |
 | --- | --- | --- | --- | --- | --- | --- |
-| P1 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `yang_oversize_domain_monomer_fallback_v1` | `strategies/yang_oversize_domain_monomer_fallback_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | Rescue the known `T1295` server-domain zero caused by Protenix `n_token > 2560` by replacing only a single-entity domain `A8` job with one representative chain |
+| P1 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `yang_oversize_domain_monomer_fallback_v1` | `strategies/yang_oversize_domain_monomer_fallback_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending, next to launch | Rescue the known `T1295` server-domain zero caused by Protenix `n_token > 2560` by replacing only a single-entity domain `A8` job with one representative chain |
 | P2 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `yang_antibody_fv_cleanup_v1` | `strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind oversize-domain fallback | Antibody-antigen targets may benefit from Fv-style constructs while preserving all 106 server jobs |
 | P3 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `yang_terminal_tag_antibody_fv_cleanup_v1` | `strategies/yang_terminal_tag_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind individual ablations | Combined terminal-tag plus antibody-Fv cleanup tests whether non-overlapping construct fixes compose |
 | P4 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `yang_epitope_tag_cleanup_v1` | `strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind combined cleanup | Broader epitope/His/TEV tag cleanup may rescue H1258/H0258-style expression artifacts while staying sequence-only |
 
-The terminal-tag run is currently active. `./casp16 run-next --benchmark
-casp16_server_protein_v1 --dry-run` should report `blocked_by_running_run`
-until it finishes. After that, the same command should select oversize-domain
-monomer fallback, antibody Fv cleanup, the combined cleanup run, and then
-epitope tag cleanup.
+The terminal-tag run is complete and scored. The next
+`./casp16 run-next --benchmark casp16_server_protein_v1 --dry-run` should
+select oversize-domain monomer fallback, followed by antibody Fv cleanup, the
+combined cleanup run, and then epitope tag cleanup.
 
 Generation commands used:
 

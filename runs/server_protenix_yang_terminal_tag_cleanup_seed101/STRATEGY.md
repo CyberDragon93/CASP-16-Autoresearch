@@ -45,20 +45,27 @@ domain/oligo benchmark relative to the unmodified full Protenix baseline.
 
 ## Result Summary
 
-- Rank status: pending, not launched while parent baseline is running.
-- Mean score: unavailable.
+- Rank status: ranked on `protein_domain`; unranked on `protein_oligo` because
+  QSglob is unavailable.
+- Mean score: domain `0.066908`, versus parent baseline `0.063962`.
 - Eligible targets: fixed `casp16_server_protein_v1` target set.
-- OK targets: unavailable.
-- Missing targets: unavailable.
-- Failed targets: unavailable.
+- OK targets: 15 domain rows scored.
+- Missing targets: 30 domain rows missing prediction in the fixed official
+  domain set.
+- Failed targets: 26 domain rows missing local reference mapping; 8 Protenix
+  inference jobs failed with `n_token > 2560`.
 - Metric unavailable targets: expected for oligo QSglob until scorer exists.
 - Artifact path: `runs/server_protenix_yang_terminal_tag_cleanup_seed101/`.
 
 ## Failure Notes
 
-No prediction has been launched yet. `run-next` is guarded so the pending run is
-not started while another `casp16_server_protein_v1` run is still marked
-`running`.
+The run generated 98/106 CIFs. The same 8 jobs as the baseline failed the
+Protenix token guard: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`,
+`H1272`, and `T1295O`.
+
+Largest positive domain deltas versus baseline: `T1234` `+0.1122`, `T1298`
+`+0.0863`, and `T1210` `+0.0519`. Main regressions: `T0234`, `T1249V1`, and
+`T1299`. The net signal is positive but far below server-winner scale.
 
 ## No-Oracle Checklist
 
@@ -66,11 +73,11 @@ not started while another `casp16_server_protein_v1` run is still marked
 - [x] Did not use official score tables for target-specific tuning.
 - [x] Did not use previous target scores for target-specific parameter choices.
 - [x] Did not replace structure metrics with confidence diagnostics.
-- [x] Regenerated inputs only through `./casp16 strategy-inputs`; results are
-      not yet scored.
+- [x] Regenerated inputs only through `./casp16 strategy-inputs`.
+- [x] Scored only after predictions completed.
 
 ## Next Action
 
-After `server_protenix_full_msa_template_seed101` finishes, score the baseline,
-then run this queued cleanup strategy as the first full optimized-input
-comparison.
+Run `server_protenix_yang_oversize_domain_monomer_fallback_seed101` next to
+recover the known `T1295` server-domain token-limit zero before adding
+multi-seed attack-budget runs.
