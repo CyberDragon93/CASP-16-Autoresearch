@@ -56,6 +56,7 @@ benchmark target set or inspect references.
 | D2 | Domain decomposition | top monomer pipelines refined constructs and handled domains separately | `./casp16 strategy-inputs --strategy yang_domain_fragment_inputs_v1` creates post hoc CASP-domain fragment inputs for target-lab learning | not server-ranked; promotion needs a new benchmark version or predeclared segmentation rule |
 | D3 | MSA/template depth | Yang/trRosetta workflows emphasize optimized MSA/template inputs | full MSA/template Protenix/OpenDDE server run; record MSA source, template mode, cache paths | higher full-set coverage and no regression on positive controls |
 | D4 | AF3-style model selection | assessment says AF3 adoption improved confidence/model selection | compare Protenix/OpenDDE first-model policy against allowed diagnostic confidence/consensus only after all predictions exist | confidence remains diagnostic until quality metric validates it on full benchmark |
+| D5 | Large-target split/fallback | top methods used target handling and construct/domain decomposition; baseline Protenix lost 8 jobs to `n_token > 2560` before prediction | design `yang_large_target_split_or_fallback_v1` for automatic handling of oversize monomers/complexes, starting from the failed jobs `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`, `H1272`, `T1295O` | server-v1 promotion only if the fixed budget and target IDs are preserved; otherwise create a new benchmark version |
 
 ## Protein Oligos
 
@@ -86,6 +87,7 @@ wrong assemblies should score poorly on the oligo track.
 | O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | keep ranked budget at sample 1; run extra samples only as `target_lab` diagnostics for ranking research | promotion requires a predeclared first-output policy or a new benchmark version |
 | O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `./casp16 strategy-inputs --strategy yang_antibody_fv_cleanup_v1` creates a full-set antibody constant-region cleanup candidate; `yang_antibody_fv_fragment_inputs_v1` remains target_lab | full-set cleanup can be queued after lower-risk construct cleanup; fragment branch stays diagnostic |
 | O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
+| O7 | Oversize complex fallback | complex targets can exceed AF3-like token limits, and the baseline lost H0217/H0258/H0272/H1217/H1258/H1272 before any model was produced | make a predeclared split/fallback policy for oversize complexes, then score as diagnostic unless a server-compatible rule is locked | do not claim server-track improvement from manual per-target rescues |
 
 ## AF3-Style Systems
 
@@ -111,10 +113,12 @@ Useful strategy hypotheses:
 
 ## Active Reproduction Order
 
-1. Full server-target MSA/template baseline with Protenix: increase coverage
-   from 35 reused local predictions toward all 106 generated server jobs.
-2. `yang_terminal_tag_cleanup_v1`: first automatic optimized-input rerun after
-   the full Protenix baseline, targeting obvious terminal expression artifacts.
+1. Full server-target MSA/template baseline with Protenix: completed with
+   domain mean `0.063962`, 98/106 generated CIFs, and 8 `n_token > 2560`
+   failures. This is the first real baseline, not a competitive score.
+2. `yang_terminal_tag_cleanup_v1`: running as the first automatic
+   optimized-input rerun after the full Protenix baseline, targeting obvious
+   terminal expression artifacts.
 3. `yang_antibody_fv_cleanup_v1`: generated as a full-set sequence-only
    ranked-candidate artifact for the O5 antibody-complex branch; queued after
    the baseline and lower-risk terminal-tag cleanup rather than before them.
@@ -128,20 +132,23 @@ Useful strategy hypotheses:
    `yang_hydrophobic_leader_cleanup_v1`: generated as risk-increasing
    construct-cleanup artifacts; promote only after baseline or conservative
    cleanup evidence.
-7. QSglob scorer installation/integration: without this, oligo server runs
+7. `yang_large_target_split_or_fallback_v1`: design next from the 8 oversize
+   failures; this is likely higher leverage than additional small construct
+   cleanup once the queued ablations finish.
+8. QSglob scorer installation/integration: without this, oligo server runs
    remain diagnostic no matter how good the structures look.
-8. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
+9. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
    CASP domain-summary metadata; useful for learning whether domain
    decomposition helps, but not a server-ranked strategy as-is.
-9. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
+10. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
    for antibody-antigen complexes, trimming antibody constant regions while
    preserving antigen chains; useful for O5 learning, not a server-ranked
    strategy as-is.
-10. Domain crop/chain mapping: needed before domain scores can be trusted on
+11. Domain crop/chain mapping: needed before domain scores can be trusted on
    multi-domain or multi-chain targets.
-11. H1258/H1232 target_lab loop: use these as fast learning targets for
+12. H1258/H1232 target_lab loop: use these as fast learning targets for
    stoichiometry, construct refinement, and antibody-complex behavior, then
    promote only target-agnostic changes.
-12. Model-selection research: collect confidence/consensus after predictions,
+13. Model-selection research: collect confidence/consensus after predictions,
    but keep ranked `first_output_only` unless a new benchmark version is
    created.

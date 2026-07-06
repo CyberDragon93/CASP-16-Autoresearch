@@ -9,8 +9,8 @@ leaderboard progress.
 | Run | Benchmark | Status | Purpose | Rank eligible |
 | --- | --- | --- | --- | --- |
 | `server_eval_opendde_v1_full_msa_template_bf16_h1220_t1220s1` | `casp16_server_protein_v1` | scored diagnostic | reuse 35 existing OpenDDE local-v1 predictions to expose server coverage gap | no |
-| `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | running | full server-target Protenix baseline with real MSA/template settings | yes, once predictions and required scorers exist |
-| `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | pending, blocked while baseline runs | target-agnostic Yang-style terminal tag cleanup rerun | yes, after baseline frees the GH200 |
+| `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | scored | full server-target Protenix baseline with real MSA/template settings | yes for domain track |
+| `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | running | target-agnostic Yang-style terminal tag cleanup rerun | yes, after predictions and scoring |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | full-set antibody Fv constant-region cleanup rerun | yes, after lower-risk cleanup ablation |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind individual ablations | combined terminal-tag plus antibody-Fv cleanup rerun | yes, after individual ablations |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | pending behind combined cleanup | broader epitope/His/TEV tag cleanup rerun | yes, after lower-risk construct ablations |
@@ -23,27 +23,32 @@ leaderboard progress.
   `QSglob`, 104 targets.
 - Current local server diagnostic reuse: domain `0.036428`, oligo `0.000000`.
   The main deficit is coverage and missing QSglob, not just model quality.
+- Current full Protenix server baseline: domain `0.063962`, with 15 ok, 30
+  missing predictions, and 26 missing references over the fixed 71-domain
+  target set. Oligo is still unranked because QSglob is unavailable.
+- Baseline inference generated 98/106 CIFs. The 8 failed Protenix jobs were
+  all `n_token > 2560`: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`,
+  `H1258`, `H1272`, and `T1295O`.
 
 ## Next Experiment Queue
 
-1. Running `server_protenix_full_msa_template_seed101` on GH200 node
-   `c610-032` to generate predictions for the 106 server benchmark Protenix
-   jobs.
+1. Completed and scored `server_protenix_full_msa_template_seed101` on GH200
+   node `c610-032` for the 106 server benchmark Protenix jobs.
    - Started by `./casp16 run-next --benchmark casp16_server_protein_v1` inside
      active Vista allocation `797582` at `2026-07-06T01:02:31Z`.
-   - Current phase: Protenix MSA/template search with real MSA/templates,
-     seed `101`, sample `1`, and `first_output_only`.
-   - Startup sanity has passed through Protenix argparse help with `cuda/12.5`,
-     Protenix source-first `PYTHONPATH`, and NVIDIA math libs include/library
-     paths for `cusparse.h`.
-2. Score the domain track immediately after predictions finish; oligo rows will
-   stay `metric_unavailable` until an OpenStructure `ost` or equivalent QSglob
-   scorer is installed.
-3. Run queued `server_protenix_yang_terminal_tag_cleanup_seed101` as the first
+   - Finished at `2026-07-06T03:54:43Z`.
+   - Scored with `./casp16 score --benchmark casp16_server_protein_v1` and
+     `./casp16 leaderboard --benchmark casp16_server_protein_v1`.
+2. Running `server_protenix_yang_terminal_tag_cleanup_seed101` as the first
    full optimized-input reproduction attempt. It trims only obvious terminal
    His/expression tags and keeps seed `101`, sample `1`, MSA/templates, and
    `first_output_only`. Cache, fusion, and TF32 are enabled to match the
    baseline engine flags.
+   - First launch failed quickly because CUDA was not visible in the run
+     script environment.
+   - Run scripts now load or infer CUDA and math libraries before Protenix
+     import; the relaunch reached Protenix MSA search at `2026-07-06T05:15Z`.
+3. Score terminal-tag cleanup immediately after predictions finish.
 4. Run queued `server_protenix_yang_antibody_fv_cleanup_seed101` as the first
    full-set antibody construct attempt after the lower-risk terminal cleanup.
    It preserves all 106 server jobs while trimming 16 antibody constant-region
@@ -63,6 +68,9 @@ leaderboard progress.
    benchmark rerun.
 9. Add domain cropping and chain/residue mapping before drawing conclusions
    from hard multi-domain domain targets.
+10. Design `yang_large_target_split_or_fallback_v1` from the 8 Protenix
+    `n_token > 2560` failures. This should be predeclared and automatic; if it
+    changes budget or target semantics, it belongs in a new benchmark version.
 
 ## Strategy Decision Log
 
@@ -126,6 +134,38 @@ protein sequences across 9 targets without reading references or scores.
 
 Launch gate: run only after the queued terminal-tag, antibody-Fv, and combined
 construct ablations unless the queue is intentionally reprioritized.
+
+### 2026-07-06 Full Protenix Server Baseline
+
+Decision: treat `server_protenix_full_msa_template_seed101` as the first real
+server-track baseline, but not as evidence that the model is intrinsically
+weak.
+
+Result: the ranked domain mean is `0.063962`, far below the server-domain
+champion comparator `110s` at `0.923321`. Only 15/71 domain rows scored
+successfully; 30 targets lacked predictions in the fixed official domain set,
+and 26 had no local native reference mapping. The oligo track remains unranked
+because QSglob is unavailable.
+
+Interpretation: the largest immediate gaps are coverage and benchmark
+compatibility, not only structure quality. Inference produced 98/106 CIFs; the
+8 missing jobs all exceeded Protenix's `n_token > 2560` guard. This makes a
+large-target split/fallback recipe a priority after the currently running
+construct ablations.
+
+### 2026-07-06 Protenix CUDA Bootstrap Fix
+
+Decision: harden generated `run.sh` files to load or infer CUDA before importing
+Protenix.
+
+Rationale: the first terminal-tag cleanup launch failed before inference with
+`CUDA_HOME environment variable is not set` and `libcudart.so.12` missing. The
+run scripts now try `module load cuda/12.5`, fall back to `cuda/12.4`, infer
+`CUDA_HOME` from TACC/NVHPC variables or known Vista paths, and add CUDA runtime
+and NVIDIA math libraries to `LD_LIBRARY_PATH`, `LIBRARY_PATH`, and `CPATH`.
+
+Outcome: the terminal-tag cleanup relaunch reached Protenix environment
+initialization and MSA search under the same fixed inference budget.
 
 ### 2026-07-05 Dynamic Terminal IDR Scan
 

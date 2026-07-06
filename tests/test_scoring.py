@@ -73,6 +73,22 @@ def test_missing_prediction_scores_zero(tmp_path) -> None:
     assert row["status"] == "missing_prediction"
 
 
+def test_empty_reference_is_missing_reference_after_prediction_found(tmp_path) -> None:
+    output_dir, _reference = _write_prediction_and_reference(tmp_path, "T1201")
+    row = score_target(
+        {"run_id": "r1", "output_dir": output_dir},
+        {"target_id": "T1201", "track": "protein_domain", "rank_eligible": "true", "reference_status": "no_reference_pdb"},
+        {},
+        benchmark="casp16_server_protein_v1",
+        tm_tool="/should/not/run",
+        dockq_tool="",
+    )
+    assert row["score"] == "0.000000"
+    assert row["reference_path"] == ""
+    assert row["status"] == "missing_reference"
+    assert row["message"] == "no_reference_pdb"
+
+
 def test_server_domain_requires_gdt_ts_not_tm_fallback(tmp_path) -> None:
     output_dir, reference = _write_prediction_and_reference(tmp_path, "T1201")
     tm_only = _write_fake_tool(tmp_path / "tm_only.sh", "TM-score = 0.812")

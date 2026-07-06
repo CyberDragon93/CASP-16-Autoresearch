@@ -35,7 +35,7 @@
     "--enable_tf32",
     "true"
   ],
-  "created_at_utc": "2026-07-06T02:08:18.941670+00:00",
+  "created_at_utc": "2026-07-06T05:08:36.940869+00:00",
   "cycle": null,
   "dtype": "bf16",
   "enable_cache": true,
@@ -43,7 +43,7 @@
   "enable_tf32": true,
   "extra_args": [],
   "fixed_budget": true,
-  "git_commit": "c2262032a2d86151aa6d828aa529d09d75255bae",
+  "git_commit": "c0cb05369773acbe022587b5bf159c95592f4537",
   "input_json": "/scratch/10992/liaorunlong93/casp16-leaderboard/runs/server_protenix_yang_terminal_tag_cleanup_seed101/inputs/inputs.json",
   "input_manifest": "/scratch/10992/liaorunlong93/casp16-leaderboard/strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/manifest.tsv",
   "input_manifest_sha256": "e0e8b49a9284ce58e8de32a5054c9c9fc6fa2ac08b0d96d0efdbac92f7ce3c99",

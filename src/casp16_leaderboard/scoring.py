@@ -197,7 +197,8 @@ def score_target(
 ) -> dict[str, Any]:
     run_id = str(spec.get("run_id") or spec.get("_run_dir", ""))
     output_dir = Path(str(spec.get("output_dir", "")))
-    reference_path = Path(reference.get("reference_path", "") or target.get("reference_path", ""))
+    reference_value = str(reference.get("reference_path", "") or target.get("reference_path", "")).strip()
+    reference_path = Path(reference_value) if reference_value else Path()
     rank_eligible = target.get("rank_eligible", "").lower() == "true"
     base = {
         "run_id": run_id,
@@ -206,7 +207,7 @@ def score_target(
         "target_id": target.get("target_id", ""),
         "rank_eligible": str(rank_eligible).lower(),
         "prediction_path": "",
-        "reference_path": str(reference_path) if str(reference_path) != "." else "",
+        "reference_path": reference_value,
         "metric": "",
         "score": "0.000000",
         "gdt_ts_norm": "",
@@ -222,6 +223,9 @@ def score_target(
     if prediction_path is None:
         return {**base, "status": "missing_prediction", "message": "no_prediction_file"}
     base["prediction_path"] = str(prediction_path)
+    if not reference_value:
+        message = str(reference.get("reference_status", "") or target.get("reference_status", "") or "reference_path_missing")
+        return {**base, "status": "missing_reference", "message": message}
     if not reference_path.exists():
         return {**base, "status": "missing_reference", "message": "reference_path_missing"}
 

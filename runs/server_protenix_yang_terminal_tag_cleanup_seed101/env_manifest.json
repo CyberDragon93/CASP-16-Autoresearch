@@ -1,7 +1,7 @@
 {
-  "created_at_utc": "2026-07-06T02:08:28.694616+00:00",
+  "created_at_utc": "2026-07-06T05:08:46.656733+00:00",
   "cwd": "/scratch/10992/liaorunlong93/casp16-leaderboard",
-  "git_commit": "c2262032a2d86151aa6d828aa529d09d75255bae",
+  "git_commit": "c0cb05369773acbe022587b5bf159c95592f4537",
   "tools": {
     "DockQ": {
       "configured_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/DockQ",
