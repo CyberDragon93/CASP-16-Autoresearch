@@ -39,6 +39,10 @@ leaderboard progress.
   missing predictions, and 26 missing references over the fixed 71-domain
   target set. Oligo needs a rescore after OpenStructure QSglob mapping
   validation.
+- QSglob signal probe, not a full leaderboard: on six oligo targets from the
+  completed server-v1 Protenix dev runs, `H0222` and `T1249V1O` produced
+  nonzero QSglob values while `H0220` remained unmapped. This makes QSglob
+  useful for triage, but mapping false zeros still block official oligo claims.
 - Current best local server-domain run:
   `server_protenix_yang_terminal_tag_cleanup_seed101`, domain `0.066908`,
   with 15 ok, 30 missing predictions, and 26 missing references over the fixed
@@ -202,8 +206,37 @@ leaderboard progress.
       map to the reference chem groups.
     - Interpretation: the scorer is no longer missing; assembly/chain mapping
       is the next blocker for trustworthy server-oligo ranking.
+23. Ran a bounded QSglob signal probe on six oligo targets across the four
+    completed `casp16_server_protein_v1` Protenix dev runs, without overwriting
+    checked-in leaderboard artifacts.
+    - Baseline: `H0222=0.075`, `T1249V1O=0.090`; `H0220=0.000` with chains
+      `A/B` unmapped.
+    - Terminal-tag cleanup: `H0222=0.076`, `H1232=0.013`,
+      `T1249V1O=0.122`.
+    - Oversize fallback: `H0222=0.080`, `H1232=0.032`,
+      `T1249V1O=0.099`.
+    - Antibody Fv cleanup: `H0222=0.037`, `T1249V1O=0.125`.
+    - Interpretation: QSglob can produce nonzero strategy deltas, so it is
+      useful for triage. Do not regenerate the official oligo leaderboard while
+      `server_attack_protenix_terminal_tag_seed101_105` is partial, and do not
+      treat zeros with empty chem mappings as model-quality evidence.
 
 ## Strategy Decision Log
+
+### 2026-07-06 QSglob Signal Probe
+
+Decision: use targeted QSglob probes to guide oligo strategy while avoiding a
+checked-in leaderboard rewrite during partial attack inference.
+
+Evidence: six target probes showed nonzero QSglob for `H0222` and `T1249V1O`.
+Terminal-tag cleanup improved `T1249V1O` from `0.090` to `0.122`; oversize
+fallback improved `H1232` from `0.000` to `0.032`. `H0220` remained a mapping
+false-zero risk with model chains `A/B` unmapped.
+
+Next action: let the queued token-safe stoichiometry and v2 coverage runs
+finish before spending larger attack compute. In parallel, fix only the
+assembly mapping classes that create false zeros; do not sink a long detour
+into exhaustive mapping before the current runs report.
 
 ### 2026-07-06 QSglob Scorer Installed, Mapping Still Open
 

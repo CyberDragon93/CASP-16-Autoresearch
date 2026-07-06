@@ -33,7 +33,11 @@ where methods should change.
   `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` and is the
   default QSglob-compatible scorer. The first H0220 probe returned
   `status=ok` but `QSglob=0` because automatic chain/chem mapping failed, so
-  assembly mapping is now the bottleneck.
+  assembly mapping is now the bottleneck for affected targets.
+- A six-target QSglob signal probe across the four completed server-v1
+  Protenix dev runs produced nonzero scores on `H0222` and `T1249V1O`; QSglob
+  is useful for strategy triage, but `H0220` remains a clear unmapped false-zero
+  risk.
 - Current best local server-domain `dev_fixed` run:
   `server_protenix_yang_terminal_tag_cleanup_seed101`, mean `0.066908`.
 - `server_protenix_yang_antibody_fv_cleanup_seed101` is a negative
@@ -156,8 +160,9 @@ competitive result.
 
 ## Work Queue
 
-1. Validate OpenStructure `ost` QSglob assembly/chain mapping on server oligos;
-   the scorer is installed, but automatic mapping can produce false zeros.
+1. Validate OpenStructure `ost` QSglob assembly/chain mapping on server oligos
+   where the signal probe found false-zero risk (`H0220`, partial empty chem
+   mapping cases such as `T0234O`/`T1249V1O`).
 2. Add explicit domain cropping and chain/residue mapping for
    `casp16_server_protein_v2_aliasfix` domain `GDT_TS` scoring.
 3. Improve the reference/domain registry for the remaining 96 alias-fixed

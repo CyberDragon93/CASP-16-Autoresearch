@@ -36,9 +36,36 @@ Result:
   reference chem groups, so the zero is an assembly/chain-mapping signal, not a
   missing-tool failure.
 
+## Oligo Signal Probe
+
+Do not run a full `./casp16 score` while a large run is still producing partial
+predictions; it will mix incomplete attack rows into the temporary score table.
+Instead, the first QSglob signal probe sampled six oligo targets from the four
+completed `casp16_server_protein_v1` Protenix dev runs.
+
+| run | H0220 | H0222 | H1232 | T0206O | T0234O | T1249V1O |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| baseline | 0.000 | 0.075 | 0.000 | 0.000 | 0.000 | 0.090 |
+| terminal tag cleanup | 0.000 | 0.076 | 0.013 | 0.000 | 0.000 | 0.122 |
+| oversize fallback | 0.000 | 0.080 | 0.032 | 0.000 | 0.000 | 0.099 |
+| antibody Fv cleanup | 0.000 | 0.037 | 0.000 | 0.000 | 0.000 | 0.125 |
+
+Interpretation:
+
+- QSglob is producing nonzero values and can distinguish strategies; it is not
+  merely returning universal zeros.
+- `H0220` still has no model-chain mapping (`A/B` unmapped), so that target is
+  a likely false-zero mapping case.
+- `T0234O` and `T1249V1O` have empty chem-group mappings for some groups, so
+  full oligo ranking still needs assembly mapping diagnostics.
+- The signal supports continuing token-safe stoichiometry/coverage runs before
+  spending a larger attack budget; more seeds will not fix wrong assembly
+  mapping.
+
 ## Next Work
 
-- Score server oligo targets with `ost` once full prediction runs are ready.
+- Score server oligo targets with `ost` once the active run is complete, so
+  partial attack rows are not written into checked-in leaderboard artifacts.
 - Add explicit assembly/chain mapping for target classes where automatic
   OpenStructure mapping gives false zeros.
 - Keep DockQ as an interface diagnostic only; do not use it as a ranked QSglob

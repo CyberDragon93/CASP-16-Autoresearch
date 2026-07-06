@@ -7,7 +7,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 | Priority | Run | Benchmark | Status | Why It Matters | Next Gate |
 | --- | --- | --- | --- | --- | --- |
-| P0 | Validate OpenStructure `ost` QSglob mapping | `casp16_server_protein_v2_aliasfix` | scorer installed; mapping probe found false-zero risk | Required to compare the 104 official server oligo targets and judge antibody-complex strategies | Add or validate assembly/chain mapping, then rerun `./casp16 score` and `./casp16 leaderboard` |
+| P0 | Validate OpenStructure `ost` QSglob mapping | `casp16_server_protein_v2_aliasfix` | scorer installed; six-target probe has nonzero signal plus H0220 false-zero risk | Required to compare the 104 official server oligo targets and judge antibody-complex strategies | Add or validate assembly/chain mapping for false-zero classes, then rerun `./casp16 score` and `./casp16 leaderboard` after active runs finish |
 | P1 | Run `server_attack_protenix_terminal_tag_seed101_105` | separate from `dev_fixed` | Slurm job `810719` running | Winner-level server comparison should not pretend one seed/sample is enough | Monitor GH200 job, then score with `protenix_confidence_v1` while keeping attack rows out of `dev_fixed` ranks |
 | P2 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | Extra seeds cannot fix `n_token > 2560` hard failures | Submit after attack job `810719` completes if coverage recovery remains highest leverage |
 | P3 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | Several domain hard zeros are local sequence parsing/alias failures, not model failures | Submit after attack and large-target fallback jobs; expect more jobs but better domain coverage |
@@ -29,6 +29,12 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | complete and scored | `0.066908` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | needs QSglob rescore after mapping validation | Same 8 Protenix token-limit failures as baseline; small net domain gain from `T1234`, `T1298`, and `T1210` |
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | complete and scored | `0.065114` | 15 ok / 29 missing prediction / 27 failed or missing-reference over 71 official server-domain targets | needs QSglob rescore after mapping validation | Produced 99/106 CIFs and rescued `T1295` inference, but `T1295` still scores `0` because the local server benchmark lacks a reference mapping |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | complete and scored | `0.060677` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | needs QSglob rescore after mapping validation | Produced 98/106 CIFs; antibody oligo predictions exist for H0222/H0223/H0225/H1222/H1223/H1225 but need assembly mapping before ranked QSglob claims |
+
+QSglob signal probe on six oligo targets: baseline `H0222=0.075`,
+`T1249V1O=0.090`; terminal-tag cleanup `T1249V1O=0.122`; oversize fallback
+`H1232=0.032`; antibody-Fv cleanup `H0222=0.037`, `T1249V1O=0.125`. This is
+not a full oligo leaderboard, but it shows QSglob can guide strategy triage
+once mapping false zeros are isolated.
 
 ## Queued Next
 
