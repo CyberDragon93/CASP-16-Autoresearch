@@ -3,7 +3,7 @@ from __future__ import annotations
 import csv
 import json
 
-from casp16_leaderboard.strategies import clean_epitope_expression_tags, clean_terminal_expression_tags, derive_strategy_inputs
+from casp16_leaderboard.strategies import clean_epitope_expression_tags, clean_low_complexity_terminal_regions, clean_terminal_expression_tags, derive_strategy_inputs
 
 
 def test_clean_terminal_expression_tags_removes_obvious_tags() -> None:
@@ -30,6 +30,17 @@ def test_clean_epitope_expression_tags_removes_flag_and_tev_his_prefixes() -> No
     assert tev_cleaned.rules == ("trim_n:MGSHHHHHHSGENLYFQG",)
 
 
+def test_clean_low_complexity_terminal_regions_trims_obvious_terminal_segments() -> None:
+    n_tail = "MAAPVVAPPGVVVSRANKRSGAGPGGSGGGGARGAEEEPP"
+    core = "ACDEFGHIKLMNPQRSTVWY" * 6
+    c_tail = "EDPNAPPYQPPPPFTAPMEGKGSRPKNMTPYRSPPPYVPP"
+    cleaned = clean_low_complexity_terminal_regions(n_tail + core + c_tail)
+    assert cleaned.sequence == core
+    assert cleaned.removed_n == 40
+    assert cleaned.removed_c == 40
+    assert cleaned.rules == ("trim_n_low_complexity:40", "trim_c_low_complexity:40")
+
+
 def test_derive_strategy_inputs_preserves_counts_and_writes_manifest(tmp_path) -> None:
     input_json = tmp_path / "inputs.json"
     output_json = tmp_path / "strategy" / "inputs.json"
@@ -47,6 +58,7 @@ def test_derive_strategy_inputs_preserves_counts_and_writes_manifest(tmp_path) -
                                 "id": ["A", "B"],
                             }
                         },
+                        {"proteinChain": {"sequence": "ACDEFGHIKLMNPQRSTVWY" * 2, "count": 1, "id": ["D"]}},
                         {"dnaSequence": {"sequence": "ACT", "count": 1, "id": ["C"]}},
                     ],
                     "covalent_bonds": [],
@@ -64,7 +76,8 @@ def test_derive_strategy_inputs_preserves_counts_and_writes_manifest(tmp_path) -
     assert protein["sequence"] == "ACDEFGHIKLMNPQRSTVWY" * 2
     assert protein["count"] == 2
     assert protein["id"] == ["A", "B"]
-    assert optimized[0]["sequences"][1]["dnaSequence"]["sequence"] == "ACT"
+    assert optimized[0]["sequences"][1]["proteinChain"]["sequence"] == "ACDEFGHIKLMNPQRSTVWY" * 2
+    assert optimized[0]["sequences"][2]["dnaSequence"]["sequence"] == "ACT"
     assert summary["changed_sequences"] == 1
     assert summary["changed_targets"] == 1
 
@@ -74,6 +87,9 @@ def test_derive_strategy_inputs_preserves_counts_and_writes_manifest(tmp_path) -
     assert rows[0]["chain_ids"] == "A,B"
     assert rows[0]["changed"] == "true"
     assert rows[0]["rules"] == "trim_n:MGSSHHHHHHSSGLVPRGSH"
+    assert rows[1]["chain_ids"] == "D"
+    assert rows[1]["changed"] == "false"
+    assert rows[1]["rules"] == "none"
 
 
 def test_derive_epitope_strategy_uses_extended_rules(tmp_path) -> None:
@@ -100,3 +116,26 @@ def test_derive_epitope_strategy_uses_extended_rules(tmp_path) -> None:
     assert epitope_summary["changed_sequences"] == 1
     optimized = json.loads(output_json.read_text(encoding="utf-8"))
     assert optimized[0]["sequences"][0]["proteinChain"]["sequence"] == "ACDEFGHIKLMNPQRSTVWY" * 3
+
+
+def test_derive_low_complexity_strategy_inherits_epitope_cleanup(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "low_complexity" / "inputs.json"
+    manifest = tmp_path / "low_complexity" / "manifest.tsv"
+    sequence = "MGSHHHHHHSGENLYFQG" + "ACDEFGHIKLMNPQRSTVWY" * 5
+    input_json.write_text(
+        json.dumps([{"name": "H1258", "sequences": [{"proteinChain": {"sequence": sequence, "count": 1, "id": ["A"]}}]}]) + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_low_complexity_terminal_cleanup_v1",
+    )
+
+    assert summary["changed_sequences"] == 1
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["rules"] == "trim_n:MGSHHHHHHSGENLYFQG"

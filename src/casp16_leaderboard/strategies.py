@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import csv
 import json
+import math
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -12,8 +14,16 @@ from .runs import file_sha256
 
 STRATEGY_YANG_TERMINAL_TAG_CLEANUP = "yang_terminal_tag_cleanup_v1"
 STRATEGY_YANG_EPITOPE_TAG_CLEANUP = "yang_epitope_tag_cleanup_v1"
-SUPPORTED_STRATEGIES = (STRATEGY_YANG_TERMINAL_TAG_CLEANUP, STRATEGY_YANG_EPITOPE_TAG_CLEANUP)
+STRATEGY_YANG_LOW_COMPLEXITY_TERMINAL_CLEANUP = "yang_low_complexity_terminal_cleanup_v1"
+SUPPORTED_STRATEGIES = (
+    STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
+    STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
+    STRATEGY_YANG_LOW_COMPLEXITY_TERMINAL_CLEANUP,
+)
 MIN_REMAINING_PROTEIN_LENGTH = 30
+LOW_COMPLEXITY_TRIM_WINDOW = 40
+LOW_COMPLEXITY_MIN_REMAINING_LENGTH = 80
+LOW_COMPLEXITY_ALPHABET = set("GSPQKENR")
 
 TERMINAL_N_TAGS = (
     "MGSSHHHHHHSSGLVPRGSH",
@@ -61,6 +71,44 @@ def clean_epitope_expression_tags(sequence: str) -> SequenceCleanup:
     return _clean_with_tag_sets(sequence, n_tags=EPITOPE_N_TAGS + TERMINAL_N_TAGS, c_tags=C_TERMINAL_TAGS)
 
 
+def clean_low_complexity_terminal_regions(sequence: str) -> SequenceCleanup:
+    cleanup = clean_epitope_expression_tags(sequence)
+    cleaned = cleanup.sequence
+    removed_n = cleanup.removed_n
+    removed_c = cleanup.removed_c
+    rules = list(cleanup.rules)
+
+    if len(cleaned) - LOW_COMPLEXITY_TRIM_WINDOW >= LOW_COMPLEXITY_MIN_REMAINING_LENGTH:
+        n_term = cleaned[:LOW_COMPLEXITY_TRIM_WINDOW]
+        if is_low_complexity_terminal_segment(n_term):
+            cleaned = cleaned[LOW_COMPLEXITY_TRIM_WINDOW:]
+            removed_n += LOW_COMPLEXITY_TRIM_WINDOW
+            rules.append(f"trim_n_low_complexity:{LOW_COMPLEXITY_TRIM_WINDOW}")
+
+    if len(cleaned) - LOW_COMPLEXITY_TRIM_WINDOW >= LOW_COMPLEXITY_MIN_REMAINING_LENGTH:
+        c_term = cleaned[-LOW_COMPLEXITY_TRIM_WINDOW:]
+        if is_low_complexity_terminal_segment(c_term):
+            cleaned = cleaned[:-LOW_COMPLEXITY_TRIM_WINDOW]
+            removed_c += LOW_COMPLEXITY_TRIM_WINDOW
+            rules.append(f"trim_c_low_complexity:{LOW_COMPLEXITY_TRIM_WINDOW}")
+
+    return SequenceCleanup(sequence=cleaned, removed_n=removed_n, removed_c=removed_c, rules=tuple(rules))
+
+
+def is_low_complexity_terminal_segment(sequence: str) -> bool:
+    if not sequence:
+        return False
+    low_complexity_fraction = sum(1 for aa in sequence if aa in LOW_COMPLEXITY_ALPHABET) / len(sequence)
+    gly_ser_fraction = sum(1 for aa in sequence if aa in {"G", "S"}) / len(sequence)
+    return sequence_entropy(sequence) < 3.0 or low_complexity_fraction >= 0.70 or gly_ser_fraction >= 0.45
+
+
+def sequence_entropy(sequence: str) -> float:
+    counts = Counter(sequence)
+    length = len(sequence)
+    return -sum((count / length) * math.log2(count / length) for count in counts.values()) if length else 0.0
+
+
 def _clean_with_tag_sets(sequence: str, *, n_tags: Sequence[str], c_tags: Sequence[str]) -> SequenceCleanup:
     cleaned = sequence
     removed_n = 0
@@ -102,7 +150,11 @@ def derive_strategy_inputs(
     changed_targets: set[str] = set()
     changed_sequences = 0
     protein_sequences = 0
-    cleaner = clean_epitope_expression_tags if strategy == STRATEGY_YANG_EPITOPE_TAG_CLEANUP else clean_terminal_expression_tags
+    cleaner = clean_terminal_expression_tags
+    if strategy == STRATEGY_YANG_EPITOPE_TAG_CLEANUP:
+        cleaner = clean_epitope_expression_tags
+    if strategy == STRATEGY_YANG_LOW_COMPLEXITY_TERMINAL_CLEANUP:
+        cleaner = clean_low_complexity_terminal_regions
 
     for job in jobs:
         optimized_job = _copy_json_dict(job)
@@ -130,7 +182,7 @@ def derive_strategy_inputs(
                     "optimized_len": str(len(cleanup.sequence)),
                     "removed_n": str(cleanup.removed_n),
                     "removed_c": str(cleanup.removed_c),
-                    "rules": ",".join(cleanup.rules),
+                    "rules": ",".join(cleanup.rules) if cleanup.rules else "none",
                 }
             )
         optimized_jobs.append(optimized_job)
