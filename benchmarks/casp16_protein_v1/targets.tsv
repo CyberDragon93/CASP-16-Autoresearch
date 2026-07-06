@@ -1,302 +1,302 @@
-target_id	target_prefix	track	category	description	oligo_state	cancelled	input_status	rank_status	skip_reason	sequence_records	entity_count	chain_count	total_len	domain_count	domain_ids	pdb_ids	reference_status	reference_path	rank_eligible
-T1201	T	protein_domain	prot_domains	Q9GZX9 8bwd	A2	false	ok	ranked		1	1	2	420	1	T1201-D1	8bwd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8bwd.cif	true
-H1202	H	protein_oligo	prot_oligo	Q9GZX9_plus_P43026 8bwl	A2B2	false	ok	ranked		2	2	4	380	0		8bwl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8bwl.cif	true
-R1203	R	coverage_only		Rev response element stem-loop II 8uo6	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0		8uo6	not_required		false
-H1204	H	protein_oligo	prot_oligo	Human hemoglobin in complex with nanobody 8vyl	A2B2C2	false	ok	ranked		3	3	6	858	0		8vyl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8vyl.cif	true
-L1000	L	coverage_only		Chymase	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0			no_reference_pdb		false
-L2000	L	coverage_only		Cathepsin G	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0			no_reference_pdb		false
-L3000	L	coverage_only		Autotaxin	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0			no_reference_pdb		false
-L4000	L	coverage_only		MPro	A2	false	skipped	unranked	unsupported_category	0	0	0	0	0			no_reference_pdb		false
-R1205	R	coverage_only		xrRNA 9cfn	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9cfn	not_required		false
-T0206	T	protein_domain	prot_domains	Porcine astrovirus 4 capsid spike	UNK	false	ok	unranked	no_reference_pdb	1	1	1	237	0			no_reference_pdb		false
-T1207	T	protein_domain	prot_domains	Q9YLS4, 2A protein part of viral polyprotein	A1	false	ok	unranked	no_reference_pdb	1	1	1	144	1	T1207-D1		no_reference_pdb		false
-H0208	H	protein_oligo	prot_oligo	dahAB	UNK	false	ok	unranked	no_reference_pdb	2	2	2	646	0			no_reference_pdb		false
-T0208S1	T	protein_domain	prot_domains	dahAB   subunit 1	A1	false	ok	unranked	no_reference_pdb	1	1	1	328	0			no_reference_pdb		false
-T0208S2	T	protein_domain	prot_domains	dahAB   subunit 2	A1	false	ok	unranked	no_reference_pdb	1	1	1	318	0			no_reference_pdb		false
-H0215	H	protein_oligo	prot_oligo	mNeonGreen with bound nanobody	UNK	false	ok	unranked	no_reference_pdb	2	2	2	369	0			no_reference_pdb		false
-M1209	M	coverage_only		FAB - HIV-I RRE stem loop II  9c2k	A1B1R1	false	skipped	unranked	unsupported_category	6	0	0	0	0		9c2k	not_required		false
-R1209	R	coverage_only		FAB - HIV-I RRE stem loop II  9c2k  RNA component	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9c2k	not_required		false
-T1210	T	protein_domain	prot_domains	Q868N5 9enr	A1	false	ok	ranked		1	1	1	1770	1	T1210-D1	9enr	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9enr.cif	true
-M1211	M	coverage_only		CVB3 cloverleaf RNA in complex with 3C protease 9dcf	A2R1	false	skipped	unranked	unsupported_category	2	0	0	0	0		9dcf	not_required		false
-R1211	R	coverage_only		CVB3 cloverleaf RNA in complex with 3C protease 9dcf  RNA component	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9dcf	not_required		false
-T1214	T	protein_domain	prot_domains	YncD (NP_415968) 9c4o	A1	false	ok	ranked		1	1	1	677	1	T1214-D1	9c4o	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c4o.cif	true
-M1212	M	coverage_only		Fanzor2 ternary structure 9b0l	A1R1V1W1	false	skipped	unranked	unsupported_category	4	0	0	0	0		9b0l	not_required		false
-R1212	R	coverage_only		Fanzor2 ternary structure 9b0l  RNA component	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9b0l	not_required		false
-T1212	T	protein_domain	prot_domains	Fanzor2 ternary structure 9b0l  protein subunit of M1212	A1	false	skipped	unranked	ambiguous_oligo_state:A1:records=2	2	0	0	0	1	T1212-D1	9b0l	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9b0l.cif	false
-H0213	H	protein_oligo	prot_oligo	DP71_eIF2_PP1_complex   <em><font color=red>Canceled - released with wrong sequence.</font></em>	UNK	true	skipped	unranked	cancelled_target	5	0	0	0	0			no_reference_pdb		false
-M1216	M	coverage_only		Tetrameric SPARSAgRNA�target ssDNA complex	A4B4C4D4	false	skipped	unranked	unsupported_category	4	0	0	0	0			no_reference_pdb		false
-T2201	T	protein_domain	prot_domains	Q9GZX9	A2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H0217	H	protein_oligo	prot_oligo	AcP10_eIF2B_complex	UNK	false	ok	unranked	no_reference_pdb	6	6	6	2939	0			no_reference_pdb		false
-H2202	H	protein_oligo	prot_oligo	Q9GZX9_plus_P43026	A2B2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H2204	H	protein_oligo	prot_oligo	Human hemoglobin in complex with nanobody	A2B2C2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T0218	T	protein_domain	prot_domains	Cry26Aa	UNK	false	ok	unranked	no_reference_pdb	1	1	1	1164	0			no_reference_pdb		false
-T1219	T	protein_domain	prot_domains	HD6 uniprot Q01524	A1	false	ok	unranked	no_reference_pdb	1	1	1	32	0			no_reference_pdb		false
-H0220	H	protein_oligo	prot_oligo	BoDV-1 Replication complex	UNK	false	ok	unranked	no_reference_pdb	2	2	2	434	0			no_reference_pdb		false
-T0220S1	T	protein_domain	prot_domains	BoDV-1 Replication complex    subunit 1	A1	false	ok	unranked	no_reference_pdb	1	1	1	394	0			no_reference_pdb		false
-T1206	T	protein_domain	prot_domains	Porcine astrovirus 4 capsid spike 9cp0	A2	false	ok	ranked		1	1	2	474	1	T1206-D1	9cp0	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cp0.cif	true
-T2207	T	protein_domain	prot_domains	Q9YLS4, 2A protein part of viral polyprotein	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H1208	H	protein_oligo	prot_oligo	dahAB	A1B1	false	ok	unranked	no_reference_pdb	2	2	2	646	0			no_reference_pdb		false
-M1221	M	coverage_only		RNase P enzyme-substrate complex	A1R1S1	false	skipped	unranked	unsupported_category	3	0	0	0	0			no_reference_pdb		false
-R1221S2	R	coverage_only		RNase P enzyme-substrate complex   RNA subunit 2	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-R1221S3	R	coverage_only		RNase P enzyme-substrate complex   RNA subunit 3	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T1208S1	T	protein_domain	prot_domains	dahAB   subunit 1	A1	false	ok	unranked	no_reference_pdb	1	1	1	328	1	T1208S1-D1		no_reference_pdb		false
-T1208S2	T	protein_domain	prot_domains	dahAB   subunit 2	A1	false	ok	unranked	no_reference_pdb	1	1	1	318	1	T1208S2-D1		no_reference_pdb		false
-H0222	H	protein_oligo	prot_oligo	RSV G - Fab 2B11 complex	UNK	false	ok	ranked		3	3	3	485	0		2b11	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/2b11.cif	true
-H1215	H	protein_oligo	prot_oligo	mNeonGreen with bound nanobody	A1B1	false	ok	unranked	no_reference_pdb	2	2	2	369	0			no_reference_pdb		false
-H0223	H	protein_oligo	prot_oligo	RSV G - Fab 1G8 complex	UNK	false	ok	unranked	no_reference_pdb	3	3	3	486	0			no_reference_pdb		false
-M1224	M	coverage_only		RNase P enzyme-substrate complex	A1R1S1	false	skipped	unranked	unsupported_category	3	0	0	0	0			no_reference_pdb		false
-R1224S2	R	coverage_only		RNase P enzyme-substrate complex   RNA subunit 2	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-R1224S3	R	coverage_only		RNase P enzyme-substrate complex   RNA subunit 3	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-H0225	H	protein_oligo	prot_oligo	RSV G - Fab 1G1 complex	UNK	false	ok	unranked	no_reference_pdb	3	3	3	483	0			no_reference_pdb		false
-T1226	T	protein_domain	prot_domains	TuAsV-2A3 (part of polyprotein)	A1	false	ok	unranked	no_reference_pdb	1	1	1	123	1	T1226-D1		no_reference_pdb		false
-H0227	H	protein_oligo	prot_oligo	LetA (P0AD03) and LetB (P76272)	UNK	false	ok	unranked	no_reference_pdb	2	2	2	1304	0			no_reference_pdb		false
-H1213	H	protein_oligo	prot_oligo	DP71_eIF2_PP1_complex 9nb9	A1B1C1D1E1	false	ok	ranked		5	5	5	1373	0		9nb9	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9nb9.cif	true
-R1241	R	coverage_only		group II intron	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T0227S1	T	protein_domain	prot_domains	LetA (P0AD03) and LetB (P76272)	A1	false	ok	unranked	no_reference_pdb	1	1	1	427	0			no_reference_pdb		false
-T1249V1	T	protein_domain	prot_domains	Arenaviral spike complex 9fya	A3	false	ok	ranked		1	1	3	1464	1	T1249V1-D1	9fya	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fya.cif	true
-T1249V2	T	protein_domain	prot_domains	Arenaviral spike complex 9fyg	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	1	T1249V2-D1	9fyg	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fyg.cif	false
-M1228V1	M	coverage_only		SPbeta_int_DNA	A4B2C2D2E2	false	skipped	unranked	unsupported_category	5	0	0	0	0			no_reference_pdb		false
-M1228V2	M	coverage_only		SPbeta_int_DNA	A4B2C2D2E2	false	skipped	unranked	unsupported_category	0	0	0	0	0			no_reference_pdb		false
-T1228V1	T	protein_domain	prot_domains	SPbeta_int_DNA   protein subunit of M1228v1	A1	false	ok	unranked	no_reference_pdb	1	1	1	121	4	T1228V1-D1,T1228V1-D2,T1228V1-D3,T1228V1-D4		no_reference_pdb		false
-T1228V2	T	protein_domain	prot_domains	SPbeta_int_DNA   protein subunit of M1228v2	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	4	T1228V2-D1,T1228V2-D2,T1228V2-D3,T1228V2-D4		no_reference_pdb		false
-H0229	H	protein_oligo	prot_oligo	ORF61/A3A	UNK	false	ok	unranked	no_reference_pdb	2	2	2	987	0			no_reference_pdb		false
-H0230	H	protein_oligo	prot_oligo	ORF61/A3B	UNK	false	ok	unranked	no_reference_pdb	2	2	2	984	0			no_reference_pdb		false
-R1242	R	coverage_only		RaiA RNA motif, C. acetobutylicum 9ely	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9ely	not_required		false
-H1217	H	protein_oligo	prot_oligo	AcP10_eIF2B_complex	A2B2C2D2E2F2	false	ok	unranked	no_reference_pdb	6	6	12	5878	0			no_reference_pdb		false
-T1231	T	protein_domain	prot_domains	A0A0E4G3H6	A1	false	ok	unranked	no_reference_pdb	1	1	1	142	1	T1231-D1		no_reference_pdb		false
-T2210	T	protein_domain	prot_domains	Q868N5	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H0232	H	protein_oligo	prot_oligo	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex	UNK	false	ok	unranked	no_reference_pdb	2	2	2	462	0			no_reference_pdb		false
-R1248	R	coverage_only		GOLLD 3primedomain env46	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T1218	T	protein_domain	prot_domains	Cry26Aa	A2	false	ok	unranked	no_reference_pdb	1	1	2	2328	3	T1218-D1,T1218-D2,T1218-D3		no_reference_pdb		false
-T2219	T	protein_domain	prot_domains	HD6 uniprot Q01524	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H0233	H	protein_oligo	prot_oligo	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex	UNK	false	ok	unranked	no_reference_pdb	3	3	3	658	0			no_reference_pdb		false
-H1220	H	protein_oligo	prot_oligo	BoDV-1 Replication complex  9h1g	A1B4	false	ok	ranked		2	2	5	554	0		9h1g	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9h1g.cif	true
-R1255	R	coverage_only		SL5 SARS-CoV-2: rotated junction	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T1220S1	T	protein_domain	prot_domains	BoDV-1 Replication complex  9h1g	A1	false	ok	ranked		1	1	1	394	1	T1220S1-D1	9h1g	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9h1g.cif	true
-T2206	T	protein_domain	prot_domains	Porcine astrovirus 4 capsid spike	A2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H0236	H	protein_oligo	prot_oligo	Haloferax tailed virus 1	UNK	false	ok	unranked	no_reference_pdb	2	2	2	528	0			no_reference_pdb		false
-H2208	H	protein_oligo	prot_oligo	dahAB	A1B1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T0234	T	protein_domain	prot_domains	YP_010355913.1	UNK	false	ok	unranked	no_reference_pdb	1	1	1	413	0			no_reference_pdb		false
-T0235	T	protein_domain	prot_domains	A0A410N6V5.2	UNK	false	ok	unranked	no_reference_pdb	1	1	1	115	0			no_reference_pdb		false
-H1222	H	protein_oligo	prot_oligo	RSV G - Fab 2B11 complex 9cqd	A1B1C1	false	ok	ranked		3	3	3	485	0		2b11,9cqd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/2b11.cif	true
-H2215	H	protein_oligo	prot_oligo	mNeonGreen with bound nanobody	A1B1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-R1256	R	coverage_only		SL5 Bt-CoV-HKU5: SL5c truncated	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T0237	T	protein_domain	prot_domains	Bd3071	UNK	false	ok	unranked	no_reference_pdb	1	1	1	488	0			no_reference_pdb		false
-H1223	H	protein_oligo	prot_oligo	RSV G - Fab 1G8 complex 9cqb	A1B1C1	false	ok	ranked		3	3	3	486	0		9cqb	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqb.cif	true
-M1239V1	M	coverage_only		SPbeta_intRDF_DNA 9dxd	A4B2C2D2E2	false	skipped	unranked	unsupported_category	5	0	0	0	0		9dxd	not_required		false
-M1239V2	M	coverage_only		SPbeta_intRDF_DNA 9dxd	A4B2C2D2E2	false	skipped	unranked	unsupported_category	0	0	0	0	0		9dxd	not_required		false
-T0238	T	protein_domain	prot_domains	Bd2098	UNK	true	skipped	unranked	cancelled_target	0	0	0	0	0			no_reference_pdb		false
-T1239V1	T	protein_domain	prot_domains	SPbeta_intRDF_DNA 9dxd  protein subunit of M1239v1	A1	false	ok	unranked	multi_domain_requires_cropping	1	1	1	141	4	T1239V1-D1,T1239V1-D2,T1239V1-D3,T1239V1-D4	9dxd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9dxd.cif	false
-T1239V2	T	protein_domain	prot_domains	SPbeta_intRDF_DNA 9dxd  protein subunit of M1239v2	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	4	T1239V2-D1,T1239V2-D2,T1239V2-D3,T1239V2-D4	9dxd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9dxd.cif	false
-H1225	H	protein_oligo	prot_oligo	RSV G - Fab 1G1 complex 9cqa	A1B1C1	false	ok	ranked		3	3	3	483	0		9cqa	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqa.cif	true
-R1260	R	coverage_only		Ribozyme solvent shell 9cbu, 9cbx	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9cbu,9cbx	not_required		false
-T0240	T	protein_domain	prot_domains	Bd3442	UNK	false	ok	unranked	no_reference_pdb	1	1	1	653	0			no_reference_pdb		false
-T2226	T	protein_domain	prot_domains	TuAsV-2A3 (part of polyprotein)	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H0244	H	protein_oligo	prot_oligo	BJCNb48	UNK	false	ok	unranked	no_reference_pdb	3	3	3	425	0			no_reference_pdb		false
-H1227	H	protein_oligo	prot_oligo	LetA (P0AD03) and LetB (P76272) 9n8w	A1B6	false	ok	ranked		2	2	7	5689	0		9n8w	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9n8w.cif	true
-T0244S1	T	protein_domain	prot_domains	BJCNb48	A1	false	ok	unranked	no_reference_pdb	1	1	1	157	0			no_reference_pdb		false
-T0244S2	T	protein_domain	prot_domains	BJCNb48	A1	false	ok	unranked	no_reference_pdb	1	1	1	129	0			no_reference_pdb		false
-T1227S1	T	protein_domain	prot_domains	LetA (P0AD03) and LetB (P76272) 9n8w	A1	false	ok	ranked		1	1	1	427	1	T1227S1-D1	9n8w	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9n8w.cif	true
-T1243	T	protein_domain	prot_domains	MTMA3 (UNIPROT ID: P0CH91)	A1	false	ok	unranked	no_reference_pdb	1	1	1	293	1	T1243-D1		no_reference_pdb		false
-T2249V1	T	protein_domain	prot_domains	Arenaviral spike complex	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2249V2	T	protein_domain	prot_domains	Arenaviral spike complex	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H0245	H	protein_oligo	prot_oligo	FUNcomplex	UNK	false	ok	unranked	no_reference_pdb	2	2	2	317	0			no_reference_pdb		false
-H2213	H	protein_oligo	prot_oligo	DP71_eIF2_PP1_complex	A1B1C1D1E1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T0245S1	T	protein_domain	prot_domains	FUNcomplex	A1	false	ok	unranked	no_reference_pdb	1	1	1	183	0			no_reference_pdb		false
-T0245S2	T	protein_domain	prot_domains	FUNcomplex	A1	false	ok	unranked	no_reference_pdb	1	1	1	134	0			no_reference_pdb		false
-T0246	T	protein_domain	prot_domains	DcmC	UNK	false	ok	unranked	no_reference_pdb	1	1	1	168	0			no_reference_pdb		false
-H1229	H	protein_oligo	prot_oligo	ORF61/A3A	A1B1	false	ok	unranked	no_reference_pdb	2	2	2	987	0			no_reference_pdb		false
-H1230	H	protein_oligo	prot_oligo	ORF61/A3B	A1B1	false	ok	unranked	no_reference_pdb	2	2	2	984	0			no_reference_pdb		false
-R1261	R	coverage_only		ZTP riboswitch 9bzc	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9bzc	not_required		false
-T1229S1	T	protein_domain	prot_domains	ORF61/A3A   <em><font color=red>Canceled - lower resolution copy of T1230s1.</font></em>	A1	true	skipped	unranked	cancelled_target	0	0	0	0	0			no_reference_pdb		false
-T1230S1	T	protein_domain	prot_domains	ORF61/A3B	A1	false	ok	unranked	no_reference_pdb	1	1	1	788	1	T1230S1-D1		no_reference_pdb		false
-T1247	T	protein_domain	prot_domains	PilK   <em><font color=red>Canceled - no structure.</font></em>	A1	true	skipped	unranked	cancelled_target	0	0	0	0	0			no_reference_pdb		false
-H0258	H	protein_oligo	prot_oligo	LRRK2/14-3-3 complex	UNK	false	ok	unranked	no_reference_pdb	2	2	2	2827	0			no_reference_pdb		false
-H2217	H	protein_oligo	prot_oligo	AcP10_eIF2B_complex	A2B2C2D2E2F2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-R1262	R	coverage_only		ZTP riboswitch with AICA 9bz1	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9bz1	not_required		false
-T0257	T	protein_domain	prot_domains	P13390	UNK	false	ok	unranked	no_reference_pdb	1	1	1	1263	0			no_reference_pdb		false
-T2231	T	protein_domain	prot_domains	A0A0E4G3H6	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H1232	H	protein_oligo	prot_oligo	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex 9cn2	A2B2	false	ok	ranked		2	2	4	924	0		9cn2	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cn2.cif	true
-R0254	R	coverage_only		GOLLD 3primedomain env38	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T0259	T	protein_domain	prot_domains	AZI86_00190	UNK	false	ok	unranked	no_reference_pdb	1	1	1	243	0			no_reference_pdb		false
-T2218	T	protein_domain	prot_domains	Cry26Aa	A2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H0265	H	protein_oligo	prot_oligo	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	UNK	false	ok	unranked	no_reference_pdb	2	2	2	293	0			no_reference_pdb		false
-H1233	H	protein_oligo	prot_oligo	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex 9cbn	A2B2C2	false	ok	ranked		3	3	6	1316	0		9cbn	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cbn.cif	true
-H2220	H	protein_oligo	prot_oligo	BoDV-1 Replication complex	A1B4	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-R0252	R	coverage_only		ROOL UCC118	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-R0253	R	coverage_only		ROOL env209	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-H1236	H	protein_oligo	prot_oligo	Haloferax tailed virus 1 8qpq	A3B6	false	ok	ranked		2	2	9	1929	0		8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	true
-T1234	T	protein_domain	prot_domains	YP_010355913.1 8qpq	A3	false	ok	ranked		1	1	3	1239	1	T1234-D1	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	true
-T1235	T	protein_domain	prot_domains	A0A410N6V5.2 8qpq	A6	false	ok	ranked		1	1	6	690	1	T1235-D1	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	true
-T1266	T	protein_domain	prot_domains	Q99549  8qfb	A1	false	ok	ranked		1	1	1	336	1	T1266-D1	8qfb	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qfb.cif	true
-H0267	H	protein_oligo	prot_oligo	XauSPARDA	UNK	false	ok	unranked	no_reference_pdb	2	2	2	926	0			no_reference_pdb		false
-H2222	H	protein_oligo	prot_oligo	RSV G - Fab 2B11 complex	A1B1C1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		2b11	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/2b11.cif	false
-R1263	R	coverage_only		ZTP riboswitch with m-1-pyridinyl AICA 8vqv	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		8vqv	not_required		false
-T1237	T	protein_domain	prot_domains	Bd3071	A4	false	ok	unranked	no_reference_pdb	1	1	4	1952	1	T1237-D1		no_reference_pdb		false
-H2223	H	protein_oligo	prot_oligo	RSV G - Fab 1G8 complex	A1B1C1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-M0268	M	coverage_only		Activated XauSPARDA with nucleic acids	UNK	false	skipped	unranked	unsupported_category	6	0	0	0	0			no_reference_pdb		false
-R1264	R	coverage_only		ZTP riboswitch with AICA derivative 8vvj	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		8vvj	not_required		false
-T1238	T	protein_domain	prot_domains	Bd2098   <em><font color=red>Canceled - no structure.</font></em>	A2	true	skipped	unranked	cancelled_target	0	0	0	0	0			no_reference_pdb		false
-H2225	H	protein_oligo	prot_oligo	RSV G - Fab 1G1 complex	A1B1C1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T1240	T	protein_domain	prot_domains	Bd3442	A3	false	ok	unranked	no_reference_pdb	1	1	3	1959	2	T1240-D1,T1240-D2		no_reference_pdb		false
-T1269	T	protein_domain	prot_domains	MUC5AC uniprot P98088 9gvq	A1	false	ok	unranked	multi_domain_requires_cropping	1	1	1	1410	3	T1269-D1,T1269-D2,T1269-D3	9gvq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9gvq.cif	false
-H1244	H	protein_oligo	prot_oligo	BJCNb48	A2B2C2	false	ok	unranked	no_reference_pdb	3	3	6	850	0			no_reference_pdb		false
-H2227	H	protein_oligo	prot_oligo	LetA (P0AD03) and LetB (P76272)	A1B6	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T0270	T	protein_domain	prot_domains	HtrA	UNK	false	ok	unranked	no_reference_pdb	1	1	1	437	0			no_reference_pdb		false
-T1244S1	T	protein_domain	prot_domains	BJCNb48	A1	false	ok	unranked	no_reference_pdb	1	1	1	157	1	T1244S1-D1		no_reference_pdb		false
-T1244S2	T	protein_domain	prot_domains	BJCNb48	A1	false	ok	unranked	no_reference_pdb	1	1	1	129	0			no_reference_pdb		false
-T2243	T	protein_domain	prot_domains	MTMA3 (UNIPROT ID: P0CH91)	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H1245	H	protein_oligo	prot_oligo	FUNcomplex	A1B1	false	ok	unranked	no_reference_pdb	2	2	2	317	0			no_reference_pdb		false
-M0271	M	coverage_only		RECC	UNK	true	skipped	unranked	unsupported_category	12	0	0	0	0			no_reference_pdb		false
-R0271	R	coverage_only		RECC	R1	true	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T0271S1	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0			no_reference_pdb		false
-T0271S2	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0			no_reference_pdb		false
-T0271S3	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0			no_reference_pdb		false
-T0271S4	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0			no_reference_pdb		false
-T0271S5	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0			no_reference_pdb		false
-T0271S6	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0			no_reference_pdb		false
-T0271S7	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0			no_reference_pdb		false
-T0271S8	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0			no_reference_pdb		false
-T1245S1	T	protein_domain	prot_domains	FUNcomplex	A1	false	ok	unranked	no_reference_pdb	1	1	1	183	1	T1245S1-D1		no_reference_pdb		false
-T1245S2	T	protein_domain	prot_domains	FUNcomplex	A1	false	ok	unranked	no_reference_pdb	1	1	1	134	1	T1245S2-D1		no_reference_pdb		false
-T1246	T	protein_domain	prot_domains	DcmC	A1	false	ok	unranked	no_reference_pdb	1	1	1	168	1	T1246-D1		no_reference_pdb		false
-H2229	H	protein_oligo	prot_oligo	ORF61/A3A	A1B1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H2230	H	protein_oligo	prot_oligo	ORF61/A3B	A1B1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2247	T	protein_domain	prot_domains	PilK   <em><font color=red>Canceled - no structure.</font></em>	A1	true	skipped	unranked	cancelled_target	0	0	0	0	0			no_reference_pdb		false
-D1273	D	coverage_only		RKEC1 9hio	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9hio	not_required		false
-H1258	H	protein_oligo	prot_oligo	LRRK2/14-3-3 complex 9ci3	A1B2	false	ok	ranked		2	2	3	3092	0		9ci3	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9ci3.cif	true
-T1257	T	protein_domain	prot_domains	P13390	A3	false	ok	unranked	no_reference_pdb	1	1	3	3789	1	T1257-D1		no_reference_pdb		false
-H2232	H	protein_oligo	prot_oligo	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex	A2B2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-M1271	M	coverage_only		RECC	A1B1C1D1E1F2G2H1I1J5R1	false	skipped	unranked	unsupported_category	12	0	0	0	0			no_reference_pdb		false
-R0250	R	coverage_only		GOLLD full env46	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-R0251	R	coverage_only		GOLLD full env38	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-R1254	R	coverage_only		GOLLD 3primedomain env38	R14	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-R1271	R	coverage_only		RECC	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T1259	T	protein_domain	prot_domains	AZI86_00190	A3	false	ok	unranked	no_reference_pdb	1	1	3	729	1	T1259-D1		no_reference_pdb		false
-T1271S1	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	818	1	T1271S1-D1		no_reference_pdb		false
-T1271S2	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	414	1	T1271S2-D1		no_reference_pdb		false
-T1271S3	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	384	1	T1271S3-D1		no_reference_pdb		false
-T1271S4	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	368	1	T1271S4-D1		no_reference_pdb		false
-T1271S5	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	762	2	T1271S5-D1,T1271S5-D2		no_reference_pdb		false
-T1271S6	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	587	1	T1271S6-D1		no_reference_pdb		false
-T1271S7	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	393	1	T1271S7-D1		no_reference_pdb		false
-T1271S8	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	218	2	T1271S8-D1,T1271S8-D2		no_reference_pdb		false
-H1265	H	protein_oligo	prot_oligo	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	A9B18	false	ok	unranked	no_reference_pdb	2	2	27	3924	0			no_reference_pdb		false
-H2233	H	protein_oligo	prot_oligo	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex	A2B2C2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-R1252	R	coverage_only		ROOL UCC118	R6	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-R1253V1	R	coverage_only		ROOL env209	R8	false	skipped	unranked	unsupported_category	0	0	0	0	0			no_reference_pdb		false
-R1253V2	R	coverage_only		ROOL env209	R8	false	skipped	unranked	unsupported_category	0	0	0	0	0			no_reference_pdb		false
-T1274	T	protein_domain	prot_domains	CAB14884.3	A1	false	ok	unranked	no_reference_pdb	1	1	1	167	1	T1274-D1		no_reference_pdb		false
-H2236	H	protein_oligo	prot_oligo	Haloferax tailed virus 1	A3B6	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2234	T	protein_domain	prot_domains	YP_010355913.1	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2235	T	protein_domain	prot_domains	A0A410N6V5.2	A6	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2266	T	protein_domain	prot_domains	Q99549	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H0272	H	protein_oligo	prot_oligo	dystrophin-glycoprotein complex (DGC) 9c3c	UNK	false	ok	ranked		9	9	9	6879	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
-H1267	H	protein_oligo	prot_oligo	XauSPARDA	A2B2	false	ok	unranked	no_reference_pdb	2	2	4	1852	0			no_reference_pdb		false
-T0272S2	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	363	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T0272S3	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	318	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T0272S4	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	289	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T0272S5	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	291	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T0272S6	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	624	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T0272S7	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	242	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T0272S8	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	818	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T0272S9	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	238	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T1267S1	T	protein_domain	prot_domains	XauSPARDA	A1	false	ok	unranked	no_reference_pdb	1	1	1	444	2	T1267S1-D1,T1267S1-D2		no_reference_pdb		false
-T1267S2	T	protein_domain	prot_domains	XauSPARDA	A1	false	ok	unranked	no_reference_pdb	1	1	1	482	1	T1267S2-D1		no_reference_pdb		false
-T2237	T	protein_domain	prot_domains	Bd3071	A4	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-M0276	M	coverage_only		One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	UNK	false	skipped	unranked	unsupported_category	2	0	0	0	0			no_reference_pdb		false
-T2238	T	protein_domain	prot_domains	Bd2098	A2	true	skipped	unranked	cancelled_target	0	0	0	0	0			no_reference_pdb		false
-M1268	M	coverage_only		Activated XauSPARDA with nucleic acids	A8B8C8D8E1F1	false	skipped	unranked	unsupported_category	6	0	0	0	0			no_reference_pdb		false
-T1275	T	protein_domain	prot_domains	C12orf29   <em><font color=red>Canceled - bioRxiv preprint available.</font></em>	A1	true	skipped	unranked	cancelled_target	0	0	0	0	0			no_reference_pdb		false
-T2240	T	protein_domain	prot_domains	Bd3442	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2269	T	protein_domain	prot_domains	MUC5AC uniprot P98088	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H2244	H	protein_oligo	prot_oligo	BJCNb48	A2B2C2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T1270	T	protein_domain	prot_domains	HtrA	A6	false	ok	unranked	no_reference_pdb	1	1	6	2622	2	T1270-D1,T1270-D2		no_reference_pdb		false
-T1277	T	protein_domain	prot_domains	Tue1   <em><font color=red>Canceled - bioRxiv preprint available.</font></em>	A1	true	skipped	unranked	cancelled_target	0	0	0	0	0			no_reference_pdb		false
-H2245	H	protein_oligo	prot_oligo	FUNcomplex	A1B1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-R1286	R	coverage_only		Lactobacillus ncRNA 9j6y	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9j6y	not_required		false
-T2246	T	protein_domain	prot_domains	DcmC		false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-R0281	R	coverage_only		2F RNA 6-helix bundle dimer	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T1278	T	protein_domain	prot_domains	Dehydrogenase	A1	false	ok	unranked	no_reference_pdb	1	1	1	380	1	T1278-D1		no_reference_pdb		false
-T1279	T	protein_domain	prot_domains	Bd1369	An	false	ok	unranked	no_reference_pdb	1	1	1	428	2	T1279-D1,T1279-D2		no_reference_pdb		false
-H2258	H	protein_oligo	prot_oligo	LRRK2/14-3-3 complex	A1B2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-M1282	M	coverage_only		Spike-RBD/Aptamer complex	A1B1	false	skipped	unranked	unsupported_category	2	0	0	0	0			no_reference_pdb		false
-T1280	T	protein_domain	prot_domains	C-terminal domain of bacteriophage K gp155 9f5m	A1	false	ok	ranked		1	1	1	237	1	T1280-D1	9f5m	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9f5m.cif	true
-T2257	T	protein_domain	prot_domains	P13390	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-M0287	M	coverage_only		Q0X0A9_STRLS	UNK	false	skipped	unranked	unsupported_category	2	0	0	0	0			no_reference_pdb		false
-R1250	R	coverage_only		GOLLD full env46	R6	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-R1251	R	coverage_only		GOLLD full env38 9mee	R14	false	skipped	unranked	unsupported_category	1	0	0	0	0		9mee	not_required		false
-T2259	T	protein_domain	prot_domains	AZI86_00190	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H2265	H	protein_oligo	prot_oligo	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	A9B18	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-R0283	R	coverage_only		Enterococcus ncRNA	UNK	false	skipped	unranked	unsupported_category	0	0	0	0	0			no_reference_pdb		false
-T2274	T	protein_domain	prot_domains	CAB14884.3	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-R0285	R	coverage_only		OLE	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T1284	T	protein_domain	prot_domains	gp62	A1	false	ok	unranked	no_reference_pdb	1	1	1	120	1	T1284-D1		no_reference_pdb		false
-H1272	H	protein_oligo	prot_oligo	dystrophin-glycoprotein complex (DGC) 9c3c	A1B1C1D1E1F1G1H1I1	false	ok	ranked		9	9	9	6879	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
-H2267	H	protein_oligo	prot_oligo	XauSPARDA	A2B2	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-R0290	R	coverage_only		HYER1-withoutTRS	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T1272S2	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	ranked		1	1	1	363	1	T1272S2-D1	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
-T1272S3	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	318	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T1272S4	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	289	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T1272S5	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	291	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T1272S6	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	ranked		1	1	1	624	1	T1272S6-D1	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
-T1272S7	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	242	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T1272S8	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	ranked		1	1	1	818	1	T1272S8-D1	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
-T1272S9	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	ranked		1	1	1	238	1	T1272S9-D1	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
-M1276	M	coverage_only		One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	A1B1	false	skipped	unranked	unsupported_category	2	0	0	0	0			no_reference_pdb		false
-R1289	R	coverage_only		Precursor tRNA	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T1276	T	protein_domain	prot_domains	One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	A1	false	ok	unranked	no_reference_pdb	1	1	1	40	1	T1276-D1		no_reference_pdb		false
-R1288	R	coverage_only		SAMURI	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T2271S1	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2271S2	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2271S3	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2271S4	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2271S5	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2271S6	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2271S7	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2271S8	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-R1291	R	coverage_only		O.I.intron-fulllength	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T2270	T	protein_domain	prot_domains	HtrA	A6	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-M1293	M	coverage_only		Translation enhancer motif	A1B1R1	false	skipped	unranked	unsupported_category	3	0	0	0	0			no_reference_pdb		false
-R1293	R	coverage_only		Translation enhancer motif	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T1292	T	protein_domain	prot_domains	isocyanide hydratase-like iron binding protein	A2	false	ok	unranked	no_reference_pdb	1	1	2	392	1	T1292-D1		no_reference_pdb		false
-R1281	R	coverage_only		2F RNA 6-helix bundle dimer	A2	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T2278	T	protein_domain	prot_domains	Dehydrogenase	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T2279	T	protein_domain	prot_domains	Bd1369	An	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T1294V1	T	protein_domain	prot_domains	Isocyanide hydratase	A2	false	ok	unranked	no_reference_pdb	1	1	2	428	1	T1294V1-D1		no_reference_pdb		false
-T1294V2	T	protein_domain	prot_domains	Isocyanide hydratase	A2	false	skipped	unranked	no_sequence_record	0	0	0	0	1	T1294V2-D1		no_reference_pdb		false
-T2280	T	protein_domain	prot_domains	C-terminal domain of bacteriophage K gp155 9f5m	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9f5m	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9f5m.cif	false
-M1287	M	coverage_only		Q0X0A9_STRLS	A2D2	false	skipped	unranked	unsupported_category	2	0	0	0	0			no_reference_pdb		false
-T1200	T	protein_domain	prot_domains	WT_ZLBT-C	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T1295	T	protein_domain	prot_domains	TM_Ag	A8	false	ok	unranked	no_reference_pdb	1	1	8	3752	3	T1295-D1,T1295-D2,T1295-D3		no_reference_pdb		false
-T1300	T	protein_domain	prot_domains	Gly6_ZLBT-C	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-M1296	M	coverage_only		G34U mutant of M1209 complex 9c75	A1B1C1	false	skipped	unranked	unsupported_category	3	0	0	0	0		9c75	not_required		false
-R1283V1	R	coverage_only		Enterococcus ncRNA 9isv	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9isv	not_required		false
-R1283V2	R	coverage_only		Enterococcus ncRNA 9j3r	A4	false	skipped	unranked	unsupported_category	0	0	0	0	0		9j3r	not_required		false
-R1283V3	R	coverage_only		Enterococcus ncRNA 9j3t	A8	false	skipped	unranked	unsupported_category	0	0	0	0	0		9j3t	not_required		false
-R1296	R	coverage_only		G34U mutant of M1209 complex 9c75	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9c75	not_required		false
-M1297	M	coverage_only		Telomerase	A4B4C4D4E2R2	false	skipped	unranked	unsupported_category	6	0	0	0	0			no_reference_pdb		false
-R1285	R	coverage_only		OLE 9mcw	A2	false	skipped	unranked	unsupported_category	1	0	0	0	0		9mcw	not_required		false
-T2284	T	protein_domain	prot_domains	gp62	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-H2272	H	protein_oligo	prot_oligo	dystrophin-glycoprotein complex (DGC) 9c3c	A1B1C1D1E1F1G1H1I1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-R1290	R	coverage_only		HYER1-withoutTRS	A2	false	skipped	unranked	unsupported_category	1	0	0	0	0			no_reference_pdb		false
-T1269V1	T	protein_domain	prot_domains	MUC5AC uniprot P98088 9gvq	An	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9gvq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9gvq.cif	false
-T1298	T	protein_domain	prot_domains	Cyclic nucleotide-binding protein  9sfa	A2	false	ok	unranked	multi_domain_requires_cropping	1	1	2	684	2	T1298-D1,T1298-D2	9sfa	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9sfa.cif	false
-T2272S2	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T2272S3	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T2272S4	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T2272S5	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T2272S6	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T2272S7	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T2272S8	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T2272S9	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
-T1219V1	T	protein_domain	prot_domains	HD6 uniprot Q01524	An	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T1219V2	T	protein_domain	prot_domains	HD6 uniprot Q01524	An	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-T1299	T	protein_domain	prot_domains	9FJL 9fjl	A1	false	ok	ranked		1	1	1	168	1	T1299-D1	9fjl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fjl.cif	true
-T2276	T	protein_domain	prot_domains	One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0			no_reference_pdb		false
-L5001	L	coverage_only		WDR55_apo	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0			no_reference_pdb		false
-L5001V1	L	coverage_only		WDR55_apo	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0			no_reference_pdb		false
-R1261V1	R	coverage_only		ZTP riboswitch 9bzc	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0		9bzc	not_required		false
-R1262V1	R	coverage_only		ZTP riboswitch with AICA 9bz1	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0		9bz1	not_required		false
-R1263V1	R	coverage_only		ZTP riboswitch with m-1-pyridinyl AICA 8vqv	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0		8vqv	not_required		false
-R1264V1	R	coverage_only		ZTP riboswitch with AICA derivative 8vvj	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0		8vvj	not_required		false
+target_id	target_prefix	track	category	description	oligo_state	cancelled	input_status	rank_status	skip_reason	sequence_records	entity_count	chain_count	total_len	domain_count	domain_ids	pdb_ids	selected_pdb_id	reference_status	reference_path	rank_eligible
+T1201	T	protein_domain	prot_domains	Q9GZX9 8bwd	A2	false	ok	ranked		1	1	2	420	1	T1201-D1	8bwd	8bwd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8bwd.cif	true
+H1202	H	protein_oligo	prot_oligo	Q9GZX9_plus_P43026 8bwl	A2B2	false	ok	ranked		2	2	4	380	0		8bwl	8bwl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8bwl.cif	true
+R1203	R	coverage_only		Rev response element stem-loop II 8uo6	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0		8uo6	8uo6	not_required		false
+H1204	H	protein_oligo	prot_oligo	Human hemoglobin in complex with nanobody 8vyl	A2B2C2	false	ok	ranked		3	3	6	858	0		8vyl	8vyl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8vyl.cif	true
+L1000	L	coverage_only		Chymase	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0				no_reference_pdb		false
+L2000	L	coverage_only		Cathepsin G	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0				no_reference_pdb		false
+L3000	L	coverage_only		Autotaxin	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0				no_reference_pdb		false
+L4000	L	coverage_only		MPro	A2	false	skipped	unranked	unsupported_category	0	0	0	0	0				no_reference_pdb		false
+R1205	R	coverage_only		xrRNA 9cfn	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9cfn	9cfn	not_required		false
+T0206	T	protein_domain	prot_domains	Porcine astrovirus 4 capsid spike	UNK	false	ok	unranked	no_domain_definition	1	1	1	237	0		9cp0	9cp0	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cp0.cif	false
+T1207	T	protein_domain	prot_domains	Q9YLS4, 2A protein part of viral polyprotein	A1	false	ok	unranked	no_reference_pdb	1	1	1	144	1	T1207-D1			no_reference_pdb		false
+H0208	H	protein_oligo	prot_oligo	dahAB	UNK	false	ok	unranked	no_reference_pdb	2	2	2	646	0				no_reference_pdb		false
+T0208S1	T	protein_domain	prot_domains	dahAB   subunit 1	A1	false	ok	unranked	no_reference_pdb	1	1	1	328	0				no_reference_pdb		false
+T0208S2	T	protein_domain	prot_domains	dahAB   subunit 2	A1	false	ok	unranked	no_reference_pdb	1	1	1	318	0				no_reference_pdb		false
+H0215	H	protein_oligo	prot_oligo	mNeonGreen with bound nanobody	UNK	false	ok	unranked	no_reference_pdb	2	2	2	369	0				no_reference_pdb		false
+M1209	M	coverage_only		FAB - HIV-I RRE stem loop II  9c2k	A1B1R1	false	skipped	unranked	unsupported_category	6	0	0	0	0		9c2k	9c2k	not_required		false
+R1209	R	coverage_only		FAB - HIV-I RRE stem loop II  9c2k  RNA component	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9c2k	9c2k	not_required		false
+T1210	T	protein_domain	prot_domains	Q868N5 9enr	A1	false	ok	ranked		1	1	1	1770	1	T1210-D1	9enr	9enr	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9enr.cif	true
+M1211	M	coverage_only		CVB3 cloverleaf RNA in complex with 3C protease 9dcf	A2R1	false	skipped	unranked	unsupported_category	2	0	0	0	0		9dcf	9dcf	not_required		false
+R1211	R	coverage_only		CVB3 cloverleaf RNA in complex with 3C protease 9dcf  RNA component	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9dcf	9dcf	not_required		false
+T1214	T	protein_domain	prot_domains	YncD (NP_415968) 9c4o	A1	false	ok	ranked		1	1	1	677	1	T1214-D1	9c4o	9c4o	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c4o.cif	true
+M1212	M	coverage_only		Fanzor2 ternary structure 9b0l	A1R1V1W1	false	skipped	unranked	unsupported_category	4	0	0	0	0		9b0l	9b0l	not_required		false
+R1212	R	coverage_only		Fanzor2 ternary structure 9b0l  RNA component	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9b0l	9b0l	not_required		false
+T1212	T	protein_domain	prot_domains	Fanzor2 ternary structure 9b0l  protein subunit of M1212	A1	false	skipped	unranked	ambiguous_oligo_state:A1:records=2	2	0	0	0	1	T1212-D1	9b0l	9b0l	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9b0l.cif	false
+H0213	H	protein_oligo	prot_oligo	DP71_eIF2_PP1_complex   <em><font color=red>Canceled - released with wrong sequence.</font></em>	UNK	true	skipped	unranked	cancelled_target	5	0	0	0	0		9nb9	9nb9	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9nb9.cif	false
+M1216	M	coverage_only		Tetrameric SPARSAgRNA�target ssDNA complex	A4B4C4D4	false	skipped	unranked	unsupported_category	4	0	0	0	0				no_reference_pdb		false
+T2201	T	protein_domain	prot_domains	Q9GZX9	A2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H0217	H	protein_oligo	prot_oligo	AcP10_eIF2B_complex	UNK	false	ok	unranked	no_reference_pdb	6	6	6	2939	0				no_reference_pdb		false
+H2202	H	protein_oligo	prot_oligo	Q9GZX9_plus_P43026	A2B2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H2204	H	protein_oligo	prot_oligo	Human hemoglobin in complex with nanobody	A2B2C2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T0218	T	protein_domain	prot_domains	Cry26Aa	UNK	false	ok	unranked	no_reference_pdb	1	1	1	1164	0				no_reference_pdb		false
+T1219	T	protein_domain	prot_domains	HD6 uniprot Q01524	A1	false	ok	unranked	no_reference_pdb	1	1	1	32	0				no_reference_pdb		false
+H0220	H	protein_oligo	prot_oligo	BoDV-1 Replication complex	UNK	false	ok	ranked		2	2	2	434	0		9h1g	9h1g	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9h1g.cif	true
+T0220S1	T	protein_domain	prot_domains	BoDV-1 Replication complex    subunit 1	A1	false	ok	unranked	no_domain_definition	1	1	1	394	0		9h1g	9h1g	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9h1g.cif	false
+T1206	T	protein_domain	prot_domains	Porcine astrovirus 4 capsid spike 9cp0	A2	false	ok	ranked		1	1	2	474	1	T1206-D1	9cp0	9cp0	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cp0.cif	true
+T2207	T	protein_domain	prot_domains	Q9YLS4, 2A protein part of viral polyprotein	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H1208	H	protein_oligo	prot_oligo	dahAB	A1B1	false	ok	unranked	no_reference_pdb	2	2	2	646	0				no_reference_pdb		false
+M1221	M	coverage_only		RNase P enzyme-substrate complex	A1R1S1	false	skipped	unranked	unsupported_category	3	0	0	0	0				no_reference_pdb		false
+R1221S2	R	coverage_only		RNase P enzyme-substrate complex   RNA subunit 2	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+R1221S3	R	coverage_only		RNase P enzyme-substrate complex   RNA subunit 3	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T1208S1	T	protein_domain	prot_domains	dahAB   subunit 1	A1	false	ok	unranked	no_reference_pdb	1	1	1	328	1	T1208S1-D1			no_reference_pdb		false
+T1208S2	T	protein_domain	prot_domains	dahAB   subunit 2	A1	false	ok	unranked	no_reference_pdb	1	1	1	318	1	T1208S2-D1			no_reference_pdb		false
+H0222	H	protein_oligo	prot_oligo	RSV G - Fab 2B11 complex	UNK	false	ok	ranked		3	3	3	485	0		2b11,9cqd	9cqd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqd.cif	true
+H1215	H	protein_oligo	prot_oligo	mNeonGreen with bound nanobody	A1B1	false	ok	unranked	no_reference_pdb	2	2	2	369	0				no_reference_pdb		false
+H0223	H	protein_oligo	prot_oligo	RSV G - Fab 1G8 complex	UNK	false	ok	ranked		3	3	3	486	0		9cqb	9cqb	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqb.cif	true
+M1224	M	coverage_only		RNase P enzyme-substrate complex	A1R1S1	false	skipped	unranked	unsupported_category	3	0	0	0	0				no_reference_pdb		false
+R1224S2	R	coverage_only		RNase P enzyme-substrate complex   RNA subunit 2	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+R1224S3	R	coverage_only		RNase P enzyme-substrate complex   RNA subunit 3	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+H0225	H	protein_oligo	prot_oligo	RSV G - Fab 1G1 complex	UNK	false	ok	ranked		3	3	3	483	0		9cqa	9cqa	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqa.cif	true
+T1226	T	protein_domain	prot_domains	TuAsV-2A3 (part of polyprotein)	A1	false	ok	unranked	no_reference_pdb	1	1	1	123	1	T1226-D1			no_reference_pdb		false
+H0227	H	protein_oligo	prot_oligo	LetA (P0AD03) and LetB (P76272)	UNK	false	ok	ranked		2	2	2	1304	0		9n8w	9n8w	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9n8w.cif	true
+H1213	H	protein_oligo	prot_oligo	DP71_eIF2_PP1_complex 9nb9	A1B1C1D1E1	false	ok	ranked		5	5	5	1373	0		9nb9	9nb9	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9nb9.cif	true
+R1241	R	coverage_only		group II intron	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T0227S1	T	protein_domain	prot_domains	LetA (P0AD03) and LetB (P76272)	A1	false	ok	unranked	no_domain_definition	1	1	1	427	0		9n8w	9n8w	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9n8w.cif	false
+T1249V1	T	protein_domain	prot_domains	Arenaviral spike complex 9fya	A3	false	ok	ranked		1	1	3	1464	1	T1249V1-D1	9fya	9fya	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fya.cif	true
+T1249V2	T	protein_domain	prot_domains	Arenaviral spike complex 9fyg	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	1	T1249V2-D1	9fyg	9fyg	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fyg.cif	false
+M1228V1	M	coverage_only		SPbeta_int_DNA	A4B2C2D2E2	false	skipped	unranked	unsupported_category	5	0	0	0	0				no_reference_pdb		false
+M1228V2	M	coverage_only		SPbeta_int_DNA	A4B2C2D2E2	false	skipped	unranked	unsupported_category	0	0	0	0	0				no_reference_pdb		false
+T1228V1	T	protein_domain	prot_domains	SPbeta_int_DNA   protein subunit of M1228v1	A1	false	ok	unranked	no_reference_pdb	1	1	1	121	4	T1228V1-D1,T1228V1-D2,T1228V1-D3,T1228V1-D4			no_reference_pdb		false
+T1228V2	T	protein_domain	prot_domains	SPbeta_int_DNA   protein subunit of M1228v2	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	4	T1228V2-D1,T1228V2-D2,T1228V2-D3,T1228V2-D4			no_reference_pdb		false
+H0229	H	protein_oligo	prot_oligo	ORF61/A3A	UNK	false	ok	unranked	no_reference_pdb	2	2	2	987	0				no_reference_pdb		false
+H0230	H	protein_oligo	prot_oligo	ORF61/A3B	UNK	false	ok	unranked	no_reference_pdb	2	2	2	984	0				no_reference_pdb		false
+R1242	R	coverage_only		RaiA RNA motif, C. acetobutylicum 9ely	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9ely	9ely	not_required		false
+H1217	H	protein_oligo	prot_oligo	AcP10_eIF2B_complex	A2B2C2D2E2F2	false	ok	unranked	no_reference_pdb	6	6	12	5878	0				no_reference_pdb		false
+T1231	T	protein_domain	prot_domains	A0A0E4G3H6	A1	false	ok	unranked	no_reference_pdb	1	1	1	142	1	T1231-D1			no_reference_pdb		false
+T2210	T	protein_domain	prot_domains	Q868N5	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H0232	H	protein_oligo	prot_oligo	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex	UNK	false	ok	ranked		2	2	2	462	0		9cn2	9cn2	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cn2.cif	true
+R1248	R	coverage_only		GOLLD 3primedomain env46	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T1218	T	protein_domain	prot_domains	Cry26Aa	A2	false	ok	unranked	no_reference_pdb	1	1	2	2328	3	T1218-D1,T1218-D2,T1218-D3			no_reference_pdb		false
+T2219	T	protein_domain	prot_domains	HD6 uniprot Q01524	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H0233	H	protein_oligo	prot_oligo	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex	UNK	false	ok	ranked		3	3	3	658	0		9cbn	9cbn	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cbn.cif	true
+H1220	H	protein_oligo	prot_oligo	BoDV-1 Replication complex  9h1g	A1B4	false	ok	ranked		2	2	5	554	0		9h1g	9h1g	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9h1g.cif	true
+R1255	R	coverage_only		SL5 SARS-CoV-2: rotated junction	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T1220S1	T	protein_domain	prot_domains	BoDV-1 Replication complex  9h1g	A1	false	ok	ranked		1	1	1	394	1	T1220S1-D1	9h1g	9h1g	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9h1g.cif	true
+T2206	T	protein_domain	prot_domains	Porcine astrovirus 4 capsid spike	A2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H0236	H	protein_oligo	prot_oligo	Haloferax tailed virus 1	UNK	false	ok	ranked		2	2	2	528	0		8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	true
+H2208	H	protein_oligo	prot_oligo	dahAB	A1B1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T0234	T	protein_domain	prot_domains	YP_010355913.1	UNK	false	ok	unranked	no_domain_definition	1	1	1	413	0		8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	false
+T0235	T	protein_domain	prot_domains	A0A410N6V5.2	UNK	false	ok	unranked	no_domain_definition	1	1	1	115	0		8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	false
+H1222	H	protein_oligo	prot_oligo	RSV G - Fab 2B11 complex 9cqd	A1B1C1	false	ok	ranked		3	3	3	485	0		2b11,9cqd	9cqd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqd.cif	true
+H2215	H	protein_oligo	prot_oligo	mNeonGreen with bound nanobody	A1B1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+R1256	R	coverage_only		SL5 Bt-CoV-HKU5: SL5c truncated	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T0237	T	protein_domain	prot_domains	Bd3071	UNK	false	ok	unranked	no_reference_pdb	1	1	1	488	0				no_reference_pdb		false
+H1223	H	protein_oligo	prot_oligo	RSV G - Fab 1G8 complex 9cqb	A1B1C1	false	ok	ranked		3	3	3	486	0		9cqb	9cqb	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqb.cif	true
+M1239V1	M	coverage_only		SPbeta_intRDF_DNA 9dxd	A4B2C2D2E2	false	skipped	unranked	unsupported_category	5	0	0	0	0		9dxd	9dxd	not_required		false
+M1239V2	M	coverage_only		SPbeta_intRDF_DNA 9dxd	A4B2C2D2E2	false	skipped	unranked	unsupported_category	0	0	0	0	0		9dxd	9dxd	not_required		false
+T0238	T	protein_domain	prot_domains	Bd2098	UNK	true	skipped	unranked	cancelled_target	0	0	0	0	0				no_reference_pdb		false
+T1239V1	T	protein_domain	prot_domains	SPbeta_intRDF_DNA 9dxd  protein subunit of M1239v1	A1	false	ok	unranked	multi_domain_requires_cropping	1	1	1	141	4	T1239V1-D1,T1239V1-D2,T1239V1-D3,T1239V1-D4	9dxd	9dxd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9dxd.cif	false
+T1239V2	T	protein_domain	prot_domains	SPbeta_intRDF_DNA 9dxd  protein subunit of M1239v2	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	4	T1239V2-D1,T1239V2-D2,T1239V2-D3,T1239V2-D4	9dxd	9dxd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9dxd.cif	false
+H1225	H	protein_oligo	prot_oligo	RSV G - Fab 1G1 complex 9cqa	A1B1C1	false	ok	ranked		3	3	3	483	0		9cqa	9cqa	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqa.cif	true
+R1260	R	coverage_only		Ribozyme solvent shell 9cbu, 9cbx	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9cbu,9cbx	9cbu	not_required		false
+T0240	T	protein_domain	prot_domains	Bd3442	UNK	false	ok	unranked	no_reference_pdb	1	1	1	653	0				no_reference_pdb		false
+T2226	T	protein_domain	prot_domains	TuAsV-2A3 (part of polyprotein)	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H0244	H	protein_oligo	prot_oligo	BJCNb48	UNK	false	ok	unranked	no_reference_pdb	3	3	3	425	0				no_reference_pdb		false
+H1227	H	protein_oligo	prot_oligo	LetA (P0AD03) and LetB (P76272) 9n8w	A1B6	false	ok	ranked		2	2	7	5689	0		9n8w	9n8w	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9n8w.cif	true
+T0244S1	T	protein_domain	prot_domains	BJCNb48	A1	false	ok	unranked	no_reference_pdb	1	1	1	157	0				no_reference_pdb		false
+T0244S2	T	protein_domain	prot_domains	BJCNb48	A1	false	ok	unranked	no_reference_pdb	1	1	1	129	0				no_reference_pdb		false
+T1227S1	T	protein_domain	prot_domains	LetA (P0AD03) and LetB (P76272) 9n8w	A1	false	ok	ranked		1	1	1	427	1	T1227S1-D1	9n8w	9n8w	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9n8w.cif	true
+T1243	T	protein_domain	prot_domains	MTMA3 (UNIPROT ID: P0CH91)	A1	false	ok	unranked	no_reference_pdb	1	1	1	293	1	T1243-D1			no_reference_pdb		false
+T2249V1	T	protein_domain	prot_domains	Arenaviral spike complex	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2249V2	T	protein_domain	prot_domains	Arenaviral spike complex	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H0245	H	protein_oligo	prot_oligo	FUNcomplex	UNK	false	ok	unranked	no_reference_pdb	2	2	2	317	0				no_reference_pdb		false
+H2213	H	protein_oligo	prot_oligo	DP71_eIF2_PP1_complex	A1B1C1D1E1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T0245S1	T	protein_domain	prot_domains	FUNcomplex	A1	false	ok	unranked	no_reference_pdb	1	1	1	183	0				no_reference_pdb		false
+T0245S2	T	protein_domain	prot_domains	FUNcomplex	A1	false	ok	unranked	no_reference_pdb	1	1	1	134	0				no_reference_pdb		false
+T0246	T	protein_domain	prot_domains	DcmC	UNK	false	ok	unranked	no_reference_pdb	1	1	1	168	0				no_reference_pdb		false
+H1229	H	protein_oligo	prot_oligo	ORF61/A3A	A1B1	false	ok	unranked	no_reference_pdb	2	2	2	987	0				no_reference_pdb		false
+H1230	H	protein_oligo	prot_oligo	ORF61/A3B	A1B1	false	ok	unranked	no_reference_pdb	2	2	2	984	0				no_reference_pdb		false
+R1261	R	coverage_only		ZTP riboswitch 9bzc	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9bzc	9bzc	not_required		false
+T1229S1	T	protein_domain	prot_domains	ORF61/A3A   <em><font color=red>Canceled - lower resolution copy of T1230s1.</font></em>	A1	true	skipped	unranked	cancelled_target	0	0	0	0	0				no_reference_pdb		false
+T1230S1	T	protein_domain	prot_domains	ORF61/A3B	A1	false	ok	unranked	no_reference_pdb	1	1	1	788	1	T1230S1-D1			no_reference_pdb		false
+T1247	T	protein_domain	prot_domains	PilK   <em><font color=red>Canceled - no structure.</font></em>	A1	true	skipped	unranked	cancelled_target	0	0	0	0	0				no_reference_pdb		false
+H0258	H	protein_oligo	prot_oligo	LRRK2/14-3-3 complex	UNK	false	ok	ranked		2	2	2	2827	0		9ci3	9ci3	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9ci3.cif	true
+H2217	H	protein_oligo	prot_oligo	AcP10_eIF2B_complex	A2B2C2D2E2F2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+R1262	R	coverage_only		ZTP riboswitch with AICA 9bz1	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9bz1	9bz1	not_required		false
+T0257	T	protein_domain	prot_domains	P13390	UNK	false	ok	unranked	no_reference_pdb	1	1	1	1263	0				no_reference_pdb		false
+T2231	T	protein_domain	prot_domains	A0A0E4G3H6	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H1232	H	protein_oligo	prot_oligo	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex 9cn2	A2B2	false	ok	ranked		2	2	4	924	0		9cn2	9cn2	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cn2.cif	true
+R0254	R	coverage_only		GOLLD 3primedomain env38	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T0259	T	protein_domain	prot_domains	AZI86_00190	UNK	false	ok	unranked	no_reference_pdb	1	1	1	243	0				no_reference_pdb		false
+T2218	T	protein_domain	prot_domains	Cry26Aa	A2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H0265	H	protein_oligo	prot_oligo	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	UNK	false	ok	unranked	no_reference_pdb	2	2	2	293	0				no_reference_pdb		false
+H1233	H	protein_oligo	prot_oligo	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex 9cbn	A2B2C2	false	ok	ranked		3	3	6	1316	0		9cbn	9cbn	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cbn.cif	true
+H2220	H	protein_oligo	prot_oligo	BoDV-1 Replication complex	A1B4	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+R0252	R	coverage_only		ROOL UCC118	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+R0253	R	coverage_only		ROOL env209	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+H1236	H	protein_oligo	prot_oligo	Haloferax tailed virus 1 8qpq	A3B6	false	ok	ranked		2	2	9	1929	0		8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	true
+T1234	T	protein_domain	prot_domains	YP_010355913.1 8qpq	A3	false	ok	ranked		1	1	3	1239	1	T1234-D1	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	true
+T1235	T	protein_domain	prot_domains	A0A410N6V5.2 8qpq	A6	false	ok	ranked		1	1	6	690	1	T1235-D1	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	true
+T1266	T	protein_domain	prot_domains	Q99549  8qfb	A1	false	ok	ranked		1	1	1	336	1	T1266-D1	8qfb	8qfb	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qfb.cif	true
+H0267	H	protein_oligo	prot_oligo	XauSPARDA	UNK	false	ok	unranked	no_reference_pdb	2	2	2	926	0				no_reference_pdb		false
+H2222	H	protein_oligo	prot_oligo	RSV G - Fab 2B11 complex	A1B1C1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		2b11	2b11	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/2b11.cif	false
+R1263	R	coverage_only		ZTP riboswitch with m-1-pyridinyl AICA 8vqv	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		8vqv	8vqv	not_required		false
+T1237	T	protein_domain	prot_domains	Bd3071	A4	false	ok	unranked	no_reference_pdb	1	1	4	1952	1	T1237-D1			no_reference_pdb		false
+H2223	H	protein_oligo	prot_oligo	RSV G - Fab 1G8 complex	A1B1C1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+M0268	M	coverage_only		Activated XauSPARDA with nucleic acids	UNK	false	skipped	unranked	unsupported_category	6	0	0	0	0				no_reference_pdb		false
+R1264	R	coverage_only		ZTP riboswitch with AICA derivative 8vvj	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		8vvj	8vvj	not_required		false
+T1238	T	protein_domain	prot_domains	Bd2098   <em><font color=red>Canceled - no structure.</font></em>	A2	true	skipped	unranked	cancelled_target	0	0	0	0	0				no_reference_pdb		false
+H2225	H	protein_oligo	prot_oligo	RSV G - Fab 1G1 complex	A1B1C1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T1240	T	protein_domain	prot_domains	Bd3442	A3	false	ok	unranked	no_reference_pdb	1	1	3	1959	2	T1240-D1,T1240-D2			no_reference_pdb		false
+T1269	T	protein_domain	prot_domains	MUC5AC uniprot P98088 9gvq	A1	false	ok	unranked	multi_domain_requires_cropping	1	1	1	1410	3	T1269-D1,T1269-D2,T1269-D3	9gvq	9gvq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9gvq.cif	false
+H1244	H	protein_oligo	prot_oligo	BJCNb48	A2B2C2	false	ok	unranked	no_reference_pdb	3	3	6	850	0				no_reference_pdb		false
+H2227	H	protein_oligo	prot_oligo	LetA (P0AD03) and LetB (P76272)	A1B6	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T0270	T	protein_domain	prot_domains	HtrA	UNK	false	ok	unranked	no_reference_pdb	1	1	1	437	0				no_reference_pdb		false
+T1244S1	T	protein_domain	prot_domains	BJCNb48	A1	false	ok	unranked	no_reference_pdb	1	1	1	157	1	T1244S1-D1			no_reference_pdb		false
+T1244S2	T	protein_domain	prot_domains	BJCNb48	A1	false	ok	unranked	no_reference_pdb	1	1	1	129	0				no_reference_pdb		false
+T2243	T	protein_domain	prot_domains	MTMA3 (UNIPROT ID: P0CH91)	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H1245	H	protein_oligo	prot_oligo	FUNcomplex	A1B1	false	ok	unranked	no_reference_pdb	2	2	2	317	0				no_reference_pdb		false
+M0271	M	coverage_only		RECC	UNK	true	skipped	unranked	unsupported_category	12	0	0	0	0				no_reference_pdb		false
+R0271	R	coverage_only		RECC	R1	true	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T0271S1	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0				no_reference_pdb		false
+T0271S2	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0				no_reference_pdb		false
+T0271S3	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0				no_reference_pdb		false
+T0271S4	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0				no_reference_pdb		false
+T0271S5	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0				no_reference_pdb		false
+T0271S6	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0				no_reference_pdb		false
+T0271S7	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0				no_reference_pdb		false
+T0271S8	T	protein_domain	prot_domains	RECC	A1	true	skipped	unranked	cancelled_target	1	0	0	0	0				no_reference_pdb		false
+T1245S1	T	protein_domain	prot_domains	FUNcomplex	A1	false	ok	unranked	no_reference_pdb	1	1	1	183	1	T1245S1-D1			no_reference_pdb		false
+T1245S2	T	protein_domain	prot_domains	FUNcomplex	A1	false	ok	unranked	no_reference_pdb	1	1	1	134	1	T1245S2-D1			no_reference_pdb		false
+T1246	T	protein_domain	prot_domains	DcmC	A1	false	ok	unranked	no_reference_pdb	1	1	1	168	1	T1246-D1			no_reference_pdb		false
+H2229	H	protein_oligo	prot_oligo	ORF61/A3A	A1B1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H2230	H	protein_oligo	prot_oligo	ORF61/A3B	A1B1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2247	T	protein_domain	prot_domains	PilK   <em><font color=red>Canceled - no structure.</font></em>	A1	true	skipped	unranked	cancelled_target	0	0	0	0	0				no_reference_pdb		false
+D1273	D	coverage_only		RKEC1 9hio	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9hio	9hio	not_required		false
+H1258	H	protein_oligo	prot_oligo	LRRK2/14-3-3 complex 9ci3	A1B2	false	ok	ranked		2	2	3	3092	0		9ci3	9ci3	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9ci3.cif	true
+T1257	T	protein_domain	prot_domains	P13390	A3	false	ok	unranked	no_reference_pdb	1	1	3	3789	1	T1257-D1			no_reference_pdb		false
+H2232	H	protein_oligo	prot_oligo	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex	A2B2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+M1271	M	coverage_only		RECC	A1B1C1D1E1F2G2H1I1J5R1	false	skipped	unranked	unsupported_category	12	0	0	0	0				no_reference_pdb		false
+R0250	R	coverage_only		GOLLD full env46	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+R0251	R	coverage_only		GOLLD full env38	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0		9mee	9mee	not_required		false
+R1254	R	coverage_only		GOLLD 3primedomain env38	R14	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+R1271	R	coverage_only		RECC	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T1259	T	protein_domain	prot_domains	AZI86_00190	A3	false	ok	unranked	no_reference_pdb	1	1	3	729	1	T1259-D1			no_reference_pdb		false
+T1271S1	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	818	1	T1271S1-D1			no_reference_pdb		false
+T1271S2	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	414	1	T1271S2-D1			no_reference_pdb		false
+T1271S3	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	384	1	T1271S3-D1			no_reference_pdb		false
+T1271S4	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	368	1	T1271S4-D1			no_reference_pdb		false
+T1271S5	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	762	2	T1271S5-D1,T1271S5-D2			no_reference_pdb		false
+T1271S6	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	587	1	T1271S6-D1			no_reference_pdb		false
+T1271S7	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	393	1	T1271S7-D1			no_reference_pdb		false
+T1271S8	T	protein_domain	prot_domains	RECC	A1	false	ok	unranked	no_reference_pdb	1	1	1	218	2	T1271S8-D1,T1271S8-D2			no_reference_pdb		false
+H1265	H	protein_oligo	prot_oligo	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	A9B18	false	ok	unranked	no_reference_pdb	2	2	27	3924	0				no_reference_pdb		false
+H2233	H	protein_oligo	prot_oligo	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex	A2B2C2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+R1252	R	coverage_only		ROOL UCC118	R6	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+R1253V1	R	coverage_only		ROOL env209	R8	false	skipped	unranked	unsupported_category	0	0	0	0	0				no_reference_pdb		false
+R1253V2	R	coverage_only		ROOL env209	R8	false	skipped	unranked	unsupported_category	0	0	0	0	0				no_reference_pdb		false
+T1274	T	protein_domain	prot_domains	CAB14884.3	A1	false	ok	unranked	no_reference_pdb	1	1	1	167	1	T1274-D1			no_reference_pdb		false
+H2236	H	protein_oligo	prot_oligo	Haloferax tailed virus 1	A3B6	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2234	T	protein_domain	prot_domains	YP_010355913.1	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2235	T	protein_domain	prot_domains	A0A410N6V5.2	A6	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2266	T	protein_domain	prot_domains	Q99549	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H0272	H	protein_oligo	prot_oligo	dystrophin-glycoprotein complex (DGC) 9c3c	UNK	false	ok	ranked		9	9	9	6879	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
+H1267	H	protein_oligo	prot_oligo	XauSPARDA	A2B2	false	ok	unranked	no_reference_pdb	2	2	4	1852	0				no_reference_pdb		false
+T0272S2	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	363	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T0272S3	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	318	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T0272S4	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	289	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T0272S5	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	291	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T0272S6	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	624	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T0272S7	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	242	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T0272S8	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	818	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T0272S9	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	238	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T1267S1	T	protein_domain	prot_domains	XauSPARDA	A1	false	ok	unranked	no_reference_pdb	1	1	1	444	2	T1267S1-D1,T1267S1-D2			no_reference_pdb		false
+T1267S2	T	protein_domain	prot_domains	XauSPARDA	A1	false	ok	unranked	no_reference_pdb	1	1	1	482	1	T1267S2-D1			no_reference_pdb		false
+T2237	T	protein_domain	prot_domains	Bd3071	A4	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+M0276	M	coverage_only		One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	UNK	false	skipped	unranked	unsupported_category	2	0	0	0	0				no_reference_pdb		false
+T2238	T	protein_domain	prot_domains	Bd2098	A2	true	skipped	unranked	cancelled_target	0	0	0	0	0				no_reference_pdb		false
+M1268	M	coverage_only		Activated XauSPARDA with nucleic acids	A8B8C8D8E1F1	false	skipped	unranked	unsupported_category	6	0	0	0	0				no_reference_pdb		false
+T1275	T	protein_domain	prot_domains	C12orf29   <em><font color=red>Canceled - bioRxiv preprint available.</font></em>	A1	true	skipped	unranked	cancelled_target	0	0	0	0	0				no_reference_pdb		false
+T2240	T	protein_domain	prot_domains	Bd3442	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2269	T	protein_domain	prot_domains	MUC5AC uniprot P98088	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H2244	H	protein_oligo	prot_oligo	BJCNb48	A2B2C2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T1270	T	protein_domain	prot_domains	HtrA	A6	false	ok	unranked	no_reference_pdb	1	1	6	2622	2	T1270-D1,T1270-D2			no_reference_pdb		false
+T1277	T	protein_domain	prot_domains	Tue1   <em><font color=red>Canceled - bioRxiv preprint available.</font></em>	A1	true	skipped	unranked	cancelled_target	0	0	0	0	0				no_reference_pdb		false
+H2245	H	protein_oligo	prot_oligo	FUNcomplex	A1B1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+R1286	R	coverage_only		Lactobacillus ncRNA 9j6y	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9j6y	9j6y	not_required		false
+T2246	T	protein_domain	prot_domains	DcmC		false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+R0281	R	coverage_only		2F RNA 6-helix bundle dimer	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T1278	T	protein_domain	prot_domains	Dehydrogenase	A1	false	ok	unranked	no_reference_pdb	1	1	1	380	1	T1278-D1			no_reference_pdb		false
+T1279	T	protein_domain	prot_domains	Bd1369	An	false	ok	unranked	no_reference_pdb	1	1	1	428	2	T1279-D1,T1279-D2			no_reference_pdb		false
+H2258	H	protein_oligo	prot_oligo	LRRK2/14-3-3 complex	A1B2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+M1282	M	coverage_only		Spike-RBD/Aptamer complex	A1B1	false	skipped	unranked	unsupported_category	2	0	0	0	0				no_reference_pdb		false
+T1280	T	protein_domain	prot_domains	C-terminal domain of bacteriophage K gp155 9f5m	A1	false	ok	ranked		1	1	1	237	1	T1280-D1	9f5m	9f5m	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9f5m.cif	true
+T2257	T	protein_domain	prot_domains	P13390	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+M0287	M	coverage_only		Q0X0A9_STRLS	UNK	false	skipped	unranked	unsupported_category	2	0	0	0	0				no_reference_pdb		false
+R1250	R	coverage_only		GOLLD full env46	R6	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+R1251	R	coverage_only		GOLLD full env38 9mee	R14	false	skipped	unranked	unsupported_category	1	0	0	0	0		9mee	9mee	not_required		false
+T2259	T	protein_domain	prot_domains	AZI86_00190	A3	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H2265	H	protein_oligo	prot_oligo	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	A9B18	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+R0283	R	coverage_only		Enterococcus ncRNA	UNK	false	skipped	unranked	unsupported_category	0	0	0	0	0				no_reference_pdb		false
+T2274	T	protein_domain	prot_domains	CAB14884.3	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+R0285	R	coverage_only		OLE	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0		9mcw	9mcw	not_required		false
+T1284	T	protein_domain	prot_domains	gp62	A1	false	ok	unranked	no_reference_pdb	1	1	1	120	1	T1284-D1			no_reference_pdb		false
+H1272	H	protein_oligo	prot_oligo	dystrophin-glycoprotein complex (DGC) 9c3c	A1B1C1D1E1F1G1H1I1	false	ok	ranked		9	9	9	6879	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
+H2267	H	protein_oligo	prot_oligo	XauSPARDA	A2B2	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+R0290	R	coverage_only		HYER1-withoutTRS	UNK	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T1272S2	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	ranked		1	1	1	363	1	T1272S2-D1	9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
+T1272S3	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	318	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T1272S4	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	289	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T1272S5	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	291	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T1272S6	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	ranked		1	1	1	624	1	T1272S6-D1	9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
+T1272S7	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	unranked	no_domain_definition	1	1	1	242	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T1272S8	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	ranked		1	1	1	818	1	T1272S8-D1	9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
+T1272S9	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	ok	ranked		1	1	1	238	1	T1272S9-D1	9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	true
+M1276	M	coverage_only		One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	A1B1	false	skipped	unranked	unsupported_category	2	0	0	0	0				no_reference_pdb		false
+R1289	R	coverage_only		Precursor tRNA	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T1276	T	protein_domain	prot_domains	One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	A1	false	ok	unranked	no_reference_pdb	1	1	1	40	1	T1276-D1			no_reference_pdb		false
+R1288	R	coverage_only		SAMURI	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T2271S1	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2271S2	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2271S3	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2271S4	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2271S5	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2271S6	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2271S7	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2271S8	T	protein_domain	prot_domains	RECC	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+R1291	R	coverage_only		O.I.intron-fulllength	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T2270	T	protein_domain	prot_domains	HtrA	A6	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+M1293	M	coverage_only		Translation enhancer motif	A1B1R1	false	skipped	unranked	unsupported_category	3	0	0	0	0				no_reference_pdb		false
+R1293	R	coverage_only		Translation enhancer motif	R1	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T1292	T	protein_domain	prot_domains	isocyanide hydratase-like iron binding protein	A2	false	ok	unranked	no_reference_pdb	1	1	2	392	1	T1292-D1			no_reference_pdb		false
+R1281	R	coverage_only		2F RNA 6-helix bundle dimer	A2	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T2278	T	protein_domain	prot_domains	Dehydrogenase	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T2279	T	protein_domain	prot_domains	Bd1369	An	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T1294V1	T	protein_domain	prot_domains	Isocyanide hydratase	A2	false	ok	unranked	no_reference_pdb	1	1	2	428	1	T1294V1-D1			no_reference_pdb		false
+T1294V2	T	protein_domain	prot_domains	Isocyanide hydratase	A2	false	skipped	unranked	no_sequence_record	0	0	0	0	1	T1294V2-D1			no_reference_pdb		false
+T2280	T	protein_domain	prot_domains	C-terminal domain of bacteriophage K gp155 9f5m	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9f5m	9f5m	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9f5m.cif	false
+M1287	M	coverage_only		Q0X0A9_STRLS	A2D2	false	skipped	unranked	unsupported_category	2	0	0	0	0				no_reference_pdb		false
+T1200	T	protein_domain	prot_domains	WT_ZLBT-C	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T1295	T	protein_domain	prot_domains	TM_Ag	A8	false	ok	unranked	no_reference_pdb	1	1	8	3752	3	T1295-D1,T1295-D2,T1295-D3			no_reference_pdb		false
+T1300	T	protein_domain	prot_domains	Gly6_ZLBT-C	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+M1296	M	coverage_only		G34U mutant of M1209 complex 9c75	A1B1C1	false	skipped	unranked	unsupported_category	3	0	0	0	0		9c75	9c75	not_required		false
+R1283V1	R	coverage_only		Enterococcus ncRNA 9isv	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9isv	9isv	not_required		false
+R1283V2	R	coverage_only		Enterococcus ncRNA 9j3r	A4	false	skipped	unranked	unsupported_category	0	0	0	0	0		9j3r	9j3r	not_required		false
+R1283V3	R	coverage_only		Enterococcus ncRNA 9j3t	A8	false	skipped	unranked	unsupported_category	0	0	0	0	0		9j3t	9j3t	not_required		false
+R1296	R	coverage_only		G34U mutant of M1209 complex 9c75	A1	false	skipped	unranked	unsupported_category	1	0	0	0	0		9c75	9c75	not_required		false
+M1297	M	coverage_only		Telomerase	A4B4C4D4E2R2	false	skipped	unranked	unsupported_category	6	0	0	0	0				no_reference_pdb		false
+R1285	R	coverage_only		OLE 9mcw	A2	false	skipped	unranked	unsupported_category	1	0	0	0	0		9mcw	9mcw	not_required		false
+T2284	T	protein_domain	prot_domains	gp62	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+H2272	H	protein_oligo	prot_oligo	dystrophin-glycoprotein complex (DGC) 9c3c	A1B1C1D1E1F1G1H1I1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+R1290	R	coverage_only		HYER1-withoutTRS	A2	false	skipped	unranked	unsupported_category	1	0	0	0	0				no_reference_pdb		false
+T1269V1	T	protein_domain	prot_domains	MUC5AC uniprot P98088 9gvq	An	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9gvq	9gvq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9gvq.cif	false
+T1298	T	protein_domain	prot_domains	Cyclic nucleotide-binding protein  9sfa	A2	false	ok	unranked	multi_domain_requires_cropping	1	1	2	684	2	T1298-D1,T1298-D2	9sfa	9sfa	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9sfa.cif	false
+T2272S2	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T2272S3	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T2272S4	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T2272S5	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T2272S6	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T2272S7	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T2272S8	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T2272S9	T	protein_domain	prot_domains	dystrophin-glycoprotein complex (DGC) 9c3c	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0		9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	false
+T1219V1	T	protein_domain	prot_domains	HD6 uniprot Q01524	An	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T1219V2	T	protein_domain	prot_domains	HD6 uniprot Q01524	An	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+T1299	T	protein_domain	prot_domains	9FJL 9fjl	A1	false	ok	ranked		1	1	1	168	1	T1299-D1	9fjl	9fjl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fjl.cif	true
+T2276	T	protein_domain	prot_domains	One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	A1	false	skipped	unranked	no_sequence_record	0	0	0	0	0				no_reference_pdb		false
+L5001	L	coverage_only		WDR55_apo	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0				no_reference_pdb		false
+L5001V1	L	coverage_only		WDR55_apo	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0				no_reference_pdb		false
+R1261V1	R	coverage_only		ZTP riboswitch 9bzc	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0		9bzc	9bzc	not_required		false
+R1262V1	R	coverage_only		ZTP riboswitch with AICA 9bz1	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0		9bz1	9bz1	not_required		false
+R1263V1	R	coverage_only		ZTP riboswitch with m-1-pyridinyl AICA 8vqv	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0		8vqv	8vqv	not_required		false
+R1264V1	R	coverage_only		ZTP riboswitch with AICA derivative 8vvj	A1	false	skipped	unranked	unsupported_category	0	0	0	0	0		8vvj	8vvj	not_required		false

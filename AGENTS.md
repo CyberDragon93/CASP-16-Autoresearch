@@ -10,6 +10,11 @@ The goal is to improve local CASP16 prediction strategies while preserving a
 stable, fair, reproducible leaderboard. Treat the benchmark as a protocol, not
 as a mutable result table.
 
+Use `docs/AUTORESEARCH.md` as the working index for current experiments and
+`docs/CASP16_SERVER_BENCHMARK.md` for the planned official-server comparison
+benchmark. Do not treat either document as permission to change locked
+benchmark files in place.
+
 ## Required Workflow
 
 Use the CLI path for every ranked run:
@@ -87,4 +92,3 @@ benchmark scoring pipeline.
 Create a short strategy record using `docs/STRATEGY_TEMPLATE.md` when adding a
 new run. The record should make it clear what changed, what stayed fixed, which
 commands were used, and whether the result is rank-eligible.
-

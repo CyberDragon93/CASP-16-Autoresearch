@@ -1,0 +1,8 @@
+run_id,base_mean31,ref9cqd_mismatch5_mean31,delta,details
+opendde_v1_full_msa_template_bf16_directrelp_torchtrimul_h1220_t1220s1_corrected_protein_skipconf,0.45720064516129033,0.5183941935483872,0.0611935483870969,H0222:ref9cqd:0.610000;H1213:mismatch5:0.672000;H1222:ref9cqd:0.615000
+opendde_v1_full_msa_template_bf16_directrelp_torchtrimul_h1258_chunk128_attnlowmem_nocontig_diffamp_pairprojchunk_bf16z_skipconf,0.40772096774193556,0.4689145161290323,0.06119354838709673,H0222:ref9cqd:0.610000;H1213:mismatch5:0.672000;H1222:ref9cqd:0.615000
+opendde_v1_full_msa_template_bf16_directrelp_torchtrimul_more,0.39817258064516137,0.4593661290322581,0.06119354838709673,H0222:ref9cqd:0.610000;H1213:mismatch5:0.672000;H1222:ref9cqd:0.615000
+opendde_v1_full_msa_template,0.34945483870967736,0.3890677419354838,0.03961290322580646,H0222:ref9cqd:0.614000;H1222:ref9cqd:0.614000
+opendde_v1_t1299_msa,0.031072903225806452,0.031072903225806452,0.0,
+opendde_v1_t1299_no_msa,0.012874193548387097,0.012874193548387097,0.0,
+baseline_no_msa,0.0,0.0,0.0,

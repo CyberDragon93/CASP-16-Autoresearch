@@ -40,6 +40,33 @@ def test_prediction_lookup_does_not_fallback_to_other_target(tmp_path) -> None:
     assert find_prediction_for_target(tmp_path, "T1201") is None
 
 
+def test_prediction_lookup_requires_exact_target_id(tmp_path) -> None:
+    alias_dir = tmp_path / "predictions" / "H1220" / "seed_101" / "predictions"
+    exact_dir = tmp_path / "predictions" / "H0220" / "seed_101" / "predictions"
+    alias_dir.mkdir(parents=True)
+    exact_dir.mkdir(parents=True)
+    alias_prediction = alias_dir / "H1220_sample_0.cif"
+    exact_prediction = exact_dir / "H0220_sample_0.cif"
+    alias_prediction.write_text("data_H1220\n", encoding="utf-8")
+    exact_prediction.write_text("data_H0220\n", encoding="utf-8")
+
+    assert find_prediction_for_target(tmp_path, "H1220") == alias_prediction
+    assert find_prediction_for_target(tmp_path, "H0220") == exact_prediction
+
+    exact_prediction.unlink()
+    assert find_prediction_for_target(tmp_path, "H0220") is None
+
+
+def test_prediction_lookup_does_not_mix_h0_h1_oligomers(tmp_path) -> None:
+    pred_dir = tmp_path / "predictions" / "H0227" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    prediction = pred_dir / "H0227_sample_0.cif"
+    prediction.write_text("data_H0227\n", encoding="utf-8")
+
+    assert find_prediction_for_target(tmp_path, "H0227") == prediction
+    assert find_prediction_for_target(tmp_path, "H1227") is None
+
+
 def test_prediction_lookup_ignores_target_id_in_run_directory(tmp_path) -> None:
     output_dir = tmp_path / "runs" / "retry_H1258" / "predictions" / "opendde_v1"
     wrong_dir = output_dir / "H0222" / "seed_101" / "predictions"

@@ -1,0 +1,86 @@
+# CASP16 Winner Recipes
+
+This file records public CASP16 method clues that are useful for future local
+strategy iteration. It is not a license to use official references or scores as
+per-target oracles.
+
+## Sources
+
+- CASP16 home and category description:
+  https://predictioncenter.org/casp16/
+- CASP16 official score tables:
+  https://predictioncenter.org/download_area/CASP16/results/tables/
+- CASP16 domain z-score ranking:
+  https://predictioncenter.org/casp16/zscores_final.cgi
+- Yang Lab CASP16 optimized-input paper:
+  https://yanglab.qd.sdu.edu.cn/papers/Wang_Proteins_2026.pdf
+- CASP16 single-protein assessment:
+  https://pmc.ncbi.nlm.nih.gov/articles/PMC12157625/
+- CASP16 protein-complex assessment preprint:
+  https://www.biorxiv.org/content/10.1101/2025.05.29.656875v1.full.pdf
+- AlphaFold3 CASP16 preprint:
+  https://www.biorxiv.org/content/10.1101/2025.04.10.648174v1.full-text
+
+## Protein Domains
+
+Public reports and the CASP16 domain z-score page indicate that Yang-lab
+systems were at or near the top of CASP16 protein-domain performance. The
+public recipe is not a single new architecture; it is careful input and target
+handling around strong predictors.
+
+Useful strategy hypotheses:
+
+- trim or mask intrinsically disordered regions before prediction when the
+  structured core is the scoring target
+- decompose multi-domain targets when domain boundaries are clear
+- run multiple strong engines where available, such as AF2-style, AF3-style,
+  and trRosettaX-style systems
+- optimize MSA and template inputs instead of accepting default shallow inputs
+- improve model ranking; CASP assessments repeatedly flag ranking/selection as
+  a weakness even when at least one generated model is good
+
+For local work, these ideas should become strategy scripts that transform
+inputs or select allowed outputs under a fixed budget. They must not change the
+benchmark target set or inspect references.
+
+## Protein Oligos
+
+Protein-complex performance is driven by more than per-chain fold quality.
+Assembly stoichiometry, symmetry, chain placement, and interface correctness
+matter. Public CASP16 complex reports highlighted strong multimer groups and
+continued room for improvement in complex modeling.
+
+Useful strategy hypotheses:
+
+- preserve exact stoichiometry from CASP target metadata
+- build assembly-aware inputs rather than flattening all chains naively
+- use symmetry-aware chain assignment in scoring and diagnostics
+- keep interface metrics such as DockQ, but optimize for assembly-level
+  `QSglob` once the scorer is available
+- separate "automatic server-like" runs from manual rescue runs
+
+For the server benchmark, a method that produces good monomer structures but
+wrong assemblies should score poorly on the oligo track.
+
+## AF3-Style Systems
+
+AF3-style predictors are strong CASP16 baselines, especially when inputs and
+large-target handling are carefully managed. Public AF3 CASP16 reports also
+describe manual intervention for some difficult or large targets, which should
+be tracked separately from server-like automatic runs.
+
+Useful strategy hypotheses:
+
+- compare OpenDDE/Protenix-style runs against an AF3-style reference strategy
+  where licensing and local execution allow it
+- record whether a run is automatic or manually adjusted
+- collect confidence as diagnostics only; do not rank by confidence
+
+## What To Avoid
+
+- claiming a server-track win from `casp16_protein_v1`
+- optimizing target-specific settings after seeing official scores
+- rescuing a few targets while ignoring full-set mean score
+- treating DockQ as interchangeable with `QSglob`
+- treating TM-score as interchangeable with official domain `GDT_TS`
+

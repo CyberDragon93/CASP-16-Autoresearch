@@ -26,7 +26,9 @@ cd /scratch/10992/liaorunlong93/casp16-leaderboard
 
 Agents and humans making leaderboard-facing strategy changes must start with
 `AGENTS.md`. The detailed fairness contract is in
-`docs/LEADERBOARD_RULES.md`, and new strategy notes should use
+`docs/LEADERBOARD_RULES.md`, server-track comparison planning is in
+`docs/CASP16_SERVER_BENCHMARK.md`, autoresearch notes are in
+`docs/AUTORESEARCH.md`, and new strategy notes should use
 `docs/STRATEGY_TEMPLATE.md`.
 
 Generated files are written under:
@@ -65,8 +67,19 @@ Validated locally:
 - official domain definitions parsed: 85
 - official scored records parsed: 95,268 raw / 95,236 usable scored rows
 - benchmark Protenix jobs generated: 128
-- benchmark rank-eligible targets: 31
-- tests: `23 passed`
+- benchmark rank-eligible targets: 39
+- tests: `30 passed` with
+  `/scratch/10992/liaorunlong93/conda/envs/protein/bin/python -m pytest`
+
+## CASP16 Server-Track Comparison
+
+`casp16_protein_v1` is not the official CASP16 server leaderboard. It is a
+small, strict local benchmark for stable iteration. To compare against CASP16
+server groups, use a new benchmark version such as
+`casp16_server_protein_v1`, based on the official protein score-table target
+sets: 71 protein-domain targets scored with `GDT_TS` and 104 protein-oligo
+targets scored with `QSglob`. The design notes are in
+`docs/CASP16_SERVER_BENCHMARK.md`.
 
 The legacy commands still work:
 

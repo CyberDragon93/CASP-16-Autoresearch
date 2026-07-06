@@ -1,0 +1,153 @@
+# CASP16 Server Benchmark Plan
+
+This document defines the direction for a CASP16 benchmark whose purpose is to
+compare local methods against the CASP16 server-track protein results. It is a
+new benchmark version, not a mutation of `casp16_protein_v1`.
+
+## Why A New Benchmark
+
+`casp16_protein_v1` is a local development leaderboard. It is intentionally
+conservative: targets are ranked only when the local repo has explicit
+sequence, reference, and mapping coverage. That makes it useful for stable
+agent iteration, but it is not the CASP16 server leaderboard.
+
+To ask "can this beat the CASP16 server results?", the benchmark must align to
+the official score tables:
+
+- protein domains: official `prot_domains` score table target/domain set
+- protein oligos: official `prot_oligo` score table target set
+- server comparison: compare only against server submissions in the downloaded
+  tables, represented locally by group ids ending in `s`
+- metrics: reproduce the official primary metric as closely as possible
+  (`GDT_TS` for domains, `QSglob` for oligos)
+
+## Proposed Identity
+
+- Benchmark name: `casp16_server_protein_v1`
+- Ranked tracks: `protein_domain`, `protein_oligo`
+- Domain target count: 71 official `prot_domains` targets in the current parsed
+  score-table aggregate
+- Oligo target count: 104 official `prot_oligo` targets in the current parsed
+  score-table aggregate
+- Ranked comparison set: local runs plus server groups only
+- Reference policy: every rank-eligible local target needs explicit reference,
+  chain, residue, domain, and assembly mapping
+
+The target counts above come from the local parse of the official CASP16 score
+tables under `leaderboards/*/official_groups.csv`; the official score-table
+source directory is:
+
+https://predictioncenter.org/download_area/CASP16/results/tables/
+
+## Difference From `casp16_protein_v1`
+
+| Area | `casp16_protein_v1` | `casp16_server_protein_v1` |
+| --- | --- | --- |
+| Purpose | Local stable agent iteration | Official server-track comparison |
+| Ranked target basis | Repo-eligible targets with explicit local mappings | Official protein score-table target sets |
+| Current ranked size | 39 targets: 16 domain, 23 oligo | 175 targets: 71 domain, 104 oligo |
+| Domain metric | GDT/TM-like local score when available | Official-compatible `GDT_TS` |
+| Oligo metric | DockQ-derived local metric | Official-compatible `QSglob` |
+| Official comparison | Diagnostic all-group aggregate | Server-only aggregate, group id ends with `s` |
+| Missing local prediction | Scores `0` | Scores `0` |
+| Main risk | Too small to claim official-server parity | Harder mapping and scorer reproducibility |
+
+## Server Baselines From Current Score-Table Aggregate
+
+These are raw score-table means from the local official aggregate, not the CASP
+HTML z-score ranking:
+
+| Track | Comparator | Group | Mean fixed score | Metric | Targets |
+| --- | --- | --- | ---: | --- | ---: |
+| Protein domains | best all-group | `022` | 0.926510 | `GDT_TS` | 71 |
+| Protein domains | best server-group | `110s` | 0.923321 | `GDT_TS` | 71 |
+| Protein oligos | best all-group | `051` | 0.606500 | `QSglob` | 104 |
+| Protein oligos | best server-group | `456s` | 0.582615 | `QSglob` | 104 |
+
+CASP also publishes z-score based rankings, which are not identical to raw
+mean metric rankings. The official domain z-score page states that group
+ranking is based on z-scores for `GDT_TS` and separates server groups on all
+groups plus server-only targets:
+
+https://predictioncenter.org/casp16/zscores_final.cgi
+
+## Metric Requirements
+
+### Protein Domains
+
+Goal: reproduce `GDT_TS` as used by the official protein-domain score table.
+
+Required pieces:
+
+- domain-level target list from the official score table and domain summary
+- residue/domain crop mapping for both reference and prediction
+- chain mapping for multi-chain source targets
+- a scorer that reports `GDT_TS`, not just TM-score
+- normalized leaderboard value in `0..1` (`GDT_TS / 100` if a tool reports
+  percentages)
+
+TM-score, lDDT, and confidence are useful diagnostics, but they are not
+substitutes for the ranked domain score.
+
+### Protein Oligos
+
+Goal: reproduce `QSglob` as used by the official protein-oligo score table.
+
+Required pieces:
+
+- biological assembly reference, not merely an asymmetric-unit file
+- exact target stoichiometry and chain/entity mapping
+- symmetry-aware chain assignment
+- a scorer that reports `QSglob`
+- DockQ retained only as an interface diagnostic unless it is explicitly
+  converted into a validated official-compatible proxy
+
+DockQ and `QSglob` answer related but different questions. DockQ is strongest
+for interface-level quality; `QSglob` is an assembly-level quaternary-structure
+score. A method can have good local DockQ on some interfaces and still lose the
+official oligo ranking if assembly stoichiometry or global chain placement is
+wrong.
+
+## Anti-Oracle Rules
+
+This benchmark should inherit the existing anti-oracle policy:
+
+- no reference/native structures during strategy design or prediction
+- no official score-table rows for per-target tuning
+- no previous `target_scores.csv` rows for per-target parameter selection
+- no confidence-as-quality replacement
+- missing, failed, or metric-unavailable targets score `0`
+
+The server-style benchmark should also record whether a method required human
+per-target intervention. A fully server-like run should be automatic across the
+whole target set.
+
+## Build Phases
+
+1. Add benchmark skeleton:
+   `benchmarks/casp16_server_protein_v1/benchmark.json`,
+   `targets.tsv`, `references.tsv`, `domain_definitions.tsv`,
+   `inputs.json`, `input_manifest.tsv`, and `scoring_policy.md`.
+2. Derive ranked target sets directly from the official `prot_domains` and
+   `prot_oligo` score tables instead of the current local eligibility filter.
+3. Implement official-compatible domain scoring first, because `GDT_TS` is
+   cleaner to validate than assembly-level `QSglob`.
+4. Add oligo assembly mapping and `QSglob` scoring. Keep DockQ as a diagnostic
+   column.
+5. Add `leaderboards/casp16_server_protein_v1/` artifacts:
+   `RESULTS.md`, `runs.csv`, `target_scores.csv`, `coverage.md`,
+   `official_server_groups.csv`, `official_all_groups.csv`, and
+   `artifacts_manifest.json`.
+6. Validate with an end-to-end fixture proving that missing coverage cannot
+   outrank broad coverage.
+
+## First Experiments After The Benchmark Exists
+
+- Re-score the best current OpenDDE run on the official-compatible target set.
+- Separate automatic full-target runs from manual rescue runs.
+- Add Yang-Server-style input optimization as strategy code, not benchmark
+  edits: disorder trimming, domain decomposition, MSA/template breadth, and
+  model ranking.
+- For oligos, prioritize stoichiometry/assembly correctness before interface
+  polishing.
+

@@ -1,0 +1,208 @@
+CASP16 target-lab recommendations
+Generated: 2026-07-05
+
+Purpose
+-------
+This file lists candidate protein targets for agent-driven single-target
+optimization. These targets are for target_lab experiments only. A strategy
+found here must not be promoted to the ranked casp16_protein_v1 leaderboard
+until it is converted into a target-agnostic protocol and rerun over the full
+eligible benchmark set.
+
+Current score source
+--------------------
+Current local scores are from the diagnostic OpenDDE run:
+
+  opendde_v1_full_msa_template_bf16_directrelp_torchtrimul_h1220_t1220s1_corrected_protein_skipconf
+
+These are useful for choosing optimization targets, but they are not a clean
+official leaderboard result. In particular, H0258/H1258 alias handling has had
+prediction-path contamination in generated target_scores.csv, so single-target
+experiments should use strict target-id prediction manifests.
+
+
+Top recommendations
+-------------------
+
+1. H1258 - primary target-lab recommendation
+
+   Track: protein_oligo
+   System: LRRK2/14-3-3 complex, reference 9ci3
+   Size: 3092 aa, 3 chains, stoichiometry A1B2
+   Current local DockQ: 0.296
+   CASP16 per-target best reference point: DockQ_Avg about 0.751 for H1258TS052_2
+
+   Why pick it:
+   - It already runs to completion, unlike the largest OOM cases.
+   - The current score is low enough to leave real headroom.
+   - It is large and biologically realistic, so improvements are likely to
+     exercise MSA, template, stoichiometry, chain expansion, and interface
+     modeling.
+   - CASP16 top groups did much better on this target, so it is a meaningful
+     stress test rather than a solved easy target.
+
+   Good first experiments:
+   - Verify H1258-only input generation and H1258-only output scoring.
+   - Compare full A1B2 prediction against smaller subcomplex jobs such as A1B1
+     or B2, but keep these as target_lab diagnostics.
+   - Try stricter MSA/template cache reuse and record exact MSA parameters.
+   - Add chain/stoichiometry sanity checks before running expensive inference.
+
+   Success bar:
+   - Short-term: DockQ > 0.40.
+   - Strong result: DockQ > 0.55.
+   - CASP-top-like target: DockQ around 0.70+.
+
+
+2. H1232 - fastest failure-case recommendation
+
+   Track: protein_oligo
+   System: Human astrovirus 2 capsid spike - antibody scFv 4B6, reference 9cn2
+   Size: 924 aa, 4 chains, stoichiometry A2B2
+   Current local DockQ: 0.018
+
+   Why pick it:
+   - Very low current score, so improvements are obvious.
+   - Much smaller than H1258, so agent loops should be faster.
+   - Antibody/capsid complex should test interface placement and chain matching.
+
+   Good first experiments:
+   - Use H1232, not H0232, for the canonical stoichiometry-aware target.
+   - Validate chain ordering and DockQ chain mapping.
+   - Try template/MSA variants before changing model budget.
+
+   Success bar:
+   - Short-term: DockQ > 0.20.
+   - Strong result: DockQ > 0.45.
+
+
+3. H1236 - medium-hard stoichiometry/symmetry target
+
+   Track: protein_oligo
+   System: Haloferax tailed virus 1, reference 8qpq
+   Size: 1929 aa, 9 chains, stoichiometry A3B6
+   Current local DockQ: 0.326
+
+   Why pick it:
+   - Tests multi-copy stoichiometry and symmetry handling.
+   - Less extreme than H1227, but still large enough to reveal scaling issues.
+   - A good second-stage target once H1258/H1232 infrastructure is reliable.
+
+   Risk:
+   - More expensive than antibody-sized targets.
+   - Chain permutation and repeated entities can make scoring/debugging harder.
+
+
+Good secondary targets
+----------------------
+
+H1225
+  Track: protein_oligo
+  System: RSV G - Fab 1G1 complex, reference 9cqa
+  Size: 483 aa, 3 chains, stoichiometry A1B1C1
+  Current local DockQ: 0.221
+  Use: small interface-improvement target.
+
+H1223
+  Track: protein_oligo
+  System: RSV G - Fab 1G8 complex, reference 9cqb
+  Size: 486 aa, 3 chains, stoichiometry A1B1C1
+  Current local DockQ: 0.310
+  Use: small antibody-complex target with moderate improvement room.
+
+H1213
+  Track: protein_oligo
+  System: DP71_eIF2_PP1_complex, reference 9nb9
+  Size: 1373 aa, 5 chains, stoichiometry A1B1C1D1E1
+  Current local DockQ: 0.672
+  Use: high-medium baseline target; good for checking that an optimization does
+  not damage already decent predictions.
+
+H1204
+  Track: protein_oligo
+  System: human hemoglobin in complex with nanobody, reference 8vyl
+  Size: 858 aa, 6 chains, stoichiometry A2B2C2
+  Current local DockQ: 0.691
+  Use: high-medium control for chain stoichiometry and repeated subunits.
+
+
+Positive controls
+-----------------
+
+Use these to make sure code changes do not break already-good behavior.
+
+H1233
+  Track: protein_oligo
+  System: Human astrovirus 1 capsid spike - antibody Fab 3H4, reference 9cbn
+  Size: 1316 aa, 6 chains, stoichiometry A2B2C2
+  Current local DockQ: 0.891
+
+H1202
+  Track: protein_oligo
+  System: Q9GZX9_plus_P43026, reference 8bwl
+  Size: 380 aa, 4 chains, stoichiometry A2B2
+  Current local DockQ: 0.838
+
+T1299
+  Track: protein_domain
+  System: 9FJL, reference 9fjl
+  Size: 168 aa, 1 chain
+  Current local GDT_TS_norm: 0.9524
+
+T1249V1
+  Track: protein_domain
+  System: Arenaviral spike complex, reference 9fya
+  Size: 1464 aa, 3 chains
+  Current local GDT_TS_norm: 0.9135
+
+
+Avoid as first optimization targets
+-----------------------------------
+
+H1227
+  Size: about 5689 expanded tokens, 7 chains, reference 9n8w
+  Reason: current attempts mostly test memory/OOM behavior rather than
+  structure-quality strategy. Useful later for scaling work, not for the first
+  agent solution loop.
+
+H0258
+  Reason: same LRRK2/14-3-3 system as H1258 but earlier UNK stoichiometry.
+  Use H1258 for the target-lab primary experiment and treat H0258 as an alias
+  sanity-check target only.
+
+T1210
+  Track: protein_domain
+  Current local GDT_TS_norm: 0.0113
+  Reason: very low score may involve domain/reference mapping issues. Debug it
+  later, but it is not the cleanest first agent-optimization target.
+
+
+Recommended code changes before running agent loops
+---------------------------------------------------
+
+1. Add target-scoped run specs.
+   Run specs should include:
+
+     target_ids: ["H1258"]
+     optimization_scope: "target_lab"
+     rank_eligible: false
+
+2. Add strict prediction manifests.
+   Scoring should read an explicit mapping:
+
+     target_id -> prediction_path
+
+   Do not score H0258 with an H1258 prediction just because they share a
+   reference or description.
+
+3. Add score-target.
+   A target_lab scorer should write to:
+
+     target_lab/<target_id>/scores.csv
+
+   It should not rewrite the ranked leaderboard artifacts.
+
+4. Add promotion rules.
+   A target-specific trick can be promoted only after it becomes a target-
+   agnostic strategy and is rerun over the full eligible benchmark set.
+

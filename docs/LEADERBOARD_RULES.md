@@ -67,3 +67,10 @@ Any change to target eligibility, reference mapping, scoring metrics, fixed
 budget, selected model policy, or benchmark inputs requires a new benchmark
 version. Do not overwrite `casp16_protein_v1` to make a result look better.
 
+## Server-Track Work
+
+Official CASP16 server-track comparison needs a separate benchmark version,
+for example `casp16_server_protein_v1`. It should use the official protein
+score-table target sets and official-compatible metrics (`GDT_TS` for protein
+domains, `QSglob` for protein oligos). Do not retrofit those rules into
+`casp16_protein_v1`.

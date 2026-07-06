@@ -21,15 +21,15 @@
     },
     "references": {
       "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_protein_v1/references.tsv",
-      "sha256": "989369eb137806e2852afeb3b28c2f2709fccc114b64ab0f5291f5dc5d718fa7"
+      "sha256": "5d6b83b10f93beaed5c07b4c51783fa79baf4d89fb3056ea278d9b949ceb72c0"
     },
     "scoring_policy": {
       "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_protein_v1/scoring_policy.md",
-      "sha256": "04f549c1beb6290b09b64dbd26d95d1c784b1ef9cb6c15294fb98ff28d27aa94"
+      "sha256": "9b906db25982f8a3856e70b6dc6130d9122f8515c525b946d6611350aff1f859"
     },
     "targets": {
       "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_protein_v1/targets.tsv",
-      "sha256": "65c7d6df7d119ffbe059dc927e72cf0f10217d11b3d6ba1900c4719146e7d3db"
+      "sha256": "bdcd29a46f03d916707bb3ddd915603d7dfd6e87ab7c515a68eac143a8bf05db"
     }
   },
   "missing_target_score": 0.0,

@@ -53,6 +53,34 @@ def write_fixture_official(root) -> None:
                 "Cancellation Date": "-",
                 "Description": "rna",
             },
+            {
+                "target_id": "H0222",
+                "target_prefix": "H",
+                "Target": "H0222",
+                "Type": "All groups",
+                "Res": "485",
+                "Oligo.State": "UNK",
+                "Entry Date": "",
+                "Server Exp.": "",
+                "Human Exp.": "",
+                "QA Exp.": "",
+                "Cancellation Date": "-",
+                "Description": "RSV G - Fab 2B11 complex",
+            },
+            {
+                "target_id": "H1222",
+                "target_prefix": "H",
+                "Target": "H1222",
+                "Type": "All groups",
+                "Res": "485",
+                "Oligo.State": "A1B1C1",
+                "Entry Date": "",
+                "Server Exp.": "",
+                "Human Exp.": "",
+                "QA Exp.": "",
+                "Cancellation Date": "-",
+                "Description": "RSV G - Fab 2B11 complex 9cqd",
+            },
         ],
         ["target_id", "target_prefix", "Target", "Type", "Res", "Oligo.State", "Entry Date", "Server Exp.", "Human Exp.", "QA Exp.", "Cancellation Date", "Description"],
     )
@@ -62,6 +90,9 @@ def write_fixture_official(root) -> None:
             {"record_id": "T1201", "target_ids": "T1201", "sequence_family": "T", "sequence_kind": "proteinChain", "length": "3", "sequence": "ACD", "header": "", "source_file": ""},
             {"record_id": "H1202A", "target_ids": "H1202", "sequence_family": "H", "sequence_kind": "proteinChain", "length": "3", "sequence": "ACD", "header": "", "source_file": ""},
             {"record_id": "H1202B", "target_ids": "H1202", "sequence_family": "H", "sequence_kind": "proteinChain", "length": "3", "sequence": "EFG", "header": "", "source_file": ""},
+            {"record_id": "H1222A", "target_ids": "H1222", "sequence_family": "H", "sequence_kind": "proteinChain", "length": "3", "sequence": "AAA", "header": "", "source_file": ""},
+            {"record_id": "H1222B", "target_ids": "H1222", "sequence_family": "H", "sequence_kind": "proteinChain", "length": "3", "sequence": "BBB", "header": "", "source_file": ""},
+            {"record_id": "H1222C", "target_ids": "H1222", "sequence_family": "H", "sequence_kind": "proteinChain", "length": "3", "sequence": "CCC", "header": "", "source_file": ""},
         ],
         ["record_id", "target_ids", "sequence_family", "sequence_kind", "length", "sequence", "header", "source_file"],
     )
@@ -73,6 +104,12 @@ def write_fixture_official(root) -> None:
     (paths.references_dir / "mmcif").mkdir(parents=True)
     (paths.references_dir / "mmcif" / "8bwd.cif").write_text("data_8bwd\n", encoding="utf-8")
     (paths.references_dir / "mmcif" / "8bwl.cif").write_text("data_8bwl\n", encoding="utf-8")
+    (paths.references_dir / "mmcif" / "9cqd.cif").write_text("data_9cqd\n", encoding="utf-8")
+    write_tsv(
+        paths.target_references_tsv,
+        [{"target_id": "H1222", "pdb_ids": "9cqd", "source": "targetlist.cgi"}],
+        ["target_id", "pdb_ids", "source"],
+    )
 
 
 def test_build_benchmark_protein_first(tmp_path) -> None:
@@ -81,13 +118,17 @@ def test_build_benchmark_protein_first(tmp_path) -> None:
     write_fixture_official(official_root)
 
     summary = build_casp16_protein_benchmark(project_root=project_root, official_root=official_root)
-    assert summary["input_jobs"] == 2
-    assert summary["rank_eligible"] == 2
+    assert summary["input_jobs"] == 4
+    assert summary["rank_eligible"] == 4
 
     benchmark_dir = project_root / "benchmarks" / "casp16_protein_v1"
     targets = {row["target_id"]: row for row in read_tsv(benchmark_dir / "targets.tsv")}
     assert targets["T1201"]["rank_eligible"] == "true"
     assert targets["H1202"]["rank_eligible"] == "true"
+    assert targets["H0222"]["selected_pdb_id"] == "9cqd"
+    assert targets["H1222"]["selected_pdb_id"] == "9cqd"
+    assert targets["H0222"]["reference_path"].endswith("9cqd.cif")
+    assert targets["H1222"]["reference_path"].endswith("9cqd.cif")
     assert targets["R1203"]["skip_reason"] == "unsupported_category"
 
     inputs = json.loads((benchmark_dir / "inputs.json").read_text(encoding="utf-8"))

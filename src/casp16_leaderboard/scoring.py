@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -28,6 +29,7 @@ TARGET_SCORE_FIELDS = [
     "status",
     "message",
 ]
+DOCKQ_ALLOWED_MISMATCHES = 5
 
 
 def resolve_tool(configured: Path | None, names: Sequence[str]) -> str:
@@ -69,9 +71,9 @@ def parse_dockq_output(text: str) -> dict[str, float]:
 def find_prediction_for_target(output_dir: Path, target_id: str) -> Path | None:
     if not output_dir.exists():
         return None
-    target_low = target_id.lower()
     candidates = sorted(output_dir.glob("**/*.cif")) + sorted(output_dir.glob("**/*.pdb"))
-    matched = []
+    target_low = target_id.lower()
+    exact_matched = []
     for path in candidates:
         try:
             rel_parts = path.relative_to(output_dir).parts
@@ -79,12 +81,16 @@ def find_prediction_for_target(output_dir: Path, target_id: str) -> Path | None:
             rel_parts = path.parts
         rel_parts_low = [part.lower() for part in rel_parts]
         if target_low in path.name.lower() or target_low in rel_parts_low[:-1]:
-            matched.append(path)
-    return matched[0] if matched else None
+            exact_matched.append(path)
+    if exact_matched:
+        return exact_matched[0]
+    return None
 
 
 def run_metric(command: Sequence[str], *, timeout_seconds: int = 300) -> tuple[int, str, str]:
-    completed = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout_seconds, check=False)
+    env = os.environ.copy()
+    env.setdefault("PYTHONNOUSERSITE", "1")
+    completed = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout_seconds, check=False, env=env)
     return completed.returncode, completed.stdout, completed.stderr
 
 
@@ -179,7 +185,13 @@ def score_target(
     if target.get("track") == "protein_oligo":
         if not dockq_tool:
             return {**base, "metric": "DockQ", "status": "metric_unavailable", "message": "DockQ_not_found"}
-        code, stdout, stderr = run_metric([dockq_tool, str(prediction_path), str(reference_path)])
+        code, stdout, stderr = run_metric([
+            dockq_tool,
+            "--allowed_mismatches",
+            str(DOCKQ_ALLOWED_MISMATCHES),
+            str(prediction_path),
+            str(reference_path),
+        ])
         if code != 0:
             return {**base, "metric": "DockQ", "status": "metric_failed", "message": stderr.strip()[:240]}
         parsed = parse_dockq_output(stdout)

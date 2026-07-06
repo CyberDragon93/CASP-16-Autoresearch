@@ -7,7 +7,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from .inputs import build_protenix_job, index_sequences_by_target
+from .inputs import build_protenix_job, index_sequences_by_target, target_lookup_aliases
 from .official import (
     BASE_DOWNLOAD_URL,
     DOMAINS_SUMMARY_URL,
@@ -42,6 +42,7 @@ TARGET_FIELDS = [
     "domain_count",
     "domain_ids",
     "pdb_ids",
+    "selected_pdb_id",
     "reference_status",
     "reference_path",
     "rank_eligible",
@@ -102,17 +103,19 @@ def build_casp16_protein_benchmark(
 
     by_target = index_sequences_by_target(sequence_rows)
     domains_by_target: dict[str, list[dict[str, str]]] = {}
-    pdbs_by_target: dict[str, set[str]] = {}
+    explicit_pdbs_by_target: dict[str, set[str]] = {}
     for row in domain_rows:
         target_id = row.get("target_id", "").upper()
         if not target_id:
             continue
         domains_by_target.setdefault(target_id, []).append(row)
-        pdbs_by_target.setdefault(target_id, set()).update(pdb for pdb in row.get("pdb_ids", "").split(",") if pdb)
+        for lookup_id in target_lookup_aliases(target_id):
+            explicit_pdbs_by_target.setdefault(lookup_id, set()).update(pdb for pdb in row.get("pdb_ids", "").split(",") if pdb)
     for row in target_reference_rows:
         target_id = row.get("target_id", "").upper()
         if target_id:
-            pdbs_by_target.setdefault(target_id, set()).update(pdb for pdb in row.get("pdb_ids", "").split(",") if pdb)
+            for lookup_id in target_lookup_aliases(target_id):
+                explicit_pdbs_by_target.setdefault(lookup_id, set()).update(pdb for pdb in row.get("pdb_ids", "").split(",") if pdb)
 
     jobs: list[dict[str, object]] = []
     input_manifest: list[dict[str, object]] = []
@@ -120,7 +123,7 @@ def build_casp16_protein_benchmark(
     references_out: list[dict[str, object]] = []
 
     for target in target_rows:
-        row = benchmark_target_row(target, by_target, domains_by_target, pdbs_by_target, paths, download_references, force_references)
+        row = benchmark_target_row(target, by_target, domains_by_target, explicit_pdbs_by_target, paths, download_references, force_references)
         targets_out.append(row)
         input_manifest.append(
             {
@@ -148,7 +151,7 @@ def build_casp16_protein_benchmark(
                     "target_id": row["target_id"],
                     "track": row["track"],
                     "pdb_ids": row["pdb_ids"],
-                    "selected_pdb_id": str(row["pdb_ids"]).split(",", 1)[0] if row["pdb_ids"] else "",
+                    "selected_pdb_id": row["selected_pdb_id"],
                     "reference_status": row["reference_status"],
                     "reference_path": row["reference_path"],
                     "sha256": sha256_file(Path(str(row["reference_path"]))) if row["reference_path"] and Path(str(row["reference_path"])).exists() else "",
@@ -233,7 +236,7 @@ def benchmark_target_row(
     target: Mapping[str, str],
     by_target: Mapping[str, list[dict[str, str]]],
     domains_by_target: Mapping[str, list[dict[str, str]]],
-    pdbs_by_target: Mapping[str, set[str]],
+    explicit_pdbs_by_target: Mapping[str, set[str]],
     paths: OfficialPaths,
     download_references: bool,
     force_references: bool,
@@ -254,9 +257,10 @@ def benchmark_target_row(
         category = "prot_oligo"
 
     domain_rows = list(domains_by_target.get(target_id, []))
-    pdb_ids = set(pdb_ids_from_text(description))
-    pdb_ids.update(pdbs_by_target.get(target_id, set()))
-    selected_pdb = sorted(pdb_ids)[0] if pdb_ids else ""
+    description_pdb_ids = set(pdb_ids_from_text(description))
+    explicit_pdb_ids = set(explicit_pdbs_by_target.get(target_id, set()))
+    pdb_ids = description_pdb_ids | explicit_pdb_ids
+    selected_pdb = sorted(explicit_pdb_ids or description_pdb_ids)[0] if pdb_ids else ""
     if track in {"protein_domain", "protein_oligo"}:
         reference_path, reference_status = reference_for_pdb(paths, selected_pdb, download_references=download_references, force=force_references)
     else:
@@ -318,6 +322,7 @@ def benchmark_target_row(
         "domain_count": len(domain_rows),
         "domain_ids": ",".join(row.get("domain_id", "") for row in domain_rows),
         "pdb_ids": ",".join(sorted(pdb_ids)),
+        "selected_pdb_id": selected_pdb,
         "reference_status": reference_status,
         "reference_path": reference_path,
         "rank_eligible": str(rank_eligible).lower(),
@@ -370,6 +375,6 @@ This benchmark is protein-first and rank-stable.
 - Missing predictions, failed predictions, unavailable metric tools, and unparseable metric output score `0`.
 - Confidence files are collected as diagnostics only and never used as quality score.
 - Protein domain targets use a normalized GDT-TS/TM-like score when a single-domain reference mapping is available.
-- Protein oligo targets use DockQ-derived scores when reference complexes are available.
+- Protein oligo targets use DockQ-derived scores with `--allowed_mismatches 5` when reference complexes are available.
 - Targets without a sequence, reference, or explicit mapping stay visible as coverage rows but are not rank-eligible.
 """

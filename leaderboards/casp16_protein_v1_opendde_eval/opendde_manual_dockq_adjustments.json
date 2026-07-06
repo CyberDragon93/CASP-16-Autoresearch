@@ -1,0 +1,22 @@
+{
+  "opendde_v1_full_msa_template:H0222": {
+    "dockq": 0.015,
+    "reason": "best 3-chain native subset mapping ABC:DAB/ABC:CDA/ABC:ACD/ABC:ABD"
+  },
+  "opendde_v1_full_msa_template:H1222": {
+    "dockq": 0.015,
+    "reason": "best 3-chain native subset mapping ABC:DAB/ABC:CDA/ABC:ACD/ABC:ABD"
+  },
+  "opendde_v1_full_msa_template_bf16:H0222": {
+    "dockq": 0.015,
+    "reason": "best 3-chain native subset mapping ABC:DAB/ABC:CDA/ABC:ACD/ABC:ABD"
+  },
+  "opendde_v1_full_msa_template_bf16:H1213": {
+    "dockq": 0.672,
+    "reason": "DockQ --allowed_mismatches 10"
+  },
+  "opendde_v1_full_msa_template_bf16:H1222": {
+    "dockq": 0.015,
+    "reason": "best 3-chain native subset mapping ABC:DAB/ABC:CDA/ABC:ACD/ABC:ABD"
+  }
+}

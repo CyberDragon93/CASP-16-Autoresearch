@@ -1,0 +1,27 @@
+# CASP16 Protein V1 Results
+
+Runs are ranked over fixed eligible target sets. Missing predictions, failed metrics, and unavailable metrics score 0.
+
+## protein_domain
+
+| rank | run | status | mean | eligible | ok | missing | failed | metric unavailable |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | opendde_v1_t1299_no_msa | ranked | 0.024944 | 16 | 1 | 15 | 0 | 0 |
+|  | opendde_v1_full_msa_template_bf16_directrelp_torchtrimul_h1220_t1220s1_corrected_protein_skipconf | unranked:run_not_rank_eligible | 0.620889 | 16 | 16 | 0 | 0 | 0 |
+|  | opendde_v1_full_msa_template_bf16_directrelp_torchtrimul_h1258_chunk128_attnlowmem_nocontig_diffamp_pairprojchunk_bf16z_skipconf | unranked:run_not_rank_eligible | 0.565522 | 16 | 15 | 1 | 0 | 0 |
+|  | opendde_v1_full_msa_template_bf16_directrelp_torchtrimul_more | unranked:run_not_rank_eligible | 0.565522 | 16 | 15 | 1 | 0 | 0 |
+|  | opendde_v1_full_msa_template | unranked:run_not_rank_eligible | 0.544631 | 16 | 13 | 3 | 0 | 0 |
+|  | opendde_v1_t1299_msa | unranked:run_not_rank_eligible | 0.060204 | 16 | 1 | 15 | 0 | 0 |
+|  | baseline_no_msa | pending:no_scored_targets | 0.000000 | 16 | 0 | 16 | 0 | 0 |
+
+## protein_oligo
+
+| rank | run | status | mean | eligible | ok | missing | failed | metric unavailable |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|  | opendde_v1_full_msa_template_bf16_directrelp_torchtrimul_h1220_t1220s1_corrected_protein_skipconf | unranked:run_not_rank_eligible | 0.340000 | 23 | 18 | 4 | 1 | 0 |
+|  | opendde_v1_full_msa_template_bf16_directrelp_torchtrimul_h1258_chunk128_attnlowmem_nocontig_diffamp_pairprojchunk_bf16z_skipconf | unranked:run_not_rank_eligible | 0.238609 | 23 | 11 | 12 | 0 | 0 |
+|  | opendde_v1_full_msa_template_bf16_directrelp_torchtrimul_more | unranked:run_not_rank_eligible | 0.225739 | 23 | 10 | 13 | 0 | 0 |
+|  | opendde_v1_full_msa_template | unranked:run_not_rank_eligible | 0.145522 | 23 | 7 | 16 | 0 | 0 |
+|  | baseline_no_msa | pending:no_scored_targets | 0.000000 | 23 | 0 | 23 | 0 | 0 |
+|  | opendde_v1_t1299_msa | unranked:run_not_rank_eligible | 0.000000 | 23 | 0 | 23 | 0 | 0 |
+|  | opendde_v1_t1299_no_msa | pending:no_scored_targets | 0.000000 | 23 | 0 | 23 | 0 | 0 |
