@@ -22,6 +22,7 @@ leaderboard progress.
 | `server_attack_protenix_coverage_stoich_seed101_105` | `casp16_server_protein_v1` | queued, not submitted | five-seed attack run on stacked sequence-recovery, token-fallback, token-safe stoichiometry inputs | attack tier only |
 | `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` pending on dependency `810719` | first alias-fixed v2 `dev_fixed` baseline using stacked coverage + token-safe stoichiometry inputs | yes for domain track; oligo after QSglob mapping validation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | pending behind v2 baseline | v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | yes for domain track; oligo after QSglob mapping validation |
+| `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | pending behind v2 low-complexity | v2 stack plus large-target fallback for the 11 remaining over-token jobs | yes for domain track; oligo is coverage-recovery diagnostic |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
 | `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `810824` failed; resubmitted as `811114` pending | compact exact-stoich and H1258-window learning batch | not rank eligible |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob mapping or a positive antibody signal |
@@ -302,6 +303,26 @@ leaderboard progress.
     - It prevents target_lab diagnostics from silently importing OpenDDE's
       `runner.batch_inference` while the ranked Protenix workflows use
       `Protenix-Insta`.
+    - Live validation: `target_lab/domain_fragment_batch_v1` job `810862`
+      started on `c622-022`, imported
+      `/scratch/10992/liaorunlong93/Protenix-Insta/runner/batch_inference.py`,
+      loaded the Protenix v2 checkpoint, and entered MSA search.
+30. Generated and queued
+    `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`
+    as the next v2 coverage-recovery ablation. It starts from the v2
+    coverage/stoich/low-complexity input and applies the existing
+    target-agnostic large-target fallback to all remaining over-token jobs.
+    - Before fallback, the v2 stack still had 11 jobs above the Protenix
+      2560-token limit: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`,
+      `H1272`, `H2217`, `H2258`, `H2272`, and `T1295O`.
+    - After fallback, all 163 generated jobs are at or below 2560 tokens.
+    - Changed targets: the 11 over-token jobs above.
+    - Queue check: `run-next --benchmark casp16_server_protein_v2_aliasfix
+      --dry-run` still selects `server_v2_protenix_yang_coverage_stoich_seed101`
+      first. This fallback run waits behind the v2 baseline and v2
+      low-complexity ablation.
+    - Interpretation: this is a coverage-recovery candidate, not a claim that
+      cropped assemblies preserve official oligo fidelity.
 
 ## Strategy Decision Log
 

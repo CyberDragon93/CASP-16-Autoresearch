@@ -98,6 +98,12 @@ where methods should change.
   behind the v2 baseline. It starts from the v2 coverage/stoich input and adds
   sequence-only low-complexity terminal cleanup, changing 27 sequences across
   21 targets under the same seed-101 `dev_fixed` budget.
+- New v2 coverage-recovery candidate:
+  `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`
+  is queued behind the v2 low-complexity ablation. It starts from that input
+  and applies the target-agnostic large-target fallback to the 11 jobs still
+  above Protenix's 2560-token limit, leaving 0 oversize jobs under the same
+  seed-101 `dev_fixed` budget.
 - New H1258 target-lab artifact:
   `target_lab/h1258_interaction_window_v1/` builds the public
   LRRK2-interaction-window clue as LRRK2 residues 861-1014 plus 14-3-3 A1B2.
@@ -113,7 +119,8 @@ where methods should change.
 - New domain-fragment target-lab batch:
   `target_lab/domain_fragment_batch_v1/` turns the domain-decomposition recipe
   into 12 runnable Protenix fragment jobs. It has been submitted as Slurm job
-  `810862` and must stay out of ranked server comparisons.
+  `810862`, is running on `c622-022`, and must stay out of ranked server
+  comparisons.
 
 ## Main Objective
 
@@ -218,9 +225,10 @@ competitive result.
     trimming, domain decomposition, MSA/template optimization, assembly-aware
     multimer handling, and model ranking.
 16. Monitor target_lab job `810862` for
-    `target_lab/domain_fragment_batch_v1`, then inspect fragment coverage and
-    confidence diagnostics. Promote only a target-agnostic segmentation rule,
-    not CASP-domain-summary hand crops.
+    `target_lab/domain_fragment_batch_v1`. It is running on `c622-022` and has
+    passed the Protenix import/env bootstrap. After completion, inspect
+    fragment coverage and confidence diagnostics. Promote only a
+    target-agnostic segmentation rule, not CASP-domain-summary hand crops.
 17. Keep `server_attack_protenix_coverage_stoich_seed101_105` queued as the
     next realistic attack-budget candidate. Submit it only when
     `./casp16 run-next --benchmark casp16_server_protein_v1 --dry-run` selects
@@ -239,6 +247,10 @@ competitive result.
 21. After `server_v2_protenix_yang_coverage_stoich_seed101` is scored, run
     `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` as the
     next v2 `dev_fixed` construct-cleanup ablation if queue state permits.
+22. After the v2 low-complexity ablation is scored, run
+    `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`
+    to test whether removing the remaining 11 token-limit hard failures is
+    worth the assembly simplification.
 
 ## Run Discipline
 
