@@ -44,13 +44,17 @@ The rule requires a heavy/light antibody-like N terminus, a recognized
 variable-domain terminal motif around residues 85-135, and at least 50
 C-terminal residues removed. It does not trim short antigen-like chains.
 
-## Launch Gate
+## Queue Status
 
-Queue this only after the baseline and lower-risk terminal-tag cleanup have
-finished or failed clearly. It is more biologically targeted than the broad
-dynamic-IDR scan, but it still changes a meaningful antibody-complex subset.
+This run is queued as `server_protenix_yang_antibody_fv_cleanup_seed101`,
+behind `server_protenix_yang_terminal_tag_cleanup_seed101`. It should not
+launch until the current baseline has finished and the lower-risk terminal-tag
+cleanup has run or been intentionally skipped.
 
-Potential full-run spec command:
+It is more biologically targeted than the broad dynamic-IDR scan, but it still
+changes a meaningful antibody-complex subset.
+
+Full-run spec command used:
 
 ```bash
 ./casp16 run-spec \

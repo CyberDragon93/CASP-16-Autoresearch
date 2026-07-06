@@ -11,6 +11,7 @@ leaderboard progress.
 | `server_eval_opendde_v1_full_msa_template_bf16_h1220_t1220s1` | `casp16_server_protein_v1` | scored diagnostic | reuse 35 existing OpenDDE local-v1 predictions to expose server coverage gap | no |
 | `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | running | full server-target Protenix baseline with real MSA/template settings | yes, once predictions and required scorers exist |
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | pending, blocked while baseline runs | target-agnostic Yang-style terminal tag cleanup rerun | yes, after baseline frees the GH200 |
+| `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | full-set antibody Fv constant-region cleanup rerun | yes, after lower-risk cleanup ablation |
 
 ## Current Score Truth
 
@@ -40,12 +41,16 @@ leaderboard progress.
    full optimized-input reproduction attempt. It trims only obvious terminal
    His/expression tags and keeps seed `101`, sample `1`, MSA/templates, and
    `first_output_only`.
-4. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
+4. Run queued `server_protenix_yang_antibody_fv_cleanup_seed101` as the first
+   full-set antibody construct attempt after the lower-risk terminal cleanup.
+   It preserves all 106 server jobs while trimming 16 antibody constant-region
+   chains across 8 antibody-antigen targets.
+5. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
    the oligo track.
-5. Start target_lab loops on H1258 and H1232 only as diagnostics for
+6. Start target_lab loops on H1258 and H1232 only as diagnostics for
    stoichiometry/construct tricks; promotion requires a target-agnostic full
    benchmark rerun.
-6. Add domain cropping and chain/residue mapping before drawing conclusions
+7. Add domain cropping and chain/residue mapping before drawing conclusions
    from hard multi-domain domain targets.
 
 ## Strategy Decision Log
@@ -68,9 +73,9 @@ target-agnostic antibody-complex rule and run across the full eligible set.
 
 ### 2026-07-05 Antibody Fv Full-Set Candidate
 
-Decision: generate `yang_antibody_fv_cleanup_v1` as a full-set, sequence-only
-server benchmark candidate, but do not launch it before the baseline and
-lower-risk terminal-tag cleanup.
+Decision: generate and queue `yang_antibody_fv_cleanup_v1` as a full-set,
+sequence-only server benchmark candidate behind the baseline and lower-risk
+terminal-tag cleanup.
 
 Rationale: O5 needs a leaderboard-compatible path, not only changed-target
 diagnostics. The full-set candidate preserves all 106 server jobs and original
@@ -78,7 +83,7 @@ target IDs, audits 172 protein chains, and trims 16 antibody heavy/light
 constant regions across 8 antibody-antigen targets. This keeps the benchmark
 coverage fixed while testing the Fv construct hypothesis.
 
-Launch gate: queue with the same Protenix/MSA/template/seed/sample budget only
+Launch gate: run with the same Protenix/MSA/template/seed/sample budget only
 after the current baseline frees the GH200 and the conservative tag-cleanup
 ablation has either run or been intentionally skipped.
 
