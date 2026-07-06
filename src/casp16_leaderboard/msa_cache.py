@@ -181,5 +181,7 @@ def reuse_msa_paths(
         "protein_chains": protein_chain_count,
         "reused": reused,
         "kept_existing": kept_existing,
+        "covered": reused + kept_existing,
+        "coverage_fraction": ((reused + kept_existing) / protein_chain_count) if protein_chain_count else 1.0,
         "missing_source": missing,
     }

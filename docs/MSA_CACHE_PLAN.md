@@ -22,15 +22,27 @@ Use:
 ```bash
 ./casp16 reuse-msa \
   --input-json <new_inputs.json> \
-  --msa-source-json <completed_run>/inputs/inputs-update-msa.json \
+  --source-run-id <completed_or_stable_source_run> \
   --output-json <new_inputs.with_msa.json> \
-  --report-tsv <msa_reuse.tsv>
+  --report-tsv <msa_reuse.tsv> \
+  --require-complete
 ```
 
 The command injects MSA paths only by exact protein sequence SHA256. If the
 sequence was trimmed, windowed, recovered, or otherwise changed, it misses and
 Protenix will search MSA normally. Existing valid MSA paths in the input are
 kept unless `--overwrite-existing` is set.
+
+Use `--source-run-id` for normal repo workflows; it resolves
+`runs/<run_id>/inputs/inputs-update-msa.json` and falls back to
+`inputs-final-updated.json` when present. Use `--msa-source-json` only when the
+source is outside the repo's `runs/` tree.
+
+For attack shards that are expected to reuse every unchanged chain, use
+`--require-complete`. For ablations where some sequences intentionally change,
+use `--min-reuse-fraction <fraction>` and inspect the TSV report before launch.
+The JSON summary reports `reused`, `kept_existing`, `covered`,
+`coverage_fraction`, and `missing_source`.
 
 ## Rules
 
@@ -41,6 +53,9 @@ kept unless `--overwrite-existing` is set.
 - Treat MSA source JSON and reuse report as run artifacts, not benchmark files.
 - Report `reused`, `kept_existing`, and `missing_source` counts in strategy
   notes before launching a cache-reused run.
+- Use a coverage guard (`--require-complete` or `--min-reuse-fraction`) for
+  queued attack runs so a typo in the cache source cannot silently trigger a
+  full MSA rerun.
 
 ## Priority Use Cases
 

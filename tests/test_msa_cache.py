@@ -4,6 +4,9 @@ import csv
 import json
 from pathlib import Path
 
+import pytest
+
+from casp16_leaderboard.cli import resolve_msa_source_jsons, validate_msa_reuse_summary
 from casp16_leaderboard.msa_cache import reuse_msa_paths
 
 
@@ -59,6 +62,8 @@ def test_reuse_msa_paths_matches_exact_sequence_only(tmp_path: Path) -> None:
 
     assert summary["reused"] == 1
     assert summary["missing_source"] == 1
+    assert summary["covered"] == 1
+    assert summary["coverage_fraction"] == 0.5
     payload = json.loads(output_json.read_text(encoding="utf-8"))
     reused_chain = payload[0]["sequences"][0]["proteinChain"]
     missed_chain = payload[1]["sequences"][0]["proteinChain"]
@@ -131,6 +136,28 @@ def test_reuse_msa_paths_keeps_existing_usable_paths(tmp_path: Path) -> None:
     )
 
     assert summary["kept_existing"] == 1
+    assert summary["covered"] == 1
+    assert summary["coverage_fraction"] == 1.0
     payload = json.loads((tmp_path / "out.json").read_text(encoding="utf-8"))
     chain = payload[0]["sequences"][0]["proteinChain"]
     assert chain["unpairedMsaPath"] == str(existing_unpaired)
+
+
+def test_resolve_msa_source_jsons_accepts_run_id(tmp_path: Path) -> None:
+    source = tmp_path / "runs" / "dev_seed101" / "inputs" / "inputs-update-msa.json"
+    source.parent.mkdir(parents=True)
+    source.write_text("[]\n", encoding="utf-8")
+
+    resolved = resolve_msa_source_jsons(tmp_path, explicit_paths=None, source_run_ids=["dev_seed101"])
+
+    assert resolved == [source.resolve()]
+
+
+def test_validate_msa_reuse_summary_rejects_incomplete() -> None:
+    summary = {"protein_chains": 2, "covered": 1, "coverage_fraction": 0.5, "missing_source": 1}
+
+    with pytest.raises(RuntimeError, match="MSA reuse incomplete"):
+        validate_msa_reuse_summary(summary, require_complete=True, min_reuse_fraction=None)
+
+    with pytest.raises(RuntimeError, match="below required"):
+        validate_msa_reuse_summary(summary, require_complete=False, min_reuse_fraction=0.75)

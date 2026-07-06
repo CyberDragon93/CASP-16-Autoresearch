@@ -31,6 +31,41 @@ def print_json(payload: object) -> None:
     print(json.dumps(payload, indent=2, sort_keys=True))
 
 
+def resolve_msa_source_jsons(root: Path, explicit_paths: Sequence[Path] | None, source_run_ids: Sequence[str] | None) -> list[Path]:
+    sources = [path.resolve() for path in (explicit_paths or [])]
+    for run_id in source_run_ids or []:
+        run_inputs = root / "runs" / run_id / "inputs"
+        candidates = [run_inputs / "inputs-update-msa.json", run_inputs / "inputs-final-updated.json"]
+        source = next((path for path in candidates if path.exists()), None)
+        if source is None:
+            tried = ", ".join(str(path) for path in candidates)
+            raise FileNotFoundError(f"no MSA-updated input JSON found for run {run_id!r}; tried {tried}")
+        sources.append(source.resolve())
+    if not sources:
+        raise ValueError("provide at least one --msa-source-json or --source-run-id")
+    missing = [str(path) for path in sources if not path.exists()]
+    if missing:
+        raise FileNotFoundError(f"MSA source JSON not found: {', '.join(missing)}")
+    return sources
+
+
+def validate_msa_reuse_summary(summary: dict[str, object], *, require_complete: bool, min_reuse_fraction: float | None) -> None:
+    missing = int(summary.get("missing_source", 0) or 0)
+    protein_chains = int(summary.get("protein_chains", 0) or 0)
+    covered = int(summary.get("covered", 0) or 0)
+    coverage_fraction = float(summary.get("coverage_fraction", 1.0) or 0.0)
+    if require_complete and missing:
+        raise RuntimeError(f"MSA reuse incomplete: {covered}/{protein_chains} protein chains covered, {missing} missing exact-sequence source(s)")
+    if min_reuse_fraction is not None:
+        if min_reuse_fraction < 0.0 or min_reuse_fraction > 1.0:
+            raise ValueError("--min-reuse-fraction must be between 0 and 1")
+        if coverage_fraction < min_reuse_fraction:
+            raise RuntimeError(
+                f"MSA reuse coverage {coverage_fraction:.3f} is below required {min_reuse_fraction:.3f} "
+                f"({covered}/{protein_chains} protein chains covered)"
+            )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CASP16 local leaderboard infrastructure.")
     parser.add_argument("--root", type=Path, default=default_project_root(), help="Project root. Defaults to this checkout.")
@@ -70,10 +105,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     reuse_msa = subparsers.add_parser("reuse-msa", help="Inject existing Protenix MSA paths into a new input JSON by exact protein sequence match.")
     reuse_msa.add_argument("--input-json", type=Path, required=True)
-    reuse_msa.add_argument("--msa-source-json", type=Path, action="append", required=True, help="Existing Protenix inputs-update-msa.json; repeatable.")
+    reuse_msa.add_argument("--msa-source-json", type=Path, action="append", default=None, help="Existing Protenix inputs-update-msa.json; repeatable.")
+    reuse_msa.add_argument("--source-run-id", action="append", default=None, help="Use runs/<run_id>/inputs/inputs-update-msa.json as an MSA source; repeatable.")
     reuse_msa.add_argument("--output-json", type=Path, required=True)
     reuse_msa.add_argument("--report-tsv", type=Path, required=True)
     reuse_msa.add_argument("--overwrite-existing", action="store_true", help="Replace existing MSA paths in the input JSON when an exact sequence match exists.")
+    reuse_msa.add_argument("--require-complete", action="store_true", help="Fail unless every protein chain already has or receives usable MSA paths.")
+    reuse_msa.add_argument("--min-reuse-fraction", type=float, default=None, help="Fail unless covered protein-chain fraction is at least this value.")
 
     run_spec = subparsers.add_parser("run-spec", help="Create a reproducible Protenix run spec and run.sh.")
     run_spec.add_argument("--run-id", required=True)
@@ -242,13 +280,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.command == "reuse-msa":
+        msa_source_jsons = resolve_msa_source_jsons(root, args.msa_source_json, args.source_run_id)
         summary = reuse_msa_paths(
             input_json=args.input_json.resolve(),
-            msa_source_jsons=[path.resolve() for path in args.msa_source_json],
+            msa_source_jsons=msa_source_jsons,
             output_json=args.output_json.resolve(),
             report_tsv=args.report_tsv.resolve(),
             overwrite_existing=args.overwrite_existing,
         )
+        validate_msa_reuse_summary(summary, require_complete=args.require_complete, min_reuse_fraction=args.min_reuse_fraction)
         print_json(summary)
         return 0
 
