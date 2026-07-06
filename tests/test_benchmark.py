@@ -264,3 +264,55 @@ def test_build_server_benchmark_from_official_scores(tmp_path) -> None:
     assert oligo_top["eligible_target_count"] == "3"
     assert oligo_top["missing_target_count"] == "1"
     assert oligo_top["mean_fixed_score"] == "0.366667"
+
+
+def test_server_benchmark_uses_phase_2_reference_aliases(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+    paths = OfficialPaths(official_root)
+    score_rows = read_tsv(paths.scores_tsv)
+    score_rows.extend(
+        [
+            {
+                "category": "prot_domains",
+                "table": "domains.csv",
+                "target_id": "T2201",
+                "model": "T2201TS110_1-D1",
+                "group": "110s",
+                "submitted_model_rank": "1",
+                "primary_metric": "GDT_TS",
+                "primary_score": "91.000000",
+                "metric_json": "{}",
+                "source_path": "domains.csv",
+            },
+            {
+                "category": "prot_oligo",
+                "table": "oligo.csv",
+                "target_id": "H2202",
+                "model": "H2202TS456_1",
+                "group": "456s",
+                "submitted_model_rank": "1",
+                "primary_metric": "QSglob",
+                "primary_score": "0.600000",
+                "metric_json": "{}",
+                "source_path": "oligo.csv",
+            },
+        ]
+    )
+    write_tsv(
+        paths.scores_tsv,
+        score_rows,
+        ["category", "table", "target_id", "model", "group", "submitted_model_rank", "primary_metric", "primary_score", "metric_json", "source_path"],
+    )
+
+    build_casp16_server_protein_benchmark(project_root=project_root, official_root=official_root)
+
+    benchmark_dir = project_root / "benchmarks" / "casp16_server_protein_v1"
+    targets = {row["target_id"]: row for row in read_tsv(benchmark_dir / "targets.tsv")}
+    assert targets["T2201"]["sequence_lookup_id"] == "T2201"
+    assert targets["T2201"]["selected_pdb_id"] == "8bwd"
+    assert targets["T2201"]["reference_path"].endswith("8bwd.cif")
+    assert targets["H2202"]["sequence_lookup_id"] == "H2202"
+    assert targets["H2202"]["selected_pdb_id"] == "8bwl"
+    assert targets["H2202"]["reference_path"].endswith("8bwl.cif")

@@ -13,7 +13,7 @@ leaderboard progress.
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | scored | target-agnostic Yang-style terminal tag cleanup rerun | yes for domain track |
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | scored | single-entity oversize domain fallback recovered `T1295` inference but not score, because `T1295` lacks local reference mapping | yes for domain track |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | scored negative | full-set antibody Fv constant-region cleanup rerun | yes for domain track |
-| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` pending | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
+| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` running | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | recover missing/misparsed protein-domain sequences on top of terminal-tag cleanup | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
@@ -168,8 +168,32 @@ leaderboard progress.
       `server_protenix_yang_large_target_split_or_fallback_seed101`.
     - Submit only when this run is selected by `run-next --dry-run`, or
       intentionally supersede it after the component coverage runs finish.
+19. Audited server-benchmark reference gaps while the attack job was running.
+    The checked-in v1 benchmark has 54 available references and 106 Protenix
+    jobs. A temporary rebuild with `0xxx/1xxx/2xxx` target aliasing produces 79
+    available references and 163 Protenix jobs. This should become a new
+    benchmark version, not an in-place v1 rewrite.
 
 ## Strategy Decision Log
+
+### 2026-07-06 Phase-2 Alias Reference Gap
+
+Decision: extend target lookup aliases to cover CASP phase ids `0xxx`, `1xxx`,
+and `2xxx`, and document the resulting reference/input coverage gain. Do not
+regenerate checked-in `casp16_server_protein_v1` artifacts in place.
+
+Rationale: many official server score rows use ids such as `T2201`, `H2202`,
+and `T2201O`, while local metadata, sequence records, and PDB references often
+live under `T1201`, `H1202`, or `T1201`. Treating these as disconnected makes
+local scores artificially sparse.
+
+Evidence: a temporary rebuild outside the repo recovered examples such as
+`T2201 -> 8bwd`, `T2206 -> 9cp0`, `H2202 -> 8bwl`, `H2232 -> 9cn2`, and
+`H2258 -> 9ci3`. Available references increased from 54 to 79 and generated
+Protenix jobs increased from 106 to 163.
+
+Next action: create `casp16_server_protein_v2_aliasfix` or an equivalent
+explicit benchmark version before making any serious winner-comparison claim.
 
 ### 2026-07-06 Coverage + Stoichiometry Attack Candidate
 

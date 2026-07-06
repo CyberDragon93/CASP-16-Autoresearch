@@ -136,11 +136,10 @@ def index_sequences_by_target(sequence_rows: Sequence[dict[str, str]]) -> dict[s
 def target_lookup_aliases(target_id: str) -> set[str]:
     target_id = target_id.upper()
     aliases = {target_id}
-    match = re.match(r"^([THRDML])([01])(\d{3})(S\d+|V\d+)?$", target_id)
+    match = re.match(r"^([THRDML])([012])(\d{3})(S\d+|V\d+)?$", target_id)
     if match:
-        prefix, leading, rest, suffix = match.groups()
-        other_leading = "1" if leading == "0" else "0"
-        aliases.add(f"{prefix}{other_leading}{rest}{suffix or ''}")
+        prefix, _leading, rest, suffix = match.groups()
+        aliases.update(f"{prefix}{phase}{rest}{suffix or ''}" for phase in ("0", "1", "2"))
     return aliases
 
 

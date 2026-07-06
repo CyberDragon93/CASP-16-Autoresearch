@@ -87,6 +87,20 @@ benchmark scoring pipeline.
 - Confidence files are diagnostics only. Do not use confidence as a quality
   score or as a replacement for structure metrics.
 
+## Server Attack Budgets
+
+Do not treat a one-seed/one-sample development run as winner-comparable. CASP16
+server winners almost certainly used more than one internal candidate, and
+official server submissions could contain multiple models. Any server-track
+attack run must declare its candidate budget before prediction starts: seed
+list, sample count, backend/model variants, MSA/template policy, selection rule,
+and allowed selection signals.
+
+The current `server_attack` tier is only a first realism check, not an estimate
+of the true winner budget. Larger multi-seed, multi-sample, multi-engine, or
+stronger-ranker attempts require a new predeclared attack-budget version and
+must be reported separately from `dev_fixed` rows.
+
 ## Strategy Notes
 
 Create a short strategy record using `docs/STRATEGY_TEMPLATE.md` when adding a

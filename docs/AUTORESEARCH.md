@@ -17,6 +17,10 @@ where methods should change.
 - `casp16_server_protein_v1` now has a generated skeleton: 175 fixed official
   targets, 106 Protenix jobs, 54 cached references, and 45 unresolved parsed
   domain-subtarget diagnostics.
+- Reference-gap audit: extending CASP phase aliases to `0xxx/1xxx/2xxx` raises
+  a temporary server-benchmark rebuild to 163 Protenix jobs and 79 available
+  references. See `docs/REFERENCE_GAP_AUDIT.md`; this needs a new benchmark
+  version rather than rewriting v1 in place.
 - `leaderboards/casp16_server_protein_v1/official_groups.csv` is server-only;
   `official_all_groups.csv` is diagnostic.
 - Server scoring now enforces metric identity: `GDT_TS` for domains and
@@ -94,6 +98,7 @@ then improve methods against that harder target set.
 - `docs/CASP16_SERVER_BENCHMARK.md`: plan for server-track comparison
 - `docs/CASP16_WINNER_RECIPES.md`: notes on known CASP16 winning approaches
 - `docs/SERVER_ATTACK_POLICY.md`: fixed multi-seed attack-budget rules
+- `docs/REFERENCE_GAP_AUDIT.md`: server benchmark reference/input coverage gaps
 - `attack_budgets/`: JSON attack-budget definitions
 - `docs/AUTORESEARCH_QUEUE.md`: current execution queue for strategy attempts
 - `docs/EXPERIMENTS.md`: append-only autoresearch experiment log
@@ -181,9 +186,13 @@ competitive result.
     confidence diagnostics. Promote only a target-agnostic segmentation rule,
     not CASP-domain-summary hand crops.
 17. Keep `server_attack_protenix_coverage_stoich_seed101_105` queued as the
-    next realistic attack-budget candidate. Submit it only when `run-next
-    --dry-run` selects it, or intentionally supersede it after the component
-    single-seed coverage runs report negative evidence.
+    next realistic attack-budget candidate. Submit it only when
+    `./casp16 run-next --benchmark casp16_server_protein_v1 --dry-run` selects
+    it, or intentionally supersede it after the component single-seed coverage
+    runs report negative evidence.
+18. Create an alias-fixed server benchmark version, likely
+    `casp16_server_protein_v2_aliasfix`, before making any serious
+    winner-comparison claim.
 
 ## Run Discipline
 

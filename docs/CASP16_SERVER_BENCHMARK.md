@@ -99,6 +99,14 @@ and 45 unresolved parsed domain-subtarget diagnostics. Missing references or
 unresolved mappings remain in the fixed denominator and score `0` for local
 runs until the reference registry is improved.
 
+`docs/REFERENCE_GAP_AUDIT.md` records a high-impact alias issue: CASP phase
+ids such as `T2201` and `H2202` should be allowed to inherit metadata and PDB
+references from matching `T1201`/`H1202` rows. A temporary rebuild with
+`0xxx/1xxx/2xxx` aliasing raises the skeleton to 163 generated Protenix jobs
+and 79 available references. Because this changes reference mapping and input
+coverage, it should become a new benchmark version rather than an in-place
+rewrite of v1.
+
 The scoring gate now enforces official metric identity: server protein domains
 must parse `GDT_TS`, and server protein oligos must parse `QSglob`. TM-score and
 DockQ can still be collected as diagnostics for other benchmarks, but they are
@@ -232,3 +240,5 @@ whole target set.
   model ranking.
 - For oligos, prioritize stoichiometry/assembly correctness before interface
   polishing.
+- Create an alias-fixed `casp16_server_protein_v2_aliasfix` or equivalent
+  before making winner-comparison claims from local scores.

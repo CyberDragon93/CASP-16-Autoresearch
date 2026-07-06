@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from casp16_leaderboard.inputs import build_protenix_job, chain_id_for, index_sequences_by_target, oligo_state_counts, sanitize_sequence
+from casp16_leaderboard.inputs import build_protenix_job, chain_id_for, index_sequences_by_target, oligo_state_counts, sanitize_sequence, target_lookup_aliases
 
 
 def test_build_protenix_job_mixed_entities() -> None:
@@ -58,3 +58,8 @@ def test_index_sequences_adds_casp_0_1_alias() -> None:
     indexed = index_sequences_by_target(rows)
     assert "T1208S1" in indexed
     assert "T0208S1" in indexed
+
+
+def test_target_lookup_aliases_cover_server_phase_2_ids() -> None:
+    assert target_lookup_aliases("T2201") >= {"T0201", "T1201", "T2201"}
+    assert target_lookup_aliases("H2249V1") >= {"H0249V1", "H1249V1", "H2249V1"}
