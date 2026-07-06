@@ -31,7 +31,8 @@ Agents and humans making leaderboard-facing strategy changes must start with
 `docs/CASP16_SERVER_BENCHMARK.md`, autoresearch notes are in
 `docs/AUTORESEARCH.md`, the live experiment queue is in
 `docs/EXPERIMENTS.md`, winner-inspired strategy cards are in
-`docs/CASP16_WINNER_RECIPES.md`, and new strategy notes should use
+`docs/CASP16_WINNER_RECIPES.md`, the multi-candidate server budget is in
+`docs/SERVER_ATTACK_POLICY.md`, and new strategy notes should use
 `docs/STRATEGY_TEMPLATE.md`.
 
 Generated files are written under:
@@ -58,7 +59,10 @@ For `casp16_server_protein_v1`, protein-domain scoring requires a scorer output
 with `GDT_TS`, and protein-oligo scoring requires a `QSglob` scorer; DockQ is
 not accepted as a ranked `QSglob` replacement. Missing predictions, failed
 metrics, and unavailable metric tools score `0`; confidence files are collected
-only as diagnostics and are never used as quality scores.
+only as diagnostics for `dev_fixed`. A separate `server_attack` tier may use
+the predeclared `protenix_confidence_v1` selector from
+`docs/SERVER_ATTACK_POLICY.md`, but it is not comparable to single-seed
+`dev_fixed` rows.
 
 ## Current Protein V1 Coverage
 
@@ -76,7 +80,7 @@ Validated locally:
 - official scored records parsed: 95,268 raw / 95,236 usable scored rows
 - benchmark Protenix jobs generated: 128
 - benchmark rank-eligible targets: 39
-- tests: `38 passed` with
+- tests: `69 passed` with
   `/scratch/10992/liaorunlong93/conda/envs/protein/bin/python -m pytest`
 
 ## CASP16 Server-Track Comparison

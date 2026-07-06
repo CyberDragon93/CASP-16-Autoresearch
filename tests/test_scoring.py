@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from casp16_leaderboard.scoring import find_prediction_for_target, parse_dockq_output, parse_ost_qs_json, parse_qsglob_output, parse_tmscore_output, score_target
+from casp16_leaderboard.scoring import find_prediction_for_target, parse_dockq_output, parse_ost_qs_json, parse_qsglob_output, parse_tmscore_output, score_target, select_prediction_for_target
 
 
 def test_parse_tmscore_output_normalizes_gdt() -> None:
@@ -224,3 +224,82 @@ def test_prediction_lookup_ignores_target_id_in_run_directory(tmp_path) -> None:
     right_prediction.write_text("data_H1258\n", encoding="utf-8")
 
     assert find_prediction_for_target(output_dir, "H1258") == right_prediction
+
+
+def test_first_output_policy_keeps_sorted_first_candidate(tmp_path) -> None:
+    first_dir = tmp_path / "predictions" / "T1234" / "seed_101" / "predictions"
+    second_dir = tmp_path / "predictions" / "T1234" / "seed_102" / "predictions"
+    first_dir.mkdir(parents=True)
+    second_dir.mkdir(parents=True)
+    first = first_dir / "T1234_sample_0.cif"
+    second = second_dir / "T1234_sample_0.cif"
+    first.write_text("data_first\n", encoding="utf-8")
+    second.write_text("data_second\n", encoding="utf-8")
+
+    selected = select_prediction_for_target(tmp_path, "T1234", selected_model_policy="first_output_only")
+
+    assert selected["status"] == "ok"
+    assert selected["prediction_path"] == str(first)
+
+
+def test_protenix_confidence_policy_selects_best_confidence(tmp_path) -> None:
+    low_dir = tmp_path / "predictions" / "T1234" / "seed_101" / "predictions"
+    high_dir = tmp_path / "predictions" / "T1234" / "seed_102" / "predictions"
+    low_dir.mkdir(parents=True)
+    high_dir.mkdir(parents=True)
+    low = low_dir / "T1234_sample_0.cif"
+    high = high_dir / "T1234_sample_0.cif"
+    low.write_text("data_low\n", encoding="utf-8")
+    high.write_text("data_high\n", encoding="utf-8")
+    (low_dir / "T1234_summary_confidence_sample_0.json").write_text('{"plddt": 70.0, "ptm": 0.50, "iptm": 0.20, "disorder": 0.0, "has_clash": false}\n', encoding="utf-8")
+    (high_dir / "T1234_summary_confidence_sample_0.json").write_text('{"plddt": 85.0, "ptm": 0.70, "iptm": 0.30, "disorder": 0.0, "has_clash": false}\n', encoding="utf-8")
+
+    selected = select_prediction_for_target(tmp_path, "T1234", selected_model_policy="protenix_confidence_v1")
+
+    assert selected["status"] == "ok"
+    assert selected["prediction_path"] == str(high)
+    assert selected["confidence_path"] == str(high_dir / "T1234_summary_confidence_sample_0.json")
+    assert selected["selection_score"] == "0.610000"
+
+
+def test_confidence_policy_fails_closed_without_confidence(tmp_path) -> None:
+    pred_dir = tmp_path / "predictions" / "T1234" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    (pred_dir / "T1234_sample_0.cif").write_text("data_pred\n", encoding="utf-8")
+
+    selected = select_prediction_for_target(tmp_path, "T1234", selected_model_policy="protenix_confidence_v1")
+
+    assert selected["status"] == "selection_failed"
+    assert selected["message"] == "confidence_unavailable_for_policy:protenix_confidence_v1"
+
+
+def test_score_target_records_confidence_selection(tmp_path) -> None:
+    output_dir = tmp_path / "predictions"
+    low_dir = output_dir / "T1234" / "seed_101" / "predictions"
+    high_dir = output_dir / "T1234" / "seed_102" / "predictions"
+    low_dir.mkdir(parents=True)
+    high_dir.mkdir(parents=True)
+    (low_dir / "T1234_sample_0.cif").write_text("data_low\n", encoding="utf-8")
+    high = high_dir / "T1234_sample_0.cif"
+    high.write_text("data_high\n", encoding="utf-8")
+    (low_dir / "T1234_summary_confidence_sample_0.json").write_text('{"plddt": 50.0, "ptm": 0.40, "iptm": 0.0}\n', encoding="utf-8")
+    confidence = high_dir / "T1234_summary_confidence_sample_0.json"
+    confidence.write_text('{"plddt": 90.0, "ptm": 0.80, "iptm": 0.0}\n', encoding="utf-8")
+    reference = tmp_path / "ref.cif"
+    reference.write_text("data_ref\n", encoding="utf-8")
+    tm = _write_fake_tool(tmp_path / "tm.sh", "GDT-TS-score= 75.00")
+
+    row = score_target(
+        {"run_id": "r1", "output_dir": str(output_dir), "selected_model_policy": "protenix_confidence_v1"},
+        {"target_id": "T1234", "track": "protein_domain", "rank_eligible": "true"},
+        {"reference_path": str(reference)},
+        benchmark="casp16_server_protein_v1",
+        tm_tool=tm,
+        dockq_tool="",
+    )
+
+    assert row["status"] == "ok"
+    assert row["prediction_path"] == str(high)
+    assert row["confidence_path"] == str(confidence)
+    assert row["selection_score"] == "0.580000"
+    assert row["selected_model_policy"] == "protenix_confidence_v1"

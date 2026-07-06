@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
@@ -21,7 +22,10 @@ TARGET_SCORE_FIELDS = [
     "track",
     "target_id",
     "rank_eligible",
+    "selected_model_policy",
     "prediction_path",
+    "confidence_path",
+    "selection_score",
     "reference_path",
     "metric",
     "score",
@@ -99,10 +103,14 @@ def parse_ost_qs_json(text: str) -> dict[str, float]:
         return {}
 
 
-def find_prediction_for_target(output_dir: Path, target_id: str) -> Path | None:
+def prediction_candidates_for_target(output_dir: Path, target_id: str) -> list[Path]:
     if not output_dir.exists():
-        return None
+        return []
     candidates = sorted(output_dir.glob("**/*.cif")) + sorted(output_dir.glob("**/*.pdb"))
+    return filter_prediction_candidates(candidates, output_dir, target_id)
+
+
+def filter_prediction_candidates(candidates: Sequence[Path], output_dir: Path, target_id: str) -> list[Path]:
     target_low = target_id.lower()
     exact_matched = []
     for path in candidates:
@@ -113,9 +121,145 @@ def find_prediction_for_target(output_dir: Path, target_id: str) -> Path | None:
         rel_parts_low = [part.lower() for part in rel_parts]
         if target_low in path.name.lower() or target_low in rel_parts_low[:-1]:
             exact_matched.append(path)
-    if exact_matched:
-        return exact_matched[0]
-    return None
+    return exact_matched
+
+
+def prediction_candidate_index(output_dir: Path, target_ids: Sequence[str]) -> dict[str, list[Path]]:
+    if not output_dir.exists():
+        return {target_id: [] for target_id in target_ids}
+    candidates = sorted(output_dir.glob("**/*.cif")) + sorted(output_dir.glob("**/*.pdb"))
+    return {
+        target_id: filter_prediction_candidates(candidates, output_dir, target_id)
+        for target_id in target_ids
+    }
+
+
+def find_prediction_for_target(output_dir: Path, target_id: str) -> Path | None:
+    selected = select_prediction_for_target(output_dir, target_id, selected_model_policy="first_output_only")
+    prediction = selected.get("prediction_path")
+    return Path(str(prediction)) if prediction else None
+
+
+def select_prediction_for_target(
+    output_dir: Path,
+    target_id: str,
+    *,
+    selected_model_policy: str = "first_output_only",
+    prediction_candidates: Sequence[Path] | None = None,
+) -> dict[str, str]:
+    candidates = (
+        list(prediction_candidates)
+        if prediction_candidates is not None
+        else prediction_candidates_for_target(output_dir, target_id)
+    )
+    if not candidates:
+        return {"status": "missing_prediction", "message": "no_prediction_file"}
+
+    policy = (selected_model_policy or "first_output_only").strip()
+    if policy == "first_output_only":
+        return {
+            "status": "ok",
+            "prediction_path": str(candidates[0]),
+            "selected_model_policy": policy,
+        }
+
+    if policy != "protenix_confidence_v1":
+        return {
+            "status": "selection_failed",
+            "selected_model_policy": policy,
+            "message": f"unknown_selected_model_policy:{policy}",
+        }
+
+    scored: list[tuple[float, str, Path, Path]] = []
+    for prediction_path in candidates:
+        confidence_path = find_confidence_for_prediction(prediction_path)
+        if confidence_path is None:
+            continue
+        confidence = read_confidence_json(confidence_path)
+        score = protenix_confidence_v1_score(confidence)
+        if score is None or not math.isfinite(score):
+            continue
+        scored.append((score, str(prediction_path), prediction_path, confidence_path))
+
+    if not scored:
+        return {
+            "status": "selection_failed",
+            "selected_model_policy": policy,
+            "message": "confidence_unavailable_for_policy:protenix_confidence_v1",
+        }
+
+    score, _sort_key, prediction_path, confidence_path = sorted(
+        scored,
+        key=lambda item: (-item[0], item[1]),
+    )[0]
+    return {
+        "status": "ok",
+        "prediction_path": str(prediction_path),
+        "confidence_path": str(confidence_path),
+        "selection_score": f"{score:.6f}",
+        "selected_model_policy": policy,
+    }
+
+
+def find_confidence_for_prediction(prediction_path: Path) -> Path | None:
+    stem = prediction_path.stem
+    sample_match = re.search(r"(?:^|_)sample_(\d+)$", stem)
+    candidate_names: list[str] = []
+    if sample_match:
+        sample_id = sample_match.group(1)
+        prefix = stem[: sample_match.start()].removesuffix("_")
+        if prefix:
+            candidate_names.append(f"{prefix}_summary_confidence_sample_{sample_id}.json")
+        candidate_names.append(f"summary_confidence_sample_{sample_id}.json")
+        for path in sorted(prediction_path.parent.glob(f"*summary_confidence_sample_{sample_id}.json")):
+            candidate_names.append(path.name)
+    candidate_names.append(f"{stem}_summary_confidence.json")
+    for name in dict.fromkeys(candidate_names):
+        candidate = prediction_path.with_name(name)
+        if candidate.exists():
+            return candidate
+    fallback = sorted(prediction_path.parent.glob("*summary_confidence*.json"))
+    return fallback[0] if fallback else None
+
+
+def read_confidence_json(path: Path) -> dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def protenix_confidence_v1_score(confidence: Mapping[str, Any]) -> float | None:
+    plddt = _confidence_float(confidence.get("plddt"))
+    if plddt is None:
+        plddt = _mean_float(confidence.get("chain_plddt"))
+    if plddt is not None and plddt > 1.0:
+        plddt /= 100.0
+    ptm = _confidence_float(confidence.get("ptm")) or 0.0
+    iptm = _confidence_float(confidence.get("iptm")) or 0.0
+    disorder = _confidence_float(confidence.get("disorder")) or 0.0
+    clash_penalty = 1.0 if bool(confidence.get("has_clash")) else 0.0
+    if plddt is None and ptm == 0.0 and iptm == 0.0:
+        return None
+    return (0.20 * (plddt or 0.0)) + (0.50 * ptm) + (0.30 * iptm) - (0.10 * disorder) - (0.20 * clash_penalty)
+
+
+def _confidence_float(value: Any) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _mean_float(value: Any) -> float | None:
+    if not isinstance(value, list) or not value:
+        return None
+    values = [_confidence_float(item) for item in value]
+    values = [item for item in values if item is not None]
+    if not values:
+        return None
+    return sum(values) / len(values)
 
 
 def run_metric(command: Sequence[str], *, timeout_seconds: int = 300) -> tuple[int, str, str]:
@@ -164,17 +308,37 @@ def score_benchmark_runs(
     output_dir = (output_dir or (project_root / "leaderboards" / benchmark)).resolve()
     targets = read_benchmark_targets(project_root, benchmark)
     references = {row["target_id"]: row for row in read_benchmark_references(project_root, benchmark)}
-    specs = [spec for spec in load_run_specs(project_root / "runs", registered_only=True) if spec.get("benchmark_name", benchmark) == benchmark]
-    tm_tool = resolve_tool(tmscore_bin or DEFAULT_TMSCORE_BIN, ["TMscore", "TMscore64", "USalign", str(DEFAULT_USALIGN_BIN)])
+    specs = [
+        spec
+        for spec in load_run_specs(project_root / "runs", registered_only=True)
+        if spec.get("benchmark_name", benchmark) == benchmark
+    ]
+    tm_tool = resolve_tool(
+        tmscore_bin or DEFAULT_TMSCORE_BIN,
+        ["TMscore", "TMscore64", "USalign", str(DEFAULT_USALIGN_BIN)],
+    )
     dockq_tool = resolve_tool(dockq_bin or DEFAULT_DOCKQ_BIN, ["DockQ"])
     qsglob_tool = resolve_tool(qsglob_bin or DEFAULT_QSGLOB_BIN, ["qsscore", "qs-score", "QSscore", "qs_score", "ost"])
 
     rows: list[dict[str, Any]] = []
+    scored_targets = [target for target in targets if target.get("track") in {"protein_domain", "protein_oligo"}]
+    target_ids = [target["target_id"] for target in scored_targets]
     for spec in specs:
-        for target in targets:
-            if target.get("track") not in {"protein_domain", "protein_oligo"}:
-                continue
-            rows.append(score_target(spec, target, references.get(target["target_id"], {}), benchmark=benchmark, tm_tool=tm_tool, dockq_tool=dockq_tool, qsglob_tool=qsglob_tool))
+        output_path = Path(str(spec.get("output_dir", "")))
+        candidates_by_target = prediction_candidate_index(output_path, target_ids)
+        for target in scored_targets:
+            rows.append(
+                score_target(
+                    spec,
+                    target,
+                    references.get(target["target_id"], {}),
+                    benchmark=benchmark,
+                    tm_tool=tm_tool,
+                    dockq_tool=dockq_tool,
+                    qsglob_tool=qsglob_tool,
+                    prediction_candidates=candidates_by_target.get(target["target_id"], []),
+                )
+            )
 
     write_csv(output_dir / "target_scores.csv", rows, TARGET_SCORE_FIELDS)
     return {
@@ -194,9 +358,11 @@ def score_target(
     tm_tool: str,
     dockq_tool: str,
     qsglob_tool: str = "",
+    prediction_candidates: Sequence[Path] | None = None,
 ) -> dict[str, Any]:
     run_id = str(spec.get("run_id") or spec.get("_run_dir", ""))
     output_dir = Path(str(spec.get("output_dir", "")))
+    selected_model_policy = str(spec.get("selected_model_policy") or "first_output_only")
     reference_value = str(reference.get("reference_path", "") or target.get("reference_path", "")).strip()
     reference_path = Path(reference_value) if reference_value else Path()
     rank_eligible = target.get("rank_eligible", "").lower() == "true"
@@ -206,7 +372,10 @@ def score_target(
         "track": target.get("track", ""),
         "target_id": target.get("target_id", ""),
         "rank_eligible": str(rank_eligible).lower(),
+        "selected_model_policy": selected_model_policy,
         "prediction_path": "",
+        "confidence_path": "",
+        "selection_score": "",
         "reference_path": reference_value,
         "metric": "",
         "score": "0.000000",
@@ -219,10 +388,20 @@ def score_target(
     }
     if not rank_eligible:
         return {**base, "status": "unranked_target", "message": target.get("skip_reason", "")}
-    prediction_path = find_prediction_for_target(output_dir, target.get("target_id", ""))
-    if prediction_path is None:
+    selection = select_prediction_for_target(
+        output_dir,
+        target.get("target_id", ""),
+        selected_model_policy=selected_model_policy,
+        prediction_candidates=prediction_candidates,
+    )
+    if selection.get("status") == "missing_prediction":
         return {**base, "status": "missing_prediction", "message": "no_prediction_file"}
+    if selection.get("status") != "ok":
+        return {**base, "status": selection.get("status", "selection_failed"), "message": selection.get("message", "selection_failed")}
+    prediction_path = Path(str(selection["prediction_path"]))
     base["prediction_path"] = str(prediction_path)
+    base["confidence_path"] = selection.get("confidence_path", "")
+    base["selection_score"] = selection.get("selection_score", "")
     if not reference_value:
         message = str(reference.get("reference_status", "") or target.get("reference_status", "") or "reference_path_missing")
         return {**base, "status": "missing_reference", "message": message}

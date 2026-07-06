@@ -56,16 +56,19 @@ best-model analyses. A practical local attack budget should therefore allow
 fixed multi-seed or multi-sample generation, while keeping a locked model
 selection rule that does not inspect references or official scores.
 
-Candidate server-attack policy:
+Current server-attack policy:
 
 - backend: `protenix`
-- seeds: fixed list such as `101,102,103,104,105`
-- samples: `1` per seed unless a new policy explicitly changes it
+- seeds: fixed list `101,102,103,104,105`
+- samples: `1` per seed
 - prediction inputs: identical target set and strategy transform for every seed
-- selection policy: predeclared confidence-only ranking, for example choose one
-  model by a fixed pLDDT/pTM/ipTM/PAE formula before scoring
+- selection policy: `protenix_confidence_v1`, documented in
+  `docs/SERVER_ATTACK_POLICY.md`
 - forbidden selection signals: native/reference structures, official score
   tables, previous target scores, or per-target manual intervention
+
+The machine-readable budget is
+`attack_budgets/casp16_server_attack_protenix5.json`.
 
 This keeps two questions separate: "did the strategy improve under a fair
 single-seed development budget?" and "how close can a realistic automated
