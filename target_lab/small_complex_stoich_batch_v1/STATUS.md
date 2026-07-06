@@ -21,4 +21,5 @@ After completion:
 
 ```bash
 python target_lab/small_complex_stoich_batch_v1/summarize_outputs.py
+python target_lab/small_complex_stoich_batch_v1/score_dockq.py
 ```

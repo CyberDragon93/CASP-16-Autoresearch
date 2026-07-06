@@ -1,0 +1,7 @@
+job_name	target_id	status	dockq	prediction_path	reference_path	confidence_path	plddt	ptm	iptm	message
+H1232	H1232	missing_prediction			/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cn2.cif					no_prediction_file
+H1233	H1233	missing_prediction			/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cbn.cif					no_prediction_file
+H1236	H1236	missing_prediction			/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif					no_prediction_file
+H1244	H1244	missing_prediction								no_prediction_file
+H1267	H1267	missing_prediction								no_prediction_file
+H1258_target_lab_lrrk2_861_1014_A1B2	H1258	missing_prediction			/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9ci3.cif					no_prediction_file

@@ -29,6 +29,9 @@ where methods should change.
 - Multi-candidate work now has a separate policy:
   `docs/SERVER_ATTACK_POLICY.md` and
   `attack_budgets/casp16_server_attack_protenix5.json`.
+- Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
+  about chasing CASP16 server winners must report the attack budget, candidates
+  per target, selector, and GPU cost.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`.
@@ -64,7 +67,8 @@ where methods should change.
   `target_lab/small_complex_stoich_batch_v1/` combines 5 under-budget exact
   stoichiometry complexes with the H1258 interaction-window job for faster
   learning before full-benchmark promotion. It has been submitted as Slurm job
-  `810824` and now has `summarize_outputs.py` for post-run diagnostics.
+  `810824` and now has `summarize_outputs.py` plus `score_dockq.py` for
+  post-run diagnostics.
 
 ## Main Objective
 
@@ -156,7 +160,9 @@ competitive result.
     `target_lab/small_complex_stoich_batch_v1`, then inspect predictions for
     exact-stoichiometry and H1258-window behavior before spending full
     benchmark compute. Regenerate `SUMMARY.md` with
-    `python target_lab/small_complex_stoich_batch_v1/summarize_outputs.py`.
+    `python target_lab/small_complex_stoich_batch_v1/summarize_outputs.py` and
+    diagnostic `DOCKQ.md` with
+    `python target_lab/small_complex_stoich_batch_v1/score_dockq.py`.
 15. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.
@@ -170,3 +176,5 @@ competitive result.
   behavior.
 - Prefer full-benchmark effects over one-off rescue scores.
 - Keep `dev_fixed` and `server_attack` results in separate comparisons.
+- When reporting progress, always name the budget tier. Do not describe a
+  one-seed/one-sample result as winner-comparable.

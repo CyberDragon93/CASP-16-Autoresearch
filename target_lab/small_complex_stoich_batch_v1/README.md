@@ -54,3 +54,17 @@ This writes:
 
 The summary reports prediction/confidence file coverage and confidence
 diagnostics only. It is not a structure-quality score.
+
+For a quick diagnostic structure metric, run:
+
+```bash
+python target_lab/small_complex_stoich_batch_v1/score_dockq.py
+```
+
+This writes:
+
+- `dockq_scores.tsv`
+- `DOCKQ.md`
+
+DockQ is useful target_lab evidence for interface quality, but it is not
+`QSglob` and must not be reported as a ranked CASP16 server oligo score.
