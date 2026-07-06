@@ -1,0 +1,30 @@
+{
+  "RESULTS.md": {
+    "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v2_aliasfix/RESULTS.md",
+    "sha256": "b8f980a26061d2513c2057b434de4b7a938f1004f8cf23afa120b1e8fadfeb79"
+  },
+  "coverage.md": {
+    "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v2_aliasfix/coverage.md",
+    "sha256": "272c2f272fb2f109c4d3ef50d4b8711151717331afa92f86beb6ac8b4d777bba"
+  },
+  "official_all_groups.csv": {
+    "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v2_aliasfix/official_all_groups.csv",
+    "sha256": "ec672435d3473c241fd5e1f63e3155992a3a71bf622d966da16cb2bd940f72be"
+  },
+  "official_groups.csv": {
+    "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v2_aliasfix/official_groups.csv",
+    "sha256": "0475872c6150e93432bac764576c537511402af8575efbf35fe4bdfa03aa5541"
+  },
+  "official_server_groups.csv": {
+    "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v2_aliasfix/official_server_groups.csv",
+    "sha256": "0475872c6150e93432bac764576c537511402af8575efbf35fe4bdfa03aa5541"
+  },
+  "runs.csv": {
+    "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v2_aliasfix/runs.csv",
+    "sha256": "1b903d9cab4d0341bd9441fa729b1172d4cf1eb74e82266989cb97e78edb0588"
+  },
+  "target_scores.csv": {
+    "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/leaderboards/casp16_server_protein_v2_aliasfix/target_scores.csv",
+    "sha256": "a4ca95f9fff501624255c98310af84198e192f5506bcbb4060f3d8f7acde473d"
+  }
+}

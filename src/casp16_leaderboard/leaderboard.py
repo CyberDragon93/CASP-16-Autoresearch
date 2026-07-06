@@ -7,6 +7,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
+from .benchmark import benchmark_display_name, is_server_protein_benchmark
 from .inputs import ok_manifest_targets
 from .official import OfficialPaths, ensure_dir, mean, median, parse_float, read_tsv
 from .runs import load_run_specs
@@ -250,7 +251,7 @@ def generate_benchmark_leaderboard(
     write_benchmark_coverage(output_dir / "coverage.md", targets, score_rows, benchmark=benchmark)
     artifact_names = ["RESULTS.md", "runs.csv", "target_scores.csv", "coverage.md"]
     if official_root is not None:
-        if benchmark == "casp16_server_protein_v1" and (benchmark_dir / "official_server_groups.tsv").exists():
+        if is_server_protein_benchmark(benchmark) and (benchmark_dir / "official_server_groups.tsv").exists():
             official_group_fields = [
                 "category",
                 "rank",
@@ -378,7 +379,7 @@ def _artifact_path_for_run(rows: Sequence[Mapping[str, str]]) -> str:
 
 
 def write_results_markdown(path: Path, rows: Sequence[Mapping[str, Any]], *, top_n: int, benchmark: str = "") -> None:
-    title = "CASP16 Server Protein V1 Results" if benchmark == "casp16_server_protein_v1" else "CASP16 Protein V1 Results"
+    title = f"{benchmark_display_name(benchmark)} Results" if benchmark else "CASP16 Protein V1 Results"
     lines = [f"# {title}", ""]
     lines.append("Runs are ranked over fixed eligible target sets. Missing predictions, failed metrics, and unavailable metrics score 0.")
     for track in sorted({str(row["track"]) for row in rows}):
@@ -425,7 +426,7 @@ def write_benchmark_coverage(path: Path, targets: Sequence[Mapping[str, str]], s
     score_status_rows: list[dict[str, Any]] = []
     for status in sorted({str(row.get("status", "")) for row in score_rows if row.get("status")}):
         score_status_rows.append({"status": status, "target_scores": sum(1 for row in score_rows if row.get("status") == status)})
-    title = "CASP16 Server Protein V1 Coverage" if benchmark == "casp16_server_protein_v1" else "CASP16 Protein V1 Coverage"
+    title = f"{benchmark_display_name(benchmark)} Coverage" if benchmark else "CASP16 Protein V1 Coverage"
     lines = [
         f"# {title}",
         "",

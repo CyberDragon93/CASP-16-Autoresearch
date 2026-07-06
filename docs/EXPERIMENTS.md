@@ -173,6 +173,17 @@ leaderboard progress.
     jobs. A temporary rebuild with `0xxx/1xxx/2xxx` target aliasing produces 79
     available references and 163 Protenix jobs. This should become a new
     benchmark version, not an in-place v1 rewrite.
+20. Generated `casp16_server_protein_v2_aliasfix` and its static leaderboard
+    artifacts. The benchmark keeps the same 71 domain and 104 oligo official
+    target sets, but improves Protenix input coverage to 163 jobs and cached
+    references to 79 through target-phase aliasing. No prediction run is
+    registered on v2 yet.
+21. Generated v2 strategy inputs and run spec
+    `server_v2_protenix_yang_coverage_stoich_seed101`.
+    `yang_oligo_stoichiometry_token_safe_v1` changes 10 targets on v2, keeps
+    all recovered jobs under 2560 tokens, and is pending as the first
+    alias-fixed `dev_fixed` baseline.
+    - Submitted as Slurm job `810938` with dependency `afterany:810719`.
 
 ## Strategy Decision Log
 
@@ -194,6 +205,14 @@ Protenix jobs increased from 106 to 163.
 
 Next action: create `casp16_server_protein_v2_aliasfix` or an equivalent
 explicit benchmark version before making any serious winner-comparison claim.
+
+Update: `casp16_server_protein_v2_aliasfix` has been generated under
+`benchmarks/` and `leaderboards/`. Future winner-comparison runs should target
+v2 or a newer explicit server benchmark; in-flight v1 runs remain on v1.
+
+Next v2 run: `server_v2_protenix_yang_coverage_stoich_seed101`, using the
+v2-regenerated token-safe stoichiometry strategy, is Slurm job `810938` and
+should run after the active v1 attack job `810719`.
 
 ### 2026-07-06 Coverage + Stoichiometry Attack Candidate
 

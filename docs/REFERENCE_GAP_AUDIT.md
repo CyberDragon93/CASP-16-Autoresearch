@@ -47,10 +47,10 @@ Examples recovered by aliasing:
 ## Decision
 
 Do not mutate `casp16_server_protein_v1` in place. The alias fix changes
-reference mapping and input coverage, so it should become a new benchmark
-version or an explicitly documented rebuild.
+reference mapping and input coverage, so it has been created as a new
+benchmark version.
 
-Recommended next benchmark:
+Created benchmark:
 
 ```text
 casp16_server_protein_v2_aliasfix

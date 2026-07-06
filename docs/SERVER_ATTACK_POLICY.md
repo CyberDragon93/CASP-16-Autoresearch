@@ -28,6 +28,11 @@ sequence-recovery, large-target fallback, and token-safe stoichiometry input.
 It is queued but not submitted; launch it only when it is selected by
 `run-next --dry-run` or after an explicit queue supersession decision.
 
+Future winner-comparison attack runs should target
+`casp16_server_protein_v2_aliasfix` or a newer explicit server benchmark. The
+existing `protenix5` v1 runs remain valid only for the fixed v1 protocol they
+were generated against.
+
 ## Budget Reality
 
 Treat `protenix5` as the first local attack tier, not as a claim about the

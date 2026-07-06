@@ -106,6 +106,23 @@ def test_server_domain_requires_gdt_ts_not_tm_fallback(tmp_path) -> None:
     assert row["message"] == "no_GDT_TS"
 
 
+def test_aliasfix_server_domain_requires_gdt_ts_not_tm_fallback(tmp_path) -> None:
+    output_dir, reference = _write_prediction_and_reference(tmp_path, "T2201")
+    tm_only = _write_fake_tool(tmp_path / "tm_only.sh", "TM-score = 0.812")
+    row = score_target(
+        {"run_id": "r1", "output_dir": output_dir},
+        {"target_id": "T2201", "track": "protein_domain", "rank_eligible": "true", "official_metric": "GDT_TS"},
+        {"reference_path": reference},
+        benchmark="casp16_server_protein_v2_aliasfix",
+        tm_tool=tm_only,
+        dockq_tool="",
+    )
+    assert row["score"] == "0.000000"
+    assert row["metric"] == "GDT_TS"
+    assert row["status"] == "metric_unparseable"
+    assert row["message"] == "no_GDT_TS"
+
+
 def test_local_domain_can_fallback_to_tmscore(tmp_path) -> None:
     output_dir, reference = _write_prediction_and_reference(tmp_path, "T1201")
     tm_only = _write_fake_tool(tmp_path / "tm_only.sh", "TM-score = 0.812")
@@ -130,6 +147,23 @@ def test_server_oligo_requires_qsglob_not_dockq_fallback(tmp_path) -> None:
         {"target_id": "H1202", "track": "protein_oligo", "rank_eligible": "true", "official_metric": "QSglob"},
         {"reference_path": reference},
         benchmark="casp16_server_protein_v1",
+        tm_tool="",
+        dockq_tool=dockq,
+        qsglob_tool="",
+    )
+    assert row["score"] == "0.000000"
+    assert row["metric"] == "QSglob"
+    assert row["status"] == "metric_unavailable"
+
+
+def test_aliasfix_server_oligo_requires_qsglob_not_dockq_fallback(tmp_path) -> None:
+    output_dir, reference = _write_prediction_and_reference(tmp_path, "H2202")
+    dockq = _write_fake_tool(tmp_path / "dockq.sh", "DockQ 0.900")
+    row = score_target(
+        {"run_id": "r1", "output_dir": output_dir},
+        {"target_id": "H2202", "track": "protein_oligo", "rank_eligible": "true", "official_metric": "QSglob"},
+        {"reference_path": reference},
+        benchmark="casp16_server_protein_v2_aliasfix",
         tm_tool="",
         dockq_tool=dockq,
         qsglob_tool="",

@@ -25,6 +25,8 @@ BENCHMARK_NAME = "casp16_protein_v1"
 BENCHMARK_VERSION = "1"
 SERVER_BENCHMARK_NAME = "casp16_server_protein_v1"
 SERVER_BENCHMARK_VERSION = "1"
+SERVER_ALIASFIX_BENCHMARK_NAME = "casp16_server_protein_v2_aliasfix"
+SERVER_ALIASFIX_BENCHMARK_VERSION = "2"
 RCSB_MMCIF_URL = "https://files.rcsb.org/download/{pdb_id}.cif"
 PDB_ID_RE = re.compile(r"\b([0-9](?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{3})\b")
 
@@ -104,6 +106,23 @@ UNRESOLVED_OFFICIAL_FIELDS = [
 
 def default_benchmark_dir(project_root: Path, benchmark: str = BENCHMARK_NAME) -> Path:
     return project_root / "benchmarks" / benchmark
+
+
+def is_server_protein_benchmark(benchmark: str) -> bool:
+    return benchmark.startswith("casp16_server_protein_")
+
+
+def benchmark_display_name(benchmark: str) -> str:
+    words: list[str] = []
+    for part in benchmark.split("_"):
+        lower = part.lower()
+        if lower == "casp16":
+            words.append("CASP16")
+        elif re.fullmatch(r"v\d+", lower):
+            words.append(lower.upper())
+        else:
+            words.append(part.capitalize())
+    return " ".join(words)
 
 
 def sha256_file(path: Path) -> str:
@@ -280,11 +299,13 @@ def build_casp16_server_protein_benchmark(
     project_root: Path,
     official_root: Path | None = None,
     benchmark_dir: Path | None = None,
+    benchmark_name: str = SERVER_BENCHMARK_NAME,
+    benchmark_version: str = SERVER_BENCHMARK_VERSION,
     download_references: bool = False,
     force_references: bool = False,
 ) -> dict[str, object]:
     official_root = (official_root or (project_root / "data" / "official")).resolve()
-    benchmark_dir = (benchmark_dir or default_benchmark_dir(project_root, SERVER_BENCHMARK_NAME)).resolve()
+    benchmark_dir = (benchmark_dir or default_benchmark_dir(project_root, benchmark_name)).resolve()
     paths = OfficialPaths(official_root)
     target_rows = read_tsv(paths.targets_tsv)
     sequence_rows = read_tsv(paths.sequences_tsv)
@@ -404,15 +425,15 @@ def build_casp16_server_protein_benchmark(
     write_tsv(all_groups_path, summarize_server_official_groups(official_records, server_only=False), OFFICIAL_GROUP_FIELDS)
     write_tsv(server_groups_path, summarize_server_official_groups(official_records, server_only=True), OFFICIAL_GROUP_FIELDS)
     write_tsv(unresolved_path, unresolved_rows, UNRESOLVED_OFFICIAL_FIELDS)
-    policy_path.write_text(server_scoring_policy_text(), encoding="utf-8")
+    policy_path.write_text(server_scoring_policy_text(benchmark_name), encoding="utf-8")
 
     target_set_counts = {
         "prot_domains": len(target_ids_by_category.get("prot_domains", set())),
         "prot_oligo": len(target_ids_by_category.get("prot_oligo", set())),
     }
     benchmark_payload = {
-        "name": SERVER_BENCHMARK_NAME,
-        "version": SERVER_BENCHMARK_VERSION,
+        "name": benchmark_name,
+        "version": benchmark_version,
         "description": "CASP16 protein server-track comparison benchmark derived from official score tables.",
         "ranked_tracks": ["protein_domain", "protein_oligo"],
         "official_target_sets": target_set_counts,
@@ -448,7 +469,8 @@ def build_casp16_server_protein_benchmark(
     benchmark_json_path.write_text(json.dumps(benchmark_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     return {
-        "benchmark": SERVER_BENCHMARK_NAME,
+        "benchmark": benchmark_name,
+        "version": benchmark_version,
         "benchmark_dir": str(benchmark_dir),
         "targets": len(targets_out),
         "target_sets": target_set_counts,
@@ -851,8 +873,9 @@ This benchmark is protein-first and rank-stable.
 """
 
 
-def server_scoring_policy_text() -> str:
-    return """# CASP16 Server Protein V1 Scoring Policy
+def server_scoring_policy_text(benchmark_name: str = SERVER_BENCHMARK_NAME) -> str:
+    title = benchmark_display_name(benchmark_name)
+    return f"""# {title} Scoring Policy
 
 This benchmark is intended for CASP16 protein server-track comparison.
 

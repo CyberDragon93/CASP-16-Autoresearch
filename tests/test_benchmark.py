@@ -3,7 +3,8 @@ from __future__ import annotations
 import csv
 import json
 
-from casp16_leaderboard.benchmark import build_casp16_protein_benchmark, build_casp16_server_protein_benchmark
+from casp16_leaderboard.benchmark import SERVER_ALIASFIX_BENCHMARK_NAME, SERVER_ALIASFIX_BENCHMARK_VERSION, build_casp16_protein_benchmark, build_casp16_server_protein_benchmark
+from casp16_leaderboard.leaderboard import generate_benchmark_leaderboard
 from casp16_leaderboard.official import OfficialPaths, read_tsv, write_tsv
 
 
@@ -264,6 +265,31 @@ def test_build_server_benchmark_from_official_scores(tmp_path) -> None:
     assert oligo_top["eligible_target_count"] == "3"
     assert oligo_top["missing_target_count"] == "1"
     assert oligo_top["mean_fixed_score"] == "0.366667"
+
+
+def test_build_aliasfix_server_benchmark_version(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+
+    summary = build_casp16_server_protein_benchmark(
+        project_root=project_root,
+        official_root=official_root,
+        benchmark_name=SERVER_ALIASFIX_BENCHMARK_NAME,
+        benchmark_version=SERVER_ALIASFIX_BENCHMARK_VERSION,
+    )
+
+    assert summary["benchmark"] == SERVER_ALIASFIX_BENCHMARK_NAME
+    assert summary["version"] == SERVER_ALIASFIX_BENCHMARK_VERSION
+    benchmark_dir = project_root / "benchmarks" / SERVER_ALIASFIX_BENCHMARK_NAME
+    payload = json.loads((benchmark_dir / "benchmark.json").read_text(encoding="utf-8"))
+    assert payload["name"] == SERVER_ALIASFIX_BENCHMARK_NAME
+    assert payload["version"] == SERVER_ALIASFIX_BENCHMARK_VERSION
+
+    output_dir = project_root / "leaderboards" / SERVER_ALIASFIX_BENCHMARK_NAME
+    generate_benchmark_leaderboard(project_root=project_root, benchmark=SERVER_ALIASFIX_BENCHMARK_NAME, output_dir=output_dir, official_root=official_root)
+    assert (output_dir / "official_server_groups.csv").exists()
+    assert (output_dir / "official_all_groups.csv").exists()
 
 
 def test_server_benchmark_uses_phase_2_reference_aliases(tmp_path) -> None:

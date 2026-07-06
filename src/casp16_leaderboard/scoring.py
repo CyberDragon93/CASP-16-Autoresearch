@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from .benchmark import BENCHMARK_NAME, default_benchmark_dir, read_benchmark_references, read_benchmark_targets
+from .benchmark import BENCHMARK_NAME, default_benchmark_dir, is_server_protein_benchmark, read_benchmark_references, read_benchmark_targets
 from .leaderboard import write_csv
 from .official import ensure_dir, parse_float
 from .runs import DEFAULT_DOCKQ_BIN, DEFAULT_QSGLOB_BIN, DEFAULT_TMSCORE_BIN, DEFAULT_USALIGN_BIN, load_run_specs
@@ -472,8 +472,8 @@ def _fmt(value: float | None) -> str:
 
 
 def requires_official_gdt_ts(benchmark: str, target: Mapping[str, str]) -> bool:
-    return benchmark == "casp16_server_protein_v1" or "GDT_TS" in str(target.get("official_metric", ""))
+    return is_server_protein_benchmark(benchmark) or "GDT_TS" in str(target.get("official_metric", ""))
 
 
 def requires_official_qsglob(benchmark: str, target: Mapping[str, str]) -> bool:
-    return benchmark == "casp16_server_protein_v1" or "QSglob" in str(target.get("official_metric", ""))
+    return is_server_protein_benchmark(benchmark) or "QSglob" in str(target.get("official_metric", ""))

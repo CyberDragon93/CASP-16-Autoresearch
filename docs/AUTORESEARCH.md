@@ -12,17 +12,20 @@ where methods should change.
   and 23 protein-oligo targets.
 - Current official score-table target sets: 71 protein-domain targets and 104
   protein-oligo targets.
-- To compare against CASP16 server groups, use
-  `casp16_server_protein_v1` instead of rewriting `casp16_protein_v1`.
+- To compare against CASP16 server groups going forward, use
+  `casp16_server_protein_v2_aliasfix` instead of rewriting
+  `casp16_protein_v1` or the already-used v1 server artifacts.
 - `casp16_server_protein_v1` now has a generated skeleton: 175 fixed official
   targets, 106 Protenix jobs, 54 cached references, and 45 unresolved parsed
   domain-subtarget diagnostics.
-- Reference-gap audit: extending CASP phase aliases to `0xxx/1xxx/2xxx` raises
-  a temporary server-benchmark rebuild to 163 Protenix jobs and 79 available
-  references. See `docs/REFERENCE_GAP_AUDIT.md`; this needs a new benchmark
-  version rather than rewriting v1 in place.
+- `casp16_server_protein_v2_aliasfix` is now generated: 175 fixed official
+  targets, 163 Protenix jobs, 79 cached references, 67/71 domain inputs ok,
+  and 96/104 oligo inputs ok. It is the default benchmark for future
+  winner-comparison claims.
 - `leaderboards/casp16_server_protein_v1/official_groups.csv` is server-only;
-  `official_all_groups.csv` is diagnostic.
+  `leaderboards/casp16_server_protein_v2_aliasfix/official_groups.csv` is the
+  alias-fixed server-only baseline; each version keeps `official_all_groups.csv`
+  as a diagnostic.
 - Server scoring now enforces metric identity: `GDT_TS` for domains and
   `QSglob` for oligos. DockQ cannot rank server oligo targets.
 - Current metric-tool probe: `TMscore` and `USalign` are present in the protein
@@ -69,6 +72,13 @@ where methods should change.
   `server_protenix_yang_oligo_stoichiometry_token_safe_seed101`, restores exact
   copy counts for 5 under-budget oligo jobs while keeping the largest
   optimized job at 2535 tokens.
+- New v2 baseline candidate:
+  `server_v2_protenix_yang_coverage_stoich_seed101` is submitted as Slurm job
+  `810938` with dependency on v1 attack job `810719`. It targets
+  `casp16_server_protein_v2_aliasfix` and uses the same
+  `yang_oligo_stoichiometry_token_safe_v1` transform regenerated on v2,
+  producing 163 jobs with 10 changed targets and no recovered job above the
+  2560-token limit.
 - New H1258 target-lab artifact:
   `target_lab/h1258_interaction_window_v1/` builds the public
   LRRK2-interaction-window clue as LRRK2 residues 861-1014 plus 14-3-3 A1B2.
@@ -142,9 +152,9 @@ competitive result.
 
 1. Install or register a real `QSglob` scorer for server oligos.
 2. Add explicit domain cropping and chain/residue mapping for
-   `casp16_server_protein_v1` domain `GDT_TS` scoring.
-3. Improve the reference/domain registry for the 121 server-benchmark targets
-   that currently lack a cached reference mapping.
+   `casp16_server_protein_v2_aliasfix` domain `GDT_TS` scoring.
+3. Improve the reference/domain registry for the remaining 96 alias-fixed
+   server-benchmark targets that currently lack a cached reference mapping.
 4. Add oligo assembly mapping.
 5. Queue and score the generated large-target split/fallback policy for the
    eight `n_token > 2560` failures after the active attack job.
@@ -190,9 +200,13 @@ competitive result.
     `./casp16 run-next --benchmark casp16_server_protein_v1 --dry-run` selects
     it, or intentionally supersede it after the component single-seed coverage
     runs report negative evidence.
-18. Create an alias-fixed server benchmark version, likely
-    `casp16_server_protein_v2_aliasfix`, before making any serious
-    winner-comparison claim.
+18. Done: created `casp16_server_protein_v2_aliasfix`; future serious
+    winner-comparison runs should target it or a newer explicit server
+    benchmark version.
+19. Monitor and score Slurm job `810938`
+    (`server_v2_protenix_yang_coverage_stoich_seed101`) after the active v1
+    attack job finishes. This is the first v2 `dev_fixed` baseline and should
+    be scored before launching larger v2 attack budgets.
 
 ## Run Discipline
 

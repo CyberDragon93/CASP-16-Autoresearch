@@ -5,7 +5,15 @@ import json
 from pathlib import Path
 from typing import Sequence
 
-from .benchmark import BENCHMARK_NAME, SERVER_BENCHMARK_NAME, build_casp16_protein_benchmark, build_casp16_server_protein_benchmark, default_benchmark_dir, load_benchmark
+from .benchmark import (
+    BENCHMARK_NAME,
+    SERVER_ALIASFIX_BENCHMARK_NAME,
+    SERVER_ALIASFIX_BENCHMARK_VERSION,
+    build_casp16_protein_benchmark,
+    build_casp16_server_protein_benchmark,
+    default_benchmark_dir,
+    load_benchmark,
+)
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
 from .official import ingest_official_data
@@ -38,7 +46,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     server_benchmark = subparsers.add_parser("server-benchmark", help="Build CASP16 protein server-track comparison benchmark artifacts.")
     server_benchmark.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
-    server_benchmark.add_argument("--benchmark-dir", type=Path, default=None, help=f"Defaults to <root>/benchmarks/{SERVER_BENCHMARK_NAME}.")
+    server_benchmark.add_argument("--benchmark", default=SERVER_ALIASFIX_BENCHMARK_NAME, help=f"Benchmark name. Defaults to {SERVER_ALIASFIX_BENCHMARK_NAME}.")
+    server_benchmark.add_argument("--benchmark-version", default=SERVER_ALIASFIX_BENCHMARK_VERSION, help=f"Benchmark version. Defaults to {SERVER_ALIASFIX_BENCHMARK_VERSION}.")
+    server_benchmark.add_argument("--benchmark-dir", type=Path, default=None, help="Defaults to <root>/benchmarks/<benchmark>.")
     server_benchmark.add_argument("--download-references", action="store_true", help="Download/cache RCSB mmCIF references where possible.")
     server_benchmark.add_argument("--force-references", action="store_true", help="Re-download cached references.")
 
@@ -51,7 +61,7 @@ def build_parser() -> argparse.ArgumentParser:
     make_inputs.add_argument("--limit", type=int, default=None)
 
     strategy_inputs = subparsers.add_parser("strategy-inputs", help="Generate target-agnostic strategy input variants without mutating a benchmark.")
-    strategy_inputs.add_argument("--benchmark", default=SERVER_BENCHMARK_NAME)
+    strategy_inputs.add_argument("--benchmark", default=SERVER_ALIASFIX_BENCHMARK_NAME)
     strategy_inputs.add_argument("--strategy", default=STRATEGY_YANG_TERMINAL_TAG_CLEANUP)
     strategy_inputs.add_argument("--input-json", type=Path, default=None, help="Defaults to <root>/benchmarks/<benchmark>/inputs.json.")
     strategy_inputs.add_argument("--output-json", type=Path, default=None, help="Defaults to <root>/strategies/<strategy>/<benchmark>/inputs.json.")
@@ -158,7 +168,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         summary = build_casp16_server_protein_benchmark(
             project_root=root,
             official_root=(args.official_dir or (root / "data" / "official")).resolve(),
-            benchmark_dir=(args.benchmark_dir or default_benchmark_dir(root, SERVER_BENCHMARK_NAME)).resolve(),
+            benchmark_dir=(args.benchmark_dir or default_benchmark_dir(root, args.benchmark)).resolve(),
+            benchmark_name=args.benchmark,
+            benchmark_version=args.benchmark_version,
             download_references=args.download_references,
             force_references=args.force_references,
         )

@@ -21,9 +21,11 @@ the official score tables:
 - metrics: reproduce the official primary metric as closely as possible
   (`GDT_TS` for domains, `QSglob` for oligos)
 
-## Proposed Identity
+## Current Identity
 
-- Benchmark name: `casp16_server_protein_v1`
+- Current benchmark name: `casp16_server_protein_v2_aliasfix`
+- Legacy benchmark name: `casp16_server_protein_v1`, retained for already
+  generated/running runs
 - Ranked tracks: `protein_domain`, `protein_oligo`
 - Domain target count: 71 official `prot_domains` targets in the current parsed
   score-table aggregate
@@ -37,12 +39,12 @@ Generated skeleton command:
 
 ```bash
 ./casp16 server-benchmark
-./casp16 leaderboard --benchmark casp16_server_protein_v1
+./casp16 leaderboard --benchmark casp16_server_protein_v2_aliasfix
 ```
 
 ## Budget Tiers
 
-`casp16_server_protein_v1` starts with a fixed single-seed development budget:
+Server protein benchmark versions start with a fixed single-seed development budget:
 backend `protenix`, seed `101`, sample `1`, and selected model policy
 `first_output_only`. This tier is for stable agent iteration and failure
 localization. It should not be described as a CASP16 winner-compute
@@ -84,28 +86,29 @@ Existing prediction directories can be registered for diagnostic reuse without
 creating a runnable job:
 
 ```bash
-./casp16 register-existing-run --benchmark casp16_server_protein_v1 \
+./casp16 register-existing-run --benchmark casp16_server_protein_v2_aliasfix \
   --run-id <diagnostic_run_id> --output-dir <prediction_dir> --no-rank-eligible
-./casp16 leaderboard --benchmark casp16_server_protein_v1
+./casp16 leaderboard --benchmark casp16_server_protein_v2_aliasfix
 ```
 
 This is for coverage and scorer-gap accounting only. It does not replace a
 full fixed-budget server-target run.
 
 Current generated artifacts live under
-`benchmarks/casp16_server_protein_v1/`. The first skeleton has 175 fixed
-official targets, 106 generated Protenix jobs, 54 currently cached references,
-and 45 unresolved parsed domain-subtarget diagnostics. Missing references or
-unresolved mappings remain in the fixed denominator and score `0` for local
-runs until the reference registry is improved.
+`benchmarks/casp16_server_protein_v2_aliasfix/`. This alias-fixed skeleton has
+175 fixed official targets, 163 generated Protenix jobs, 79 currently cached
+references, 67/71 domain inputs ok, 96/104 oligo inputs ok, and 45 unresolved
+parsed domain-subtarget diagnostics. Missing references or unresolved mappings
+remain in the fixed denominator and score `0` for local runs until the
+reference registry is improved.
 
 `docs/REFERENCE_GAP_AUDIT.md` records a high-impact alias issue: CASP phase
 ids such as `T2201` and `H2202` should be allowed to inherit metadata and PDB
 references from matching `T1201`/`H1202` rows. A temporary rebuild with
 `0xxx/1xxx/2xxx` aliasing raises the skeleton to 163 generated Protenix jobs
-and 79 available references. Because this changes reference mapping and input
-coverage, it should become a new benchmark version rather than an in-place
-rewrite of v1.
+and 79 available references. This changes reference mapping and input coverage,
+so it was created as `casp16_server_protein_v2_aliasfix` rather than an
+in-place rewrite of v1.
 
 The scoring gate now enforces official metric identity: server protein domains
 must parse `GDT_TS`, and server protein oligos must parse `QSglob`. TM-score and
@@ -113,7 +116,7 @@ DockQ can still be collected as diagnostics for other benchmarks, but they are
 not ranked substitutes for the server metrics.
 
 Static leaderboard artifacts live under
-`leaderboards/casp16_server_protein_v1/`. In that directory,
+`leaderboards/casp16_server_protein_v2_aliasfix/`. In that directory,
 `official_groups.csv` and `official_server_groups.csv` are server-only
 baselines; `official_all_groups.csv` is retained as a diagnostic all-group
 comparison.
@@ -240,5 +243,5 @@ whole target set.
   model ranking.
 - For oligos, prioritize stoichiometry/assembly correctness before interface
   polishing.
-- Create an alias-fixed `casp16_server_protein_v2_aliasfix` or equivalent
-  before making winner-comparison claims from local scores.
+- Done: create alias-fixed `casp16_server_protein_v2_aliasfix` before making
+  winner-comparison claims from local scores.
