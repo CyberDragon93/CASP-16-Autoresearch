@@ -48,6 +48,7 @@ benchmark target set or inspect references.
 | ID | Recipe | CASP16 clue | Local implementation | Promotion gate |
 | --- | --- | --- | --- | --- |
 | D1 | Construct trimming | Yang-lab reports removed intrinsically disordered regions and CASP16 monomer assessment highlights fragment/construct design | create target-agnostic sequence-window variants from disorder/low-complexity predictors; never choose windows from reference scores | improves full `protein_domain` mean, not only a handpicked target |
+| D1a | Terminal tag cleanup | Yang-style optimized inputs are a low-risk place to remove non-native expression artifacts before harder construct work | `./casp16 strategy-inputs --strategy yang_terminal_tag_cleanup_v1` removes obvious terminal His/expression tags without changing benchmark files | improves or does not regress full server-domain mean after the full baseline |
 | D2 | Domain decomposition | top monomer pipelines refined constructs and handled domains separately | split long/multi-domain targets using public domain predictors or sequence features, predict domains, then score domain outputs explicitly | no target-specific native/reference inspection; domain mapping must be declared before scoring |
 | D3 | MSA/template depth | Yang/trRosetta workflows emphasize optimized MSA/template inputs | full MSA/template Protenix/OpenDDE server run; record MSA source, template mode, cache paths | higher full-set coverage and no regression on positive controls |
 | D4 | AF3-style model selection | assessment says AF3 adoption improved confidence/model selection | compare Protenix/OpenDDE first-model policy against allowed diagnostic confidence/consensus only after all predictions exist | confidence remains diagnostic until quality metric validates it on full benchmark |
@@ -108,13 +109,15 @@ Useful strategy hypotheses:
 
 1. Full server-target MSA/template baseline with Protenix: increase coverage
    from 35 reused local predictions toward all 106 generated server jobs.
-2. QSglob scorer installation/integration: without this, oligo server runs
+2. `yang_terminal_tag_cleanup_v1`: first automatic optimized-input rerun after
+   the full Protenix baseline, targeting obvious terminal expression artifacts.
+3. QSglob scorer installation/integration: without this, oligo server runs
    remain diagnostic no matter how good the structures look.
-3. Domain crop/chain mapping: needed before domain scores can be trusted on
+4. Domain crop/chain mapping: needed before domain scores can be trusted on
    multi-domain or multi-chain targets.
-4. H1258/H1232 target_lab loop: use these as fast learning targets for
+5. H1258/H1232 target_lab loop: use these as fast learning targets for
    stoichiometry, construct refinement, and antibody-complex behavior, then
    promote only target-agnostic changes.
-5. Model-selection research: collect confidence/consensus after predictions,
+6. Model-selection research: collect confidence/consensus after predictions,
    but keep ranked `first_output_only` unless a new benchmark version is
    created.

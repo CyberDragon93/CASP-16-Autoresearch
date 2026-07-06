@@ -11,6 +11,7 @@ from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, gen
 from .official import ingest_official_data
 from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, register_existing_run, run_next
 from .scoring import score_benchmark_runs
+from .strategies import STRATEGY_YANG_TERMINAL_TAG_CLEANUP, derive_strategy_inputs
 
 
 def default_project_root() -> Path:
@@ -48,6 +49,13 @@ def build_parser() -> argparse.ArgumentParser:
     make_inputs.add_argument("--target", action="append", help="Target id(s), repeat or comma-separate.")
     make_inputs.add_argument("--prefix", action="append", help="Target prefix filter, e.g. T,H,R,M,D,L.")
     make_inputs.add_argument("--limit", type=int, default=None)
+
+    strategy_inputs = subparsers.add_parser("strategy-inputs", help="Generate target-agnostic strategy input variants without mutating a benchmark.")
+    strategy_inputs.add_argument("--benchmark", default=SERVER_BENCHMARK_NAME)
+    strategy_inputs.add_argument("--strategy", default=STRATEGY_YANG_TERMINAL_TAG_CLEANUP)
+    strategy_inputs.add_argument("--input-json", type=Path, default=None, help="Defaults to <root>/benchmarks/<benchmark>/inputs.json.")
+    strategy_inputs.add_argument("--output-json", type=Path, default=None, help="Defaults to <root>/strategies/<strategy>/<benchmark>/inputs.json.")
+    strategy_inputs.add_argument("--manifest", type=Path, default=None, help="Defaults to <root>/strategies/<strategy>/<benchmark>/manifest.tsv.")
 
     run_spec = subparsers.add_parser("run-spec", help="Create a reproducible Protenix run spec and run.sh.")
     run_spec.add_argument("--run-id", required=True)
@@ -168,6 +176,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             targets=args.target,
             prefixes=args.prefix,
             limit=args.limit,
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "strategy-inputs":
+        benchmark_payload = load_benchmark(root, args.benchmark)
+        benchmark_dir = Path(str(benchmark_payload["_benchmark_dir"]))
+        strategy_dir = root / "strategies" / args.strategy / args.benchmark
+        input_json = (args.input_json or (benchmark_dir / "inputs.json")).resolve()
+        output_json = (args.output_json or (strategy_dir / "inputs.json")).resolve()
+        manifest = (args.manifest or (strategy_dir / "manifest.tsv")).resolve()
+        summary = derive_strategy_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest,
+            strategy=args.strategy,
         )
         print_json(summary)
         return 0
