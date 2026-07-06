@@ -95,7 +95,7 @@ wrong assemblies should score poorly on the oligo track.
 | O2b | Small complex learning batch | exact stoichiometry and construct windows need faster feedback than full-benchmark runs | `target_lab/small_complex_stoich_batch_v1/` batches 5 exact-stoich jobs plus H1258 window | target_lab only; use for promotion decisions, not direct ranking |
 | O3 | Customized MSA/template | top complex groups beat default AFM/AF3 via customized MSAs, templates, and sampling | full MSA/template baseline first, then compare MSA-cache and template modes | full server target coverage increases before target_lab tuning |
 | O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | `attack_budgets/casp16_server_attack_protenix5.json` defines the starter 5-candidate attack tier; `attack_budgets/casp16_server_attack_protenix25*.json` declares planned 25-seed v2 tiers; every run must expose `budget_tier` and `candidate_count` | launch only after the target question is worth multi-seed compute and budget accounting is recorded |
-| O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `yang_antibody_fv_cleanup_v1` completed a full-set run; `targetlab_protenix_yang_antibody_fv_seed101` is queued as a target_lab Fv-only diagnostic | do not promote until QSglob assembly mapping can evaluate the antibody oligo predictions |
+| O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `yang_antibody_fv_cleanup_v1` completed a full-set run; `targetlab_protenix_yang_antibody_fv_seed101` completed as a target_lab Fv-only diagnostic with strongest confidence signal on H0233/H1233 | do not promote until QSglob assembly mapping can evaluate the antibody oligo predictions |
 | O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
 | O7 | Oversize complex fallback | complex targets can exceed AF3-like token limits, and the baseline lost H0217/H0258/H0272/H1217/H1258/H1272 before any model was produced | `yang_large_target_split_or_fallback_v1` keeps under-budget chain/copy prefixes and records dropped chains | score as coverage recovery until QSglob and assembly mapping are trustworthy |
 
@@ -259,8 +259,8 @@ Useful strategy hypotheses:
     for antibody-antigen complexes, trimming antibody constant regions while
     preserving antigen chains. It is now queued through
     `targetlab_protenix_yang_antibody_fv_seed101` as Slurm job `811918`,
-    running on `c620-142`. This is useful for O5 learning, not a server-ranked
-    strategy as-is.
+    completed with 8/8 CIFs. H0233/H1233 are the clearest confidence-positive
+    cases; this is useful for O5 learning, not a server-ranked strategy as-is.
 30. Domain crop/chain mapping: needed before domain scores can be trusted on
     multi-domain or multi-chain targets.
 31. H1258/H1232 target_lab loop: use these as fast learning targets for

@@ -260,9 +260,11 @@ where methods should change.
   `targetlab_protenix_yang_antibody_fv_seed101` runs the eight Fv-only
   antibody-antigen jobs from `yang_antibody_fv_fragment_inputs_v1` with full
   MSA/template Protenix settings. It is `benchmark_name=target_lab`,
-  `budget_tier=diagnostic`, and `rank_eligible=false`; Slurm job `811918` is
-  running on `c620-142`. Use it only to decide whether the O5 antibody branch
-  deserves a target-agnostic full-benchmark strategy later.
+  `budget_tier=diagnostic`, and `rank_eligible=false`; Slurm job `811918`
+  completed on `c620-142` with 8/8 CIFs. The confidence-only diagnostic signal
+  is strongest on `H0233__fv` and `H1233__fv`, where antigen-to-antibody pair
+  ipTM is about `0.91-0.94`; this supports more O5 assembly/scoring work, not
+  direct leaderboard promotion.
 - New domain-fragment target-lab batch:
   `target_lab/domain_fragment_batch_v1/` turns the domain-decomposition recipe
   into 12 runnable Protenix fragment jobs. Slurm job `810862` completed on
@@ -392,10 +394,13 @@ competitive result.
     confidence files, with high confidence on most fragments. Next, inspect
     fragment quality only as target-lab evidence and promote only a
     target-agnostic segmentation rule, not CASP-domain-summary hand crops.
-18. Submitted target_lab job `811918` for
+18. Completed target_lab job `811918` for
     `targetlab_protenix_yang_antibody_fv_seed101`. It is a diagnostic O5
     antibody/Fv run with full MSA/template settings and no ranked leaderboard
-    eligibility, now running on `c620-142`.
+    eligibility. It produced 8/8 CIFs; `H0233__fv` and `H1233__fv` have the
+    strongest antigen-antibody pair-confidence signal. Across the batch,
+    pLDDT is `85.872..94.151`, pTM is `0.865..0.954`, and ipTM is
+    `0.777..0.942`.
 19. Do not launch the non-reuse
     `server_attack_protenix_coverage_stoich_seed101_105` row. Its MSA-reuse
     successor

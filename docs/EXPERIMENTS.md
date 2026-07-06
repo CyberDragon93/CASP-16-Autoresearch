@@ -32,7 +32,7 @@ leaderboard progress.
 | `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending; superseded candidate | older five-seed no-over-token attack that lacks protein-oligo sequence recovery | attack tier only; run only as ablation |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated; standalone run skipped because the same H1258 window job completed inside `small_complex_stoich_batch_v1` | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
 | `target_lab/small_complex_stoich_batch_v1` | target_lab only | complete; 6/6 structures, diagnostic DockQ regenerated | compact exact-stoich and H1258-window learning batch | not rank eligible |
-| `targetlab_protenix_yang_antibody_fv_seed101` | target_lab only | Slurm job `811918` running on `c620-142` at `2026-07-06 18:05 CDT` | eight Fv-only antibody-antigen target-lab jobs from `yang_antibody_fv_fragment_inputs_v1` | not rank eligible |
+| `targetlab_protenix_yang_antibody_fv_seed101` | target_lab only | complete; Slurm job `811918` produced 8/8 CIFs and confidence summaries | eight Fv-only antibody-antigen target-lab jobs from `yang_antibody_fv_fragment_inputs_v1`; H0233/H1233 strongest antigen-antibody pair-confidence signal | not rank eligible |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob mapping or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -693,6 +693,13 @@ chains unchanged.
 Use this branch to test whether Fv-only constructs improve antibody-antigen
 assembly behavior. Any leaderboard-facing promotion must become a predeclared
 target-agnostic antibody-complex rule and run across the full eligible set.
+
+Result: target-lab run `targetlab_protenix_yang_antibody_fv_seed101` completed
+as Slurm job `811918` with 8/8 CIFs in 6 minutes 22 seconds. Confidence is not a
+quality score, but it gives useful triage: `H0233__fv` and `H1233__fv` show the
+clearest antigen-to-antibody pair ipTM signal, while the H0222/H0223/H0225
+family mostly has strong heavy-light confidence and weaker antigen-antibody
+pair confidence. Keep this as O5 target-lab evidence only.
 
 ### 2026-07-05 Antibody Fv Full-Set Candidate
 
