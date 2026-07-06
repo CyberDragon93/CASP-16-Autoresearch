@@ -68,9 +68,13 @@ Allowed during strategy design and prediction:
 - coverage summaries and failure summaries
 - public method documentation and model documentation
 - previous Protenix `inputs-update-msa.json` MSA paths only through
-  exact-sequence reuse or a derived `build-msa-cache` index, with a recorded
-  reuse report, `check-msa-cache`/`run-next --dry-run` preflight, and a coverage
-  guard for queued attack runs
+  exact-sequence reuse or a derived `build-msa-cache --materialize-cache`
+  index, with a recorded reuse report, `check-msa-cache`/`run-next --dry-run`
+  preflight, and a coverage guard for queued attack runs
+- for multi-seed or sharded Protenix runs, refresh `data/msa_cache/index.tsv`
+  with `--materialize-cache`, create run specs with `--reuse-global-msa-cache`,
+  and use `--msa-reuse-require-complete` or a declared minimum reuse fraction
+  before launch
 
 Forbidden during strategy design and prediction:
 
@@ -79,6 +83,8 @@ Forbidden during strategy design and prediction:
 - previous `target_scores.csv` rows for per-target parameter selection
 - leaderboard outputs as an oracle for changing individual targets
 - target-id-only MSA reuse when the protein sequence changed
+- relying on old run prediction directories as the only cache source for a
+  planned attack budget when a materialized cache can be built
 
 Scoring may read references and official-derived metadata only inside the
 benchmark scoring pipeline.

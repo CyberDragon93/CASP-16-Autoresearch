@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from casp16_leaderboard.cli import discover_msa_source_jsons, resolve_msa_source_jsons, validate_msa_reuse_summary
+from casp16_leaderboard.cli import discover_msa_source_jsons, resolve_msa_cache_indexes, resolve_msa_source_jsons, validate_msa_reuse_summary
 from casp16_leaderboard.msa_cache import audit_msa_reuse_report, build_msa_cache_index, plan_msa_reuse, reuse_msa_paths
 
 
@@ -250,6 +250,187 @@ def test_build_msa_cache_index_and_reuse_from_index(tmp_path: Path) -> None:
     assert chain["unpairedMsaPath"] == str(unpaired_complete)
 
 
+def test_materialized_msa_cache_survives_source_run_cleanup(tmp_path: Path) -> None:
+    msa_dir = tmp_path / "runs" / "source" / "predictions" / "protenix-v2" / "T1" / "msa" / "0"
+    msa_dir.mkdir(parents=True)
+    paired = msa_dir / "pairing.a3m"
+    unpaired = msa_dir / "non_pairing.a3m"
+    paired.write_text(">q\nAAAA\n", encoding="utf-8")
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_json = tmp_path / "runs" / "source" / "inputs" / "inputs-update-msa.json"
+    source_json.parent.mkdir(parents=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1",
+                    "sequences": [
+                        {
+                            "proteinChain": {
+                                "sequence": "AAAA",
+                                "count": 1,
+                                "id": ["A"],
+                                "pairedMsaPath": str(paired),
+                                "unpairedMsaPath": str(unpaired),
+                            }
+                        }
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    index_tsv = tmp_path / "data" / "msa_cache" / "index.tsv"
+    store_dir = tmp_path / "data" / "msa_cache" / "store"
+
+    summary = build_msa_cache_index(source_jsons=[source_json], output_tsv=index_tsv, materialize_store_dir=store_dir)
+    paired.unlink()
+    unpaired.unlink()
+
+    assert summary["materialized_sequence_records"] == 1
+    with index_tsv.open(encoding="utf-8", newline="") as handle:
+        index_rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert index_rows[0]["paired_msa_path"].startswith(str(store_dir))
+    assert index_rows[0]["paired_msa_sha256"]
+    assert Path(index_rows[0]["paired_msa_path"]).exists()
+
+    input_json = tmp_path / "new_inputs.json"
+    input_json.write_text(
+        json.dumps([{"name": "same_sequence", "sequences": [{"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}}]}]),
+        encoding="utf-8",
+    )
+    output_json = tmp_path / "new_inputs_msa.json"
+    reuse_summary = reuse_msa_paths(
+        input_json=input_json,
+        msa_cache_indexes=[index_tsv],
+        output_json=output_json,
+        report_tsv=tmp_path / "msa_reuse.tsv",
+    )
+
+    assert reuse_summary["reused"] == 1
+    chain = json.loads(output_json.read_text(encoding="utf-8"))[0]["sequences"][0]["proteinChain"]
+    assert chain["pairedMsaPath"].startswith(str(store_dir))
+
+
+def test_index_size_mismatch_is_treated_as_stale(tmp_path: Path) -> None:
+    msa_dir = tmp_path / "msa"
+    msa_dir.mkdir()
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    index_tsv = tmp_path / "index.tsv"
+    with index_tsv.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=[
+                "sequence_sha256",
+                "sequence_len",
+                "available_path_count",
+                "source_run_id",
+                "source_task_name",
+                "source_chain_index",
+                "source_json",
+                "source_json_sha256",
+                "paired_msa_path",
+                "paired_msa_size",
+                "paired_msa_sha256",
+                "unpaired_msa_path",
+                "unpaired_msa_size",
+                "unpaired_msa_sha256",
+            ],
+            delimiter="\t",
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        writer.writerow(
+            {
+                "sequence_sha256": "63c1dd951ffedf6f7f0c575b8f8366ad6ac7e86cbb3f61a95a2cb8a27efc0b60",
+                "sequence_len": "4",
+                "available_path_count": "1",
+                "source_run_id": "source",
+                "source_task_name": "T1",
+                "source_chain_index": "0",
+                "source_json": "",
+                "source_json_sha256": "",
+                "paired_msa_path": "",
+                "paired_msa_size": "0",
+                "paired_msa_sha256": "",
+                "unpaired_msa_path": str(unpaired),
+                "unpaired_msa_size": "999",
+                "unpaired_msa_sha256": "",
+            }
+        )
+    input_json = tmp_path / "new_inputs.json"
+    input_json.write_text(
+        json.dumps([{"name": "same_sequence", "sequences": [{"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}}]}]),
+        encoding="utf-8",
+    )
+
+    summary = plan_msa_reuse(input_json=input_json, msa_cache_indexes=[index_tsv])
+
+    assert summary["cache_index_rows"] == 1
+    assert summary["cache_index_stale_rows"] == 1
+    assert summary["missing_source"] == 1
+
+
+def test_index_hash_mismatch_is_treated_as_stale(tmp_path: Path) -> None:
+    msa_dir = tmp_path / "msa"
+    msa_dir.mkdir()
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    index_tsv = tmp_path / "index.tsv"
+    with index_tsv.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=[
+                "sequence_sha256",
+                "sequence_len",
+                "available_path_count",
+                "source_run_id",
+                "source_task_name",
+                "source_chain_index",
+                "source_json",
+                "source_json_sha256",
+                "paired_msa_path",
+                "paired_msa_size",
+                "paired_msa_sha256",
+                "unpaired_msa_path",
+                "unpaired_msa_size",
+                "unpaired_msa_sha256",
+            ],
+            delimiter="\t",
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        writer.writerow(
+            {
+                "sequence_sha256": "63c1dd951ffedf6f7f0c575b8f8366ad6ac7e86cbb3f61a95a2cb8a27efc0b60",
+                "sequence_len": "4",
+                "available_path_count": "1",
+                "source_run_id": "source",
+                "source_task_name": "T1",
+                "source_chain_index": "0",
+                "source_json": "",
+                "source_json_sha256": "",
+                "paired_msa_path": "",
+                "paired_msa_size": "0",
+                "paired_msa_sha256": "",
+                "unpaired_msa_path": str(unpaired),
+                "unpaired_msa_size": str(unpaired.stat().st_size),
+                "unpaired_msa_sha256": "not_the_real_hash",
+            }
+        )
+    input_json = tmp_path / "new_inputs.json"
+    input_json.write_text(
+        json.dumps([{"name": "same_sequence", "sequences": [{"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}}]}]),
+        encoding="utf-8",
+    )
+
+    summary = plan_msa_reuse(input_json=input_json, msa_cache_indexes=[index_tsv])
+
+    assert summary["cache_index_stale_rows"] == 1
+    assert summary["missing_source"] == 1
+
+
 def test_plan_msa_reuse_writes_auditable_report_without_rewriting_input(tmp_path: Path) -> None:
     msa_dir = tmp_path / "msa"
     msa_dir.mkdir()
@@ -365,6 +546,16 @@ def test_discover_msa_source_jsons_scans_protenix_msa_runs(tmp_path: Path) -> No
     resolved = discover_msa_source_jsons(tmp_path, run_ids=None, benchmarks=["bench_v1"])
 
     assert resolved == [source.resolve()]
+
+
+def test_resolve_msa_cache_indexes_defaults_to_global_index_when_available(tmp_path: Path) -> None:
+    global_index = tmp_path / "data" / "msa_cache" / "index.tsv"
+    global_index.parent.mkdir(parents=True)
+    global_index.write_text("sequence_sha256\tsequence_len\n", encoding="utf-8")
+
+    resolved = resolve_msa_cache_indexes(tmp_path, explicit_paths=None, default_if_available=True)
+
+    assert resolved == [global_index.resolve()]
 
 
 def test_validate_msa_reuse_summary_rejects_incomplete() -> None:

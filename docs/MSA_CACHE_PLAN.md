@@ -22,11 +22,11 @@ Preferred run creation path:
 ```bash
 ./casp16 build-msa-cache \
   --benchmark casp16_server_protein_v2_aliasfix \
-  --output-tsv data/msa_cache/index.tsv
+  --output-tsv data/msa_cache/index.tsv \
+  --materialize-cache
 
 ./casp16 check-msa-cache \
   --input-json <new_inputs.json> \
-  --cache-index data/msa_cache/index.tsv \
   --require-complete
 
 ./casp16 run-spec \
@@ -35,7 +35,7 @@ Preferred run creation path:
   --input-json <new_inputs.json> \
   --strategy <strategy_name> \
   --use-msa --use-template --use-default-params \
-  --msa-cache-index data/msa_cache/index.tsv \
+  --reuse-global-msa-cache \
   --msa-reuse-require-complete
 ```
 
@@ -68,6 +68,14 @@ small TSV keyed by exact protein sequence SHA256. It records source run, source
 task, source JSON hash, paired/unpaired MSA paths, and file sizes. Large MSA
 files stay in the original run directories.
 
+When `--materialize-cache` is passed, the command also copies paired/unpaired
+MSA files into an ignored content-addressed local store under
+`data/msa_cache/store/` and points `data/msa_cache/index.tsv` at those stable
+paths. The index then survives cleanup of old source run prediction directories.
+The cache manifest is written to `data/msa_cache/manifest.json` with the index
+hash and materialization summary; both files are derived local artifacts and
+remain ignored by Git.
+
 The reuse command injects MSA paths only by exact protein sequence SHA256. If
 the sequence was trimmed, windowed, recovered, or otherwise changed, it misses
 and Protenix will search MSA normally. Existing valid MSA paths in the input are
@@ -78,8 +86,11 @@ normal repo workflows; it resolves
 `runs/<run_id>/inputs/inputs-update-msa.json` and falls back to
 `inputs-final-updated.json` when present. Use `--msa-cache-index` on
 `run-spec` or `--cache-index` on `reuse-msa` for multi-run reuse across attack
-shards and strategy variants. Use `--msa-source-json` only when the source is
-outside the repo's `runs/` tree.
+shards and strategy variants. `run-spec --reuse-global-msa-cache` is the
+preferred shorthand for explicitly using `data/msa_cache/index.tsv`.
+`check-msa-cache` and `reuse-msa` default to that global index when no explicit
+source/index is supplied and the file exists. Use `--msa-source-json` only when
+the source is outside the repo's `runs/` tree.
 
 For attack shards that are expected to reuse every unchanged chain, use
 `--require-complete`. For ablations where some sequences intentionally change,
@@ -102,8 +113,9 @@ moving or deleting source run directories.
 - Missing or stale MSA path means no reuse.
 - A cache-reused run must pass `run-next --dry-run` before Slurm submission.
 - Treat MSA source JSON and reuse report as run artifacts, not benchmark files.
-- Treat `data/msa_cache/index.tsv` as a derived local cache manifest; rebuild it
-  from run artifacts when source runs change.
+- Treat `data/msa_cache/index.tsv`, `data/msa_cache/manifest.json`, and
+  `data/msa_cache/store/` as derived local cache artifacts; rebuild them from
+  run artifacts when source runs change.
 - Report `reused`, `kept_existing`, and `missing_source` counts in strategy
   notes before launching a cache-reused run.
 - Use a coverage guard (`--require-complete` or `--min-reuse-fraction`) for
@@ -141,10 +153,10 @@ moving or deleting source run directories.
    sources change, run `check-msa-cache`, create the run spec with
    `--msa-reuse-require-complete` or a declared `--msa-reuse-min-fraction`, and
    include the JSON summary in the job notes.
-3. If run directories start getting deleted or moved, promote the cache to a
-   content-addressed local store under ignored scratch storage, keyed by
-   sequence SHA256 and MSA file SHA256. The index should then point at stable
-   cache paths instead of source run paths.
+3. Use `--materialize-cache` before launching multi-shard attack budgets. This
+   already promotes the cache to a content-addressed local store under ignored
+   scratch storage, keyed by sequence SHA256 and MSA file SHA256, so the index
+   points at stable cache paths instead of source run paths.
 4. If Protenix exposes a clean MSA-only mode, split expensive MSA generation
    from model inference. Until then, `inputs-update-msa.json` remains the
    practical boundary between search cost and inference cost.

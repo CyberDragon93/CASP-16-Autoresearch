@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
 
@@ -16,8 +17,8 @@ from .benchmark import (
 )
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
-from .msa_cache import audit_msa_reuse_report, build_msa_cache_index, plan_msa_reuse, reuse_msa_paths
-from .official import ingest_official_data
+from .msa_cache import audit_msa_reuse_report, build_msa_cache_index, file_sha256, plan_msa_reuse, reuse_msa_paths
+from .official import ensure_dir, ingest_official_data
 from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, run_next
 from .scoring import probe_qsglob_targets, score_benchmark_runs
 from .strategies import STRATEGY_YANG_TERMINAL_TAG_CLEANUP, derive_strategy_inputs
@@ -107,6 +108,44 @@ def unique_paths(paths: Sequence[Path]) -> list[Path]:
     return unique
 
 
+def default_msa_cache_index(root: Path) -> Path:
+    return root / "data" / "msa_cache" / "index.tsv"
+
+
+def default_msa_cache_store(root: Path) -> Path:
+    return root / "data" / "msa_cache" / "store"
+
+
+def resolve_msa_cache_indexes(
+    root: Path,
+    explicit_paths: Sequence[Path] | None,
+    *,
+    use_global: bool = False,
+    default_if_available: bool = False,
+) -> list[Path]:
+    indexes = [path.resolve() for path in (explicit_paths or [])]
+    global_index = default_msa_cache_index(root).resolve()
+    if use_global or (default_if_available and not indexes and global_index.exists()):
+        indexes.append(global_index)
+    indexes = unique_paths(indexes)
+    missing = [str(path) for path in indexes if not path.exists()]
+    if missing:
+        raise FileNotFoundError(f"MSA cache index not found: {', '.join(missing)}")
+    return indexes
+
+
+def write_msa_cache_manifest(manifest_json: Path, summary: dict[str, object]) -> dict[str, object]:
+    ensure_dir(manifest_json.parent)
+    output_tsv = Path(str(summary["output_tsv"]))
+    payload = {
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "index_sha256": file_sha256(output_tsv),
+        **summary,
+    }
+    manifest_json.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return payload
+
+
 def validate_msa_reuse_summary(summary: dict[str, object], *, require_complete: bool, min_reuse_fraction: float | None) -> None:
     missing = int(summary.get("missing_source", 0) or 0)
     protein_chains = int(summary.get("protein_chains", 0) or 0)
@@ -166,6 +205,9 @@ def build_parser() -> argparse.ArgumentParser:
     build_msa_cache.add_argument("--run-id", action="append", default=None, help="Scan this run id; repeatable.")
     build_msa_cache.add_argument("--msa-source-json", type=Path, action="append", default=None, help="Explicit Protenix inputs-update-msa.json source; repeatable.")
     build_msa_cache.add_argument("--output-tsv", type=Path, default=None, help="Defaults to <root>/data/msa_cache/index.tsv.")
+    build_msa_cache.add_argument("--materialize-cache", action="store_true", help="Copy MSA files into a stable content-addressed local store before writing the index.")
+    build_msa_cache.add_argument("--store-dir", type=Path, default=None, help="Defaults to <root>/data/msa_cache/store when --materialize-cache is set.")
+    build_msa_cache.add_argument("--manifest-json", type=Path, default=None, help="Defaults to <output-tsv parent>/manifest.json.")
     build_msa_cache.add_argument("--min-records", type=int, default=1, help="Fail if the built index has fewer usable sequence records.")
 
     reuse_msa = subparsers.add_parser("reuse-msa", help="Inject existing Protenix MSA paths into a new input JSON by exact protein sequence match.")
@@ -226,6 +268,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec.add_argument("--msa-source-json", type=Path, action="append", default=None, help="Existing Protenix inputs-update-msa.json source; repeatable.")
     run_spec.add_argument("--msa-source-run-id", action="append", default=None, help="Use runs/<run_id>/inputs/inputs-update-msa.json as an MSA source; repeatable.")
     run_spec.add_argument("--msa-cache-index", type=Path, action="append", default=None, help="Exact-sequence MSA cache index TSV from build-msa-cache; repeatable.")
+    run_spec.add_argument("--reuse-global-msa-cache", action="store_true", help="Use <root>/data/msa_cache/index.tsv as an exact-sequence MSA cache source.")
     run_spec.add_argument("--msa-reuse-report", type=Path, default=None, help="Defaults to runs/<run_id>/inputs/msa_reuse.tsv.")
     run_spec.add_argument("--msa-reuse-require-complete", action="store_true", help="Fail run-spec unless every protein chain receives or already has usable MSA paths.")
     run_spec.add_argument("--msa-reuse-min-fraction", type=float, default=None, help="Fail run-spec unless MSA coverage is at least this fraction.")
@@ -387,12 +430,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         if missing:
             raise FileNotFoundError(f"MSA source JSON not found: {', '.join(missing)}")
         output_tsv = (args.output_tsv or (root / "data" / "msa_cache" / "index.tsv")).resolve()
-        summary = build_msa_cache_index(source_jsons=sources, output_tsv=output_tsv)
+        materialize_store_dir = (args.store_dir or default_msa_cache_store(root)).resolve() if args.materialize_cache else None
+        summary = build_msa_cache_index(
+            source_jsons=sources,
+            output_tsv=output_tsv,
+            materialize_store_dir=materialize_store_dir,
+        )
         if int(summary.get("source_sequence_records", 0) or 0) < args.min_records:
             raise RuntimeError(
                 f"MSA cache index has {summary.get('source_sequence_records', 0)} usable record(s), "
                 f"below required {args.min_records}"
             )
+        manifest_json = (args.manifest_json or (output_tsv.parent / "manifest.json")).resolve()
+        summary["manifest_json"] = str(manifest_json)
+        summary["index_sha256"] = write_msa_cache_manifest(manifest_json, summary)["index_sha256"]
         print_json(summary)
         return 0
 
@@ -402,12 +453,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             if (args.msa_source_json or args.source_run_id)
             else []
         )
-        msa_cache_indexes = [path.resolve() for path in (args.cache_index or [])]
+        msa_cache_indexes = resolve_msa_cache_indexes(root, args.cache_index, default_if_available=True)
         if not msa_source_jsons and not msa_cache_indexes:
             raise ValueError("provide at least one --cache-index, --msa-source-json, or --source-run-id")
-        missing_indexes = [str(path) for path in msa_cache_indexes if not path.exists()]
-        if missing_indexes:
-            raise FileNotFoundError(f"MSA cache index not found: {', '.join(missing_indexes)}")
         summary = reuse_msa_paths(
             input_json=args.input_json.resolve(),
             msa_source_jsons=msa_source_jsons,
@@ -433,12 +481,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             if (args.msa_source_json or args.source_run_id)
             else []
         )
-        msa_cache_indexes = [path.resolve() for path in (args.cache_index or [])]
+        msa_cache_indexes = resolve_msa_cache_indexes(root, args.cache_index, default_if_available=True)
         if not msa_source_jsons and not msa_cache_indexes:
             raise ValueError("provide at least one --cache-index, --msa-source-json, or --source-run-id")
-        missing_indexes = [str(path) for path in msa_cache_indexes if not path.exists()]
-        if missing_indexes:
-            raise FileNotFoundError(f"MSA cache index not found: {', '.join(missing_indexes)}")
         report_name = args.benchmark or input_json.stem
         report_tsv = (args.report_tsv or (root / "diagnostics" / "msa_cache" / f"{report_name}.tsv")).resolve()
         summary = plan_msa_reuse(
@@ -480,10 +525,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             if (args.msa_source_json or args.msa_source_run_id)
             else []
         )
-        msa_cache_indexes = [path.resolve() for path in (args.msa_cache_index or [])]
-        missing_indexes = [str(path) for path in msa_cache_indexes if not path.exists()]
-        if missing_indexes:
-            raise FileNotFoundError(f"MSA cache index not found: {', '.join(missing_indexes)}")
+        msa_cache_indexes = resolve_msa_cache_indexes(
+            root,
+            args.msa_cache_index,
+            use_global=args.reuse_global_msa_cache,
+        )
         summary = create_run_spec(
             project_root=root,
             run_id=args.run_id,

@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
@@ -40,8 +41,10 @@ MSA_CACHE_INDEX_FIELDS = [
     "source_json_sha256",
     "paired_msa_path",
     "paired_msa_size",
+    "paired_msa_sha256",
     "unpaired_msa_path",
     "unpaired_msa_size",
+    "unpaired_msa_sha256",
 ]
 
 
@@ -58,6 +61,8 @@ class MsaRecord:
     source_chain_index: int
     paired_msa_size: int
     unpaired_msa_size: int
+    paired_msa_sha256: str = ""
+    unpaired_msa_sha256: str = ""
 
     @property
     def available_path_count(self) -> int:
@@ -110,6 +115,13 @@ def _path_size(path_text: str) -> int:
     return path.stat().st_size if path.exists() else 0
 
 
+def _path_sha256(path_text: str) -> str:
+    if not path_text:
+        return ""
+    path = Path(path_text)
+    return file_sha256(path) if path.exists() else ""
+
+
 def _path_report_fields(paired: Any, unpaired: Any) -> dict[str, str]:
     paired_text = str(paired or "").strip()
     unpaired_text = str(unpaired or "").strip()
@@ -143,6 +155,8 @@ def _prefer_record(new: MsaRecord, previous: MsaRecord | None) -> bool:
         return True
     if new.available_path_count != previous.available_path_count:
         return new.available_path_count > previous.available_path_count
+    if new.paired_msa_sha256 or new.unpaired_msa_sha256:
+        return not (previous.paired_msa_sha256 or previous.unpaired_msa_sha256)
     return False
 
 
@@ -197,13 +211,112 @@ def _record_to_index_row(record: MsaRecord) -> dict[str, str]:
         "source_json_sha256": record.source_json_sha256,
         "paired_msa_path": record.paired_msa_path,
         "paired_msa_size": str(record.paired_msa_size),
+        "paired_msa_sha256": record.paired_msa_sha256,
         "unpaired_msa_path": record.unpaired_msa_path,
         "unpaired_msa_size": str(record.unpaired_msa_size),
+        "unpaired_msa_sha256": record.unpaired_msa_sha256,
     }
 
 
-def build_msa_cache_index(*, source_jsons: Sequence[Path], output_tsv: Path) -> dict[str, object]:
+def _store_path(store_dir: Path, *, sequence_sha256: str, kind: str, source_path: str, file_hash: str) -> Path:
+    source = Path(source_path)
+    suffix = source.suffix or ".msa"
+    safe_kind = "paired" if kind == "paired" else "unpaired"
+    return store_dir / sequence_sha256[:2] / sequence_sha256 / f"{safe_kind}.{file_hash}{suffix}"
+
+
+def _copy_to_store(source_path: str, destination: Path) -> tuple[int, bool]:
+    ensure_dir(destination.parent)
+    source = Path(source_path)
+    size = source.stat().st_size
+    if destination.exists() and destination.stat().st_size == size:
+        return size, False
+    shutil.copy2(source, destination)
+    return size, True
+
+
+def materialize_msa_records(records: Mapping[str, MsaRecord], store_dir: Path) -> tuple[dict[str, MsaRecord], dict[str, object]]:
+    materialized: dict[str, MsaRecord] = {}
+    files_seen: set[tuple[str, str]] = set()
+    files_copied = 0
+    bytes_materialized = 0
+
+    for record in records.values():
+        paired_path = ""
+        unpaired_path = ""
+        paired_size = 0
+        unpaired_size = 0
+        paired_hash = ""
+        unpaired_hash = ""
+
+        if record.paired_msa_path:
+            paired_hash = _path_sha256(record.paired_msa_path)
+            if paired_hash:
+                paired_destination = _store_path(
+                    store_dir,
+                    sequence_sha256=record.sequence_sha256,
+                    kind="paired",
+                    source_path=record.paired_msa_path,
+                    file_hash=paired_hash,
+                )
+                paired_size, copied = _copy_to_store(record.paired_msa_path, paired_destination)
+                files_copied += int(copied and ("paired", paired_hash) not in files_seen)
+                bytes_materialized += paired_size if copied and ("paired", paired_hash) not in files_seen else 0
+                files_seen.add(("paired", paired_hash))
+                paired_path = str(paired_destination)
+
+        if record.unpaired_msa_path:
+            unpaired_hash = _path_sha256(record.unpaired_msa_path)
+            if unpaired_hash:
+                unpaired_destination = _store_path(
+                    store_dir,
+                    sequence_sha256=record.sequence_sha256,
+                    kind="unpaired",
+                    source_path=record.unpaired_msa_path,
+                    file_hash=unpaired_hash,
+                )
+                unpaired_size, copied = _copy_to_store(record.unpaired_msa_path, unpaired_destination)
+                files_copied += int(copied and ("unpaired", unpaired_hash) not in files_seen)
+                bytes_materialized += unpaired_size if copied and ("unpaired", unpaired_hash) not in files_seen else 0
+                files_seen.add(("unpaired", unpaired_hash))
+                unpaired_path = str(unpaired_destination)
+
+        materialized_record = MsaRecord(
+            sequence_sha256=record.sequence_sha256,
+            sequence_len=record.sequence_len,
+            paired_msa_path=paired_path,
+            unpaired_msa_path=unpaired_path,
+            source_json=record.source_json,
+            source_json_sha256=record.source_json_sha256,
+            source_run_id=record.source_run_id,
+            source_task_name=record.source_task_name,
+            source_chain_index=record.source_chain_index,
+            paired_msa_size=paired_size,
+            unpaired_msa_size=unpaired_size,
+            paired_msa_sha256=paired_hash,
+            unpaired_msa_sha256=unpaired_hash,
+        )
+        if materialized_record.available_path_count:
+            _remember_record(materialized, materialized_record)
+
+    return materialized, {
+        "materialized_store_dir": str(store_dir),
+        "materialized_files_copied": files_copied,
+        "materialized_bytes_copied": bytes_materialized,
+        "materialized_sequence_records": len(materialized),
+    }
+
+
+def build_msa_cache_index(
+    *,
+    source_jsons: Sequence[Path],
+    output_tsv: Path,
+    materialize_store_dir: Path | None = None,
+) -> dict[str, object]:
     records = collect_msa_records([path.resolve() for path in source_jsons])
+    materialize_summary: dict[str, object] = {}
+    if materialize_store_dir is not None:
+        records, materialize_summary = materialize_msa_records(records, materialize_store_dir.resolve())
     ensure_dir(output_tsv.parent)
     rows = [_record_to_index_row(record) for record in records.values()]
     rows.sort(key=lambda row: (int(row["sequence_len"]), row["sequence_sha256"], row["source_task_name"]))
@@ -218,12 +331,26 @@ def build_msa_cache_index(*, source_jsons: Sequence[Path], output_tsv: Path) -> 
         "source_sequence_records": len(records),
         "records_with_paired_msa": sum(1 for record in records.values() if record.paired_msa_path),
         "records_with_unpaired_msa": sum(1 for record in records.values() if record.unpaired_msa_path),
+        **materialize_summary,
     }
 
 
+def _valid_index_path(row: Mapping[str, Any], path_key: str, size_key: str, sha_key: str) -> str:
+    path_text = _existing_msa_path(row.get(path_key))
+    if not path_text:
+        return ""
+    expected_size = _int_value(row.get(size_key), default=0)
+    if expected_size > 0 and _path_size(path_text) != expected_size:
+        return ""
+    expected_hash = str(row.get(sha_key, "") or "").strip()
+    if expected_hash and _path_sha256(path_text) != expected_hash:
+        return ""
+    return path_text
+
+
 def _record_from_index_row(row: Mapping[str, Any]) -> MsaRecord | None:
-    paired = _existing_msa_path(row.get("paired_msa_path"))
-    unpaired = _existing_msa_path(row.get("unpaired_msa_path"))
+    paired = _valid_index_path(row, "paired_msa_path", "paired_msa_size", "paired_msa_sha256")
+    unpaired = _valid_index_path(row, "unpaired_msa_path", "unpaired_msa_size", "unpaired_msa_sha256")
     if not paired and not unpaired:
         return None
     return MsaRecord(
@@ -238,6 +365,8 @@ def _record_from_index_row(row: Mapping[str, Any]) -> MsaRecord | None:
         source_chain_index=_int_value(row.get("source_chain_index")),
         paired_msa_size=_path_size(paired),
         unpaired_msa_size=_path_size(unpaired),
+        paired_msa_sha256=str(row.get("paired_msa_sha256", "")) if paired else "",
+        unpaired_msa_sha256=str(row.get("unpaired_msa_sha256", "")) if unpaired else "",
     )
 
 
