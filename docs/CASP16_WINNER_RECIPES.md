@@ -176,8 +176,9 @@ Useful strategy hypotheses:
 14. `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`: generated
     and registered as both
     `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
-    and `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105`. It
-    keeps protein-oligo sequence recovery, token-safe stoichiometry,
+    and the MSA-reused
+    `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`.
+    It keeps protein-oligo sequence recovery, token-safe stoichiometry,
     low-complexity cleanup, and large-target fallback together; 165 jobs, max
     2535 tokens, 0 jobs above the Protenix limit.
 15. `target_lab/h1258_interaction_window_v1`: generated a target-lab-only
@@ -213,19 +214,19 @@ Useful strategy hypotheses:
     seed shards only after the current 5-seed attack and v2 dev baseline
     justify the larger spend.
 23. `casp16_server_attack_protenix25_nofail`: planned but not queued. It uses
-    the same 25-seed budget on the v2 no-over-token fallback input, with shard
-    rows locked in
+    the same 25-seed budget on the MSA-reused v2 no-over-token fallback input,
+    with shard rows locked in
     `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
     The budget now points at
-    `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, so any
-    launch spends the 25-seed tier on the current protein-oligo sequence
-    recovery nofail stack.
+    `inputs_msa_reuse_from_dev_seed101.json`, so any launch spends the 25-seed
+    tier on the current protein-oligo sequence recovery nofail stack without
+    repeating MSA search in every shard.
 24. `server_v2_attack_nofail_protenix5_seed101_105`: queued but not submitted
     as the first five-candidate attack on the no-over-token v2 stack. It uses
     seeds `101..105` and `protenix_confidence_v1`, and waits behind the three
     v2 `dev_fixed` rows. It is now superseded by
-    `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` unless an
-    ablation requires the older input.
+    `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`
+    unless an ablation requires the older input.
 25. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
     CASP domain-summary metadata; useful for learning whether domain
     decomposition helps, but not a server-ranked strategy as-is.

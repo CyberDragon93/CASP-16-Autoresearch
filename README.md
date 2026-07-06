@@ -32,7 +32,8 @@ Agents and humans making leaderboard-facing strategy changes must start with
 `docs/AUTORESEARCH.md`, the live experiment queue is in
 `docs/EXPERIMENTS.md`, winner-inspired strategy cards are in
 `docs/CASP16_WINNER_RECIPES.md`, the multi-candidate server budget is in
-`docs/SERVER_ATTACK_POLICY.md`, the installed QSglob scorer notes are in
+`docs/SERVER_ATTACK_POLICY.md`, exact-sequence MSA reuse is in
+`docs/MSA_CACHE_PLAN.md`, the installed QSglob scorer notes are in
 `docs/QSGLOB_SCORER.md`, and new strategy notes should use
 `docs/STRATEGY_TEMPLATE.md`.
 
@@ -86,7 +87,7 @@ Validated locally:
 - official scored records parsed: 95,268 raw / 95,236 usable scored rows
 - benchmark Protenix jobs generated: 128
 - benchmark rank-eligible targets: 39
-- tests: `82 passed` with
+- tests: `97 passed` with
   `/scratch/10992/liaorunlong93/conda/envs/protein/bin/python -m pytest`
 
 ## CASP16 Server-Track Comparison

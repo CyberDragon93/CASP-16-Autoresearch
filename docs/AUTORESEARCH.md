@@ -57,10 +57,11 @@ where methods should change.
   yet.
 - A no-over-token larger planned attack tier now exists as
   `attack_budgets/casp16_server_attack_protenix25_nofail.json`: same 25 seeds
-  and selector, but now using the v2 oligo-recovery nofail stack with
+  and selector, but now using the MSA-reused v2 oligo-recovery nofail stack with
   protein-oligo sequence recovery, token-safe stoichiometry, low-complexity
   cleanup, large-target fallback, 165 jobs, and 0 jobs above Protenix's token
-  limit. Shards are locked in
+  limit. Its input pre-fills exact-sequence MSA paths for 268/268 protein
+  chains from the current v2 dev row. Shards are locked in
   `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`. It is
   not queued yet.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
@@ -84,18 +85,23 @@ where methods should change.
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
   sequence-recovery + large-target fallback + token-safe stoichiometry inputs
   with the same five-candidate `protenix5` budget. It is not submitted yet.
-- Queued v2 no-over-token attack run spec:
+- Superseded v2 no-over-token attack run spec:
   `server_v2_attack_nofail_protenix5_seed101_105`, using the v2
   coverage/stoich/low-complexity/large-fallback input with 0 over-token jobs
-  and the same five-candidate `protenix5` budget. It is not submitted yet and
-  waits behind the three v2 `dev_fixed` rows.
-- Stronger queued v2 no-over-token attack run spec:
+  and the same five-candidate `protenix5` budget. It lacks protein-oligo
+  sequence recovery and must stay an ablation unless explicitly relaunched.
+- Superseded stronger v2 no-over-token attack run spec:
   `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105`, using the
   new protein-oligo sequence recovery + token-safe stoichiometry +
   low-complexity cleanup + large-target fallback input. It has 165 jobs, 0 jobs
-  above the Protenix token limit, candidate_count `5`, and supersedes the older
-  v2 nofail attack input for future winner-chasing launches unless the older
-  ablation is intentionally needed.
+  above the Protenix token limit, and candidate_count `5`, but is now
+  superseded by the exact-sequence MSA-reuse successor.
+- MSA-reused queued v2 no-over-token attack run spec:
+  `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`
+  uses the same 165-job input stack plus exact-sequence MSA paths from the
+  current v2 dev row's `inputs-update-msa.json`. The reuse report has 268
+  protein chains reused, 0 missing sources, and 0 kept-existing rows. This
+  supersedes the non-reuse attack row for the next v2 `protenix5` launch.
 - New coverage-recovery strategy:
   `yang_large_target_split_or_fallback_v1`, which predeclares a token-budget
   fallback for the eight known Protenix `n_token > 2560` failures.
@@ -164,8 +170,8 @@ where methods should change.
   optimized length 2535, and 0 jobs above 2560 tokens. It is registered as
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   for `dev_fixed` comparison and
-  `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` for the
-  five-candidate `server_attack` tier.
+  `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`
+  for the five-candidate MSA-reused `server_attack` tier.
 - New H1258 target-lab artifact:
   `target_lab/h1258_interaction_window_v1/` builds the public
   LRRK2-interaction-window clue as LRRK2 residues 861-1014 plus 14-3-3 A1B2.
@@ -206,6 +212,7 @@ then improve methods against that harder target set.
 - `docs/SERVER_SCORE_TARGETS.md`: official server leaders to beat and current
   local gap
 - `docs/SERVER_ATTACK_POLICY.md`: fixed multi-seed attack-budget rules
+- `docs/MSA_CACHE_PLAN.md`: exact-sequence MSA reuse workflow and guardrails
 - `docs/QSGLOB_SCORER.md`: installed OpenStructure QSglob scorer, mapping
   diagnostics, and validation notes
 - `docs/REFERENCE_GAP_AUDIT.md`: server benchmark reference/input coverage gaps
@@ -264,10 +271,10 @@ competitive result.
 3. Improve the reference/domain registry for the remaining 96 alias-fixed
    server-benchmark targets that currently lack a cached reference mapping.
 4. Add oligo assembly mapping.
-5. Decide whether to supersede older v2 nofail queued runs with
-   `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105`; it is the
-   current best runnable input stack because it fixes protein-oligo sequence
-   modality and keeps 0 over-token jobs.
+5. Done: superseded the older v2 nofail attack rows with
+   `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`.
+   It keeps the current best runnable input stack and avoids repeated
+   cross-run MSA search by exact protein sequence hash.
 6. Queue and score the generated large-target split/fallback policy for the
    eight `n_token > 2560` failures after the active attack job.
 7. Re-score current OpenDDE and Protenix-style baselines on the server
@@ -328,16 +335,18 @@ competitive result.
     explicit ablations.
 23. Keep `casp16_server_attack_protenix25_nofail` as the stronger planned
     winner-scale budget if the no-over-token v2 stack scores well enough to
-    justify 25-seed compute. Its JSON and shard manifest now point at
-    `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`.
+    justify 25-seed compute. Its JSON and shard manifest now point at the
+    MSA-reused
+    `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1` input.
 24. Score
     `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
     before deciding whether to launch the corresponding five-candidate attack
     or jump directly to a larger predeclared budget.
-25. Prefer `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105`
-    over the older `server_v2_attack_nofail_protenix5_seed101_105` for the
-    first v2 five-candidate no-over-token attack, unless an explicit ablation
-    requires running the older stack.
+25. Prefer
+    `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`
+    over both older v2 nofail attack rows for the first v2 five-candidate
+    no-over-token attack, unless an explicit ablation requires running a
+    non-reuse stack.
 
 ## Run Discipline
 

@@ -20,11 +20,12 @@ leaderboard progress.
 | `yang_oligo_stoichiometry_recovery_v1` | `casp16_server_protein_v1` | artifacts generated, not queued | restore official oligo copy counts that collapsed to one copy per entity | not queued until token-safe/windowed derivative exists |
 | `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes for domain track; oligo diagnostic until QSglob mapping is validated |
 | `server_attack_protenix_coverage_stoich_seed101_105` | `casp16_server_protein_v1` | queued, not submitted | five-seed attack run on stacked sequence-recovery, token-fallback, token-safe stoichiometry inputs | attack tier only |
-| `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | superseded; Slurm wrapper job `810938` still pending on dependency `810719` | older alias-fixed v2 baseline using coverage + token-safe stoichiometry inputs | keep only as ablation |
+| `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | superseded; Slurm wrapper job `810938` is running the current nofail dev row | older alias-fixed v2 baseline using coverage + token-safe stoichiometry inputs | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 stack plus large-target fallback for the 11 remaining over-token jobs | keep only as ablation |
-| `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | pending | current strongest v2 no-over-token `dev_fixed` input stack with protein-oligo sequence recovery | yes for domain track; oligo after QSglob mapping validation |
-| `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending, not submitted | five-seed attack on the current strongest v2 no-over-token stack with confidence-only model selection | attack tier only |
+| `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` running | current strongest v2 no-over-token `dev_fixed` input stack with protein-oligo sequence recovery | yes for domain track; oligo after QSglob mapping validation |
+| `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending, not submitted | five-seed attack on the current strongest v2 no-over-token stack with exact-sequence MSA reuse and confidence-only model selection | attack tier only |
+| `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:msa_reuse_attack | non-reuse predecessor of the current five-seed v2 no-over-token attack | attack tier only; run only as ablation |
 | `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending; superseded candidate | older five-seed no-over-token attack that lacks protein-oligo sequence recovery | attack tier only; run only as ablation |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
 | `target_lab/small_complex_stoich_batch_v1` | target_lab only | complete; 6/6 structures, diagnostic DockQ regenerated | compact exact-stoich and H1258-window learning batch | not rank eligible |
@@ -217,8 +218,8 @@ leaderboard progress.
     - Submitted as Slurm job `810938` with dependency `afterany:810719`.
     - Later superseded by
       `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`;
-      the wrapper job still calls `run-next`, so current queue state should run
-      the newer oligo-recovery nofail dev row when the dependency releases.
+      the dependency was later cleared and the wrapper job is now running the
+      newer oligo-recovery nofail dev row through `run-next`.
 22. Installed OpenStructure 2.11.1 in the isolated conda env
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob` and configured
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` as the
@@ -334,14 +335,14 @@ leaderboard progress.
 31. Added the planned `casp16_server_attack_protenix25_nofail` budget as a
     separate 25-seed attack tier. It uses the same seeds `101..125`, one sample
     per seed, and `protenix_confidence_v1` selector as the existing
-    `protenix25` plan, but points to the no-over-token v2 fallback input.
+    `protenix25` plan, but now points to the MSA-reused no-over-token v2
+    fallback input.
     - Shards are locked in
       `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
     - This does not queue or submit any run specs.
     - Launch gate: score the active `protenix5` attack and the current
       oligo-recovery nofail v2 dev row first, unless a recorded supersession
-      decision says otherwise. Regenerate/version the shard manifest against
-      the oligo-recovery nofail artifact before launch.
+      decision says otherwise.
 32. Generated, then later superseded,
     `server_v2_attack_nofail_protenix5_seed101_105`, the first
     five-candidate attack run spec for the v2 no-over-token stack. It uses
@@ -351,8 +352,27 @@ leaderboard progress.
       and 0 jobs above the Protenix 2560-token limit.
     - Supersession: this older attack input lacks protein-oligo sequence
       recovery. Prefer
-      `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` unless an
-      explicit ablation requires the older row.
+      `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`
+      unless an explicit ablation requires the older row.
+33. Added exact-sequence MSA reuse infrastructure and retargeted the next v2
+    attack to it.
+    - New CLI: `./casp16 reuse-msa`, which copies only existing Protenix
+      `pairedMsaPath` and `unpairedMsaPath` records when the protein sequence
+      SHA256 matches exactly.
+    - Generated artifact:
+      `strategies/yang_oligo_sequence_stoich_low_complexity_large_fallback_v1/casp16_server_protein_v2_aliasfix/inputs_msa_reuse_from_dev_seed101.json`,
+      SHA256
+      `27c60079563457caada08e2b053b5507783a98841206ae2a8c8f83265c7c8316`.
+    - Reuse report:
+      `msa_reuse_from_dev_seed101.tsv`, SHA256
+      `1433b2b6d612289378e9de1b5a7cd90b9eb34e28201d7c014df86d412090e06b`,
+      with 268/268 protein-chain MSA paths reused and 0 missing sources.
+    - New pending attack:
+      `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`;
+      the non-reuse predecessor is append-only superseded in `runs/status.tsv`.
+    - Planned `casp16_server_attack_protenix25_nofail` shard rows now point to
+      the MSA-reuse input so future seed shards do not each repeat the same MSA
+      search.
 
 ## Strategy Decision Log
 
@@ -463,8 +483,8 @@ Historical next v2 run:
 `server_v2_protenix_yang_coverage_stoich_seed101`, using the v2-regenerated
 token-safe stoichiometry strategy, was submitted as Slurm job `810938`.
 Current queue state supersedes that run row with the oligo-recovery nofail dev
-row, so the `run-next` wrapper should select the newer input when job `810938`
-starts after the active v1 attack job `810719`.
+row, and the `run-next` wrapper is now running the newer input after the Slurm
+dependency was cleared.
 
 ### 2026-07-06 Coverage + Stoichiometry Attack Candidate
 
@@ -666,10 +686,37 @@ Artifact summary:
 - New `server_attack` run spec:
   `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105`, seeds
   `101..105`, candidate_count `5`, selector `protenix_confidence_v1`.
+- MSA-reuse successor run spec:
+  `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`,
+  same declared budget and selector, but using
+  `inputs_msa_reuse_from_dev_seed101.json` so Protenix can skip MSA search for
+  exact sequence matches.
 
 Interpretation: this is the current best v2 input stack to spend future attack
 compute on. The older `server_v2_attack_nofail_protenix5_seed101_105` should
 be treated as superseded unless an explicit ablation is needed.
+
+### 2026-07-06 Exact-Sequence MSA Reuse
+
+Decision: optimize repeated MSA cost by reusing only exact protein-sequence MSA
+paths across Protenix runs.
+
+Rationale: Protenix already skips MSA search when `pairedMsaPath` or
+`unpairedMsaPath` exists in `inputs-update-msa.json`. `--enable_cache true`
+does not make a new run reuse another run's MSA artifacts, so attack rows and
+seed shards can waste hours on identical searches unless the paths are carried
+forward explicitly.
+
+Implementation: `./casp16 reuse-msa` builds a new input JSON plus TSV audit by
+sequence SHA256, not target id. For the v2 nofail stack, the current dev row
+provided valid MSA paths for 268/268 protein chains. The next `protenix5`
+attack and planned `protenix25_nofail` shards now point to the MSA-reused
+artifact.
+
+Guardrail: this is infrastructure only. It does not disable MSA, does not read
+references or scores, and does not change benchmark eligibility or scoring.
+Any sequence edit, trim, recovery, or window that changes the SHA256 must miss
+the cache and run a fresh MSA search.
 
 ### 2026-07-06 Small Complex Target-Lab Result
 
@@ -728,19 +775,21 @@ input stack. The result is still `dev_fixed` only: one seed, one sample, and
 ### 2026-07-06 Protenix25 Nofail Budget Retarget
 
 Decision: update the planned `casp16_server_attack_protenix25_nofail` budget
-to use the current oligo-recovery nofail input artifact.
+to use the current MSA-reused oligo-recovery nofail input artifact.
 
 Change: the JSON and shard TSV now point at
-`yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, with 165 jobs,
-input hash `9ea5de4ffa1f7693de8f7e61374c0e51d0c54760f8efeea9839de9005a21f54e`,
+`inputs_msa_reuse_from_dev_seed101.json`, with 165 jobs, input hash
+`27c60079563457caada08e2b053b5507783a98841206ae2a8c8f83265c7c8316`,
 manifest hash
 `3199521f45afdec9127f9728b870b73810faa05eae2e42659e830ac8ffab31c2`, and
-25 declared candidates per target across five fixed seed shards.
+25 declared candidates per target across five fixed seed shards. The reuse
+report records 268/268 exact-sequence protein-chain MSA paths reused.
 
 Interpretation: if the v2 nofail baseline earns a larger attack budget, the
 25-seed path will spend compute on the latest protein-oligo sequence recovery
-stack rather than the older coverage/stoich-only nofail artifact. This does not
-queue or submit the 25-seed run.
+stack rather than the older coverage/stoich-only nofail artifact, while avoiding
+duplicate MSA search across shards. This does not queue or submit the 25-seed
+run.
 
 ### 2026-07-06 Seed-Shard Merge Path
 

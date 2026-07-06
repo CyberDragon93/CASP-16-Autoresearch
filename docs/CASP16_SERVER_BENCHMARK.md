@@ -92,9 +92,10 @@ seed shards before any complete row can be scored. The shard manifest is
 `attack_budgets/casp16_server_attack_protenix25_nofail.json` is a separate
 planned 25-seed tier for the v2 no-over-token fallback stack. It keeps the same
 seeds and selector but uses
-`yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, whose 165-job
-input includes protein-oligo sequence recovery and has 0 jobs above the
-Protenix 2560-token limit. The shard manifest is
+`inputs_msa_reuse_from_dev_seed101.json`, whose 165-job input includes
+protein-oligo sequence recovery, exact-sequence MSA paths reused for 268/268
+protein chains, and 0 jobs above the Protenix 2560-token limit. The shard
+manifest is
 `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
 
 For seed-sharded attack budgets, a single shard remains partial by design. Use

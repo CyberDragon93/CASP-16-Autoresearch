@@ -67,6 +67,8 @@ Allowed during strategy design and prediction:
 - stdout/stderr logs
 - coverage summaries and failure summaries
 - public method documentation and model documentation
+- previous Protenix `inputs-update-msa.json` MSA paths only through
+  exact-sequence reuse, with a recorded reuse report
 
 Forbidden during strategy design and prediction:
 
@@ -74,6 +76,7 @@ Forbidden during strategy design and prediction:
 - official score tables for choosing target-specific behavior
 - previous `target_scores.csv` rows for per-target parameter selection
 - leaderboard outputs as an oracle for changing individual targets
+- target-id-only MSA reuse when the protein sequence changed
 
 Scoring may read references and official-derived metadata only inside the
 benchmark scoring pipeline.

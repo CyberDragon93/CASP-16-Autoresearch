@@ -16,6 +16,7 @@ from .benchmark import (
 )
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
+from .msa_cache import reuse_msa_paths
 from .official import ingest_official_data
 from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, merge_prediction_shards, register_existing_run, run_next
 from .scoring import score_benchmark_runs
@@ -66,6 +67,13 @@ def build_parser() -> argparse.ArgumentParser:
     strategy_inputs.add_argument("--input-json", type=Path, default=None, help="Defaults to <root>/benchmarks/<benchmark>/inputs.json.")
     strategy_inputs.add_argument("--output-json", type=Path, default=None, help="Defaults to <root>/strategies/<strategy>/<benchmark>/inputs.json.")
     strategy_inputs.add_argument("--manifest", type=Path, default=None, help="Defaults to <root>/strategies/<strategy>/<benchmark>/manifest.tsv.")
+
+    reuse_msa = subparsers.add_parser("reuse-msa", help="Inject existing Protenix MSA paths into a new input JSON by exact protein sequence match.")
+    reuse_msa.add_argument("--input-json", type=Path, required=True)
+    reuse_msa.add_argument("--msa-source-json", type=Path, action="append", required=True, help="Existing Protenix inputs-update-msa.json; repeatable.")
+    reuse_msa.add_argument("--output-json", type=Path, required=True)
+    reuse_msa.add_argument("--report-tsv", type=Path, required=True)
+    reuse_msa.add_argument("--overwrite-existing", action="store_true", help="Replace existing MSA paths in the input JSON when an exact sequence match exists.")
 
     run_spec = subparsers.add_parser("run-spec", help="Create a reproducible Protenix run spec and run.sh.")
     run_spec.add_argument("--run-id", required=True)
@@ -229,6 +237,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             targets_path=benchmark_dir / "targets.tsv",
             official_sequences_path=root / "data" / "official" / "parsed" / "sequences.tsv",
             official_targets_path=root / "data" / "official" / "parsed" / "targets.tsv",
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "reuse-msa":
+        summary = reuse_msa_paths(
+            input_json=args.input_json.resolve(),
+            msa_source_jsons=[path.resolve() for path in args.msa_source_json],
+            output_json=args.output_json.resolve(),
+            report_tsv=args.report_tsv.resolve(),
+            overwrite_existing=args.overwrite_existing,
         )
         print_json(summary)
         return 0

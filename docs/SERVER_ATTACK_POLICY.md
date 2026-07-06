@@ -23,9 +23,9 @@ The first run spec using this budget is
 Slurm job `810719` and remains an attack row, not a `dev_fixed` row. Live
 output shows Protenix running the declared seeds as a serial outer loop: all
 targets for `seed_101` are produced before `seed_102` begins.
-At the latest recorded check, the run had only `seed_101` output; it is
-therefore still incomplete and must not be scored as a full five-candidate
-attack row until all declared seeds are present.
+At the latest recorded check, the run had `seed_101` output and partial
+`seed_102` output; it is therefore still incomplete and must not be scored as
+a full five-candidate attack row until all declared seeds are present.
 
 The second queued run spec using the same budget is
 `server_attack_protenix_coverage_stoich_seed101_105`. It uses the stacked
@@ -79,9 +79,9 @@ Shard run ids, seed ranges, and input artifacts are locked in
 `attack_budgets/casp16_server_attack_protenix25_nofail.json` is a separate
 planned tier for the no-over-token v2 stack. It uses the same 25 seeds and
 selector, but points every shard at
-`yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, with 165 jobs,
-protein-oligo sequence recovery, token-safe stoichiometry, and 0 jobs above
-2560 tokens. Its shard manifest is
+`inputs_msa_reuse_from_dev_seed101.json`, with 165 jobs, protein-oligo sequence
+recovery, token-safe stoichiometry, exact-sequence MSA paths reused for 268/268
+protein chains, and 0 jobs above 2560 tokens. Its shard manifest is
 `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`. Do not
 spend winner-scale compute on the older nofail artifact unless the run is
 explicitly labeled as an ablation.

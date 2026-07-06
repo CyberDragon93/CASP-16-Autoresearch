@@ -6,11 +6,20 @@
   "active_run_id": "",
   "backend": "protenix",
   "model_name": "protenix-v2",
-  "strategy": "yang_oligo_sequence_stoich_low_complexity_large_fallback_v1_server_attack_protenix25",
-  "input_json": "strategies/yang_oligo_sequence_stoich_low_complexity_large_fallback_v1/casp16_server_protein_v2_aliasfix/inputs.json",
+  "strategy": "yang_oligo_sequence_stoich_low_complexity_large_fallback_v1_msa_reuse_server_attack_protenix25",
+  "input_json": "strategies/yang_oligo_sequence_stoich_low_complexity_large_fallback_v1/casp16_server_protein_v2_aliasfix/inputs_msa_reuse_from_dev_seed101.json",
   "input_manifest": "strategies/yang_oligo_sequence_stoich_low_complexity_large_fallback_v1/casp16_server_protein_v2_aliasfix/manifest.tsv",
-  "input_sha256": "9ea5de4ffa1f7693de8f7e61374c0e51d0c54760f8efeea9839de9005a21f54e",
+  "input_sha256": "27c60079563457caada08e2b053b5507783a98841206ae2a8c8f83265c7c8316",
   "input_manifest_sha256": "3199521f45afdec9127f9728b870b73810faa05eae2e42659e830ac8ffab31c2",
+  "msa_reuse_source_json": "runs/server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101/inputs/inputs-update-msa.json",
+  "msa_reuse_report": "strategies/yang_oligo_sequence_stoich_low_complexity_large_fallback_v1/casp16_server_protein_v2_aliasfix/msa_reuse_from_dev_seed101.tsv",
+  "msa_reuse_report_sha256": "1433b2b6d612289378e9de1b5a7cd90b9eb34e28201d7c014df86d412090e06b",
+  "msa_reuse_summary": {
+    "protein_chains": 268,
+    "reused": 268,
+    "kept_existing": 0,
+    "missing_source": 0
+  },
   "input_jobs": 165,
   "oversize_jobs_after_strategy": 0,
   "seeds": [
@@ -90,5 +99,5 @@
     "do not score a complete row until all 25 declared candidates are present or the row is explicitly partial/unranked",
     "record expected GPU-hours and actual wall time per shard"
   ],
-  "budget_note": "This is a separate planned attack tier from casp16_server_attack_protenix25. It avoids spending 25 seeds on jobs that are guaranteed to fail Protenix's 2560-token guard, and it includes protein-oligo sequence recovery before token-safe stoichiometry and large-target fallback. Cropped oligo assemblies must still be interpreted as coverage-recovery evidence until QSglob mapping is validated."
+  "budget_note": "This is a separate planned attack tier from casp16_server_attack_protenix25. It avoids spending 25 seeds on jobs that are guaranteed to fail Protenix's 2560-token guard, includes protein-oligo sequence recovery before token-safe stoichiometry and large-target fallback, and reuses exact-sequence MSA paths from the current v2 dev row to avoid repeating MSA search in every shard. Cropped oligo assemblies must still be interpreted as coverage-recovery evidence until QSglob mapping is validated."
 }
