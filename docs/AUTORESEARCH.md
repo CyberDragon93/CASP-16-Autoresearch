@@ -60,10 +60,14 @@ where methods should change.
   not queued yet.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
   about chasing CASP16 server winners must report the attack budget, candidates
-  per target, selector, and GPU cost.
+  per target, selector, and GPU cost. Run specs and manifests expose
+  `budget_tier` plus `candidate_count` so multi-candidate rows stay separate
+  from single-seed rankings.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
-  inputs with seeds `101..105` and `protenix_confidence_v1`.
+  inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
+  is running; the latest check found 67 CIF files, all under `seed_101`, so it
+  is still incomplete and must not be scored as a five-candidate result.
 - Queued second attack run spec:
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
   sequence-recovery + large-target fallback + token-safe stoichiometry inputs
@@ -125,8 +129,9 @@ where methods should change.
   learning before full-benchmark promotion. It has been submitted as Slurm job
   `810824`, failed quickly due an OpenDDE/Protenix import-path collision, and
   was resubmitted as job `811114` after the target_lab Protenix environment was
-  aligned with the full benchmark run scripts. It has `summarize_outputs.py`
-  plus `score_dockq.py` for post-run diagnostics.
+  aligned with the full benchmark run scripts. Job `811114` is now running on
+  `c639-081` and has produced 1/6 CIF files at the latest check. It has
+  `summarize_outputs.py` plus `score_dockq.py` for post-run diagnostics.
 - New domain-fragment target-lab batch:
   `target_lab/domain_fragment_batch_v1/` turns the domain-decomposition recipe
   into 12 runnable Protenix fragment jobs. It has been submitted as Slurm job

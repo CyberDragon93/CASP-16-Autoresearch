@@ -23,6 +23,9 @@ The first run spec using this budget is
 Slurm job `810719` and remains an attack row, not a `dev_fixed` row. Live
 output shows Protenix running the declared seeds as a serial outer loop: all
 targets for `seed_101` are produced before `seed_102` begins.
+As of the latest check, the run has produced 67 CIF files, all under
+`seed_101`; it is therefore still incomplete and must not be scored as a full
+five-candidate attack row.
 
 The second queued run spec using the same budget is
 `server_attack_protenix_coverage_stoich_seed101_105`. It uses the stacked
@@ -43,6 +46,9 @@ multiple internal candidates per target through some mix of stochastic seeds,
 sampling, engines, MSA/template variants, and model ranking. In this repo,
 `seed`, `sample`, engine choice, and selection policy are all part of the
 candidate budget and must be declared before scoring.
+Run specs and manifests expose this as `budget_tier` plus `candidate_count`,
+where `candidate_count = seed_count * sample`. Extra hidden candidates, or
+target-specific manual candidate selection, invalidate the row.
 
 Five candidates per target is intentionally a starter attack budget. It is more
 realistic than single-seed `dev_fixed`, but it should not be described as
@@ -116,6 +122,9 @@ until every declared seed has produced candidates, or the row is explicitly
 reported as partial/unranked. If a run approaches the Vista 48-hour wall-time
 limit, prefer a predeclared seed-sharded continuation over restarting the same
 monolithic command and silently overwriting existing candidates.
+The scorer enforces this fail-closed: a target with fewer observed candidate
+files than the declared `candidate_count` is marked `partial_candidates` and
+scores `0`.
 
 ## Selection Rule
 

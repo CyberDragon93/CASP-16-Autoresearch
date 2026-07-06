@@ -13,7 +13,7 @@ from typing import Any, Mapping, Sequence
 from .benchmark import BENCHMARK_NAME, default_benchmark_dir, is_server_protein_benchmark, read_benchmark_references, read_benchmark_targets
 from .leaderboard import write_csv
 from .official import ensure_dir, parse_float
-from .runs import DEFAULT_DOCKQ_BIN, DEFAULT_QSGLOB_BIN, DEFAULT_TMSCORE_BIN, DEFAULT_USALIGN_BIN, load_run_specs
+from .runs import DEFAULT_DOCKQ_BIN, DEFAULT_QSGLOB_BIN, DEFAULT_TMSCORE_BIN, DEFAULT_USALIGN_BIN, candidate_count, infer_budget_tier, load_run_specs, spec_bool
 
 
 TARGET_SCORE_FIELDS = [
@@ -23,6 +23,9 @@ TARGET_SCORE_FIELDS = [
     "target_id",
     "rank_eligible",
     "selected_model_policy",
+    "budget_tier",
+    "candidate_count",
+    "observed_candidate_count",
     "prediction_path",
     "confidence_path",
     "selection_score",
@@ -363,6 +366,18 @@ def score_target(
     run_id = str(spec.get("run_id") or spec.get("_run_dir", ""))
     output_dir = Path(str(spec.get("output_dir", "")))
     selected_model_policy = str(spec.get("selected_model_policy") or "first_output_only")
+    spec_seeds = str(spec.get("seeds", "") or "101")
+    spec_sample = spec.get("sample", 1)
+    spec_fixed_budget = spec_bool(spec.get("fixed_budget"), default=True)
+    spec_rank_eligible = spec_bool(spec.get("rank_eligible"), default=True)
+    expected_candidates = int(spec.get("candidate_count") or candidate_count(spec_seeds, spec_sample))
+    budget_tier = str(spec.get("budget_tier", "") or infer_budget_tier(
+        seeds=spec_seeds,
+        sample=spec_sample,
+        fixed_budget=spec_fixed_budget,
+        selected_model_policy=selected_model_policy,
+        rank_eligible=spec_rank_eligible,
+    ))
     reference_value = str(reference.get("reference_path", "") or target.get("reference_path", "")).strip()
     reference_path = Path(reference_value) if reference_value else Path()
     rank_eligible = target.get("rank_eligible", "").lower() == "true"
@@ -373,6 +388,9 @@ def score_target(
         "target_id": target.get("target_id", ""),
         "rank_eligible": str(rank_eligible).lower(),
         "selected_model_policy": selected_model_policy,
+        "budget_tier": budget_tier,
+        "candidate_count": expected_candidates,
+        "observed_candidate_count": "",
         "prediction_path": "",
         "confidence_path": "",
         "selection_score": "",
@@ -388,11 +406,23 @@ def score_target(
     }
     if not rank_eligible:
         return {**base, "status": "unranked_target", "message": target.get("skip_reason", "")}
+    candidates = (
+        list(prediction_candidates)
+        if prediction_candidates is not None
+        else prediction_candidates_for_target(output_dir, target.get("target_id", ""))
+    )
+    base["observed_candidate_count"] = len(candidates)
+    if budget_tier == "server_attack" and 0 < len(candidates) < expected_candidates:
+        return {
+            **base,
+            "status": "partial_candidates",
+            "message": f"observed_candidates:{len(candidates)}<declared:{expected_candidates}",
+        }
     selection = select_prediction_for_target(
         output_dir,
         target.get("target_id", ""),
         selected_model_policy=selected_model_policy,
-        prediction_candidates=prediction_candidates,
+        prediction_candidates=candidates,
     )
     if selection.get("status") == "missing_prediction":
         return {**base, "status": "missing_prediction", "message": "no_prediction_file"}

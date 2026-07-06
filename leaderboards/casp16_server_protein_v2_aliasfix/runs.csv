@@ -1,1 +1,9 @@
-rank,run_id,track,rank_status,selected_model_policy,mean_score,eligible_targets,ok_targets,missing_targets,failed_targets,metric_unavailable_targets,artifact_path
+rank,run_id,track,rank_status,budget_tier,candidate_count,selected_model_policy,mean_score,eligible_targets,ok_targets,missing_targets,failed_targets,partial_candidate_targets,metric_unavailable_targets,artifact_path
+,server_v2_attack_nofail_protenix5_seed101_105,protein_domain,pending:no_scored_targets,server_attack,5,protenix_confidence_v1,0.000000,71,0,71,0,0,0,
+,server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101,protein_domain,pending:no_scored_targets,dev_fixed,1,first_output_only,0.000000,71,0,71,0,0,0,
+,server_v2_protenix_yang_coverage_stoich_low_complexity_seed101,protein_domain,pending:no_scored_targets,dev_fixed,1,first_output_only,0.000000,71,0,71,0,0,0,
+,server_v2_protenix_yang_coverage_stoich_seed101,protein_domain,pending:no_scored_targets,dev_fixed,1,first_output_only,0.000000,71,0,71,0,0,0,
+,server_v2_attack_nofail_protenix5_seed101_105,protein_oligo,pending:no_scored_targets,server_attack,5,protenix_confidence_v1,0.000000,104,0,104,0,0,0,
+,server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101,protein_oligo,pending:no_scored_targets,dev_fixed,1,first_output_only,0.000000,104,0,104,0,0,0,
+,server_v2_protenix_yang_coverage_stoich_low_complexity_seed101,protein_oligo,pending:no_scored_targets,dev_fixed,1,first_output_only,0.000000,104,0,104,0,0,0,
+,server_v2_protenix_yang_coverage_stoich_seed101,protein_oligo,pending:no_scored_targets,dev_fixed,1,first_output_only,0.000000,104,0,104,0,0,0,

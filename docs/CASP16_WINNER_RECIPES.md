@@ -91,7 +91,7 @@ wrong assemblies should score poorly on the oligo track.
 | O2a | H1258 public interaction window | CASP16 complex assessment notes top Yang H1258 models used the LRRK2 interacting region rather than full-length LRRK2 | `target_lab/h1258_interaction_window_v1/` builds LRRK2 861-1014 plus 14-3-3 A1B2 | target_lab only; promotion requires a target-agnostic window rule |
 | O2b | Small complex learning batch | exact stoichiometry and construct windows need faster feedback than full-benchmark runs | `target_lab/small_complex_stoich_batch_v1/` batches 5 exact-stoich jobs plus H1258 window | target_lab only; use for promotion decisions, not direct ranking |
 | O3 | Customized MSA/template | top complex groups beat default AFM/AF3 via customized MSAs, templates, and sampling | full MSA/template baseline first, then compare MSA-cache and template modes | full server target coverage increases before target_lab tuning |
-| O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | `attack_budgets/casp16_server_attack_protenix5.json` defines the starter 5-candidate attack tier; `attack_budgets/casp16_server_attack_protenix25*.json` declares planned 25-seed v2 tiers | launch only after the target question is worth multi-seed compute and budget accounting is recorded |
+| O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | `attack_budgets/casp16_server_attack_protenix5.json` defines the starter 5-candidate attack tier; `attack_budgets/casp16_server_attack_protenix25*.json` declares planned 25-seed v2 tiers; every run must expose `budget_tier` and `candidate_count` | launch only after the target question is worth multi-seed compute and budget accounting is recorded |
 | O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `yang_antibody_fv_cleanup_v1` completed a full-set run; `yang_antibody_fv_fragment_inputs_v1` remains target_lab | do not promote until QSglob assembly mapping can evaluate the antibody oligo predictions |
 | O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
 | O7 | Oversize complex fallback | complex targets can exceed AF3-like token limits, and the baseline lost H0217/H0258/H0272/H1217/H1258/H1272 before any model was produced | `yang_large_target_split_or_fallback_v1` keeps under-budget chain/copy prefixes and records dropped chains | score as coverage recovery until QSglob and assembly mapping are trustworthy |
@@ -169,7 +169,9 @@ Useful strategy hypotheses:
    remain diagnostic no matter how good the structures look.
 15. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
     is the first queued 5-candidate terminal-tag attack run; use only for a
-    separate multi-candidate comparison.
+    separate multi-candidate comparison. It is currently incomplete: latest
+    output has 67 CIF files under `seed_101` only, so it must not be scored as
+    a complete 5-candidate row.
 16. `server_attack_protenix_coverage_stoich_seed101_105`: generated as the
     second queued 5-candidate attack run, using stacked sequence recovery,
     token-budget fallback, and token-safe stoichiometry inputs. It is not

@@ -28,7 +28,8 @@ Resubmission:
 
 - Submitted: 2026-07-06T18:10Z
 - Slurm job ID: `811114`
-- Initial state: `PENDING (Priority)`
+- Current state: running on `c639-081`
+- Latest output: 1/6 CIF files produced; currently in Protenix inference
 
 Monitor:
 

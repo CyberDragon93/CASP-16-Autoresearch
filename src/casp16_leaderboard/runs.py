@@ -45,6 +45,8 @@ class RunSpec:
     protenix_root_dir: str
     seeds: str
     sample: int
+    budget_tier: str
+    candidate_count: int
     fixed_budget: bool
     selected_model_policy: str
     rank_eligible: bool
@@ -69,6 +71,44 @@ class RunSpec:
 
 def bool_text(value: bool) -> str:
     return "true" if value else "false"
+
+
+def spec_bool(value: Any, *, default: bool = False) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None or value == "":
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
+def seed_count(seeds: str) -> int:
+    parsed = [seed.strip() for seed in str(seeds or "").split(",") if seed.strip()]
+    return len(parsed) if parsed else 1
+
+
+def candidate_count(seeds: str, sample: int | str) -> int:
+    try:
+        sample_count = int(sample)
+    except (TypeError, ValueError):
+        sample_count = 1
+    return max(seed_count(seeds), 1) * max(sample_count, 1)
+
+
+def infer_budget_tier(
+    *,
+    seeds: str,
+    sample: int | str,
+    fixed_budget: bool,
+    selected_model_policy: str,
+    rank_eligible: bool,
+) -> str:
+    if not rank_eligible:
+        return "diagnostic"
+    if candidate_count(seeds, sample) > 1 or (selected_model_policy or "first_output_only") != "first_output_only":
+        return "server_attack"
+    if fixed_budget:
+        return "dev_fixed"
+    return "diagnostic"
 
 
 def build_protenix_command(
@@ -150,6 +190,7 @@ def create_run_spec(
     protenix_root_dir: Path = DEFAULT_PROTENIX_ROOT,
     seeds: str = "101",
     sample: int = 1,
+    budget_tier: str = "",
     fixed_budget: bool = True,
     selected_model_policy: str = "first_output_only",
     rank_eligible: bool = True,
@@ -216,6 +257,15 @@ def create_run_spec(
         protenix_root_dir=str(protenix_root_dir),
         seeds=seeds,
         sample=sample,
+        budget_tier=budget_tier
+        or infer_budget_tier(
+            seeds=seeds,
+            sample=sample,
+            fixed_budget=fixed_budget,
+            selected_model_policy=selected_model_policy,
+            rank_eligible=rank_eligible,
+        ),
+        candidate_count=candidate_count(seeds, sample),
         fixed_budget=fixed_budget,
         selected_model_policy=selected_model_policy,
         rank_eligible=rank_eligible,
@@ -266,6 +316,7 @@ def register_existing_run(
     source_run_id: str = "",
     seeds: str = "101",
     sample: int = 1,
+    budget_tier: str = "",
     fixed_budget: bool = False,
     selected_model_policy: str = "first_output_only",
     rank_eligible: bool = False,
@@ -306,6 +357,15 @@ def register_existing_run(
         protenix_root_dir="",
         seeds=seeds,
         sample=sample,
+        budget_tier=budget_tier
+        or infer_budget_tier(
+            seeds=seeds,
+            sample=sample,
+            fixed_budget=fixed_budget,
+            selected_model_policy=selected_model_policy,
+            rank_eligible=rank_eligible,
+        ),
+        candidate_count=candidate_count(seeds, sample),
         fixed_budget=fixed_budget,
         selected_model_policy=selected_model_policy,
         rank_eligible=rank_eligible,
@@ -489,6 +549,19 @@ def load_run_specs(runs_dir: Path, *, registered_only: bool = False) -> list[dic
 
 def run_row_from_spec(spec: Mapping[str, Any], status_by_run: Mapping[str, Mapping[str, str]]) -> dict[str, Any]:
     run_id = str(spec.get("run_id", ""))
+    seeds = str(spec.get("seeds", "101"))
+    sample = spec.get("sample", 1)
+    fixed_budget = spec_bool(spec.get("fixed_budget"), default=True)
+    selected_model_policy = str(spec.get("selected_model_policy", "") or "first_output_only")
+    rank_eligible = spec_bool(spec.get("rank_eligible"), default=True)
+    budget_tier = str(spec.get("budget_tier", "") or infer_budget_tier(
+        seeds=seeds,
+        sample=sample,
+        fixed_budget=fixed_budget,
+        selected_model_policy=selected_model_policy,
+        rank_eligible=rank_eligible,
+    ))
+    candidates = spec.get("candidate_count") or candidate_count(seeds, sample)
     return {
         "run_id": run_id,
         "benchmark": spec.get("benchmark_name", ""),
@@ -496,9 +569,13 @@ def run_row_from_spec(spec: Mapping[str, Any], status_by_run: Mapping[str, Mappi
         "backend": spec.get("backend", ""),
         "strategy": spec.get("strategy", ""),
         "model_name": spec.get("model_name", ""),
-        "seeds": spec.get("seeds", ""),
-        "sample": spec.get("sample", ""),
-        "rank_eligible": spec.get("rank_eligible", ""),
+        "seeds": seeds,
+        "sample": sample,
+        "candidate_count": candidates,
+        "budget_tier": budget_tier,
+        "selected_model_policy": selected_model_policy,
+        "fixed_budget": fixed_budget,
+        "rank_eligible": rank_eligible,
         "run_dir": spec.get("_run_dir", ""),
     }
 
@@ -584,7 +661,22 @@ def write_runs_manifest(project_root: Path, specs: Sequence[Mapping[str, Any]] |
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(
             handle,
-            fieldnames=["run_id", "benchmark", "status", "backend", "strategy", "model_name", "seeds", "sample", "rank_eligible", "run_dir"],
+            fieldnames=[
+                "run_id",
+                "benchmark",
+                "status",
+                "backend",
+                "strategy",
+                "model_name",
+                "seeds",
+                "sample",
+                "candidate_count",
+                "budget_tier",
+                "selected_model_policy",
+                "fixed_budget",
+                "rank_eligible",
+                "run_dir",
+            ],
             delimiter="\t",
             lineterminator="\n",
         )

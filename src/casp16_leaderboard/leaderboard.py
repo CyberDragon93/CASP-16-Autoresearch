@@ -10,7 +10,7 @@ from typing import Any, Iterable, Mapping, Sequence
 from .benchmark import benchmark_display_name, is_server_protein_benchmark
 from .inputs import ok_manifest_targets
 from .official import OfficialPaths, ensure_dir, mean, median, parse_float, read_tsv
-from .runs import load_run_specs
+from .runs import candidate_count, infer_budget_tier, load_run_specs, spec_bool
 
 
 def write_csv(path: Path, rows: Sequence[Mapping[str, Any]], fieldnames: Sequence[str]) -> None:
@@ -224,11 +224,15 @@ def generate_benchmark_leaderboard(
     targets = read_tsv(benchmark_dir / "targets.tsv")
     target_scores_path = output_dir / "target_scores.csv"
     score_rows = read_csv(target_scores_path) if target_scores_path.exists() else []
-    run_rank_eligible = {
-        str(spec.get("run_id", "")): bool(spec.get("rank_eligible", True))
+    run_specs = {
+        str(spec.get("run_id", "")): spec
         for spec in load_run_specs(project_root / "runs", registered_only=True)
     }
-    run_rows = summarize_benchmark_runs(score_rows, targets, run_rank_eligible=run_rank_eligible)
+    run_rank_eligible = {
+        run_id: spec_bool(spec.get("rank_eligible"), default=True)
+        for run_id, spec in run_specs.items()
+    }
+    run_rows = summarize_benchmark_runs(score_rows, targets, run_rank_eligible=run_rank_eligible, run_metadata=run_specs)
     write_csv(
         output_dir / "runs.csv",
         run_rows,
@@ -237,12 +241,15 @@ def generate_benchmark_leaderboard(
             "run_id",
             "track",
             "rank_status",
+            "budget_tier",
+            "candidate_count",
             "selected_model_policy",
             "mean_score",
             "eligible_targets",
             "ok_targets",
             "missing_targets",
             "failed_targets",
+            "partial_candidate_targets",
             "metric_unavailable_targets",
             "artifact_path",
         ],
@@ -307,6 +314,7 @@ def summarize_benchmark_runs(
     targets: Sequence[Mapping[str, str]],
     *,
     run_rank_eligible: Mapping[str, bool] | None = None,
+    run_metadata: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     eligible_by_track: dict[str, int] = defaultdict(int)
     for target in targets:
@@ -325,9 +333,29 @@ def summarize_benchmark_runs(
         status_counts = _count(str(row.get("status", "")) for row in ranked_rows)
         selected_policies = sorted({str(row.get("selected_model_policy", "") or "first_output_only") for row in rows})
         selected_model_policy = ",".join(selected_policies)
+        metadata = (run_metadata or {}).get(run_id, {})
+        metadata_policy = str(metadata.get("selected_model_policy", "") or selected_model_policy or "first_output_only")
+        metadata_seeds = str(metadata.get("seeds", "") or "101")
+        metadata_sample = metadata.get("sample", 1)
+        metadata_fixed_budget = spec_bool(metadata.get("fixed_budget"), default=True)
+        metadata_rank_eligible = spec_bool(metadata.get("rank_eligible"), default=True)
+        budget_tier = str(metadata.get("budget_tier", "") or infer_budget_tier(
+            seeds=metadata_seeds,
+            sample=metadata_sample,
+            fixed_budget=metadata_fixed_budget,
+            selected_model_policy=metadata_policy,
+            rank_eligible=metadata_rank_eligible,
+        ))
+        candidates = metadata.get("candidate_count") or candidate_count(metadata_seeds, metadata_sample)
         ok = status_counts.get("ok", 0)
         missing = status_counts.get("missing_prediction", 0) + max(eligible - len(ranked_rows), 0)
-        failed = status_counts.get("metric_failed", 0) + status_counts.get("metric_unparseable", 0) + status_counts.get("missing_reference", 0)
+        partial_candidates = status_counts.get("partial_candidates", 0)
+        failed = (
+            status_counts.get("metric_failed", 0)
+            + status_counts.get("metric_unparseable", 0)
+            + status_counts.get("missing_reference", 0)
+            + partial_candidates
+        )
         metric_unavailable = status_counts.get("metric_unavailable", 0)
         rank_status = "ranked"
         if eligible == 0:
@@ -338,7 +366,7 @@ def summarize_benchmark_runs(
             rank_status = "pending:no_scored_targets"
         if run_rank_eligible is not None and not run_rank_eligible.get(run_id, True):
             rank_status = "unranked:run_not_rank_eligible"
-        elif rank_status == "ranked" and selected_model_policy not in {"", "first_output_only"}:
+        elif rank_status == "ranked" and (budget_tier == "server_attack" or selected_model_policy not in {"", "first_output_only"}):
             rank_status = f"attack:{selected_model_policy}"
         summaries.append(
             {
@@ -346,12 +374,15 @@ def summarize_benchmark_runs(
                 "run_id": run_id,
                 "track": track,
                 "rank_status": rank_status,
+                "budget_tier": budget_tier,
+                "candidate_count": candidates,
                 "selected_model_policy": selected_model_policy,
                 "mean_score": f"{(sum(scores) / eligible if eligible else 0.0):.6f}",
                 "eligible_targets": eligible,
                 "ok_targets": ok,
                 "missing_targets": missing,
                 "failed_targets": failed,
+                "partial_candidate_targets": partial_candidates,
                 "metric_unavailable_targets": metric_unavailable,
                 "artifact_path": _artifact_path_for_run(rows),
             }
@@ -395,12 +426,15 @@ def write_results_markdown(path: Path, rows: Sequence[Mapping[str, Any]], *, top
                         ("rank", "rank"),
                         ("run", "run_id"),
                         ("status", "rank_status"),
+                        ("tier", "budget_tier"),
+                        ("candidates", "candidate_count"),
                         ("policy", "selected_model_policy"),
                         ("mean", "mean_score"),
                         ("eligible", "eligible_targets"),
                         ("ok", "ok_targets"),
                         ("missing", "missing_targets"),
                         ("failed", "failed_targets"),
+                        ("partial", "partial_candidate_targets"),
                         ("metric unavailable", "metric_unavailable_targets"),
                     ],
                 ),
@@ -475,14 +509,28 @@ def collect_local_runs(*, project_root: Path, output_dir: Path) -> dict[str, obj
             status = "has_predictions"
         elif output_path.exists():
             status = "output_dir_exists_no_predictions"
+        seeds = str(spec.get("seeds", "") or "101")
+        sample = spec.get("sample", 1)
+        fixed_budget = spec_bool(spec.get("fixed_budget"), default=True)
+        selected_model_policy = str(spec.get("selected_model_policy", "") or "first_output_only")
+        rank_eligible = spec_bool(spec.get("rank_eligible"), default=True)
+        budget_tier = str(spec.get("budget_tier", "") or infer_budget_tier(
+            seeds=seeds,
+            sample=sample,
+            fixed_budget=fixed_budget,
+            selected_model_policy=selected_model_policy,
+            rank_eligible=rank_eligible,
+        ))
         rows.append(
             {
                 "run_id": spec.get("run_id", run_dir.name),
                 "backend": spec.get("backend", ""),
                 "strategy": spec.get("strategy", ""),
                 "model_name": spec.get("model_name", ""),
-                "seeds": spec.get("seeds", ""),
-                "sample": spec.get("sample", ""),
+                "budget_tier": budget_tier,
+                "seeds": seeds,
+                "sample": sample,
+                "candidate_count": spec.get("candidate_count") or candidate_count(seeds, sample),
                 "expected_targets": len(manifest_targets),
                 "structure_files": len(structure_files),
                 "confidence_files": len(confidence_files),
@@ -504,8 +552,10 @@ def collect_local_runs(*, project_root: Path, output_dir: Path) -> dict[str, obj
             "backend",
             "strategy",
             "model_name",
+            "budget_tier",
             "seeds",
             "sample",
+            "candidate_count",
             "expected_targets",
             "structure_files",
             "confidence_files",
@@ -555,6 +605,7 @@ def write_local_markdown(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
                 ("backend", "backend"),
                 ("strategy", "strategy"),
                 ("model", "model_name"),
+                ("tier", "budget_tier"),
                 ("expected", "expected_targets"),
                 ("structures", "structure_files"),
                 ("confidence", "confidence_files"),

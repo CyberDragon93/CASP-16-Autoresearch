@@ -11,7 +11,7 @@
 
 | status | target scores |
 | --- | --- |
-| metric_unavailable | 127 |
-| missing_prediction | 1679 |
+| missing_prediction | 1787 |
 | missing_reference | 225 |
-| ok | 69 |
+| ok | 196 |
+| partial_candidates | 67 |

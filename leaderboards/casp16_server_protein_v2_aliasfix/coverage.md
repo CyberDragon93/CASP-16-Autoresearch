@@ -9,4 +9,6 @@
 
 ## Score Status
 
-_No rows._
+| status | target scores |
+| --- | --- |
+| missing_prediction | 700 |

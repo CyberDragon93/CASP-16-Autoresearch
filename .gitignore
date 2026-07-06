@@ -39,6 +39,8 @@ runs/*/tmp_inputs/
 target_lab/*/logs/
 target_lab/*/predictions/
 target_lab/*/torch_extensions/
+target_lab/*/inputs-update-msa.json
+target_lab/*/inputs-final-updated.json
 
 # Local editor or OS files.
 .DS_Store

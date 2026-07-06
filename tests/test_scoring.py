@@ -367,7 +367,7 @@ def test_score_target_records_confidence_selection(tmp_path) -> None:
     tm = _write_fake_tool(tmp_path / "tm.sh", "GDT-TS-score= 75.00")
 
     row = score_target(
-        {"run_id": "r1", "output_dir": str(output_dir), "selected_model_policy": "protenix_confidence_v1"},
+        {"run_id": "r1", "output_dir": str(output_dir), "seeds": "101,102", "sample": 1, "selected_model_policy": "protenix_confidence_v1"},
         {"target_id": "T1234", "track": "protein_domain", "rank_eligible": "true"},
         {"reference_path": str(reference)},
         benchmark="casp16_server_protein_v1",
@@ -380,3 +380,30 @@ def test_score_target_records_confidence_selection(tmp_path) -> None:
     assert row["confidence_path"] == str(confidence)
     assert row["selection_score"] == "0.580000"
     assert row["selected_model_policy"] == "protenix_confidence_v1"
+    assert row["budget_tier"] == "server_attack"
+    assert row["candidate_count"] == 2
+
+
+def test_score_target_fails_closed_for_partial_attack_candidates(tmp_path) -> None:
+    output_dir = tmp_path / "predictions"
+    pred_dir = output_dir / "T1234" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    (pred_dir / "T1234_sample_0.cif").write_text("data_pred\n", encoding="utf-8")
+    (pred_dir / "T1234_summary_confidence_sample_0.json").write_text('{"plddt": 90.0, "ptm": 0.80, "iptm": 0.0}\n', encoding="utf-8")
+    reference = tmp_path / "ref.cif"
+    reference.write_text("data_ref\n", encoding="utf-8")
+    tm = _write_fake_tool(tmp_path / "tm.sh", "GDT-TS-score= 75.00")
+
+    row = score_target(
+        {"run_id": "r1", "output_dir": str(output_dir), "seeds": "101,102", "sample": 1, "selected_model_policy": "protenix_confidence_v1"},
+        {"target_id": "T1234", "track": "protein_domain", "rank_eligible": "true"},
+        {"reference_path": str(reference)},
+        benchmark="casp16_server_protein_v1",
+        tm_tool=tm,
+        dockq_tool="",
+    )
+
+    assert row["status"] == "partial_candidates"
+    assert row["score"] == "0.000000"
+    assert row["candidate_count"] == 2
+    assert row["observed_candidate_count"] == 1

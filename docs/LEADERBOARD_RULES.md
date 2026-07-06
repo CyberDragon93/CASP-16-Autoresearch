@@ -82,6 +82,15 @@ selection rule, and allowed signals before prediction starts. Never compare a
 multi-candidate attack run against a single-seed run as though the compute
 budget were identical.
 
+Budget tier is machine-readable. `dev_fixed` means one declared candidate per
+target under the fixed development protocol. `server_attack` means more than
+one seed/sample or any non-first-output selector, and it stays out of the
+single-seed rank even when the selector is `first_output_only`. `candidate_count`
+is `seed_count * sample`; hidden extra candidates invalidate the row.
+Incomplete attack targets are fail-closed: if fewer candidate files are observed
+than the declared `candidate_count`, the target status is `partial_candidates`
+and the target scores `0`.
+
 The current attack-tier selector is documented in
 `docs/SERVER_ATTACK_POLICY.md`. It may be used only by runs whose run spec
 declares `selected_model_policy=protenix_confidence_v1`. The selector reads
