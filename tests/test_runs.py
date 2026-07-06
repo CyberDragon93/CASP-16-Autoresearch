@@ -185,6 +185,112 @@ def test_create_benchmark_run_spec_uses_run_local_input_copy(tmp_path) -> None:
     assert str(input_json) not in (tmp_path / "runs" / "server_full" / "run.sh").read_text(encoding="utf-8")
 
 
+def test_create_run_spec_can_inject_exact_sequence_msa_reuse(tmp_path) -> None:
+    benchmark_dir = tmp_path / "benchmarks" / "casp16_server_protein_v1"
+    benchmark_dir.mkdir(parents=True)
+    input_json = benchmark_dir / "inputs.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}},
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    input_manifest.write_text("target_id\tstatus\nT1\tok\n", encoding="utf-8")
+    references.write_text("target_id\treference_path\n", encoding="utf-8")
+    msa_dir = tmp_path / "msa"
+    msa_dir.mkdir()
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_json = tmp_path / "runs" / "source_run" / "inputs" / "inputs-update-msa.json"
+    source_json.parent.mkdir(parents=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "source_T1",
+                    "sequences": [
+                        {
+                            "proteinChain": {
+                                "sequence": "AAAA",
+                                "count": 1,
+                                "id": ["A"],
+                                "unpairedMsaPath": str(unpaired),
+                            }
+                        }
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    protenix_bin = tmp_path / "protenix"
+    protenix_bin.write_text("#!/usr/bin/env bash\necho protenix-test\n", encoding="utf-8")
+    protenix_bin.chmod(0o755)
+
+    summary = create_run_spec(
+        project_root=tmp_path,
+        run_id="server_cached",
+        input_json=input_json,
+        input_manifest=input_manifest,
+        benchmark_name="casp16_server_protein_v1",
+        benchmark_version="1",
+        benchmark_dir=benchmark_dir,
+        references_manifest=references,
+        protenix_bin=protenix_bin,
+        protenix_root_dir=tmp_path / "protenix_data",
+        use_msa=True,
+        msa_source_jsons=[source_json],
+        msa_reuse_require_complete=True,
+    )
+
+    spec = json.loads(Path(str(summary["run_spec"])).read_text(encoding="utf-8"))
+    runtime_input = tmp_path / "runs" / "server_cached" / "inputs" / "inputs.msa-reuse.json"
+    report = tmp_path / "runs" / "server_cached" / "inputs" / "msa_reuse.tsv"
+    assert runtime_input.exists()
+    assert report.exists()
+    assert spec["source_input_json"] == str(input_json.resolve())
+    assert spec["input_json"] == str(runtime_input)
+    assert spec["command"][spec["command"].index("-i") + 1] == str(runtime_input)
+    assert spec["msa_reuse"]["reused"] == 1
+    assert spec["msa_reuse"]["coverage_fraction"] == 1.0
+    assert spec["msa_reuse"]["msa_source_json_hashes"][0]["path"] == str(source_json.resolve())
+    payload = json.loads(runtime_input.read_text(encoding="utf-8"))
+    assert payload[0]["sequences"][0]["proteinChain"]["unpairedMsaPath"] == str(unpaired)
+    rows = list_run_rows(tmp_path, benchmark="casp16_server_protein_v1")
+    assert rows[0]["msa_reuse_coverage_fraction"] == 1.0
+    assert rows[0]["msa_reuse_missing_source"] == 0
+
+
+def test_create_run_spec_rejects_msa_reuse_when_msa_disabled(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    input_manifest = tmp_path / "input_manifest.tsv"
+    input_json.write_text("[]\n", encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\n", encoding="utf-8")
+    source_json = tmp_path / "source-update-msa.json"
+    source_json.write_text("[]\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="use_msa is false"):
+        create_run_spec(
+            project_root=tmp_path,
+            run_id="bad_cached",
+            input_json=input_json,
+            input_manifest=input_manifest,
+            msa_source_jsons=[source_json],
+            use_msa=False,
+        )
+
+
 def test_create_run_spec_marks_multiseed_attack_budget(tmp_path) -> None:
     benchmark_dir = tmp_path / "benchmarks" / "casp16_server_protein_v1"
     benchmark_dir.mkdir(parents=True)

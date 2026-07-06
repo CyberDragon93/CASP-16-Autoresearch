@@ -71,6 +71,21 @@ repo, seeds are only one budget dimension; winner-scale comparisons must also
 account for samples, model/backend variants, MSA/template variants, refinement
 passes, ranking passes, and submitted models.
 
+For MSA-heavy Protenix iterations, build an exact-sequence cache index from
+completed MSA runs and attach it during `run-spec` creation:
+
+```bash
+./casp16 build-msa-cache --benchmark casp16_server_protein_v2_aliasfix
+./casp16 run-spec --run-id <run_id> --benchmark casp16_server_protein_v2_aliasfix \
+  --use-msa --use-template --use-default-params \
+  --msa-cache-index data/msa_cache/index.tsv \
+  --msa-reuse-require-complete
+```
+
+The run spec records the cache source hashes, reuse coverage, and
+`runs/<run_id>/inputs/msa_reuse.tsv`, so repeated strategy runs do not silently
+pay full MSA search cost.
+
 ## Current Protein V1 Coverage
 
 The ranked benchmark is deliberately conservative. Protein domain and protein

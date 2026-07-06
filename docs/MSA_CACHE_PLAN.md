@@ -17,13 +17,33 @@ specs, attack shards, and strategy variants that keep some sequences identical.
 
 ## Implemented Minimal Path
 
-Use:
+Preferred run creation path:
 
 ```bash
 ./casp16 build-msa-cache \
   --benchmark casp16_server_protein_v2_aliasfix \
   --output-tsv data/msa_cache/index.tsv
 
+./casp16 run-spec \
+  --run-id <run_id> \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --input-json <new_inputs.json> \
+  --strategy <strategy_name> \
+  --use-msa --use-template --use-default-params \
+  --msa-cache-index data/msa_cache/index.tsv \
+  --msa-reuse-require-complete
+```
+
+`run-spec` copies the source input into `runs/<run_id>/inputs/`, writes
+`inputs.msa-reuse.json`, writes `msa_reuse.tsv`, points the Protenix command at
+the cache-reused input, and stores the reuse summary plus source/index hashes in
+`run_spec.json`. This is the default path for queued attack runs because it
+fails before GPU allocation if cache coverage is lower than declared.
+
+Manual input rewriting remains available for debugging or strategy artifact
+generation:
+
+```bash
 ./casp16 reuse-msa \
   --input-json <new_inputs.json> \
   --cache-index data/msa_cache/index.tsv \
@@ -43,11 +63,13 @@ the sequence was trimmed, windowed, recovered, or otherwise changed, it misses
 and Protenix will search MSA normally. Existing valid MSA paths in the input are
 kept unless `--overwrite-existing` is set.
 
-Use `--source-run-id` for normal repo workflows; it resolves
+Use `--msa-source-run-id` on `run-spec` or `--source-run-id` on `reuse-msa` for
+normal repo workflows; it resolves
 `runs/<run_id>/inputs/inputs-update-msa.json` and falls back to
-`inputs-final-updated.json` when present. Use `--cache-index` for multi-run
-reuse across attack shards and strategy variants. Use `--msa-source-json` only
-when the source is outside the repo's `runs/` tree.
+`inputs-final-updated.json` when present. Use `--msa-cache-index` on
+`run-spec` or `--cache-index` on `reuse-msa` for multi-run reuse across attack
+shards and strategy variants. Use `--msa-source-json` only when the source is
+outside the repo's `runs/` tree.
 
 For attack shards that are expected to reuse every unchanged chain, use
 `--require-complete`. For ablations where some sequences intentionally change,
@@ -82,6 +104,24 @@ The JSON summary reports `reused`, `kept_existing`, `covered`,
    should not each repeat MSA search for the same 165 jobs.
 3. For strategy ablations, reuse only unchanged chains. The TSV report should
    show which changed chains will force fresh MSA search.
+
+## Next Upgrade Path
+
+1. Keep the current index as the default while source run directories are stable.
+   It is cheap, exact-sequence safe, and avoids copying large MSA artifacts.
+2. Add a preflight gate before submitting new Slurm attack jobs: rebuild the
+   index, run `run-spec` with `--msa-reuse-require-complete` or a declared
+   `--msa-reuse-min-fraction`, and include the JSON summary in the job notes.
+3. If run directories start getting deleted or moved, promote the cache to a
+   content-addressed local store under ignored scratch storage, keyed by
+   sequence SHA256 and MSA file SHA256. The index should then point at stable
+   cache paths instead of source run paths.
+4. If Protenix exposes a clean MSA-only mode, split expensive MSA generation
+   from model inference. Until then, `inputs-update-msa.json` remains the
+   practical boundary between search cost and inference cost.
+5. Do not broaden matching beyond exact protein sequence without a new rule and
+   tests. Target-id, subsequence, or homology-based reuse can easily leak wrong
+   alignments into modified constructs.
 
 ## Non-Goals
 

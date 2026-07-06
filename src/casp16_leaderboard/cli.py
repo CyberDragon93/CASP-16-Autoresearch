@@ -212,6 +212,13 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec.add_argument("--enable-fusion", action=argparse.BooleanOptionalAction, default=False)
     run_spec.add_argument("--enable-tf32", action=argparse.BooleanOptionalAction, default=True)
     run_spec.add_argument("--extra-arg", action="append", default=None, help="Extra protenix arg string; repeatable.")
+    run_spec.add_argument("--msa-source-json", type=Path, action="append", default=None, help="Existing Protenix inputs-update-msa.json source; repeatable.")
+    run_spec.add_argument("--msa-source-run-id", action="append", default=None, help="Use runs/<run_id>/inputs/inputs-update-msa.json as an MSA source; repeatable.")
+    run_spec.add_argument("--msa-cache-index", type=Path, action="append", default=None, help="Exact-sequence MSA cache index TSV from build-msa-cache; repeatable.")
+    run_spec.add_argument("--msa-reuse-report", type=Path, default=None, help="Defaults to runs/<run_id>/inputs/msa_reuse.tsv.")
+    run_spec.add_argument("--msa-reuse-require-complete", action="store_true", help="Fail run-spec unless every protein chain receives or already has usable MSA paths.")
+    run_spec.add_argument("--msa-reuse-min-fraction", type=float, default=None, help="Fail run-spec unless MSA coverage is at least this fraction.")
+    run_spec.add_argument("--overwrite-existing-msa", action="store_true", help="Replace existing MSA paths when an exact-sequence cache match exists.")
 
     register_existing = subparsers.add_parser("register-existing-run", help="Register an existing prediction directory for diagnostic benchmark scoring.")
     register_existing.add_argument("--run-id", required=True)
@@ -411,6 +418,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             references_manifest = benchmark_dir / "references.tsv"
         input_json = (args.input_json or ((benchmark_dir / "inputs.json") if benchmark_dir else (root / "data" / "inputs" / "casp16_all.json"))).resolve()
         input_manifest = (args.input_manifest or ((benchmark_dir / "input_manifest.tsv") if benchmark_dir else (root / "data" / "inputs" / "casp16_all.manifest.tsv"))).resolve()
+        msa_source_jsons = (
+            resolve_msa_source_jsons(root, args.msa_source_json, args.msa_source_run_id)
+            if (args.msa_source_json or args.msa_source_run_id)
+            else []
+        )
+        msa_cache_indexes = [path.resolve() for path in (args.msa_cache_index or [])]
+        missing_indexes = [str(path) for path in msa_cache_indexes if not path.exists()]
+        if missing_indexes:
+            raise FileNotFoundError(f"MSA cache index not found: {', '.join(missing_indexes)}")
         summary = create_run_spec(
             project_root=root,
             run_id=args.run_id,
@@ -443,6 +459,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             enable_fusion=args.enable_fusion,
             enable_tf32=args.enable_tf32,
             extra_args=args.extra_arg,
+            msa_source_jsons=msa_source_jsons,
+            msa_cache_indexes=msa_cache_indexes,
+            msa_reuse_report=args.msa_reuse_report,
+            msa_reuse_require_complete=args.msa_reuse_require_complete,
+            msa_reuse_min_fraction=args.msa_reuse_min_fraction,
+            msa_reuse_overwrite_existing=args.overwrite_existing_msa,
         )
         print_json(summary)
         return 0

@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from .msa_cache import reuse_msa_paths
 from .official import ensure_dir
 
 
@@ -34,6 +35,7 @@ class RunSpec:
     benchmark_version: str
     benchmark_dir: str
     model_name: str
+    source_input_json: str
     input_json: str
     input_manifest: str
     input_sha256: str
@@ -62,6 +64,7 @@ class RunSpec:
     enable_fusion: bool
     enable_tf32: bool
     extra_args: list[str]
+    msa_reuse: dict[str, object]
     created_at_utc: str
     git_commit: str
     stdout_path: str
@@ -213,6 +216,41 @@ def build_protenix_command(
     return cmd
 
 
+def _validate_msa_reuse_summary(
+    summary: Mapping[str, object],
+    *,
+    require_complete: bool,
+    min_reuse_fraction: float | None,
+) -> None:
+    missing = int(summary.get("missing_source", 0) or 0)
+    protein_chains = int(summary.get("protein_chains", 0) or 0)
+    covered = int(summary.get("covered", 0) or 0)
+    coverage_fraction = float(summary.get("coverage_fraction", 1.0) or 0.0)
+    if require_complete and missing:
+        raise RuntimeError(
+            f"MSA reuse incomplete: {covered}/{protein_chains} protein chains covered, "
+            f"{missing} missing exact-sequence source(s)"
+        )
+    if min_reuse_fraction is not None:
+        if min_reuse_fraction < 0.0 or min_reuse_fraction > 1.0:
+            raise ValueError("msa_reuse_min_fraction must be between 0 and 1")
+        if coverage_fraction < min_reuse_fraction:
+            raise RuntimeError(
+                f"MSA reuse coverage {coverage_fraction:.3f} is below required {min_reuse_fraction:.3f} "
+                f"({covered}/{protein_chains} protein chains covered)"
+            )
+
+
+def _path_hash_rows(paths: Sequence[Path]) -> list[dict[str, str]]:
+    return [{"path": str(path), "sha256": file_sha256(path)} for path in paths]
+
+
+def _default_msa_reuse_input_path(input_path: Path) -> Path:
+    suffix = input_path.suffix or ".json"
+    stem = input_path.stem if input_path.suffix else input_path.name
+    return input_path.with_name(f"{stem}.msa-reuse{suffix}")
+
+
 def create_run_spec(
     *,
     project_root: Path,
@@ -247,18 +285,55 @@ def create_run_spec(
     enable_fusion: bool = False,
     enable_tf32: bool = True,
     extra_args: Sequence[str] | None = None,
+    msa_source_jsons: Sequence[Path] | None = None,
+    msa_cache_indexes: Sequence[Path] | None = None,
+    msa_reuse_report: Path | None = None,
+    msa_reuse_require_complete: bool = False,
+    msa_reuse_min_fraction: float | None = None,
+    msa_reuse_overwrite_existing: bool = False,
 ) -> dict[str, object]:
     run_dir = project_root / "runs" / run_id
-    runtime_input_json = input_json
+    runtime_input_json = input_json.resolve()
+    source_input_json = input_json.resolve()
     prediction_dir = run_dir / "predictions" / model_name
     stdout_path = run_dir / "logs" / "stdout.log"
     stderr_path = run_dir / "logs" / "stderr.log"
     ensure_dir(run_dir)
     ensure_dir(run_dir / "logs")
-    if benchmark_name:
+    msa_source_jsons = [path.resolve() for path in (msa_source_jsons or [])]
+    msa_cache_indexes = [path.resolve() for path in (msa_cache_indexes or [])]
+    if (msa_source_jsons or msa_cache_indexes) and not use_msa:
+        raise ValueError("MSA reuse sources were provided but use_msa is false; pass --use-msa for cache-reused runs")
+    if benchmark_name or msa_source_jsons or msa_cache_indexes:
         runtime_input_json = run_dir / "inputs" / input_json.name
         ensure_dir(runtime_input_json.parent)
         shutil.copy2(input_json, runtime_input_json)
+    msa_reuse: dict[str, object] = {}
+    if msa_source_jsons or msa_cache_indexes:
+        final_input_json = _default_msa_reuse_input_path(runtime_input_json)
+        report_path = (msa_reuse_report or (run_dir / "inputs" / "msa_reuse.tsv")).resolve()
+        summary = reuse_msa_paths(
+            input_json=runtime_input_json,
+            msa_source_jsons=msa_source_jsons,
+            msa_cache_indexes=msa_cache_indexes,
+            output_json=final_input_json,
+            report_tsv=report_path,
+            overwrite_existing=msa_reuse_overwrite_existing,
+        )
+        _validate_msa_reuse_summary(
+            summary,
+            require_complete=msa_reuse_require_complete,
+            min_reuse_fraction=msa_reuse_min_fraction,
+        )
+        runtime_input_json = final_input_json
+        msa_reuse = {
+            **summary,
+            "require_complete": msa_reuse_require_complete,
+            "min_reuse_fraction": msa_reuse_min_fraction,
+            "overwrite_existing": msa_reuse_overwrite_existing,
+            "msa_source_json_hashes": _path_hash_rows(msa_source_jsons),
+            "msa_cache_index_hashes": _path_hash_rows(msa_cache_indexes),
+        }
     declared_candidates = declared_candidate_count(seeds, sample, candidate_count_override)
     command = build_protenix_command(
         protenix_bin=protenix_bin,
@@ -288,6 +363,7 @@ def create_run_spec(
         benchmark_version=benchmark_version,
         benchmark_dir=str(benchmark_dir or ""),
         model_name=model_name,
+        source_input_json=str(source_input_json),
         input_json=str(runtime_input_json),
         input_manifest=str(input_manifest),
         input_sha256=file_sha256(runtime_input_json),
@@ -326,6 +402,7 @@ def create_run_spec(
         enable_fusion=enable_fusion,
         enable_tf32=enable_tf32,
         extra_args=list(extra_args or []),
+        msa_reuse=msa_reuse,
         created_at_utc=datetime.now(timezone.utc).isoformat(),
         git_commit=git_commit(project_root),
         stdout_path=str(stdout_path),
@@ -393,6 +470,7 @@ def register_existing_run(
         benchmark_version=benchmark_version,
         benchmark_dir=str(benchmark_dir or ""),
         model_name=model_name,
+        source_input_json=str(input_json),
         input_json=str(input_json),
         input_manifest=str(input_manifest),
         input_sha256=file_sha256(input_json),
@@ -431,6 +509,7 @@ def register_existing_run(
         enable_fusion=False,
         enable_tf32=False,
         extra_args=[],
+        msa_reuse={},
         created_at_utc=datetime.now(timezone.utc).isoformat(),
         git_commit=git_commit(project_root),
         stdout_path=str(stdout_path),
@@ -753,6 +832,8 @@ def run_row_from_spec(spec: Mapping[str, Any], status_by_run: Mapping[str, Mappi
         "selected_model_policy": selected_model_policy,
         "fixed_budget": fixed_budget,
         "rank_eligible": rank_eligible,
+        "msa_reuse_coverage_fraction": (spec.get("msa_reuse") or {}).get("coverage_fraction", ""),
+        "msa_reuse_missing_source": (spec.get("msa_reuse") or {}).get("missing_source", ""),
         "run_dir": spec.get("_run_dir", ""),
     }
 
@@ -852,6 +933,8 @@ def write_runs_manifest(project_root: Path, specs: Sequence[Mapping[str, Any]] |
                 "selected_model_policy",
                 "fixed_budget",
                 "rank_eligible",
+                "msa_reuse_coverage_fraction",
+                "msa_reuse_missing_source",
                 "run_dir",
             ],
             delimiter="\t",
