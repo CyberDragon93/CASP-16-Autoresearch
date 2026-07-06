@@ -256,7 +256,7 @@ Useful strategy hypotheses:
     for antibody-antigen complexes, trimming antibody constant regions while
     preserving antigen chains. It is now queued through
     `targetlab_protenix_yang_antibody_fv_seed101` as Slurm job `811918`,
-    pending on resources. This is useful for O5 learning, not a server-ranked
+    running on `c620-142`. This is useful for O5 learning, not a server-ranked
     strategy as-is.
 30. Domain crop/chain mapping: needed before domain scores can be trusted on
     multi-domain or multi-chain targets.

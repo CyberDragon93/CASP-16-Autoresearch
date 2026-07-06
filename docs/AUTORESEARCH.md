@@ -257,7 +257,7 @@ where methods should change.
   antibody-antigen jobs from `yang_antibody_fv_fragment_inputs_v1` with full
   MSA/template Protenix settings. It is `benchmark_name=target_lab`,
   `budget_tier=diagnostic`, and `rank_eligible=false`; Slurm job `811918` is
-  pending on resources. Use it only to decide whether the O5 antibody branch
+  running on `c620-142`. Use it only to decide whether the O5 antibody branch
   deserves a target-agnostic full-benchmark strategy later.
 - New domain-fragment target-lab batch:
   `target_lab/domain_fragment_batch_v1/` turns the domain-decomposition recipe
@@ -391,7 +391,7 @@ competitive result.
 18. Submitted target_lab job `811918` for
     `targetlab_protenix_yang_antibody_fv_seed101`. It is a diagnostic O5
     antibody/Fv run with full MSA/template settings and no ranked leaderboard
-    eligibility.
+    eligibility, now running on `c620-142`.
 19. Keep `server_attack_protenix_coverage_stoich_seed101_105` queued as the
     next realistic attack-budget candidate. Submit it only when
     `./casp16 run-next --benchmark casp16_server_protein_v1 --dry-run` selects
