@@ -10,7 +10,7 @@ from typing import Any, Mapping, Sequence
 from .benchmark import BENCHMARK_NAME, default_benchmark_dir, read_benchmark_references, read_benchmark_targets
 from .leaderboard import write_csv
 from .official import ensure_dir, parse_float
-from .runs import DEFAULT_DOCKQ_BIN, load_run_specs
+from .runs import DEFAULT_DOCKQ_BIN, DEFAULT_QSGLOB_BIN, DEFAULT_TMSCORE_BIN, DEFAULT_USALIGN_BIN, load_run_specs
 
 
 TARGET_SCORE_FIELDS = [
@@ -25,6 +25,7 @@ TARGET_SCORE_FIELDS = [
     "score",
     "gdt_ts_norm",
     "tm_score",
+    "qsglob",
     "dockq",
     "status",
     "message",
@@ -68,6 +69,18 @@ def parse_dockq_output(text: str) -> dict[str, float]:
     return {}
 
 
+def parse_qsglob_output(text: str) -> dict[str, float]:
+    for pattern in (
+        r"\bQSglob\b[^0-9+\-.]*([0-9.]+)",
+        r"\bQS[-_ ]?global\b[^0-9+\-.]*([0-9.]+)",
+        r"\bQS[-_ ]?score\b[^0-9+\-.]*([0-9.]+)",
+    ):
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return {"qsglob": float(match.group(1))}
+    return {}
+
+
 def find_prediction_for_target(output_dir: Path, target_id: str) -> Path | None:
     if not output_dir.exists():
         return None
@@ -101,20 +114,22 @@ def score_benchmark_runs(
     output_dir: Path | None = None,
     tmscore_bin: Path | None = None,
     dockq_bin: Path = DEFAULT_DOCKQ_BIN,
+    qsglob_bin: Path | None = None,
 ) -> dict[str, object]:
     output_dir = (output_dir or (project_root / "leaderboards" / benchmark)).resolve()
     targets = read_benchmark_targets(project_root, benchmark)
     references = {row["target_id"]: row for row in read_benchmark_references(project_root, benchmark)}
     specs = [spec for spec in load_run_specs(project_root / "runs", registered_only=True) if spec.get("benchmark_name", benchmark) == benchmark]
-    tm_tool = resolve_tool(tmscore_bin, ["TMscore", "TMscore64", "USalign"])
-    dockq_tool = resolve_tool(dockq_bin, ["DockQ"])
+    tm_tool = resolve_tool(tmscore_bin or DEFAULT_TMSCORE_BIN, ["TMscore", "TMscore64", "USalign", str(DEFAULT_USALIGN_BIN)])
+    dockq_tool = resolve_tool(dockq_bin or DEFAULT_DOCKQ_BIN, ["DockQ"])
+    qsglob_tool = resolve_tool(qsglob_bin or DEFAULT_QSGLOB_BIN, ["qsscore", "qs-score", "QSscore", "qs_score"])
 
     rows: list[dict[str, Any]] = []
     for spec in specs:
         for target in targets:
             if target.get("track") not in {"protein_domain", "protein_oligo"}:
                 continue
-            rows.append(score_target(spec, target, references.get(target["target_id"], {}), benchmark=benchmark, tm_tool=tm_tool, dockq_tool=dockq_tool))
+            rows.append(score_target(spec, target, references.get(target["target_id"], {}), benchmark=benchmark, tm_tool=tm_tool, dockq_tool=dockq_tool, qsglob_tool=qsglob_tool))
 
     write_csv(output_dir / "target_scores.csv", rows, TARGET_SCORE_FIELDS)
     return {
@@ -133,6 +148,7 @@ def score_target(
     benchmark: str,
     tm_tool: str,
     dockq_tool: str,
+    qsglob_tool: str = "",
 ) -> dict[str, Any]:
     run_id = str(spec.get("run_id") or spec.get("_run_dir", ""))
     output_dir = Path(str(spec.get("output_dir", "")))
@@ -150,6 +166,7 @@ def score_target(
         "score": "0.000000",
         "gdt_ts_norm": "",
         "tm_score": "",
+        "qsglob": "",
         "dockq": "",
         "status": "",
         "message": "",
@@ -164,12 +181,15 @@ def score_target(
         return {**base, "status": "missing_reference", "message": "reference_path_missing"}
 
     if target.get("track") == "protein_domain":
+        requires_gdt_ts = requires_official_gdt_ts(benchmark, target)
         if not tm_tool:
-            return {**base, "metric": "TMscore/GDT_TS", "status": "metric_unavailable", "message": "TMscore_or_USalign_not_found"}
+            return {**base, "metric": "GDT_TS" if requires_gdt_ts else "TMscore/GDT_TS", "status": "metric_unavailable", "message": "TMscore_or_USalign_not_found"}
         code, stdout, stderr = run_metric([tm_tool, str(prediction_path), str(reference_path)])
         if code != 0:
-            return {**base, "metric": "TMscore/GDT_TS", "status": "metric_failed", "message": stderr.strip()[:240]}
+            return {**base, "metric": "GDT_TS" if requires_gdt_ts else "TMscore/GDT_TS", "status": "metric_failed", "message": stderr.strip()[:240]}
         parsed = parse_tmscore_output(stdout)
+        if requires_gdt_ts and "gdt_ts_norm" not in parsed:
+            return {**base, "metric": "GDT_TS", "status": "metric_unparseable", "message": "no_GDT_TS"}
         score = parsed.get("gdt_ts_norm", parsed.get("tm_score"))
         if score is None:
             return {**base, "metric": "TMscore/GDT_TS", "status": "metric_unparseable", "message": "no_GDT_TS_or_TMscore"}
@@ -183,6 +203,17 @@ def score_target(
         }
 
     if target.get("track") == "protein_oligo":
+        if requires_official_qsglob(benchmark, target):
+            if not qsglob_tool:
+                return {**base, "metric": "QSglob", "status": "metric_unavailable", "message": "QSglob_scorer_not_found"}
+            code, stdout, stderr = run_metric([qsglob_tool, str(prediction_path), str(reference_path)])
+            if code != 0:
+                return {**base, "metric": "QSglob", "status": "metric_failed", "message": stderr.strip()[:240]}
+            parsed = parse_qsglob_output(stdout)
+            score = parsed.get("qsglob")
+            if score is None:
+                return {**base, "metric": "QSglob", "status": "metric_unparseable", "message": "no_QSglob"}
+            return {**base, "metric": "QSglob", "score": f"{score:.6f}", "qsglob": _fmt(score), "status": "ok"}
         if not dockq_tool:
             return {**base, "metric": "DockQ", "status": "metric_unavailable", "message": "DockQ_not_found"}
         code, stdout, stderr = run_metric([
@@ -205,3 +236,11 @@ def score_target(
 
 def _fmt(value: float | None) -> str:
     return "" if value is None else f"{value:.6f}"
+
+
+def requires_official_gdt_ts(benchmark: str, target: Mapping[str, str]) -> bool:
+    return benchmark == "casp16_server_protein_v1" or "GDT_TS" in str(target.get("official_metric", ""))
+
+
+def requires_official_qsglob(benchmark: str, target: Mapping[str, str]) -> bool:
+    return benchmark == "casp16_server_protein_v1" or "QSglob" in str(target.get("official_metric", ""))

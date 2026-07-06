@@ -17,8 +17,11 @@ from .official import ensure_dir
 
 DEFAULT_PROTENIX_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/protenix")
 DEFAULT_DOCKQ_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/DockQ")
+DEFAULT_TMSCORE_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore")
+DEFAULT_USALIGN_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/USalign")
+DEFAULT_QSGLOB_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/qsscore")
 DEFAULT_PROTENIX_ROOT = Path("/scratch/10992/liaorunlong93/protenix_data")
-OPTIONAL_METRIC_TOOLS = ("USalign", "TMscore", "TMscore64", "lddt", "lddt_stereo")
+OPTIONAL_METRIC_TOOLS = ("TMscore64", "lddt", "lddt_stereo", "qsscore", "qs-score", "QSscore", "qs_score")
 
 
 @dataclass
@@ -259,6 +262,9 @@ def check_environment(*, project_root: Path | None = None, protenix_bin: Path = 
     for name, candidate in {
         "protenix": protenix_bin,
         "DockQ": DEFAULT_DOCKQ_BIN,
+        "TMscore": DEFAULT_TMSCORE_BIN,
+        "USalign": DEFAULT_USALIGN_BIN,
+        "QSglob": DEFAULT_QSGLOB_BIN,
     }.items():
         tools[name] = {
             "configured_path": str(candidate),

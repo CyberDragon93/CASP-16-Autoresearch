@@ -12,6 +12,7 @@
 
 | status | target scores |
 | --- | --- |
-| missing_prediction | 151 |
-| ok | 122 |
+| metric_failed | 1 |
+| missing_prediction | 165 |
+| ok | 107 |
 | unranked_target | 1267 |

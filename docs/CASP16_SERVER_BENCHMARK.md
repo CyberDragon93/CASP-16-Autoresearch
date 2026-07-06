@@ -47,6 +47,11 @@ and 45 unresolved parsed domain-subtarget diagnostics. Missing references or
 unresolved mappings remain in the fixed denominator and score `0` for local
 runs until the reference registry is improved.
 
+The scoring gate now enforces official metric identity: server protein domains
+must parse `GDT_TS`, and server protein oligos must parse `QSglob`. TM-score and
+DockQ can still be collected as diagnostics for other benchmarks, but they are
+not ranked substitutes for the server metrics.
+
 Static leaderboard artifacts live under
 `leaderboards/casp16_server_protein_v1/`. In that directory,
 `official_groups.csv` and `official_server_groups.csv` are server-only
@@ -150,10 +155,12 @@ whole target set.
    `inputs.json`, `input_manifest.tsv`, and `scoring_policy.md`.
 2. Done: derive ranked target sets directly from the official `prot_domains` and
    `prot_oligo` score tables instead of the current local eligibility filter.
-3. Next: implement official-compatible domain scoring first, because `GDT_TS` is
-   cleaner to validate than assembly-level `QSglob`.
-4. Next: add oligo assembly mapping and `QSglob` scoring. Keep DockQ as a diagnostic
-   column.
+3. Partial: domain scoring now requires parsed `GDT_TS` and uses the configured
+   TMscore/USalign path by default. Next, add explicit domain cropping and
+   chain/residue mapping.
+4. Partial: oligo scoring now requires a `QSglob` scorer and refuses DockQ as a
+   ranked substitute. Next, add or vendor a real `QSglob` scorer plus assembly
+   mapping. Keep DockQ as a diagnostic column.
 5. Done: add `leaderboards/casp16_server_protein_v1/` artifacts:
    `RESULTS.md`, `runs.csv`, `target_scores.csv`, `coverage.md`,
    `official_server_groups.csv`, `official_all_groups.csv`, and
@@ -164,6 +171,8 @@ whole target set.
 ## First Experiments After The Benchmark Exists
 
 - Re-score the best current OpenDDE run on the official-compatible target set.
+- Install or implement a `QSglob` scorer before treating any server oligo run as
+  rank-eligible.
 - Separate automatic full-target runs from manual rescue runs.
 - Add Yang-Server-style input optimization as strategy code, not benchmark
   edits: disorder trimming, domain decomposition, MSA/template breadth, and

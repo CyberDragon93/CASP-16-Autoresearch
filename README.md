@@ -43,13 +43,18 @@ Generated files are written under:
   `target_scores.csv`, `coverage.md`, `official_groups.csv`, and
   `artifacts_manifest.json`
 
-The default Protenix and DockQ executables are:
+The default Protenix and local metric executables are:
 
 - `/scratch/10992/liaorunlong93/conda/envs/protein/bin/protenix`
 - `/scratch/10992/liaorunlong93/conda/envs/protein/bin/DockQ`
+- `/scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore`
+- `/scratch/10992/liaorunlong93/conda/envs/protein/bin/USalign`
 
-TMscore/TMscore64/USalign is required for ranked protein-domain scoring, and
-DockQ is required for ranked protein-oligo scoring. Missing predictions, failed
+For `casp16_protein_v1`, TMscore/TMscore64/USalign is required for ranked
+protein-domain scoring and DockQ is required for ranked protein-oligo scoring.
+For `casp16_server_protein_v1`, protein-domain scoring requires a scorer output
+with `GDT_TS`, and protein-oligo scoring requires a `QSglob` scorer; DockQ is
+not accepted as a ranked `QSglob` replacement. Missing predictions, failed
 metrics, and unavailable metric tools score `0`; confidence files are collected
 only as diagnostics and are never used as quality scores.
 
@@ -69,7 +74,7 @@ Validated locally:
 - official scored records parsed: 95,268 raw / 95,236 usable scored rows
 - benchmark Protenix jobs generated: 128
 - benchmark rank-eligible targets: 39
-- tests: `31 passed` with
+- tests: `36 passed` with
   `/scratch/10992/liaorunlong93/conda/envs/protein/bin/python -m pytest`
 
 ## CASP16 Server-Track Comparison
@@ -96,6 +101,7 @@ Current generated coverage:
 - generated Protenix jobs: 106
 - cached references currently available: 54
 - unresolved parsed domain subtarget diagnostics: 45
+- server metric gates: domain requires `GDT_TS`; oligo requires `QSglob`
 - static server leaderboard artifacts: `leaderboards/casp16_server_protein_v1/`
 
 The design notes are in `docs/CASP16_SERVER_BENCHMARK.md`.

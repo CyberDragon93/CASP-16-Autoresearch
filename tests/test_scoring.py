@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from casp16_leaderboard.scoring import find_prediction_for_target, parse_dockq_output, parse_tmscore_output, score_target
+from casp16_leaderboard.scoring import find_prediction_for_target, parse_dockq_output, parse_qsglob_output, parse_tmscore_output, score_target
 
 
 def test_parse_tmscore_output_normalizes_gdt() -> None:
@@ -13,6 +13,28 @@ def test_parse_dockq_output() -> None:
     assert parse_dockq_output("DockQ 0.642 other columns")["dockq"] == 0.642
     assert parse_dockq_output("DockQ=0.321")["dockq"] == 0.321
     assert parse_dockq_output("Total DockQ over 3 native interfaces: 0.296\nDockQ 0.733")["dockq"] == 0.296
+
+
+def test_parse_qsglob_output() -> None:
+    assert parse_qsglob_output("QSglob 0.582 other columns")["qsglob"] == 0.582
+    assert parse_qsglob_output("QS-global = 0.731")["qsglob"] == 0.731
+    assert parse_qsglob_output("QSscore: 0.641")["qsglob"] == 0.641
+
+
+def _write_fake_tool(path, output: str, *, exit_code: int = 0) -> str:
+    path.write_text(f"#!/usr/bin/env bash\ncat <<'OUT'\n{output}\nOUT\nexit {exit_code}\n", encoding="utf-8")
+    path.chmod(0o755)
+    return str(path)
+
+
+def _write_prediction_and_reference(tmp_path, target_id: str) -> tuple[str, str]:
+    pred_dir = tmp_path / "preds" / target_id
+    pred_dir.mkdir(parents=True)
+    prediction = pred_dir / f"{target_id}.cif"
+    reference = tmp_path / "ref.cif"
+    prediction.write_text("data_pred\n", encoding="utf-8")
+    reference.write_text("data_ref\n", encoding="utf-8")
+    return str(tmp_path / "preds"), str(reference)
 
 
 def test_missing_prediction_scores_zero(tmp_path) -> None:
@@ -28,6 +50,74 @@ def test_missing_prediction_scores_zero(tmp_path) -> None:
     )
     assert row["score"] == "0.000000"
     assert row["status"] == "missing_prediction"
+
+
+def test_server_domain_requires_gdt_ts_not_tm_fallback(tmp_path) -> None:
+    output_dir, reference = _write_prediction_and_reference(tmp_path, "T1201")
+    tm_only = _write_fake_tool(tmp_path / "tm_only.sh", "TM-score = 0.812")
+    row = score_target(
+        {"run_id": "r1", "output_dir": output_dir},
+        {"target_id": "T1201", "track": "protein_domain", "rank_eligible": "true", "official_metric": "GDT_TS"},
+        {"reference_path": reference},
+        benchmark="casp16_server_protein_v1",
+        tm_tool=tm_only,
+        dockq_tool="",
+    )
+    assert row["score"] == "0.000000"
+    assert row["metric"] == "GDT_TS"
+    assert row["status"] == "metric_unparseable"
+    assert row["message"] == "no_GDT_TS"
+
+
+def test_local_domain_can_fallback_to_tmscore(tmp_path) -> None:
+    output_dir, reference = _write_prediction_and_reference(tmp_path, "T1201")
+    tm_only = _write_fake_tool(tmp_path / "tm_only.sh", "TM-score = 0.812")
+    row = score_target(
+        {"run_id": "r1", "output_dir": output_dir},
+        {"target_id": "T1201", "track": "protein_domain", "rank_eligible": "true"},
+        {"reference_path": reference},
+        benchmark="casp16_protein_v1",
+        tm_tool=tm_only,
+        dockq_tool="",
+    )
+    assert row["score"] == "0.812000"
+    assert row["metric"] == "TMscore"
+    assert row["status"] == "ok"
+
+
+def test_server_oligo_requires_qsglob_not_dockq_fallback(tmp_path) -> None:
+    output_dir, reference = _write_prediction_and_reference(tmp_path, "H1202")
+    dockq = _write_fake_tool(tmp_path / "dockq.sh", "DockQ 0.900")
+    row = score_target(
+        {"run_id": "r1", "output_dir": output_dir},
+        {"target_id": "H1202", "track": "protein_oligo", "rank_eligible": "true", "official_metric": "QSglob"},
+        {"reference_path": reference},
+        benchmark="casp16_server_protein_v1",
+        tm_tool="",
+        dockq_tool=dockq,
+        qsglob_tool="",
+    )
+    assert row["score"] == "0.000000"
+    assert row["metric"] == "QSglob"
+    assert row["status"] == "metric_unavailable"
+
+
+def test_server_oligo_scores_qsglob_when_available(tmp_path) -> None:
+    output_dir, reference = _write_prediction_and_reference(tmp_path, "H1202")
+    qsglob = _write_fake_tool(tmp_path / "qsglob.sh", "QSglob = 0.642")
+    row = score_target(
+        {"run_id": "r1", "output_dir": output_dir},
+        {"target_id": "H1202", "track": "protein_oligo", "rank_eligible": "true", "official_metric": "QSglob"},
+        {"reference_path": reference},
+        benchmark="casp16_server_protein_v1",
+        tm_tool="",
+        dockq_tool="",
+        qsglob_tool=qsglob,
+    )
+    assert row["score"] == "0.642000"
+    assert row["qsglob"] == "0.642000"
+    assert row["metric"] == "QSglob"
+    assert row["status"] == "ok"
 
 
 def test_prediction_lookup_does_not_fallback_to_other_target(tmp_path) -> None:

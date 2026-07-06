@@ -19,6 +19,8 @@ where methods should change.
   domain-subtarget diagnostics.
 - `leaderboards/casp16_server_protein_v1/official_groups.csv` is server-only;
   `official_all_groups.csv` is diagnostic.
+- Server scoring now enforces metric identity: `GDT_TS` for domains and
+  `QSglob` for oligos. DockQ cannot rank server oligo targets.
 
 ## Main Objective
 
@@ -47,14 +49,15 @@ strategy iteration, not as an official-server result.
 
 ## Work Queue
 
-1. Add official-compatible domain `GDT_TS` scoring for
-   `casp16_server_protein_v1`.
-2. Improve the reference/domain registry for the 121 server-benchmark targets
+1. Add explicit domain cropping and chain/residue mapping for
+   `casp16_server_protein_v1` domain `GDT_TS` scoring.
+2. Install or implement a real `QSglob` scorer for server oligos.
+3. Improve the reference/domain registry for the 121 server-benchmark targets
    that currently lack a cached reference mapping.
-3. Add official-compatible oligo `QSglob` scoring and assembly mapping.
-4. Re-score current OpenDDE and Protenix-style baselines on the server
+4. Add oligo assembly mapping.
+5. Re-score current OpenDDE and Protenix-style baselines on the server
    benchmark.
-5. Implement strategy experiments inspired by CASP16 winners:
+6. Implement strategy experiments inspired by CASP16 winners:
    disorder trimming, domain decomposition, MSA/template optimization,
    assembly-aware multimer handling, and model ranking.
 

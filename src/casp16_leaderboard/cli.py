@@ -91,6 +91,7 @@ def build_parser() -> argparse.ArgumentParser:
     score.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards/<benchmark>.")
     score.add_argument("--tmscore-bin", type=Path, default=None)
     score.add_argument("--dockq-bin", type=Path, default=None)
+    score.add_argument("--qsglob-bin", type=Path, default=None)
 
     leaderboard = subparsers.add_parser("leaderboard", help="Generate official-compatible and local leaderboard files.")
     leaderboard.add_argument("--benchmark", default="", help=f"Generate benchmark leaderboard, e.g. {BENCHMARK_NAME}.")
@@ -98,6 +99,7 @@ def build_parser() -> argparse.ArgumentParser:
     leaderboard.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards.")
     leaderboard.add_argument("--tmscore-bin", type=Path, default=None)
     leaderboard.add_argument("--dockq-bin", type=Path, default=None)
+    leaderboard.add_argument("--qsglob-bin", type=Path, default=None)
     leaderboard.add_argument("--top-n", type=int, default=25)
 
     return parser
@@ -215,6 +217,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             output_dir=(args.output_dir or (root / "leaderboards" / args.benchmark)).resolve(),
             tmscore_bin=args.tmscore_bin,
             dockq_bin=args.dockq_bin or None,
+            qsglob_bin=args.qsglob_bin,
         )
         print_json(summary)
         return 0
@@ -229,6 +232,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 output_dir=output_dir,
                 tmscore_bin=args.tmscore_bin,
                 dockq_bin=args.dockq_bin or None,
+                qsglob_bin=args.qsglob_bin,
             )
             summary = {
                 "score": score_summary,
