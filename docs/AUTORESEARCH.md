@@ -252,6 +252,13 @@ where methods should change.
   lack cached references and the H1258 window failed DockQ chain mapping
   despite high confidence. This supports exact-stoichiometry as target-lab
   evidence for some complexes, but not H1258 hard-window promotion.
+- New antibody-Fv target-lab run:
+  `targetlab_protenix_yang_antibody_fv_seed101` runs the eight Fv-only
+  antibody-antigen jobs from `yang_antibody_fv_fragment_inputs_v1` with full
+  MSA/template Protenix settings. It is `benchmark_name=target_lab`,
+  `budget_tier=diagnostic`, and `rank_eligible=false`; Slurm job `811918` is
+  pending on resources. Use it only to decide whether the O5 antibody branch
+  deserves a target-agnostic full-benchmark strategy later.
 - New domain-fragment target-lab batch:
   `target_lab/domain_fragment_batch_v1/` turns the domain-decomposition recipe
   into 12 runnable Protenix fragment jobs. Slurm job `810862` completed on
@@ -365,9 +372,9 @@ competitive result.
     useful oligo signal.
 13. Build public/domain-window experiments for oversize exact-stoichiometry
     systems such as H1258.
-14. Run the H1258 target-lab interaction-window job when a small GH200 slot is
-    available, then decide whether a target-agnostic window rule is worth a
-    full benchmark candidate.
+14. H1258 interaction-window standalone is covered by
+    `target_lab/small_complex_stoich_batch_v1`; do not spend another GH200 slot
+    on the same standalone job unless a new target-agnostic window rule exists.
 15. Completed target_lab job `811114` for
     `target_lab/small_complex_stoich_batch_v1`, then regenerated its summary
     and diagnostic DockQ report. Treat the strong H1233 exact-stoichiometry
@@ -381,43 +388,47 @@ competitive result.
     confidence files, with high confidence on most fragments. Next, inspect
     fragment quality only as target-lab evidence and promote only a
     target-agnostic segmentation rule, not CASP-domain-summary hand crops.
-18. Keep `server_attack_protenix_coverage_stoich_seed101_105` queued as the
+18. Submitted target_lab job `811918` for
+    `targetlab_protenix_yang_antibody_fv_seed101`. It is a diagnostic O5
+    antibody/Fv run with full MSA/template settings and no ranked leaderboard
+    eligibility.
+19. Keep `server_attack_protenix_coverage_stoich_seed101_105` queued as the
     next realistic attack-budget candidate. Submit it only when
     `./casp16 run-next --benchmark casp16_server_protein_v1 --dry-run` selects
     it, or intentionally supersede it after the component single-seed coverage
     runs report negative evidence.
-19. Done: created `casp16_server_protein_v2_aliasfix`; future serious
+20. Done: created `casp16_server_protein_v2_aliasfix`; future serious
     winner-comparison runs should target it or a newer explicit server
     benchmark version.
-20. Done: cancelled Slurm job `810938` after it reached local no-reference
+21. Done: cancelled Slurm job `810938` after it reached local no-reference
     `T1295`. Keep the partial full-input v2 artifacts as cache evidence only.
-21. Keep `casp16_server_attack_protenix25` as the planned winner-scale upgrade
+22. Keep `casp16_server_attack_protenix25` as the planned winner-scale upgrade
     path for broader full-input ablation. While references are incomplete, the
     preferred scale-up path is the scoreable 25-seed budget below.
-22. The older v2 coverage/stoich, low-complexity, and no-over-token rows are
+23. The older v2 coverage/stoich, low-complexity, and no-over-token rows are
     now superseded by the oligo-recovery nofail stack. Run them only as
     explicit ablations.
-23. Keep `casp16_server_attack_protenix25_nofail` as the stronger planned
+24. Keep `casp16_server_attack_protenix25_nofail` as the stronger planned
     winner-scale budget if the no-over-token v2 stack scores well enough to
     justify 25-seed compute. Its JSON and shard manifest now point at the
     MSA-reused
     `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1` input.
-24. Do not resume
+25. Do not resume
     `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
     before reference recovery. It was cancelled at `T1295` after producing
     partial artifacts and MSA cache; local score progress now comes from the
     scoreable-subset attack.
-25. Prefer
+26. Prefer
     `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`
     for the first v2 five-candidate no-over-token attack while local references
     are incomplete. It preserves the fixed scoring set but avoids spending GPU
     time on jobs that currently cannot affect local score. This is now running
     as Slurm job `811751`.
-26. Run the hydrophobic-leader nofail `dev_fixed` derivative only after the
+27. Run the hydrophobic-leader nofail `dev_fixed` derivative only after the
     active v2 nofail row and scoreable-subset MSA attack are handled. It is a
     narrow construct-cleanup ablation, not a replacement for the current main
     queue.
-27. Use `casp16_server_attack_protenix25_scoreable_nofail` as the planned
+28. Use `casp16_server_attack_protenix25_scoreable_nofail` as the planned
     winner-scale successor if the running scoreable `protenix5` row is
     positive. Keep the older 165-job `protenix25_nofail` as a full-input
     ablation until references are recovered.
