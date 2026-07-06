@@ -233,6 +233,18 @@ leaderboard progress.
     - If the job approaches the 48-hour Vista wall-time limit before completing
       all seeds, create a predeclared seed-sharded continuation rather than
       rerunning the monolithic command and overwriting existing candidates.
+25. Audited the multi-seed selector path against the live Protenix output
+    layout. Real outputs use
+    `protenix-v2/<target>/seed_<seed>/predictions/<target>_sample_0.cif` plus
+    `<target>_summary_confidence_sample_0.json`, matching the scorer's
+    confidence lookup. Added a regression test that builds this layout across
+    multiple seeds and verifies that `prediction_candidate_index` plus
+    `protenix_confidence_v1` selects the highest confidence candidate for the
+    requested target only.
+    - This changes no score and does not make the partial attack run ranked.
+    - The current `protenix5` budget remains a starter attack tier; if we need
+      winner-scale compute, create a separate locked budget such as
+      `protenix25` or an ensemble tier before scoring.
 
 ## Strategy Decision Log
 

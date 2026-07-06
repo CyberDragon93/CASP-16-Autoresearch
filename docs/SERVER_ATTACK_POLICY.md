@@ -44,6 +44,11 @@ sampling, engines, MSA/template variants, and model ranking. In this repo,
 `seed`, `sample`, engine choice, and selection policy are all part of the
 candidate budget and must be declared before scoring.
 
+Five candidates per target is intentionally a starter attack budget. It is more
+realistic than single-seed `dev_fixed`, but it should not be described as
+matching a top CASP16 server's hidden compute. Larger winner-chasing attempts
+need their own locked budget tier before any predictions are scored.
+
 If a strategy needs more realistic compute, create a new attack-budget JSON
 such as `protenix25` or an ensemble budget. Do not mutate
 `casp16_server_attack_protenix5.json`, and do not compare the higher-budget

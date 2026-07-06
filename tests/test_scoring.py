@@ -1,6 +1,15 @@
 from __future__ import annotations
 
-from casp16_leaderboard.scoring import find_prediction_for_target, parse_dockq_output, parse_ost_qs_json, parse_qsglob_output, parse_tmscore_output, score_target, select_prediction_for_target
+from casp16_leaderboard.scoring import (
+    find_prediction_for_target,
+    parse_dockq_output,
+    parse_ost_qs_json,
+    parse_qsglob_output,
+    parse_tmscore_output,
+    prediction_candidate_index,
+    score_target,
+    select_prediction_for_target,
+)
 
 
 def test_parse_tmscore_output_normalizes_gdt() -> None:
@@ -293,6 +302,40 @@ def test_protenix_confidence_policy_selects_best_confidence(tmp_path) -> None:
     assert selected["status"] == "ok"
     assert selected["prediction_path"] == str(high)
     assert selected["confidence_path"] == str(high_dir / "T1234_summary_confidence_sample_0.json")
+    assert selected["selection_score"] == "0.610000"
+
+
+def test_protenix_confidence_policy_uses_indexed_multiseed_layout(tmp_path) -> None:
+    output_dir = tmp_path / "predictions" / "protenix-v2"
+    low_dir = output_dir / "T1234" / "seed_101" / "predictions"
+    high_dir = output_dir / "T1234" / "seed_102" / "predictions"
+    other_dir = output_dir / "T9999" / "seed_102" / "predictions"
+    low_dir.mkdir(parents=True)
+    high_dir.mkdir(parents=True)
+    other_dir.mkdir(parents=True)
+    low = low_dir / "T1234_sample_0.cif"
+    high = high_dir / "T1234_sample_0.cif"
+    other = other_dir / "T9999_sample_0.cif"
+    low.write_text("data_low\n", encoding="utf-8")
+    high.write_text("data_high\n", encoding="utf-8")
+    other.write_text("data_other\n", encoding="utf-8")
+    (low_dir / "T1234_summary_confidence_sample_0.json").write_text('{"plddt": 70.0, "ptm": 0.50, "iptm": 0.20}\n', encoding="utf-8")
+    confidence = high_dir / "T1234_summary_confidence_sample_0.json"
+    confidence.write_text('{"plddt": 90.0, "ptm": 0.80, "iptm": 0.10}\n', encoding="utf-8")
+    (other_dir / "T9999_summary_confidence_sample_0.json").write_text('{"plddt": 99.0, "ptm": 0.99, "iptm": 0.99}\n', encoding="utf-8")
+
+    candidates = prediction_candidate_index(output_dir, ["T1234", "T9999"])
+    selected = select_prediction_for_target(
+        output_dir,
+        "T1234",
+        selected_model_policy="protenix_confidence_v1",
+        prediction_candidates=candidates["T1234"],
+    )
+
+    assert candidates["T1234"] == [low, high]
+    assert selected["status"] == "ok"
+    assert selected["prediction_path"] == str(high)
+    assert selected["confidence_path"] == str(confidence)
     assert selected["selection_score"] == "0.610000"
 
 
