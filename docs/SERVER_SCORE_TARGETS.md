@@ -41,6 +41,9 @@ partial-run examples do not count as server progress.
 1. Score the running v2 nofail `dev_fixed` row:
    `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`.
    It must first produce CIFs for the 165-job oligo-recovery nofail input.
+   The partial `2026-07-06 17:11 CDT` QSglob probe had 8 scorer-ok oligo rows
+   but only one nonzero score, so it is not evidence to launch the planned
+   25-candidate budget before the full v2 row is complete.
 2. Compare only `dev_fixed` to `dev_fixed`. A single-seed row can prove that an
    input strategy is worth more compute, but it is not winner-comparable.
 3. Score `server_attack` rows only after every declared candidate is present.

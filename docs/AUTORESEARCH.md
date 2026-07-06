@@ -83,9 +83,9 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
-  is running. The `2026-07-06 16:32 CDT` check found 98 `seed_101` CIFs, 89
-  `seed_102` CIFs, and no `seed_103..105` CIFs, so it is still incomplete and
-  must not be scored as a five-candidate result.
+  is running. The `2026-07-06 17:11 CDT` check found seed CIF counts
+  `98/98/13/0/0`, so it is still incomplete and must not be scored as a
+  five-candidate result.
 - Queued second attack run spec:
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
   sequence-recovery + large-target fallback + token-safe stoichiometry inputs
@@ -113,10 +113,17 @@ where methods should change.
   select this MSA-reuse attack if queue state remains unchanged.
 - Active v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
-  is running as Slurm job `810938`. The `2026-07-06 16:32 CDT` check found
-  18/165 CIFs. MSA/template preprocessing is complete and inference is
+  is running as Slurm job `810938`. The `2026-07-06 17:11 CDT` check found
+  39/165 CIFs. MSA/template preprocessing is complete and inference is
   progressing, so do not score or launch dependent queue entries until the run
   either finishes or clearly fails.
+- Early v2 oligo probe:
+  `diagnostics/qsglob_probes/server_v2_partial_early_oligo_probe.csv` scored
+  the eight completed oligo targets that already had references
+  (`T0206O/T0234O/T0235O/T1201O/T1206O/T1234O/T1235O/T1249V1O`). All eight
+  rows were scorer-ok, but only `T1249V1O` was nonzero (`QSglob=0.096`). This
+  is a weak early signal: wait for the full v2 dev row before spending the
+  larger `protenix25` budget.
 - New v2 hydrophobic-leader nofail derivative:
   `yang_oligo_sequence_stoich_low_complexity_hydrophobic_leader_large_fallback_v1`
   starts from the strongest v2 nofail stack and applies the existing

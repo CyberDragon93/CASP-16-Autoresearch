@@ -122,6 +122,15 @@ artifacts named `T0206`, `T0234`, and `T1249V1`; the scorer now resolves those
 aliases instead of marking them as missing predictions. This is required before
 any v2 server oligo leaderboard can be trusted.
 
+A third checked diagnostic CSV at
+`diagnostics/qsglob_probes/server_v2_partial_early_oligo_probe.csv` samples the
+eight completed v2 nofail oligo predictions that already have references:
+`T0206O`, `T0234O`, `T0235O`, `T1201O`, `T1206O`, `T1234O`, `T1235O`, and
+`T1249V1O`. All eight rows are scorer-ok, but only `T1249V1O` is currently
+nonzero (`QSglob=0.096`). Treat this as an early diagnostic only; the active
+run is still incomplete and must not be written into official leaderboard
+artifacts until all jobs finish.
+
 ## Next Work
 
 - Score server oligo targets with `ost` once the active run is complete, so
