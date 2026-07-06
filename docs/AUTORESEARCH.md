@@ -143,7 +143,7 @@ where methods should change.
   changed: skipped no-reference targets still score 0 locally. `run-next
   --dry-run` selected this row. Slurm job `811751` is now running on
   `c636-072`; the Protenix log confirms `inputs.msa-reuse.json` and skips MSA
-  update. The `2026-07-06 18:25 CDT` check found 20/74 seed-101 CIFs; no
+  update. The `2026-07-06 18:39 CDT` check found 24/74 seed-101 CIFs; no
   later seeds have started, so it remains incomplete and unranked.
 - Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
@@ -164,6 +164,17 @@ where methods should change.
   `T0234O -> T0234`, etc.), not exact `*O` prediction artifacts. Treat their
   zeros as alias/assembly diagnostics until exact oligo jobs finish; they are
   not enough evidence to launch a larger seed budget.
+- `2026-07-06 18:40 CDT` nonranked seed-101 probe:
+  `diagnostics/score_probes/server_v2_scoreable_attack_seed101_probe_20260706/target_scores.csv`
+  temporarily scores the current scoreable-attack seed-101 artifacts as a
+  one-candidate diagnostic. It has 24/71 exact domain predictions scored, 17
+  nonzero, fixed-set domain mean `0.099576`; strongest domain targets are
+  `T2249V1=0.9248`, `T1299=0.9137`, `T1249V1=0.8628`, `T1234=0.8258`, and
+  `T2234=0.8095`. Oligo has 14 scorer-ok rows but all are still
+  `sequence_lookup` fallback matches; nonzero QSglob rows are `T1298O=0.941`,
+  `T2249V1O=0.158`, and `T1249V1O=0.101`. This is encouraging for domain
+  quality but not yet proof that exact oligo assemblies are being scored
+  correctly.
 - Filtered scoring is now available through `./casp16 score --run-id <run_id>`.
   Use it with an explicit `--output-dir diagnostics/...` for the first readout
   of completed runs while attack rows are still pending or partial. The first
