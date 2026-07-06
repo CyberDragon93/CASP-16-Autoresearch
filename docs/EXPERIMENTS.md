@@ -25,7 +25,7 @@ leaderboard progress.
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 stack plus large-target fallback for the 11 remaining over-token jobs | keep only as ablation |
 | `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` running; 18/165 CIFs at `2026-07-06 16:32 CDT` | current strongest v2 no-over-token `dev_fixed` input stack with protein-oligo sequence recovery | yes for domain track; oligo after QSglob mapping validation |
 | `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | Slurm job `811751` pending on `afterany:810938` | five-seed attack on the current strongest v2 no-over-token stack with exact-sequence MSA reuse and confidence-only model selection | attack tier only |
-| `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | pending, not submitted | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | yes for domain track; oligo after QSglob mapping validation |
+| `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `811754` pending on `afterany:811751` | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | yes for domain track; oligo after QSglob mapping validation |
 | `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:msa_reuse_attack | non-reuse predecessor of the current five-seed v2 no-over-token attack | attack tier only; run only as ablation |
 | `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending; superseded candidate | older five-seed no-over-token attack that lacks protein-oligo sequence recovery | attack tier only; run only as ablation |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
@@ -235,6 +235,10 @@ leaderboard progress.
       casp16_server_protein_v2_aliasfix`, so it should start the MSA-reuse
       `protenix5` attack only after the current v2 dev job exits and the run
       queue is clear.
+    - `2026-07-06 16:39 CDT`: submitted Slurm job `811754` with dependency
+      `afterany:811751` using the hydrophobic-leader ablation wrapper. It also
+      calls `run-next`, so it should run only after the attack clears and the
+      next pending v2 row is the hydrophobic-leader `dev_fixed` ablation.
 22. Installed OpenStructure 2.11.1 in the isolated conda env
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob` and configured
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` as the

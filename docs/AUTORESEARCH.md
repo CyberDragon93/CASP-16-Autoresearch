@@ -121,6 +121,9 @@ where methods should change.
   MSA paths and intentionally misses the 8 changed sequences. It is registered
   as
   `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101`.
+  Slurm job `811754` is submitted with dependency `afterany:811751`, so it can
+  run after the MSA-reuse `protenix5` attack if the queue still selects this
+  ablation.
 - New coverage-recovery strategy:
   `yang_large_target_split_or_fallback_v1`, which predeclares a token-budget
   fallback for the eight known Protenix `n_token > 2560` failures.
