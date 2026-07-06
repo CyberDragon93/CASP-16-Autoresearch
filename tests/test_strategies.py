@@ -3,7 +3,13 @@ from __future__ import annotations
 import csv
 import json
 
-from casp16_leaderboard.strategies import clean_epitope_expression_tags, clean_low_complexity_terminal_regions, clean_terminal_expression_tags, derive_strategy_inputs
+from casp16_leaderboard.strategies import (
+    clean_epitope_expression_tags,
+    clean_hydrophobic_leader_regions,
+    clean_low_complexity_terminal_regions,
+    clean_terminal_expression_tags,
+    derive_strategy_inputs,
+)
 
 
 def test_clean_terminal_expression_tags_removes_obvious_tags() -> None:
@@ -39,6 +45,23 @@ def test_clean_low_complexity_terminal_regions_trims_obvious_terminal_segments()
     assert cleaned.removed_n == 40
     assert cleaned.removed_c == 40
     assert cleaned.rules == ("trim_n_low_complexity:40", "trim_c_low_complexity:40")
+
+
+def test_clean_hydrophobic_leader_regions_trims_signal_like_prefix() -> None:
+    leader = "MKNFLLRSRTLGVFVFLFFGALPVAVASP"
+    core = "LSLTYQGRILTSDGVPLEHNNVKFLFEIANPTGTCVIYRELVEGINMANSLGVFDVPIGL" + "ACDEFGHIKLMNPQRSTVWY"
+    cleaned = clean_hydrophobic_leader_regions(leader + core)
+    assert cleaned.sequence == core
+    assert cleaned.removed_n == 29
+    assert cleaned.rules == ("trim_n_hydrophobic_leader:29",)
+
+
+def test_clean_hydrophobic_leader_regions_keeps_poly_alanine_prefix() -> None:
+    prefix = "MAAAAAAAAEQQSSNGPVKKSMREKAVERRNVNKEHNSNFKAGYIPI"
+    core = "ACDEFGHIKLMNPQRSTVWY" * 5
+    cleaned = clean_hydrophobic_leader_regions(prefix + core)
+    assert cleaned.sequence == prefix + core
+    assert cleaned.rules == ()
 
 
 def test_derive_strategy_inputs_preserves_counts_and_writes_manifest(tmp_path) -> None:
@@ -139,3 +162,29 @@ def test_derive_low_complexity_strategy_inherits_epitope_cleanup(tmp_path) -> No
     with manifest.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle, delimiter="\t"))
     assert rows[0]["rules"] == "trim_n:MGSHHHHHHSGENLYFQG"
+
+
+def test_derive_hydrophobic_leader_strategy_uses_sequence_only_rule(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "hydrophobic_leader" / "inputs.json"
+    manifest = tmp_path / "hydrophobic_leader" / "manifest.tsv"
+    leader = "MKNFLLRSRTLGVFVFLFFGALPVAVASP"
+    core = "LSLTYQGRILTSDGVPLEHNNVKFLFEIANPTGTCVIYRELVEGINMANSLGVFDVPIGL" + "ACDEFGHIKLMNPQRSTVWY"
+    input_json.write_text(
+        json.dumps([{"name": "T0240", "sequences": [{"proteinChain": {"sequence": leader + core, "count": 1, "id": ["A"]}}]}]) + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_hydrophobic_leader_cleanup_v1",
+    )
+
+    assert summary["changed_sequences"] == 1
+    optimized = json.loads(output_json.read_text(encoding="utf-8"))
+    assert optimized[0]["sequences"][0]["proteinChain"]["sequence"] == core
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["rules"] == "trim_n_hydrophobic_leader:29"

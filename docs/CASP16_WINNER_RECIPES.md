@@ -51,6 +51,7 @@ benchmark target set or inspect references.
 | D1a | Terminal tag cleanup | Yang-style optimized inputs are a low-risk place to remove non-native expression artifacts before harder construct work | `./casp16 strategy-inputs --strategy yang_terminal_tag_cleanup_v1` removes obvious terminal His/expression tags without changing benchmark files | improves or does not regress full server-domain mean after the full baseline |
 | D1b | Epitope/TEV tag cleanup | some server inputs visibly include longer N-terminal epitope/His/TEV expression artifacts | `./casp16 strategy-inputs --strategy yang_epitope_tag_cleanup_v1` extends D1a to FLAG-like and His-TEV prefixes while staying sequence-only | queue only after the baseline or after deciding to skip the conservative D1a ablation |
 | D1c | Terminal low-complexity cleanup | Yang-style construct refinement often removes disordered terminal noise; CASP monomer assessment highlights construct design | `./casp16 strategy-inputs --strategy yang_low_complexity_terminal_cleanup_v1` trims only 40-aa terminal low-complexity windows after tag cleanup | queue only after conservative tag cleanup helps or baseline failures justify the extra risk |
+| D1d | Hydrophobic leader cleanup | construct refinement can remove signal-like N-terminal leaders that are not part of the scored folded core | `./casp16 strategy-inputs --strategy yang_hydrophobic_leader_cleanup_v1` trims a small set of sequence-only hydrophobic-leader candidates after D1c | risky branch; queue only after baseline or tag-cleanup evidence justifies it |
 | D2 | Domain decomposition | top monomer pipelines refined constructs and handled domains separately | split long/multi-domain targets using public domain predictors or sequence features, predict domains, then score domain outputs explicitly | no target-specific native/reference inspection; domain mapping must be declared before scoring |
 | D3 | MSA/template depth | Yang/trRosetta workflows emphasize optimized MSA/template inputs | full MSA/template Protenix/OpenDDE server run; record MSA source, template mode, cache paths | higher full-set coverage and no regression on positive controls |
 | D4 | AF3-style model selection | assessment says AF3 adoption improved confidence/model selection | compare Protenix/OpenDDE first-model policy against allowed diagnostic confidence/consensus only after all predictions exist | confidence remains diagnostic until quality metric validates it on full benchmark |
@@ -113,13 +114,17 @@ Useful strategy hypotheses:
    from 35 reused local predictions toward all 106 generated server jobs.
 2. `yang_terminal_tag_cleanup_v1`: first automatic optimized-input rerun after
    the full Protenix baseline, targeting obvious terminal expression artifacts.
-3. QSglob scorer installation/integration: without this, oligo server runs
+3. `yang_epitope_tag_cleanup_v1`, `yang_low_complexity_terminal_cleanup_v1`,
+   and `yang_hydrophobic_leader_cleanup_v1`: generated as risk-increasing
+   construct-cleanup artifacts; promote only after baseline or conservative
+   cleanup evidence.
+4. QSglob scorer installation/integration: without this, oligo server runs
    remain diagnostic no matter how good the structures look.
-4. Domain crop/chain mapping: needed before domain scores can be trusted on
+5. Domain crop/chain mapping: needed before domain scores can be trusted on
    multi-domain or multi-chain targets.
-5. H1258/H1232 target_lab loop: use these as fast learning targets for
+6. H1258/H1232 target_lab loop: use these as fast learning targets for
    stoichiometry, construct refinement, and antibody-complex behavior, then
    promote only target-agnostic changes.
-6. Model-selection research: collect confidence/consensus after predictions,
+7. Model-selection research: collect confidence/consensus after predictions,
    but keep ranked `first_output_only` unless a new benchmark version is
    created.

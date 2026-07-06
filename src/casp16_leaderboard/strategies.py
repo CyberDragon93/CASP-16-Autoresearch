@@ -15,15 +15,24 @@ from .runs import file_sha256
 STRATEGY_YANG_TERMINAL_TAG_CLEANUP = "yang_terminal_tag_cleanup_v1"
 STRATEGY_YANG_EPITOPE_TAG_CLEANUP = "yang_epitope_tag_cleanup_v1"
 STRATEGY_YANG_LOW_COMPLEXITY_TERMINAL_CLEANUP = "yang_low_complexity_terminal_cleanup_v1"
+STRATEGY_YANG_HYDROPHOBIC_LEADER_CLEANUP = "yang_hydrophobic_leader_cleanup_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
     STRATEGY_YANG_LOW_COMPLEXITY_TERMINAL_CLEANUP,
+    STRATEGY_YANG_HYDROPHOBIC_LEADER_CLEANUP,
 )
 MIN_REMAINING_PROTEIN_LENGTH = 30
 LOW_COMPLEXITY_TRIM_WINDOW = 40
 LOW_COMPLEXITY_MIN_REMAINING_LENGTH = 80
 LOW_COMPLEXITY_ALPHABET = set("GSPQKENR")
+HYDROPHOBIC_LEADER_MIN_REMAINING_LENGTH = 80
+HYDROPHOBIC_LEADER_MIN_CUT = 15
+HYDROPHOBIC_LEADER_MAX_CUT = 37
+HYDROPHOBIC_LEADER_AA = set("AILMFWVYCT")
+HYDROPHOBIC_LEADER_BULKY_AA = set("ILVFMYW")
+HYDROPHOBIC_LEADER_SMALL_AA = set("ASGTVCP")
+HYDROPHOBIC_LEADER_CHARGED_AA = set("DEKRH")
 
 TERMINAL_N_TAGS = (
     "MGSSHHHHHHSSGLVPRGSH",
@@ -95,6 +104,21 @@ def clean_low_complexity_terminal_regions(sequence: str) -> SequenceCleanup:
     return SequenceCleanup(sequence=cleaned, removed_n=removed_n, removed_c=removed_c, rules=tuple(rules))
 
 
+def clean_hydrophobic_leader_regions(sequence: str) -> SequenceCleanup:
+    cleanup = clean_low_complexity_terminal_regions(sequence)
+    cleaned = cleanup.sequence
+    removed_n = cleanup.removed_n
+    rules = list(cleanup.rules)
+
+    leader_cut = detect_hydrophobic_leader_cut(cleaned)
+    if leader_cut:
+        cleaned = cleaned[leader_cut:]
+        removed_n += leader_cut
+        rules.append(f"trim_n_hydrophobic_leader:{leader_cut}")
+
+    return SequenceCleanup(sequence=cleaned, removed_n=removed_n, removed_c=cleanup.removed_c, rules=tuple(rules))
+
+
 def is_low_complexity_terminal_segment(sequence: str) -> bool:
     if not sequence:
         return False
@@ -107,6 +131,56 @@ def sequence_entropy(sequence: str) -> float:
     counts = Counter(sequence)
     length = len(sequence)
     return -sum((count / length) * math.log2(count / length) for count in counts.values()) if length else 0.0
+
+
+def detect_hydrophobic_leader_cut(sequence: str) -> int:
+    if len(sequence) < HYDROPHOBIC_LEADER_MIN_CUT + HYDROPHOBIC_LEADER_MIN_REMAINING_LENGTH:
+        return 0
+    if not sequence.startswith("M"):
+        return 0
+
+    best_cut = 0
+    best_score = 0.0
+    max_cut = min(HYDROPHOBIC_LEADER_MAX_CUT, len(sequence) - HYDROPHOBIC_LEADER_MIN_REMAINING_LENGTH)
+    for cut in range(HYDROPHOBIC_LEADER_MIN_CUT, max_cut + 1):
+        h_region = sequence[3 : max(6, cut - 3)]
+        if len(h_region) < 8:
+            continue
+        hydrophobic_fraction = fraction_in_alphabet(h_region, HYDROPHOBIC_LEADER_AA)
+        bulky_fraction = fraction_in_alphabet(h_region, HYDROPHOBIC_LEADER_BULKY_AA)
+        hydrophobic_run = longest_run_in_alphabet(sequence[1:cut], HYDROPHOBIC_LEADER_AA)
+        bulky_run = longest_run_in_alphabet(sequence[1:cut], HYDROPHOBIC_LEADER_BULKY_AA)
+        charged_count = sum(1 for aa in h_region if aa in HYDROPHOBIC_LEADER_CHARGED_AA)
+        cleavage_like = sequence[cut - 3] in HYDROPHOBIC_LEADER_SMALL_AA and sequence[cut - 1] in HYDROPHOBIC_LEADER_SMALL_AA
+        if (
+            hydrophobic_fraction >= 0.60
+            and bulky_fraction >= 0.35
+            and hydrophobic_run >= 7
+            and bulky_run >= 4
+            and charged_count <= 3
+            and cleavage_like
+        ):
+            score = hydrophobic_fraction * 2.0 + bulky_fraction + (hydrophobic_run / 10.0) + (bulky_run / 20.0) - (charged_count * 0.12) + (cut / 100.0)
+            if score > best_score:
+                best_cut = cut
+                best_score = score
+    return best_cut
+
+
+def fraction_in_alphabet(sequence: str, alphabet: set[str]) -> float:
+    return sum(1 for aa in sequence if aa in alphabet) / len(sequence) if sequence else 0.0
+
+
+def longest_run_in_alphabet(sequence: str, alphabet: set[str]) -> int:
+    best = 0
+    current = 0
+    for aa in sequence:
+        if aa in alphabet:
+            current += 1
+            best = max(best, current)
+        else:
+            current = 0
+    return best
 
 
 def _clean_with_tag_sets(sequence: str, *, n_tags: Sequence[str], c_tags: Sequence[str]) -> SequenceCleanup:
@@ -155,6 +229,8 @@ def derive_strategy_inputs(
         cleaner = clean_epitope_expression_tags
     if strategy == STRATEGY_YANG_LOW_COMPLEXITY_TERMINAL_CLEANUP:
         cleaner = clean_low_complexity_terminal_regions
+    if strategy == STRATEGY_YANG_HYDROPHOBIC_LEADER_CLEANUP:
+        cleaner = clean_hydrophobic_leader_regions
 
     for job in jobs:
         optimized_job = _copy_json_dict(job)
