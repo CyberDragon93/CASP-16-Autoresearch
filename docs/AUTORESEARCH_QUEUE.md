@@ -8,7 +8,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | Priority | Run | Benchmark | Status | Why It Matters | Next Gate |
 | --- | --- | --- | --- | --- | --- |
 | P0 | Install OpenStructure `ost` / QSglob scorer | `casp16_server_protein_v1` | not started | Required to compare the 104 official server oligo targets and judge antibody-complex strategies | Install or register a QSglob-compatible scorer, then rerun `./casp16 score` and `./casp16 leaderboard` |
-| P1 | Run `server_attack_protenix_terminal_tag_seed101_105` | separate from `dev_fixed` | run spec created | Winner-level server comparison should not pretend one seed/sample is enough | Submit/monitor GH200 job, then score with `protenix_confidence_v1` while keeping attack rows out of `dev_fixed` ranks |
+| P1 | Run `server_attack_protenix_terminal_tag_seed101_105` | separate from `dev_fixed` | Slurm job `810719` pending | Winner-level server comparison should not pretend one seed/sample is enough | Monitor GH200 job, then score with `protenix_confidence_v1` while keeping attack rows out of `dev_fixed` ranks |
 | P2 | Predeclare large-target split/fallback policy | `casp16_server_protein_v1` or new benchmark version | design needed | Extra seeds cannot fix `n_token > 2560` hard failures | Promote only a target-agnostic rule that preserves benchmark discipline |
 
 ## Latest Baseline Result
@@ -28,7 +28,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | done | `server_protenix_yang_antibody_fv_cleanup_seed101` | `yang_antibody_fv_cleanup_v1` | `strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | complete and scored negative | Antibody-Fv cleanup lowered the ranked domain mean and cannot yet be judged on oligos because QSglob is unavailable |
 | deferred | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `yang_terminal_tag_antibody_fv_cleanup_v1` | `strategies/yang_terminal_tag_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | deferred | Do not launch the stacked run before QSglob or a positive antibody-complex signal exists |
 | deferred | `server_protenix_yang_epitope_tag_cleanup_seed101` | `yang_epitope_tag_cleanup_v1` | `strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | deferred | Token-limit hard failures need a predeclared split/fallback policy before another construct-cleanup full run |
-| P1 | `server_attack_protenix_terminal_tag_seed101_105` | `yang_terminal_tag_cleanup_v1_server_attack` | `runs/server_attack_protenix_terminal_tag_seed101_105/` | `casp16_server_protein_v1` | pending | Five fixed seeds on the current best terminal-tag cleanup strategy, selected by predeclared confidence-only policy |
+| P1 | `server_attack_protenix_terminal_tag_seed101_105` | `yang_terminal_tag_cleanup_v1_server_attack` | `runs/server_attack_protenix_terminal_tag_seed101_105/` | `casp16_server_protein_v1` | Slurm job `810719` pending | Five fixed seeds on the current best terminal-tag cleanup strategy, selected by predeclared confidence-only policy |
 
 The terminal-tag, oversize-domain fallback, and antibody-Fv runs are complete
 and scored. The next valuable work is scorer/benchmark capability, not another

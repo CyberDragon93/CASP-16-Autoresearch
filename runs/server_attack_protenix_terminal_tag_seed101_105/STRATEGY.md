@@ -64,7 +64,9 @@ After completion:
 
 ## Result Summary
 
-- Rank status: pending.
+- Run status: submitted as Slurm job `810719`; initial state
+  `PENDING (Priority)`.
+- Rank status: pending until predictions finish and scoring is regenerated.
 - Expected candidate budget: 5 candidates per target.
 - Expected target jobs: 106 Protenix jobs from the server benchmark input set.
 - Expected wall time: up to one GH200 48-hour allocation; previous single-seed
@@ -79,4 +81,3 @@ After completion:
 - [x] No manual per-target candidate choice after seeing scores.
 - [x] Confidence is used only through the predeclared
       `protenix_confidence_v1` selector.
-

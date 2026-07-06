@@ -19,8 +19,8 @@ The first locked attack budget is
 - MSA/templates/default params/cache/fusion/TF32: enabled
 
 The first run spec using this budget is
-`server_attack_protenix_terminal_tag_seed101_105`. It is queued as an attack
-row, not a `dev_fixed` row.
+`server_attack_protenix_terminal_tag_seed101_105`. It has been submitted as
+Slurm job `810719` and remains an attack row, not a `dev_fixed` row.
 
 ## Selection Rule
 
