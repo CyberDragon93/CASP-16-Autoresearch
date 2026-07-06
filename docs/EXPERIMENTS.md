@@ -220,8 +220,36 @@ leaderboard progress.
       useful for triage. Do not regenerate the official oligo leaderboard while
       `server_attack_protenix_terminal_tag_seed101_105` is partial, and do not
       treat zeros with empty chem mappings as model-quality evidence.
+24. Audited the active `protenix5` attack budget execution. The run spec passes
+    `-s 101,102,103,104,105`, and Protenix source confirms this is parsed as a
+    comma-separated seed list. The runner then loops serially over seeds and
+    targets, so the live output currently contains only `seed_101` directories
+    while it is still in the first seed pass.
+    - Live observation: Slurm job `810719` is running on `c639-072`; output had
+      14 CIFs during the audit.
+    - Guard: do not score `server_attack_protenix_terminal_tag_seed101_105` as
+      a complete attack row until candidates for all declared seeds are present,
+      or explicitly mark the row partial/unranked.
+    - If the job approaches the 48-hour Vista wall-time limit before completing
+      all seeds, create a predeclared seed-sharded continuation rather than
+      rerunning the monolithic command and overwriting existing candidates.
 
 ## Strategy Decision Log
+
+### 2026-07-06 Attack Budget Execution Audit
+
+Decision: keep `server_attack_protenix_terminal_tag_seed101_105` running, but
+treat its current outputs as partial until all declared seeds are present.
+
+Evidence: `run_spec.json` passes `-s 101,102,103,104,105`; Protenix CLI accepts
+comma-separated seeds; `runner/inference.py` loops over `for seed in seeds`
+outside the target loop. Current output contains `seed_101` directories only,
+which is expected for the first pass and not evidence that the attack budget
+failed.
+
+Next action: monitor completion. If wall-time risk becomes real, use an
+explicit seed-sharded continuation so the `protenix5` budget remains honest and
+resume-safe.
 
 ### 2026-07-06 QSglob Signal Probe
 

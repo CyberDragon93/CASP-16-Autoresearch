@@ -2,7 +2,7 @@
   "name": "casp16_server_attack_protenix5",
   "parent_benchmark": "casp16_server_protein_v1",
   "tier": "server_attack",
-  "status": "slurm_submitted_pending_start",
+  "status": "slurm_running_seed101",
   "active_run_id": "server_attack_protenix_terminal_tag_seed101_105",
   "slurm_job_id": "810719",
   "backend": "protenix",
@@ -35,8 +35,13 @@
     "enable_fusion": true,
     "enable_tf32": true
   },
+  "execution_observation": {
+    "protenix_seed_loop": "serial_outer_loop",
+    "observed_seed_dirs": ["seed_101"],
+    "note": "Protenix runs all targets for seed 101 before advancing to seed 102. Score only after all declared seed directories are present or explicitly mark the row partial/unranked."
+  },
   "launch_gate": [
-    "QSglob scorer is installed or oligo track remains explicitly unranked",
+    "QSglob scoring and assembly mapping are validated or oligo track remains explicitly unranked",
     "large-target token-limit policy is predeclared for any split/fallback attack run",
     "GPU-hours are recorded in the strategy note"
   ]

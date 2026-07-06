@@ -20,7 +20,9 @@ The first locked attack budget is
 
 The first run spec using this budget is
 `server_attack_protenix_terminal_tag_seed101_105`. It has been submitted as
-Slurm job `810719` and remains an attack row, not a `dev_fixed` row.
+Slurm job `810719` and remains an attack row, not a `dev_fixed` row. Live
+output shows Protenix running the declared seeds as a serial outer loop: all
+targets for `seed_101` are produced before `seed_102` begins.
 
 The second queued run spec using the same budget is
 `server_attack_protenix_coverage_stoich_seed101_105`. It uses the stacked
@@ -46,6 +48,23 @@ If a strategy needs more realistic compute, create a new attack-budget JSON
 such as `protenix25` or an ensemble budget. Do not mutate
 `casp16_server_attack_protenix5.json`, and do not compare the higher-budget
 rows against `dev_fixed` or `protenix5` rows as if the compute were identical.
+
+## Execution Semantics
+
+Protenix accepts comma-separated seeds, but the runner iterates as:
+
+```text
+for seed in seeds:
+    for target in benchmark_inputs:
+        predict(target, seed)
+```
+
+This means an in-flight multi-seed run can look like a single-seed run for a
+long time. Do not score a `server_attack` row as a complete five-candidate run
+until every declared seed has produced candidates, or the row is explicitly
+reported as partial/unranked. If a run approaches the Vista 48-hour wall-time
+limit, prefer a predeclared seed-sharded continuation over restarting the same
+monolithic command and silently overwriting existing candidates.
 
 ## Selection Rule
 
