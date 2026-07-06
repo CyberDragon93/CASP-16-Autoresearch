@@ -140,8 +140,9 @@ Useful strategy hypotheses:
 8. `yang_sequence_recovery_v1`: generated on top of terminal-tag cleanup to
    recover missing/misparsed protein-domain inputs such as `T1212`,
    `T1239V1/V2`, and `T2280`.
-9. `yang_sequence_recovery_large_target_fallback_v1`: generated on top of
-   terminal-tag cleanup to combine sequence recovery with token-budget
+9. `yang_sequence_recovery_large_target_fallback_v1`: generated and queued as
+   `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` on
+   top of terminal-tag cleanup to combine sequence recovery with token-budget
    fallback. It changes 40 unique targets and keeps the largest optimized job
    at 2535 tokens.
 10. QSglob scorer installation/integration: without this, oligo server runs

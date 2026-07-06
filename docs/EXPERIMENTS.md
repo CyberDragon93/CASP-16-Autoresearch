@@ -16,7 +16,7 @@ leaderboard progress.
 | `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` pending | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | recover missing/misparsed protein-domain sequences on top of terminal-tag cleanup | yes for domain track, coverage-recovery caveat |
-| `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | artifacts generated, not queued | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track after run spec is created |
+| `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -125,11 +125,12 @@ leaderboard progress.
 12. Generated and queued `server_protenix_yang_sequence_recovery_seed101` on
     top of terminal-tag cleanup. It repairs 32 protein-domain inputs, including
     high-value local failures `T1212`, `T1239V1`, `T1239V2`, and `T2280`.
-13. Generated `yang_sequence_recovery_large_target_fallback_v1` on top of
-    terminal-tag cleanup. It first repairs the same 32 protein-domain sequence
-    coverage failures, then applies large-target fallback. The combined
-    artifacts change 40 unique targets and keep the largest optimized job at
-    2535 tokens, below the Protenix 2560-token limit.
+13. Generated and queued
+    `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` on
+    top of terminal-tag cleanup. It first repairs the same 32 protein-domain
+    sequence coverage failures, then applies large-target fallback. The
+    combined artifacts change 40 unique targets and keep the largest optimized
+    job at 2535 tokens, below the Protenix 2560-token limit.
 
 ## Strategy Decision Log
 

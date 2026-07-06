@@ -11,7 +11,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | P1 | Run `server_attack_protenix_terminal_tag_seed101_105` | separate from `dev_fixed` | Slurm job `810719` pending | Winner-level server comparison should not pretend one seed/sample is enough | Monitor GH200 job, then score with `protenix_confidence_v1` while keeping attack rows out of `dev_fixed` ranks |
 | P2 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | Extra seeds cannot fix `n_token > 2560` hard failures | Submit after attack job `810719` completes if coverage recovery remains highest leverage |
 | P3 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | Several domain hard zeros are local sequence parsing/alias failures, not model failures | Submit after attack and large-target fallback jobs; expect more jobs but better domain coverage |
-| P4 | `yang_sequence_recovery_large_target_fallback_v1` | `casp16_server_protein_v1` | artifacts generated, not queued | Combine the two coverage fixes before spending larger attack budgets | Create run spec after the strategy code/artifacts commit so the run manifest points at a reproducible commit |
+| P4 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | Combine the two coverage fixes before spending larger attack budgets | Submit after the attack and component coverage runs unless their results make the stack unnecessary |
 
 ## Latest Baseline Result
 
@@ -33,7 +33,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | P1 | `server_attack_protenix_terminal_tag_seed101_105` | `yang_terminal_tag_cleanup_v1_server_attack` | `runs/server_attack_protenix_terminal_tag_seed101_105/` | `casp16_server_protein_v1` | Slurm job `810719` pending | Five fixed seeds on the current best terminal-tag cleanup strategy, selected by predeclared confidence-only policy |
 | P2 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `yang_large_target_split_or_fallback_v1` | `runs/server_protenix_yang_large_target_split_or_fallback_seed101/` | `casp16_server_protein_v1` | pending behind attack job | Convert the eight `n_token > 2560` failures into under-budget jobs by predeclared chain/copy fallback |
 | P3 | `server_protenix_yang_sequence_recovery_seed101` | `yang_sequence_recovery_v1` | `runs/server_protenix_yang_sequence_recovery_seed101/` | `casp16_server_protein_v1` | pending behind active jobs | Recover protein-domain inputs that were missing or misparsed as nucleic-acid records |
-| generated | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `yang_sequence_recovery_large_target_fallback_v1` | `strategies/yang_sequence_recovery_large_target_fallback_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | artifacts generated, run spec not created | Stack sequence recovery with token-budget fallback; 40 unique changed targets and max optimized job 2535 tokens |
+| P4 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `yang_sequence_recovery_large_target_fallback_v1` | `runs/server_protenix_yang_sequence_recovery_large_target_fallback_seed101/` | `casp16_server_protein_v1` | pending behind active jobs | Stack sequence recovery with token-budget fallback; 40 unique changed targets and max optimized job 2535 tokens |
 
 The terminal-tag, oversize-domain fallback, and antibody-Fv runs are complete
 and scored. The next valuable work is scorer/benchmark capability, not another
@@ -136,7 +136,7 @@ internal candidate.
 | P11 | Validate `server_attack` budget | first run spec pending | Winner-like server runs almost certainly use more than one internal candidate; local attack runs need fixed multi-seed/multi-sample rules | Score `server_attack_protenix_terminal_tag_seed101_105` and compare only as attack-tier evidence |
 | P12 | `yang_large_target_split_or_fallback_v1` | artifacts generated | The new fallback changes exactly the 8 known token-limit failures and brings each optimized job under 2560 tokens | Queue only after the active attack job, then judge as coverage recovery rather than full assembly quality |
 | P13 | Extra sampling/ranking lab | diagnostic only | CASP16 reports show sampling helps, but ranking is fragile | Never use best-of-N for ranked v1 without a new benchmark version |
-| P14 | `yang_sequence_recovery_large_target_fallback_v1` | artifacts generated | Sequence recovery exposes two additional oversized domain jobs, so the fixes should be tested together before larger attack budgets | Queue only after component runs or as the next single coverage-first full benchmark candidate |
+| P14 | `yang_sequence_recovery_large_target_fallback_v1` | queued as `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | Sequence recovery exposes two additional oversized domain jobs, so the fixes should be tested together before larger attack budgets | Run only after active pending jobs unless component results make the stack unnecessary |
 
 ## Evidence Links
 
