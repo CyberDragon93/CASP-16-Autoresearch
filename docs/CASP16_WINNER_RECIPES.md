@@ -186,39 +186,53 @@ Useful strategy hypotheses:
     is queued as a narrow D1d ablation on top of this stack: 8 changed
     T0240/T1210/T1240 alias sequences, 0 over-token jobs, and 260/268 MSA paths
     reused.
-15. `target_lab/h1258_interaction_window_v1`: generated a target-lab-only
+    The full-input dev row was later cancelled after 39/165 CIFs when it spent
+    extended time on local `no_reference_pdb` target `T1295`; keep those
+    partial artifacts only as MSA/cache evidence until references are recovered.
+15. `scoreable_target_subset_v1`: generated on
+    `casp16_server_protein_v2_aliasfix` to spend attack compute only on jobs
+    that can currently affect local score. It keeps 74/165 jobs, skips 91
+    no-reference jobs, preserves the fixed 175-target scoring set, and reuses
+    141/141 exact-sequence MSA paths in the running
+    `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
+16. `casp16_server_attack_protenix25_scoreable_nofail`: planned but not queued.
+    It is the winner-scale 25-seed successor to the running scoreable
+    `protenix5` attack. Launch only if the 5-seed scoreable row gives a reason
+    to spend the GPU-hours; keep the older 165-job `protenix25_nofail` plan as
+    a full-input ablation until reference recovery.
+17. `target_lab/h1258_interaction_window_v1`: generated a target-lab-only
     public interaction-window input with LRRK2 residues 861-1014 and 14-3-3
     A1B2 stoichiometry. Total length is 648 tokens.
-16. `target_lab/small_complex_stoich_batch_v1`: generated a six-job compact
+18. `target_lab/small_complex_stoich_batch_v1`: generated a six-job compact
     complex batch with exact-stoichiometry targets and the H1258 window. Max
     job length is 1929 tokens.
-17. QSglob scorer installation/integration: without this, oligo server runs
+19. QSglob scorer installation/integration: without this, oligo server runs
     remain diagnostic no matter how good the structures look.
-18. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
+20. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
     is the first queued 5-candidate terminal-tag attack run; use only for a
     separate multi-candidate comparison. It is currently incomplete: latest
     output has complete `seed_101` and partial `seed_102`, so it must not be
     scored as a complete 5-candidate row.
-19. `server_attack_protenix_coverage_stoich_seed101_105`: generated as the
+21. `server_attack_protenix_coverage_stoich_seed101_105`: generated as the
     second queued 5-candidate attack run, using stacked sequence recovery,
     token-budget fallback, and token-safe stoichiometry inputs. It is not
     submitted yet.
-20. `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101`: queued
+22. `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101`: queued
     as a v2 `dev_fixed` construct-cleanup ablation. It starts from the
     alias-fixed coverage/stoich input, changes 27 sequences across 21 targets
-    with terminal tag/low-complexity cleanup, and must run after the v2
-    baseline is scored.
-21. `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`:
+    with terminal tag/low-complexity cleanup, and should stay an ablation behind
+    the scoreable nofail attack line.
+23. `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`:
     queued as the v2 coverage-recovery ablation after low-complexity cleanup.
     It applies the target-agnostic large-target fallback to the 11 v2 jobs
     still above 2560 tokens and leaves 0 over-token jobs.
-22. `casp16_server_attack_protenix25`: planned but not queued. It targets the
+24. `casp16_server_attack_protenix25`: planned but not queued. It targets the
     alias-fixed v2 server benchmark with seeds `101..125`, one sample per seed,
     and `protenix_confidence_v1`; the shard run ids and seed ranges are locked
-    in `attack_budgets/casp16_server_attack_protenix25_shards.tsv`. Run as
-    seed shards only after the current 5-seed attack and v2 dev baseline
-    justify the larger spend.
-23. `casp16_server_attack_protenix25_nofail`: planned but not queued. It uses
+    in `attack_budgets/casp16_server_attack_protenix25_shards.tsv`. Keep as a
+    broader full-input budget; the scoreable 25-seed budget is the current
+    preferred scale-up while references are incomplete.
+25. `casp16_server_attack_protenix25_nofail`: planned but not queued. It uses
     the same 25-seed budget on the MSA-reused v2 no-over-token fallback input,
     with shard rows locked in
     `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
@@ -226,27 +240,27 @@ Useful strategy hypotheses:
     `inputs_msa_reuse_from_dev_seed101.json`, so any launch spends the 25-seed
     tier on the current protein-oligo sequence recovery nofail stack without
     repeating MSA search in every shard.
-24. `server_v2_attack_nofail_protenix5_seed101_105`: queued but not submitted
+26. `server_v2_attack_nofail_protenix5_seed101_105`: queued but not submitted
     as the first five-candidate attack on the no-over-token v2 stack. It uses
     seeds `101..105` and `protenix_confidence_v1`, and waits behind the three
     v2 `dev_fixed` rows. It is now superseded by
     `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`
     unless an ablation requires the older input.
-25. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
+27. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
     CASP domain-summary metadata; useful for learning whether domain
     decomposition helps, but not a server-ranked strategy as-is.
-26. `target_lab/domain_fragment_batch_v1`: generated and submitted as Slurm job
+28. `target_lab/domain_fragment_batch_v1`: generated and submitted as Slurm job
     `810862`. It runs 12 domain-fragment jobs from T1210, T1218, T1269, T1257,
     T1240, and T1270 to test the domain-decomposition recipe quickly.
-27. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
+29. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
     for antibody-antigen complexes, trimming antibody constant regions while
     preserving antigen chains; useful for O5 learning, not a server-ranked
     strategy as-is.
-28. Domain crop/chain mapping: needed before domain scores can be trusted on
+30. Domain crop/chain mapping: needed before domain scores can be trusted on
     multi-domain or multi-chain targets.
-29. H1258/H1232 target_lab loop: use these as fast learning targets for
+31. H1258/H1232 target_lab loop: use these as fast learning targets for
     stoichiometry, construct refinement, and antibody-complex behavior, then
     promote only target-agnostic changes.
-30. Model-selection research: collect confidence/consensus after predictions,
+32. Model-selection research: collect confidence/consensus after predictions,
     but keep ranked `first_output_only` unless a new benchmark version is
     created.

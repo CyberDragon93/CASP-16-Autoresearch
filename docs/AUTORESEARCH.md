@@ -69,6 +69,13 @@ where methods should change.
   chains from the current v2 dev row. Shards are locked in
   `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`. It is
   not queued yet.
+- A scoreable-target no-over-token larger planned attack tier now exists as
+  `attack_budgets/casp16_server_attack_protenix25_scoreable_nofail.json`: same
+  25 seeds and selector, but only the 74 jobs that currently have at least one
+  locally available reference alias. It preserves the fixed 175-target scoring
+  set through the benchmark `input_manifest.tsv` and requires complete
+  exact-sequence MSA reuse from `data/msa_cache/index.tsv`. It is not queued
+  yet; use it only if the running scoreable `protenix5` row is worth scaling.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
   about chasing CASP16 server winners must report the attack budget, candidates
   per target, selector, and GPU cost. Run specs and manifests expose
@@ -375,14 +382,11 @@ competitive result.
 19. Done: created `casp16_server_protein_v2_aliasfix`; future serious
     winner-comparison runs should target it or a newer explicit server
     benchmark version.
-20. Monitor Slurm job `810938` after the active v1 attack job finishes. Its
-    wrapper was created for the older v2 coverage/stoich run, but current
-    `run-next --dry-run` selects
-    `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
-    because the older v2 rows were superseded.
+20. Done: cancelled Slurm job `810938` after it reached local no-reference
+    `T1295`. Keep the partial full-input v2 artifacts as cache evidence only.
 21. Keep `casp16_server_attack_protenix25` as the planned winner-scale upgrade
-    path: execute only after `protenix5` and the v2 dev baseline are scored,
-    and only as predeclared seed shards.
+    path for broader full-input ablation. While references are incomplete, the
+    preferred scale-up path is the scoreable 25-seed budget below.
 22. The older v2 coverage/stoich, low-complexity, and no-over-token rows are
     now superseded by the oligo-recovery nofail stack. Run them only as
     explicit ablations.
@@ -406,6 +410,10 @@ competitive result.
     active v2 nofail row and scoreable-subset MSA attack are handled. It is a
     narrow construct-cleanup ablation, not a replacement for the current main
     queue.
+27. Use `casp16_server_attack_protenix25_scoreable_nofail` as the planned
+    winner-scale successor if the running scoreable `protenix5` row is
+    positive. Keep the older 165-job `protenix25_nofail` as a full-input
+    ablation until references are recovered.
 
 ## Run Discipline
 

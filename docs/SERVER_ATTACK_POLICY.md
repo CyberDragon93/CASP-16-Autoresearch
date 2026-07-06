@@ -86,6 +86,15 @@ protein chains, and 0 jobs above 2560 tokens. Its shard manifest is
 spend winner-scale compute on the older nofail artifact unless the run is
 explicitly labeled as an ablation.
 
+`attack_budgets/casp16_server_attack_protenix25_scoreable_nofail.json` is the
+current scoreable-target winner-scale plan. It keeps the same 25-seed
+candidate budget and selector, but predicts only the 74 jobs that currently
+have at least one locally available reference alias. The fixed benchmark
+scoring set remains 175 targets; skipped no-reference targets stay local zeros.
+Each shard must inject `data/msa_cache/index.tsv` with
+`--msa-reuse-require-complete`. Launch it only after the running scoreable
+`protenix5` attack is scored or explicitly superseded.
+
 Because Protenix loops serially over seeds, this budget must be executed as
 five predeclared five-seed shards and merged only after all shards finish. A
 partial 25-seed attempt is unranked unless it is explicitly reported as
@@ -115,6 +124,10 @@ When the launch gate opens, generate each shard with the TSV row's fields:
 For the nofail tier, use the shard TSV rows from
 `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`; do not
 reuse the older `protenix25` input artifact by accident.
+For the scoreable nofail tier, use
+`attack_budgets/casp16_server_attack_protenix25_scoreable_nofail_shards.tsv`
+and include `--msa-cache-index <msa_cache_index_from_shard_tsv>` plus
+`--msa-reuse-require-complete` on every `run-spec`.
 
 After every shard has completed, register the merged attack row before scoring:
 

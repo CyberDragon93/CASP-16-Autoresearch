@@ -464,6 +464,19 @@ leaderboard progress.
       targets remain in scoring, and skipped no-reference targets score 0
       locally. This is a compute-saving local-measurement tactic, not an
       official server-comparable shortcut.
+36. Added the planned scoreable nofail 25-candidate budget:
+    `attack_budgets/casp16_server_attack_protenix25_scoreable_nofail.json`.
+    - It is not queued. It is the explicit winner-scale successor only if the
+      running scoreable `protenix5` row is positive.
+    - It predicts the same 74 scoreable jobs, keeps the fixed 175-target
+      benchmark scoring set through
+      `benchmarks/casp16_server_protein_v2_aliasfix/input_manifest.tsv`, and
+      requires complete exact-sequence MSA reuse from `data/msa_cache/index.tsv`.
+    - The shard manifest is
+      `attack_budgets/casp16_server_attack_protenix25_scoreable_nofail_shards.tsv`,
+      with five planned five-seed shards covering seeds `101..125`.
+    - The older 165-job `protenix25_nofail` budget remains a full-input
+      ablation until local references are recovered.
 
 ## Strategy Decision Log
 
