@@ -22,6 +22,12 @@ The first run spec using this budget is
 `server_attack_protenix_terminal_tag_seed101_105`. It has been submitted as
 Slurm job `810719` and remains an attack row, not a `dev_fixed` row.
 
+The second queued run spec using the same budget is
+`server_attack_protenix_coverage_stoich_seed101_105`. It uses the stacked
+sequence-recovery, large-target fallback, and token-safe stoichiometry input.
+It is queued but not submitted; launch it only when it is selected by
+`run-next --dry-run` or after an explicit queue supersession decision.
+
 ## Budget Reality
 
 Treat `protenix5` as the first local attack tier, not as a claim about the

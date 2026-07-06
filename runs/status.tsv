@@ -42,3 +42,5 @@ timestamp	benchmark	run_id	status	message
 2026-07-06T15:46:42.565732+00:00	casp16_server_protein_v1	server_protenix_yang_sequence_recovery_seed101	pending	run_spec_created
 2026-07-06T15:57:06.572001+00:00	casp16_server_protein_v1	server_protenix_yang_sequence_recovery_large_target_fallback_seed101	pending	run_spec_created
 2026-07-06T16:14:16.239867+00:00	casp16_server_protein_v1	server_protenix_yang_oligo_stoichiometry_token_safe_seed101	pending	run_spec_created
+2026-07-06T16:47:09.385130+00:00	casp16_server_protein_v1	server_attack_protenix_terminal_tag_seed101_105	running	run_next_started
+2026-07-06T16:47:35.223765+00:00	casp16_server_protein_v1	server_attack_protenix_coverage_stoich_seed101_105	pending	run_spec_created

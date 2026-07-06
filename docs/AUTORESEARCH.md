@@ -37,6 +37,10 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`.
+- Queued second attack run spec:
+  `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
+  sequence-recovery + large-target fallback + token-safe stoichiometry inputs
+  with the same five-candidate `protenix5` budget. It is not submitted yet.
 - New coverage-recovery strategy:
   `yang_large_target_split_or_fallback_v1`, which predeclares a token-budget
   fallback for the eight known Protenix `n_token > 2560` failures.
@@ -176,6 +180,10 @@ competitive result.
     `target_lab/domain_fragment_batch_v1`, then inspect fragment coverage and
     confidence diagnostics. Promote only a target-agnostic segmentation rule,
     not CASP-domain-summary hand crops.
+17. Keep `server_attack_protenix_coverage_stoich_seed101_105` queued as the
+    next realistic attack-budget candidate. Submit it only when `run-next
+    --dry-run` selects it, or intentionally supersede it after the component
+    single-seed coverage runs report negative evidence.
 
 ## Run Discipline
 

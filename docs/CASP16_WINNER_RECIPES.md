@@ -170,21 +170,25 @@ Useful strategy hypotheses:
 15. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
    is the first queued 5-candidate terminal-tag attack run; use only for a
    separate multi-candidate comparison.
-16. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
+16. `server_attack_protenix_coverage_stoich_seed101_105`: generated as the
+   second queued 5-candidate attack run, using stacked sequence recovery,
+   token-budget fallback, and token-safe stoichiometry inputs. It is not
+   submitted yet.
+17. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
    CASP domain-summary metadata; useful for learning whether domain
    decomposition helps, but not a server-ranked strategy as-is.
-17. `target_lab/domain_fragment_batch_v1`: generated and submitted as Slurm job
+18. `target_lab/domain_fragment_batch_v1`: generated and submitted as Slurm job
    `810862`. It runs 12 domain-fragment jobs from T1210, T1218, T1269, T1257,
    T1240, and T1270 to test the domain-decomposition recipe quickly.
-18. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
+19. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
    for antibody-antigen complexes, trimming antibody constant regions while
    preserving antigen chains; useful for O5 learning, not a server-ranked
    strategy as-is.
-19. Domain crop/chain mapping: needed before domain scores can be trusted on
+20. Domain crop/chain mapping: needed before domain scores can be trusted on
    multi-domain or multi-chain targets.
-20. H1258/H1232 target_lab loop: use these as fast learning targets for
+21. H1258/H1232 target_lab loop: use these as fast learning targets for
    stoichiometry, construct refinement, and antibody-complex behavior, then
    promote only target-agnostic changes.
-21. Model-selection research: collect confidence/consensus after predictions,
+22. Model-selection research: collect confidence/consensus after predictions,
    but keep ranked `first_output_only` unless a new benchmark version is
    created.

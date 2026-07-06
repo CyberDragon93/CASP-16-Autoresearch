@@ -19,6 +19,7 @@ leaderboard progress.
 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
 | `yang_oligo_stoichiometry_recovery_v1` | `casp16_server_protein_v1` | artifacts generated, not queued | restore official oligo copy counts that collapsed to one copy per entity | not queued until token-safe/windowed derivative exists |
 | `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes for domain track; oligo diagnostic until QSglob exists |
+| `server_attack_protenix_coverage_stoich_seed101_105` | `casp16_server_protein_v1` | queued, not submitted | five-seed attack run on stacked sequence-recovery, token-fallback, token-safe stoichiometry inputs | attack tier only |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
 | `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `810824` pending | compact exact-stoich and H1258-window learning batch | not rank eligible |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
@@ -156,8 +157,42 @@ leaderboard progress.
     six-job target-lab batch with `H1232`, `H1233`, `H1236`, `H1244`, `H1267`,
     and the H1258 interaction-window job. The max job is 1929 tokens. Submitted
     as Slurm job `810824`, initially pending with reason `Priority`.
+18. Generated `server_attack_protenix_coverage_stoich_seed101_105`, the second
+    `protenix5` attack-tier run spec. It uses the stacked
+    `yang_oligo_stoichiometry_token_safe_v1` inputs, seeds
+    `101,102,103,104,105`, one sample each, and `protenix_confidence_v1`
+    selection.
+    - It is queued but not submitted.
+    - `run-next --dry-run` remains blocked by the running terminal-tag attack,
+      and the first pending dev run remains
+      `server_protenix_yang_large_target_split_or_fallback_seed101`.
+    - Submit only when this run is selected by `run-next --dry-run`, or
+      intentionally supersede it after the component coverage runs finish.
 
 ## Strategy Decision Log
+
+### 2026-07-06 Coverage + Stoichiometry Attack Candidate
+
+Decision: generate `server_attack_protenix_coverage_stoich_seed101_105` as the
+next `protenix5` attack candidate, but do not submit it while
+`server_attack_protenix_terminal_tag_seed101_105` is still pending/running and
+component single-seed coverage runs are still queued.
+
+Hypothesis: multi-seed attack compute should be spent on inputs that remove
+known hard zeros first. The stacked input combines sequence recovery,
+large-target token fallback, and token-safe oligo stoichiometry, while keeping
+the same Protenix model, MSA/template/default-param settings, seeds, sample
+count, and confidence-only selector as the first attack.
+
+No-oracle boundary: the input strategy reads benchmark metadata and official
+target stoichiometry, but not native structures, official score rows, previous
+per-target scores, or reference-derived target tuning. Selection remains
+`protenix_confidence_v1` and cannot inspect structure metrics.
+
+Launch gate: submit only after `run-next --dry-run` selects this run, or after
+an explicit decision to supersede the earlier single-seed coverage queue. Keep
+results in the `server_attack` tier and compare only against other attack rows
+and official server groups with the candidate budget displayed.
 
 ### 2026-07-05 Antibody Fv Target-Lab Branch
 
