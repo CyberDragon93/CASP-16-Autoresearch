@@ -32,7 +32,8 @@ Agents and humans making leaderboard-facing strategy changes must start with
 `docs/AUTORESEARCH.md`, the live experiment queue is in
 `docs/EXPERIMENTS.md`, winner-inspired strategy cards are in
 `docs/CASP16_WINNER_RECIPES.md`, the multi-candidate server budget is in
-`docs/SERVER_ATTACK_POLICY.md`, and new strategy notes should use
+`docs/SERVER_ATTACK_POLICY.md`, the installed QSglob scorer notes are in
+`docs/QSGLOB_SCORER.md`, and new strategy notes should use
 `docs/STRATEGY_TEMPLATE.md`.
 
 Generated files are written under:
@@ -52,6 +53,7 @@ The default Protenix and local metric executables are:
 - `/scratch/10992/liaorunlong93/conda/envs/protein/bin/DockQ`
 - `/scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore`
 - `/scratch/10992/liaorunlong93/conda/envs/protein/bin/USalign`
+- `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost`
 
 For `casp16_protein_v1`, TMscore/TMscore64/USalign is required for ranked
 protein-domain scoring and DockQ is required for ranked protein-oligo scoring.
@@ -62,7 +64,8 @@ metrics, and unavailable metric tools score `0`; confidence files are collected
 only as diagnostics for `dev_fixed`. A separate `server_attack` tier may use
 the predeclared `protenix_confidence_v1` selector from
 `docs/SERVER_ATTACK_POLICY.md`, but it is not comparable to single-seed
-`dev_fixed` rows.
+`dev_fixed` rows. The first five-candidate attack budget is a practical local
+probe, not an estimate of the true CASP16 winner seed/sample budget.
 
 ## Current Protein V1 Coverage
 

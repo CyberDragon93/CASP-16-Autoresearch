@@ -72,8 +72,8 @@ candidates. Launch only when the run answers a real leaderboard question:
 
 - A `dev_fixed` strategy has a positive full-benchmark signal, or the attack is
   a baseline attack run used to quantify the multi-seed gap.
-- QSglob is available for protein oligos, or the run is explicitly marked
-  domain-only/unranked for oligos.
+- QSglob scoring and assembly mapping are validated for protein oligos, or the
+  run is explicitly marked domain-only/unranked for oligos.
 - Any split/fallback for `n_token > 2560` targets is predeclared before
   prediction starts.
 - The strategy note records expected GPU-hours and actual wall time.

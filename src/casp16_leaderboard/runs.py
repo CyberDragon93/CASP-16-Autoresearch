@@ -19,10 +19,10 @@ DEFAULT_PROTENIX_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin
 DEFAULT_DOCKQ_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/DockQ")
 DEFAULT_TMSCORE_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore")
 DEFAULT_USALIGN_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/USalign")
-DEFAULT_QSGLOB_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/qsscore")
+DEFAULT_QSGLOB_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost")
 DEFAULT_PROTENIX_ROOT = Path("/scratch/10992/liaorunlong93/protenix_data")
 DEFAULT_PROTENIX_SOURCE = Path("/scratch/10992/liaorunlong93/Protenix-Insta")
-OPTIONAL_METRIC_TOOLS = ("TMscore64", "lddt", "lddt_stereo", "qsscore", "qs-score", "QSscore", "qs_score")
+OPTIONAL_METRIC_TOOLS = ("TMscore64", "lddt", "lddt_stereo", "qsscore", "qs-score", "QSscore", "qs_score", "ost")
 
 
 @dataclass

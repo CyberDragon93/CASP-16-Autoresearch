@@ -223,8 +223,10 @@ whole target set.
    chain/residue mapping.
 4. Partial: oligo scoring now requires a `QSglob` scorer, refuses DockQ as a
    ranked substitute, and can parse OpenStructure `ost compare-structures
-   --qs-score` JSON when an `ost` binary is available. Next, install/vendor a
-   real scorer plus assembly mapping. Keep DockQ as a diagnostic column.
+   --qs-score` JSON. OpenStructure 2.11.1 is installed in
+   `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/`; next, validate and
+   add explicit assembly/chain mapping where automatic mapping gives false
+   zeros. Keep DockQ as a diagnostic column.
 5. Done: add `leaderboards/casp16_server_protein_v1/` artifacts:
    `RESULTS.md`, `runs.csv`, `target_scores.csv`, `coverage.md`,
    `official_server_groups.csv`, `official_all_groups.csv`, and
@@ -235,8 +237,8 @@ whole target set.
 ## First Experiments After The Benchmark Exists
 
 - Re-score the best current OpenDDE run on the official-compatible target set.
-- Install OpenStructure `ost` or another validated `QSglob` scorer before
-  treating any server oligo run as rank-eligible.
+- Validate OpenStructure `ost` assembly/chain mapping before treating any
+  server oligo run as rank-eligible.
 - Separate automatic full-target runs from manual rescue runs.
 - Add Yang-Server-style input optimization as strategy code, not benchmark
   edits: disorder trimming, domain decomposition, MSA/template breadth, and

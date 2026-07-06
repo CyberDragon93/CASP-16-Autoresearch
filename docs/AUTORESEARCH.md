@@ -29,12 +29,16 @@ where methods should change.
 - Server scoring now enforces metric identity: `GDT_TS` for domains and
   `QSglob` for oligos. DockQ cannot rank server oligo targets.
 - Current metric-tool probe: `TMscore` and `USalign` are present in the protein
-  conda env; `ost`/OpenStructure and `qsscore`/QSglob are not present yet.
+  conda env; OpenStructure `ost` is installed at
+  `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` and is the
+  default QSglob-compatible scorer. The first H0220 probe returned
+  `status=ok` but `QSglob=0` because automatic chain/chem mapping failed, so
+  assembly mapping is now the bottleneck.
 - Current best local server-domain `dev_fixed` run:
   `server_protenix_yang_terminal_tag_cleanup_seed101`, mean `0.066908`.
 - `server_protenix_yang_antibody_fv_cleanup_seed101` is a negative
   `dev_fixed` result on domains (`0.060677`) and remains unranked on oligos
-  because QSglob is missing.
+  in the checked-in artifacts generated before QSglob scorer installation.
 - Multi-candidate work now has a separate policy:
   `docs/SERVER_ATTACK_POLICY.md` and
   `attack_budgets/casp16_server_attack_protenix5.json`.
@@ -108,6 +112,8 @@ then improve methods against that harder target set.
 - `docs/CASP16_SERVER_BENCHMARK.md`: plan for server-track comparison
 - `docs/CASP16_WINNER_RECIPES.md`: notes on known CASP16 winning approaches
 - `docs/SERVER_ATTACK_POLICY.md`: fixed multi-seed attack-budget rules
+- `docs/QSGLOB_SCORER.md`: installed OpenStructure QSglob scorer and mapping
+  validation notes
 - `docs/REFERENCE_GAP_AUDIT.md`: server benchmark reference/input coverage gaps
 - `attack_budgets/`: JSON attack-budget definitions
 - `docs/AUTORESEARCH_QUEUE.md`: current execution queue for strategy attempts
@@ -135,8 +141,8 @@ generated as a full fixed-budget server benchmark run. Current
 - protein domain: mean `0.036428` over 71 fixed targets, with 9 scored and 62
   missing predictions.
 - protein oligo: mean `0.000000` over 104 fixed targets, with 85 missing
-  predictions and 19 `metric_unavailable` rows because QSglob scoring is not
-  installed yet.
+  predictions and 19 `metric_unavailable` rows in the checked-in
+  pre-OpenStructure artifacts.
 
 The server baselines remain far ahead: domain server top `110s` has fixed mean
 `0.923321` on GDT_TS, and oligo server top `456s` has fixed mean `0.582615` on
@@ -150,7 +156,8 @@ competitive result.
 
 ## Work Queue
 
-1. Install or register a real `QSglob` scorer for server oligos.
+1. Validate OpenStructure `ost` QSglob assembly/chain mapping on server oligos;
+   the scorer is installed, but automatic mapping can produce false zeros.
 2. Add explicit domain cropping and chain/residue mapping for
    `casp16_server_protein_v2_aliasfix` domain `GDT_TS` scoring.
 3. Improve the reference/domain registry for the remaining 96 alias-fixed
@@ -159,7 +166,8 @@ competitive result.
 5. Queue and score the generated large-target split/fallback policy for the
    eight `n_token > 2560` failures after the active attack job.
 6. Re-score current OpenDDE and Protenix-style baselines on the server
-   benchmark with complete prediction coverage rather than local-v1 reuse.
+   benchmark after the QSglob mapping check, with complete prediction coverage
+   rather than local-v1 reuse.
 7. Monitor and score `server_attack_protenix_terminal_tag_seed101_105`, the
    first fixed 5-candidate attack run. Keep it separate from `dev_fixed`.
 8. Submit `server_protenix_yang_large_target_split_or_fallback_seed101` after

@@ -18,11 +18,12 @@ leaderboard progress.
 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | recover missing/misparsed protein-domain sequences on top of terminal-tag cleanup | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
 | `yang_oligo_stoichiometry_recovery_v1` | `casp16_server_protein_v1` | artifacts generated, not queued | restore official oligo copy counts that collapsed to one copy per entity | not queued until token-safe/windowed derivative exists |
-| `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes for domain track; oligo diagnostic until QSglob exists |
+| `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes for domain track; oligo diagnostic until QSglob mapping is validated |
 | `server_attack_protenix_coverage_stoich_seed101_105` | `casp16_server_protein_v1` | queued, not submitted | five-seed attack run on stacked sequence-recovery, token-fallback, token-safe stoichiometry inputs | attack tier only |
+| `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` pending on dependency `810719` | first alias-fixed v2 `dev_fixed` baseline using stacked coverage + token-safe stoichiometry inputs | yes for domain track; oligo after QSglob mapping validation |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
 | `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `810824` pending | compact exact-stoich and H1258-window learning batch | not rank eligible |
-| `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
+| `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob mapping or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
 ## Current Score Truth
@@ -32,10 +33,12 @@ leaderboard progress.
 - Server oligo comparator to beat: `456s`, fixed mean `0.582615`, metric
   `QSglob`, 104 targets.
 - Current local server diagnostic reuse: domain `0.036428`, oligo `0.000000`.
-  The main deficit is coverage and missing QSglob, not just model quality.
+  The main deficit is coverage and QSglob mapping/scoring, not just model
+  quality.
 - Current full Protenix server baseline: domain `0.063962`, with 15 ok, 30
   missing predictions, and 26 missing references over the fixed 71-domain
-  target set. Oligo is still unranked because QSglob is unavailable.
+  target set. Oligo needs a rescore after OpenStructure QSglob mapping
+  validation.
 - Current best local server-domain run:
   `server_protenix_yang_terminal_tag_cleanup_seed101`, domain `0.066908`,
   with 15 ok, 30 missing predictions, and 26 missing references over the fixed
@@ -47,8 +50,9 @@ leaderboard progress.
   score.
 - The antibody-Fv cleanup run produced 98/106 CIFs and scored domain
   `0.060677`, below both the baseline `0.063962` and terminal-tag cleanup
-  `0.066908`. It predicted the main antibody oligo targets, but local QSglob
-  is unavailable, so this is not evidence to spend multi-seed attack compute.
+  `0.066908`. It predicted the main antibody oligo targets, but QSglob
+  assembly mapping is not yet validated, so this is not evidence to spend
+  additional multi-seed attack compute.
 - Baseline inference generated 98/106 CIFs. The 8 failed Protenix jobs were all
   `n_token > 2560`: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`,
   `H1272`, and `T1295O`. The fallback fixed only the `T1295` inference
@@ -98,8 +102,9 @@ leaderboard progress.
      `-0.1134` versus terminal-tag cleanup, and `T1298` `-0.0870` versus
      terminal-tag cleanup.
    - The antibody oligo targets `H0222`, `H0223`, `H0225`, `H1222`, `H1223`,
-     and `H1225` produced predictions, but all remain `metric_unavailable`
-     until QSglob is installed.
+     and `H1225` produced predictions, but their old rows remain
+     `metric_unavailable` until the run is rescored after QSglob mapping
+     validation.
 5. Defer `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101`.
    There is no reason to spend another full benchmark on the stacked run before
    either QSglob can evaluate antibody oligos or antibody cleanup shows a
@@ -108,8 +113,10 @@ leaderboard progress.
    zeros are dominated by token-limit failures; a predeclared large-target
    split/fallback policy is higher priority than another ad hoc construct
    cleanup.
-7. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
-   the oligo track.
+7. Installed OpenStructure `ost` as the default QSglob-compatible scorer, then
+   found that H0220 completes with `status=ok` but maps no model chains and
+   returns `QSglob=0`. Next step is assembly/chain mapping before oligo scores
+   are treated as final.
 8. Created `server_attack_protenix_terminal_tag_seed101_105`, the first
    multi-candidate attack run. It keeps terminal-tag cleanup inputs, uses seeds
    `101,102,103,104,105`, one sample each, and selects by
@@ -184,8 +191,50 @@ leaderboard progress.
     all recovered jobs under 2560 tokens, and is pending as the first
     alias-fixed `dev_fixed` baseline.
     - Submitted as Slurm job `810938` with dependency `afterany:810719`.
+22. Installed OpenStructure 2.11.1 in the isolated conda env
+    `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob` and configured
+    `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` as the
+    default QSglob-compatible scorer.
+    - `ost compare-structures --qs-score` is available and writes parseable
+      JSON.
+    - A real H0220 probe against reference `9h1g.cif` returned `status=ok`,
+      `metric=QSglob`, and `score=0.000000` because model chains `A/B` did not
+      map to the reference chem groups.
+    - Interpretation: the scorer is no longer missing; assembly/chain mapping
+      is the next blocker for trustworthy server-oligo ranking.
 
 ## Strategy Decision Log
+
+### 2026-07-06 QSglob Scorer Installed, Mapping Still Open
+
+Decision: use OpenStructure `ost compare-structures --qs-score` as the default
+local QSglob-compatible scorer for server protein-oligo targets, but do not
+promote oligo claims until assembly/chain mapping has been validated.
+
+Rationale: server oligo ranking must use `QSglob`, not DockQ. Installing the
+tool removes the `metric_unavailable` blocker, but a successful H0220 probe
+still returned zero because automatic chem/chain mapping failed. That is a
+mapping problem, not proof that the model has zero assembly quality.
+
+Budget implication: do not spend larger attack budgets to chase oligo scores
+until the scorer maps predicted assemblies correctly. Extra seeds or samples
+cannot fix a scoring pipeline that assigns false zeros.
+
+### 2026-07-06 Winner-Budget Reality
+
+Decision: keep single-seed `dev_fixed` runs and multi-candidate `server_attack`
+runs as separate leaderboard tiers. The current `protenix5` budget is a
+minimal realism check, not an estimate of the true CASP16 winner budget.
+
+Rationale: strong server systems almost certainly generated more than one
+internal candidate per target, and official server submissions could include
+multiple models. A real attack row must declare seed list, sample count,
+backend/model variants, MSA/template policy, selection rule, and allowed
+selection signals before prediction starts.
+
+Next action: compare `dev_fixed` only to `dev_fixed`; compare `server_attack`
+only to attack rows and official server groups, with candidate count and GPU
+cost displayed.
 
 ### 2026-07-06 Phase-2 Alias Reference Gap
 
@@ -278,10 +327,10 @@ terminal-tag run on `T1249V1` and `T1299` did not offset them.
 
 Interpretation: this is a negative `dev_fixed` result for the ranked domain
 track. It does not prove antibody Fv cleanup is bad for oligos, because the
-main antibody targets produced predictions but remain `metric_unavailable`
-without QSglob. Do not promote this strategy to a multi-seed `server_attack`
-budget until QSglob or another locked official-compatible oligo scorer is
-available.
+main antibody targets produced predictions but the old rows were
+`metric_unavailable` before QSglob installation. Do not promote this strategy
+to a multi-seed `server_attack` budget until QSglob mapping, or another locked
+official-compatible oligo scorer, is validated.
 
 ### 2026-07-05 Terminal Tag + Antibody Fv Stack
 
@@ -349,7 +398,8 @@ Result: the ranked domain mean is `0.063962`, far below the server-domain
 champion comparator `110s` at `0.923321`. Only 15/71 domain rows scored
 successfully; 30 targets lacked predictions in the fixed official domain set,
 and 26 had no local native reference mapping. The oligo track remains unranked
-because QSglob is unavailable.
+in the checked-in artifacts until QSglob mapping is validated and the run is
+rescored.
 
 Interpretation: the largest immediate gaps are coverage and benchmark
 compatibility, not only structure quality. Inference produced 98/106 CIFs; the

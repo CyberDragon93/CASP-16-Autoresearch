@@ -87,12 +87,12 @@ wrong assemblies should score poorly on the oligo track.
 | O1 | Exact stoichiometry | Phase 0 showed stoichiometry is still hard, especially high-order assemblies | preserve `Oligo.State`, validate chain counts, fail fast when input expansion is ambiguous | no silent chain/entity mismatch in `input_manifest.tsv` |
 | O1a | Server stoichiometry recovery | local server-target rows can lose explicit target-list stoichiometry and collapse assemblies to one copy per entity | `yang_oligo_stoichiometry_recovery_v1` restores official parsed `Oligo.State` for protein-only oligo jobs | queue only a token-safe or windowed derivative; exact recovered full assemblies can exceed Protenix limits |
 | O1b | Token-safe stoichiometry | exact stoichiometry helps only if the assembly is still runnable under the fixed Protenix budget | `yang_oligo_stoichiometry_token_safe_v1` starts from stacked coverage recovery and restores only under-budget copy counts | queue as a full benchmark candidate after current coverage runs |
-| O2 | Construct refinement | complex assessment highlights partial constructs over full sequences | generate target-agnostic construct variants from sequence/domain annotations for large complexes | improves fixed-set QSglob once scorer exists; DockQ-only wins stay diagnostic |
+| O2 | Construct refinement | complex assessment highlights partial constructs over full sequences | generate target-agnostic construct variants from sequence/domain annotations for large complexes | improves fixed-set QSglob only after scorer mapping is validated; DockQ-only wins stay diagnostic |
 | O2a | H1258 public interaction window | CASP16 complex assessment notes top Yang H1258 models used the LRRK2 interacting region rather than full-length LRRK2 | `target_lab/h1258_interaction_window_v1/` builds LRRK2 861-1014 plus 14-3-3 A1B2 | target_lab only; promotion requires a target-agnostic window rule |
 | O2b | Small complex learning batch | exact stoichiometry and construct windows need faster feedback than full-benchmark runs | `target_lab/small_complex_stoich_batch_v1/` batches 5 exact-stoich jobs plus H1258 window | target_lab only; use for promotion decisions, not direct ranking |
 | O3 | Customized MSA/template | top complex groups beat default AFM/AF3 via customized MSAs, templates, and sampling | full MSA/template baseline first, then compare MSA-cache and template modes | full server target coverage increases before target_lab tuning |
 | O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | `attack_budgets/casp16_server_attack_protenix5.json` defines a fixed 5-candidate Protenix attack budget with confidence-only selection | launch only after the target question is worth multi-seed compute and budget accounting is recorded |
-| O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `yang_antibody_fv_cleanup_v1` completed a full-set run; `yang_antibody_fv_fragment_inputs_v1` remains target_lab | do not promote until QSglob can evaluate the antibody oligo predictions |
+| O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `yang_antibody_fv_cleanup_v1` completed a full-set run; `yang_antibody_fv_fragment_inputs_v1` remains target_lab | do not promote until QSglob assembly mapping can evaluate the antibody oligo predictions |
 | O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
 | O7 | Oversize complex fallback | complex targets can exceed AF3-like token limits, and the baseline lost H0217/H0258/H0272/H1217/H1258/H1272 before any model was produced | `yang_large_target_split_or_fallback_v1` keeps under-budget chain/copy prefixes and records dropped chains | score as coverage recovery until QSglob and assembly mapping are trustworthy |
 
@@ -128,10 +128,10 @@ Useful strategy hypotheses:
 3. `yang_oversize_domain_monomer_fallback_v1`: completed and rescued `T1295`
    inference but not score, because local reference mapping is missing.
 4. `yang_antibody_fv_cleanup_v1`: completed as a negative domain result
-   (`0.060677`); antibody oligo predictions cannot be judged until QSglob is
-   available.
+   (`0.060677`); antibody oligo predictions cannot be judged until QSglob
+   assembly mapping is validated.
 5. `yang_terminal_tag_antibody_fv_cleanup_v1` and
-   `yang_epitope_tag_cleanup_v1`: deferred. Do not launch until QSglob,
+   `yang_epitope_tag_cleanup_v1`: deferred. Do not launch until QSglob mapping,
    large-target split policy, or a new positive signal makes the full run worth
    the compute.
 6. `yang_low_complexity_terminal_cleanup_v1` and

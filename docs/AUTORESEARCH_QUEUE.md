@@ -7,7 +7,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 | Priority | Run | Benchmark | Status | Why It Matters | Next Gate |
 | --- | --- | --- | --- | --- | --- |
-| P0 | Install OpenStructure `ost` / QSglob scorer | `casp16_server_protein_v2_aliasfix` | not started | Required to compare the 104 official server oligo targets and judge antibody-complex strategies | Install or register a QSglob-compatible scorer, then rerun `./casp16 score` and `./casp16 leaderboard` |
+| P0 | Validate OpenStructure `ost` QSglob mapping | `casp16_server_protein_v2_aliasfix` | scorer installed; mapping probe found false-zero risk | Required to compare the 104 official server oligo targets and judge antibody-complex strategies | Add or validate assembly/chain mapping, then rerun `./casp16 score` and `./casp16 leaderboard` |
 | P1 | Run `server_attack_protenix_terminal_tag_seed101_105` | separate from `dev_fixed` | Slurm job `810719` running | Winner-level server comparison should not pretend one seed/sample is enough | Monitor GH200 job, then score with `protenix_confidence_v1` while keeping attack rows out of `dev_fixed` ranks |
 | P2 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | Extra seeds cannot fix `n_token > 2560` hard failures | Submit after attack job `810719` completes if coverage recovery remains highest leverage |
 | P3 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | Several domain hard zeros are local sequence parsing/alias failures, not model failures | Submit after attack and large-target fallback jobs; expect more jobs but better domain coverage |
@@ -25,18 +25,18 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 | Run | Status | Domain mean | Domain coverage | Oligo status | Key failure signal |
 | --- | --- | --- | --- | --- | --- |
-| `server_protenix_full_msa_template_seed101` | complete and scored | `0.063962` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | unranked until QSglob exists | 8 Protenix jobs failed with `n_token > 2560`: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`, `H1272`, `T1295O` |
-| `server_protenix_yang_terminal_tag_cleanup_seed101` | complete and scored | `0.066908` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | unranked until QSglob exists | Same 8 Protenix token-limit failures as baseline; small net domain gain from `T1234`, `T1298`, and `T1210` |
-| `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | complete and scored | `0.065114` | 15 ok / 29 missing prediction / 27 failed or missing-reference over 71 official server-domain targets | unranked until QSglob exists | Produced 99/106 CIFs and rescued `T1295` inference, but `T1295` still scores `0` because the local server benchmark lacks a reference mapping |
-| `server_protenix_yang_antibody_fv_cleanup_seed101` | complete and scored | `0.060677` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | unranked until QSglob exists | Produced 98/106 CIFs; antibody oligo predictions exist for H0222/H0223/H0225/H1222/H1223/H1225 but cannot be ranked without QSglob |
+| `server_protenix_full_msa_template_seed101` | complete and scored | `0.063962` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | needs QSglob rescore after mapping validation | 8 Protenix jobs failed with `n_token > 2560`: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`, `H1272`, `T1295O` |
+| `server_protenix_yang_terminal_tag_cleanup_seed101` | complete and scored | `0.066908` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | needs QSglob rescore after mapping validation | Same 8 Protenix token-limit failures as baseline; small net domain gain from `T1234`, `T1298`, and `T1210` |
+| `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | complete and scored | `0.065114` | 15 ok / 29 missing prediction / 27 failed or missing-reference over 71 official server-domain targets | needs QSglob rescore after mapping validation | Produced 99/106 CIFs and rescued `T1295` inference, but `T1295` still scores `0` because the local server benchmark lacks a reference mapping |
+| `server_protenix_yang_antibody_fv_cleanup_seed101` | complete and scored | `0.060677` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | needs QSglob rescore after mapping validation | Produced 98/106 CIFs; antibody oligo predictions exist for H0222/H0223/H0225/H1222/H1223/H1225 but need assembly mapping before ranked QSglob claims |
 
 ## Queued Next
 
 | Priority | Run | Strategy | Artifact | Benchmark | Status | Hypothesis |
 | --- | --- | --- | --- | --- | --- | --- |
 | done | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `yang_oversize_domain_monomer_fallback_v1` | `strategies/yang_oversize_domain_monomer_fallback_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | complete and scored | Rescue the known `T1295` server-domain zero caused by Protenix `n_token > 2560` by replacing only a single-entity domain `A8` job with one representative chain |
-| done | `server_protenix_yang_antibody_fv_cleanup_seed101` | `yang_antibody_fv_cleanup_v1` | `strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | complete and scored negative | Antibody-Fv cleanup lowered the ranked domain mean and cannot yet be judged on oligos because QSglob is unavailable |
-| deferred | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `yang_terminal_tag_antibody_fv_cleanup_v1` | `strategies/yang_terminal_tag_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | deferred | Do not launch the stacked run before QSglob or a positive antibody-complex signal exists |
+| done | `server_protenix_yang_antibody_fv_cleanup_seed101` | `yang_antibody_fv_cleanup_v1` | `strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | complete and scored negative | Antibody-Fv cleanup lowered the ranked domain mean and cannot yet be judged on oligos until QSglob assembly mapping is validated |
+| deferred | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `yang_terminal_tag_antibody_fv_cleanup_v1` | `strategies/yang_terminal_tag_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | deferred | Do not launch the stacked run before QSglob mapping or a positive antibody-complex signal exists |
 | deferred | `server_protenix_yang_epitope_tag_cleanup_seed101` | `yang_epitope_tag_cleanup_v1` | `strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | deferred | Token-limit hard failures need a predeclared split/fallback policy before another construct-cleanup full run |
 | P1 | `server_attack_protenix_terminal_tag_seed101_105` | `yang_terminal_tag_cleanup_v1_server_attack` | `runs/server_attack_protenix_terminal_tag_seed101_105/` | `casp16_server_protein_v1` | Slurm job `810719` running | Five fixed seeds on the current best terminal-tag cleanup strategy, selected by predeclared confidence-only policy |
 | P2 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `yang_large_target_split_or_fallback_v1` | `runs/server_protenix_yang_large_target_split_or_fallback_seed101/` | `casp16_server_protein_v1` | pending behind attack job | Convert the eight `n_token > 2560` failures into under-budget jobs by predeclared chain/copy fallback |
@@ -51,8 +51,8 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | target_lab | `810862` | `domain_fragment_batch_v1` | `target_lab/domain_fragment_batch_v1/` | target_lab only | Slurm job pending | Twelve domain-fragment jobs testing whether CASP-domain decomposition is worth a future target-agnostic rule |
 
 The terminal-tag, oversize-domain fallback, and antibody-Fv runs are complete
-and scored. The next valuable work is scorer/benchmark capability, not another
-single-seed construct rerun. `run-next` should not be used again until the
+and scored. The next valuable work is scorer mapping and benchmark capability,
+not another single-seed construct rerun. `run-next` should not be used again until the
 deferred statuses are intentional or new run specs are created for the next
 predeclared policy.
 
@@ -130,8 +130,11 @@ expected GPU-hours, actual wall time, and selection policy.
 
 The oversize-domain fallback result is a reminder to spend realistic attack
 compute carefully: extra seeds will not fix hard Protenix token-limit failures,
-missing references, or missing QSglob. Clean coverage, reference mapping, and
-scorer availability should come before a costly multi-candidate push.
+missing references, or unvalidated QSglob mapping. Clean coverage, reference
+mapping, and scorer validation should come before a costly multi-candidate
+push.
+The same applies after installation: extra candidates cannot fix a scorer that
+maps the predicted assembly to the wrong reference chains.
 
 The antibody-Fv result reinforces the same rule. A strategy that is negative on
 the ranked domain track and unmeasurable on oligos should not be promoted to a
@@ -142,7 +145,7 @@ internal candidate.
 
 | Priority | Strategy | Status | Reason To Try | Stop Condition |
 | --- | --- | --- | --- | --- |
-| P5 | Install OpenStructure `ost` for QSglob | not started | Oligo server scores are not rank-comparable without QSglob | If install becomes a build rabbit hole, keep oligos diagnostic and score domains first |
+| done | Install OpenStructure `ost` for QSglob | installed at `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` | Oligo server scores are not rank-comparable without QSglob | Next bottleneck is assembly/chain mapping, not tool availability |
 | P6 | `yang_low_complexity_terminal_cleanup_v1` | artifacts generated, not queued | H0217/H0272/H1217/H1272 have short terminal low-complexity regions that match Yang-style construct cleanup | Queue only after tag cleanup helps or baseline failures justify more aggressive trimming |
 | P7 | `yang_hydrophobic_leader_cleanup_v1` | artifacts generated, not queued | T0240/T1210/T1240-style N termini contain signal-like hydrophobic leaders; construct cleanup may improve folded-core prediction | Risky branch; queue only after baseline or conservative cleanup evidence |
 | P8 | `yang_domain_fragment_inputs_v1` | target-lab artifacts generated, not queued | Domain decomposition is a major winner recipe; CASP domain-summary fragments give a fast diagnostic upper bound | Not server-ranked; promote only via new benchmark version or predeclared segmentation rule |
@@ -154,7 +157,7 @@ internal candidate.
 | P13 | Extra sampling/ranking lab | diagnostic only | CASP16 reports show sampling helps, but ranking is fragile | Never use best-of-N for ranked v1 without a new benchmark version |
 | P14 | `yang_sequence_recovery_large_target_fallback_v1` | queued as `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | Sequence recovery exposes two additional oversized domain jobs, so the fixes should be tested together before larger attack budgets | Run only after active pending jobs unless component results make the stack unnecessary |
 | P15 | `yang_oligo_stoichiometry_recovery_v1` | artifacts generated | Exact stoichiometry changes H1232/H1233/H1236/H1244/H1267 safely and exposes H1217/H1227/H1258/H1265 as oversized realistic assemblies | Do not queue exact full assemblies directly; create a token-safe or domain-window derivative first |
-| P16 | `yang_oligo_stoichiometry_token_safe_v1` | queued as `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | This is the token-safe derivative: 5 exact-stoichiometry changes, max job 2535 tokens | Run after active pending jobs; keep oligos diagnostic until QSglob is available |
+| P16 | `yang_oligo_stoichiometry_token_safe_v1` | queued as `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | This is the token-safe derivative: 5 exact-stoichiometry changes, max job 2535 tokens | Run after active pending jobs; keep oligos diagnostic until QSglob assembly mapping is validated |
 | P17 | H1258 interaction-window target_lab | artifact generated | Public assessment says top Yang H1258 models used LRRK2 interacting region instead of full-length LRRK2 | Run as target_lab only; never count it as a ranked server result |
 | P18 | Small complex stoich batch | Slurm job `810824` pending | Fast learning set for under-budget exact stoich and H1258 public window, max job 1929 tokens | Use only as target_lab evidence; promote only target-agnostic rules |
 | P19 | Domain fragment batch | Slurm job `810862` pending | Fast learning set for domain decomposition on long/multidomain protein targets, max fragment 1633 residues | Use only as target_lab evidence; promote only target-agnostic segmentation or new benchmark version |
