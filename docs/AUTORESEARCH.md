@@ -95,13 +95,17 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
-  is running. The `2026-07-06 17:56 CDT` check found seed CIF counts
-  `98/98/47/0/0`, so it is still incomplete and must not be scored as a
-  five-candidate result.
-- Queued second attack run spec:
+  is running. The `2026-07-06 18:08 CDT` check found seed CIF counts
+  `98/98/57/0/0`; the log still hits the known `n_token > 2560` classes, so it
+  is incomplete and must not be scored as a five-candidate result.
+- Superseded second attack run spec:
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
   sequence-recovery + large-target fallback + token-safe stoichiometry inputs
-  with the same five-candidate `protenix5` budget. It is not submitted yet.
+  with the same five-candidate `protenix5` budget. It has been replaced by
+  `server_attack_protenix_coverage_stoich_msa_reuse_seed101_105` to avoid
+  repeating MSA search, but that successor only reuses 180/196 exact-sequence
+  protein-chain paths and remains lower priority than the v2 scoreable nofail
+  path.
 - Superseded v2 no-over-token attack run spec:
   `server_v2_attack_nofail_protenix5_seed101_105`, using the v2
   coverage/stoich/low-complexity/large-fallback input with 0 over-token jobs
@@ -392,11 +396,13 @@ competitive result.
     `targetlab_protenix_yang_antibody_fv_seed101`. It is a diagnostic O5
     antibody/Fv run with full MSA/template settings and no ranked leaderboard
     eligibility, now running on `c620-142`.
-19. Keep `server_attack_protenix_coverage_stoich_seed101_105` queued as the
-    next realistic attack-budget candidate. Submit it only when
-    `./casp16 run-next --benchmark casp16_server_protein_v1 --dry-run` selects
-    it, or intentionally supersede it after the component single-seed coverage
-    runs report negative evidence.
+19. Do not launch the non-reuse
+    `server_attack_protenix_coverage_stoich_seed101_105` row. Its MSA-reuse
+    successor
+    `server_attack_protenix_coverage_stoich_msa_reuse_seed101_105` is pending,
+    but the preflight still misses 16/196 exact-sequence protein-chain MSA
+    sources. Keep it as a lower-priority v1 ablation while the v2 scoreable
+    nofail attack runs with complete 141/141 MSA reuse.
 20. Done: created `casp16_server_protein_v2_aliasfix`; future serious
     winner-comparison runs should target it or a newer explicit server
     benchmark version.

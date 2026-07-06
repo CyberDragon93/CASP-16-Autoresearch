@@ -13,18 +13,19 @@ leaderboard progress.
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | scored | target-agnostic Yang-style terminal tag cleanup rerun | yes for domain track |
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | scored | single-entity oversize domain fallback recovered `T1295` inference but not score, because `T1295` lacks local reference mapping | yes for domain track |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | scored negative | full-set antibody Fv constant-region cleanup rerun | yes for domain track |
-| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` running; 98/98/47/0/0 CIFs by seed at `2026-07-06 17:56 CDT` | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
+| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` running; 98/98/57/0/0 CIFs by seed at `2026-07-06 18:08 CDT`; still hitting the known `n_token > 2560` jobs | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | recover missing/misparsed protein-domain sequences on top of terminal-tag cleanup | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
 | `yang_oligo_stoichiometry_recovery_v1` | `casp16_server_protein_v1` | artifacts generated, not queued | restore official oligo copy counts that collapsed to one copy per entity | not queued until token-safe/windowed derivative exists |
 | `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes for domain track; oligo diagnostic until QSglob mapping is validated |
-| `server_attack_protenix_coverage_stoich_seed101_105` | `casp16_server_protein_v1` | queued, not submitted | five-seed attack run on stacked sequence-recovery, token-fallback, token-safe stoichiometry inputs | attack tier only |
+| `server_attack_protenix_coverage_stoich_seed101_105` | `casp16_server_protein_v1` | superseded:msa_reuse_successor | non-reuse five-seed attack run on stacked sequence-recovery, token-fallback, token-safe stoichiometry inputs | keep only as ablation |
+| `server_attack_protenix_coverage_stoich_msa_reuse_seed101_105` | `casp16_server_protein_v1` | pending behind active v1 jobs; MSA preflight 180/196 chains reused, 16 missing, 0 stale | five-seed coverage+stoich attack successor using exact-sequence MSA reuse | attack tier only; lower priority than v2 scoreable nofail |
 | `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | superseded; Slurm wrapper job `810938` is running the current nofail dev row | older alias-fixed v2 baseline using coverage + token-safe stoichiometry inputs | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 stack plus large-target fallback for the 11 remaining over-token jobs | keep only as ablation |
 | `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | cancelled:scoreable_subset_attack; 39/165 CIFs, stopped on no-reference `T1295` | current strongest v2 no-over-token input stack with protein-oligo sequence recovery; keep partial artifacts/MSA cache only | not a complete dev row |
-| `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | Slurm job `811751` running on `c636-072`; MSA update skipped, long `T1210` completed, and 9/74 seed-101 CIFs exist at `2026-07-06 17:56 CDT` | five-seed attack on the current strongest v2 nofail stack, filtered to 74 locally scoreable jobs with 141/141 exact-sequence MSA paths reused | attack tier only; skipped no-reference targets still score 0 locally |
+| `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | Slurm job `811751` running on `c636-072`; MSA update skipped, and 13/74 seed-101 CIFs exist at `2026-07-06 18:08 CDT` | five-seed attack on the current strongest v2 nofail stack, filtered to 74 locally scoreable jobs with 141/141 exact-sequence MSA paths reused | attack tier only; skipped no-reference targets still score 0 locally |
 | `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:scoreable_subset_attack; former wrapper job `811751` is now running the scoreable-subset run selected by `run-next` | full 165-job MSA-reuse predecessor that repeats no-reference heavy jobs before reference recovery | attack tier only; run only as ablation |
 | `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | deferred:slurm_wrapper_cancelled; Slurm job `811754` is `CANCELLED+` and no longer queued | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | re-enable only after scoreable attack/full v2 score |
 | `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:msa_reuse_attack | non-reuse predecessor of the current five-seed v2 no-over-token attack | attack tier only; run only as ablation |
@@ -647,7 +648,9 @@ dependency was cleared.
 ### 2026-07-06 Coverage + Stoichiometry Attack Candidate
 
 Decision: generate `server_attack_protenix_coverage_stoich_seed101_105` as the
-next `protenix5` attack candidate, but do not submit it while
+next `protenix5` attack candidate, then supersede it with
+`server_attack_protenix_coverage_stoich_msa_reuse_seed101_105` before launch so
+the same attack budget does not repeat MSA search. Do not submit it while
 `server_attack_protenix_terminal_tag_seed101_105` is still pending/running and
 component single-seed coverage runs are still queued.
 
@@ -666,6 +669,14 @@ Launch gate: submit only after `run-next --dry-run` selects this run, or after
 an explicit decision to supersede the earlier single-seed coverage queue. Keep
 results in the `server_attack` tier and compare only against other attack rows
 and official server groups with the candidate budget displayed.
+
+MSA-reuse successor: the launched candidate should be
+`server_attack_protenix_coverage_stoich_msa_reuse_seed101_105`, not the older
+non-reuse row. Its run spec keeps the same seeds, sample count, candidate
+count, selector, Protenix settings, and input strategy, but injects exact
+sequence MSA paths from `data/msa_cache/index.tsv`. Preflight records 180/196
+protein-chain MSA paths reused, 16 missing exact-sequence sources, 91.84%
+coverage, and 0 stale covered paths; the minimum launch guard is 0.90.
 
 ### 2026-07-05 Antibody Fv Target-Lab Branch
 
@@ -883,6 +894,12 @@ Guardrail: this is infrastructure only. It does not disable MSA, does not read
 references or scores, and does not change benchmark eligibility or scoring.
 Any sequence edit, trim, recovery, or window that changes the SHA256 must miss
 the cache and run a fresh MSA search.
+
+Additional queued v1 reuse: `server_attack_protenix_coverage_stoich_msa_reuse_seed101_105`
+is now the MSA-reuse successor for the v1 coverage+stoich `protenix5` attack.
+It reuses 180/196 exact-sequence protein-chain MSA paths, has 16 changed/new
+chains without cache hits, and supersedes the non-reuse predecessor before any
+Slurm submission.
 
 ### 2026-07-06 Small Complex Target-Lab Result
 

@@ -211,12 +211,15 @@ Useful strategy hypotheses:
 20. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
     is the first queued 5-candidate terminal-tag attack run; use only for a
     separate multi-candidate comparison. It is currently incomplete: latest
-    output has complete `seed_101` and partial `seed_102`, so it must not be
-    scored as a complete 5-candidate row.
+    output has complete `seed_101`/`seed_102` and partial `seed_103`, so it
+    must not be scored as a complete 5-candidate row.
 21. `server_attack_protenix_coverage_stoich_seed101_105`: generated as the
     second queued 5-candidate attack run, using stacked sequence recovery,
-    token-budget fallback, and token-safe stoichiometry inputs. It is not
-    submitted yet.
+    token-budget fallback, and token-safe stoichiometry inputs. It has been
+    superseded by `server_attack_protenix_coverage_stoich_msa_reuse_seed101_105`
+    to avoid repeated MSA search, but that successor still misses 16/196
+    exact-sequence MSA sources and is lower priority than the v2 scoreable
+    nofail path.
 22. `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101`: queued
     as a v2 `dev_fixed` construct-cleanup ablation. It starts from the
     alias-fixed coverage/stoich input, changes 27 sequences across 21 targets
