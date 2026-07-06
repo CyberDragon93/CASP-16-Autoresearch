@@ -12,9 +12,9 @@ leaderboard progress.
 | `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | scored | full server-target Protenix baseline with real MSA/template settings | yes for domain track |
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | scored | target-agnostic Yang-style terminal tag cleanup rerun | yes for domain track |
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | scored | single-entity oversize domain fallback recovered `T1295` inference but not score, because `T1295` lacks local reference mapping | yes for domain track |
-| `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending next | full-set antibody Fv constant-region cleanup rerun | yes, after lower-risk cleanup ablation |
-| `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind individual ablations | combined terminal-tag plus antibody-Fv cleanup rerun | yes, after individual ablations |
-| `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | pending behind combined cleanup | broader epitope/His/TEV tag cleanup rerun | yes, after lower-risk construct ablations |
+| `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | scored negative | full-set antibody Fv constant-region cleanup rerun | yes for domain track |
+| `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
+| `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
 ## Current Score Truth
 
@@ -36,6 +36,10 @@ leaderboard progress.
   inference, but its ranked domain mean is `0.065114`; `T1295` still scores
   `0` as `missing_reference`. It is a coverage fix, not the current best
   score.
+- The antibody-Fv cleanup run produced 98/106 CIFs and scored domain
+  `0.060677`, below both the baseline `0.063962` and terminal-tag cleanup
+  `0.066908`. It predicted the main antibody oligo targets, but local QSglob
+  is unavailable, so this is not evidence to spend multi-seed attack compute.
 - Baseline inference generated 98/106 CIFs. The 8 failed Protenix jobs were all
   `n_token > 2560`: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`,
   `H1272`, and `T1295O`. The fallback fixed only the `T1295` inference
@@ -75,26 +79,37 @@ leaderboard progress.
    - Domain mean was `0.065114`, above baseline but below terminal-tag cleanup.
    - The result did not improve the current best because `T1295` still lacks a
      local reference mapping and scores `0`.
-4. Run queued `server_protenix_yang_antibody_fv_cleanup_seed101` as the first
-   full-set antibody construct attempt after the lower-risk terminal cleanup.
-   It preserves all 106 server jobs while trimming 16 antibody constant-region
-   chains across 8 antibody-antigen targets. Cache, fusion, and TF32 are
-   enabled to match the baseline engine flags.
-5. Run queued `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101`
-   after the two individual ablations to test whether their non-overlapping
-   construct changes compose on the full server target set.
-6. Run queued `server_protenix_yang_epitope_tag_cleanup_seed101` after the
-   lower-risk construct ablations. It changes 11 sequences across 9 targets,
-   including H1258/H0258-style epitope/His/TEV prefixes, while matching the
-   baseline MSA/template/cache/fusion/seed/sample budget.
+4. Completed and scored `server_protenix_yang_antibody_fv_cleanup_seed101` as
+   the first full-set antibody construct attempt after the lower-risk terminal
+   cleanup.
+   - It preserved all 106 server jobs and produced 98 CIFs.
+   - The same 8 Protenix jobs failed with `n_token > 2560`.
+   - Domain mean dropped to `0.060677`. Major regressions were `T0234`
+     `-0.2288` versus baseline, `T1234` `-0.0012` versus baseline and
+     `-0.1134` versus terminal-tag cleanup, and `T1298` `-0.0870` versus
+     terminal-tag cleanup.
+   - The antibody oligo targets `H0222`, `H0223`, `H0225`, `H1222`, `H1223`,
+     and `H1225` produced predictions, but all remain `metric_unavailable`
+     until QSglob is installed.
+5. Defer `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101`.
+   There is no reason to spend another full benchmark on the stacked run before
+   either QSglob can evaluate antibody oligos or antibody cleanup shows a
+   positive signal.
+6. Defer `server_protenix_yang_epitope_tag_cleanup_seed101`. The current hard
+   zeros are dominated by token-limit failures; a predeclared large-target
+   split/fallback policy is higher priority than another ad hoc construct
+   cleanup.
 7. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
    the oligo track.
-8. Start target_lab loops on H1258 and H1232 only as diagnostics for
+8. Define the `server_attack` budget tier before any multi-seed or
+   multi-sample run. This must be separate from `dev_fixed`, with fixed seed
+   list, sample count, selection rule, and GPU-hour accounting.
+9. Start target_lab loops on H1258 and H1232 only as diagnostics for
    stoichiometry/construct tricks; promotion requires a target-agnostic full
    benchmark rerun.
-9. Add domain cropping and chain/residue mapping before drawing conclusions
+10. Add domain cropping and chain/residue mapping before drawing conclusions
    from hard multi-domain domain targets.
-10. Design a broader `yang_large_target_split_or_fallback_v1` only after the
+11. Design a broader `yang_large_target_split_or_fallback_v1` only after the
     conservative `T1295` fallback is scored. Multi-entity oligo/domain failures
     still need a separate predeclared split rule or a new benchmark version.
 
@@ -131,6 +146,20 @@ coverage fixed while testing the Fv construct hypothesis.
 Launch gate: run with the same Protenix/MSA/template/seed/sample budget only
 after the current baseline frees the GH200 and the conservative tag-cleanup
 ablation has either run or been intentionally skipped.
+
+Result: `server_protenix_yang_antibody_fv_cleanup_seed101` finished the full
+106-job server Protenix benchmark with 98 CIFs. The same 8 jobs hit the
+`n_token > 2560` guard as the baseline. Ranked domain mean was `0.060677`,
+below the baseline `0.063962` and below the terminal-tag cleanup `0.066908`.
+The main regressions were `T0234`, `T1234`, and `T1298`; small gains over the
+terminal-tag run on `T1249V1` and `T1299` did not offset them.
+
+Interpretation: this is a negative `dev_fixed` result for the ranked domain
+track. It does not prove antibody Fv cleanup is bad for oligos, because the
+main antibody targets produced predictions but remain `metric_unavailable`
+without QSglob. Do not promote this strategy to a multi-seed `server_attack`
+budget until QSglob or another locked official-compatible oligo scorer is
+available.
 
 ### 2026-07-05 Terminal Tag + Antibody Fv Stack
 

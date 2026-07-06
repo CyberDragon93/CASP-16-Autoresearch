@@ -7,7 +7,9 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 | Priority | Run | Benchmark | Status | Why It Matters | Next Gate |
 | --- | --- | --- | --- | --- | --- |
-| P0 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending, next to launch | Tests whether sequence-only antibody Fv construct cleanup helps the antibody-antigen subset while preserving all 106 server jobs | Run the full fixed-budget benchmark, score immediately, and compare fixed-set domain mean against terminal-tag cleanup |
+| P0 | Install OpenStructure `ost` / QSglob scorer | `casp16_server_protein_v1` | not started | Required to compare the 104 official server oligo targets and judge antibody-complex strategies | Install or register a QSglob-compatible scorer, then rerun `./casp16 score` and `./casp16 leaderboard` |
+| P1 | Define `server_attack` budget tier | separate from `dev_fixed` | policy needed | Winner-level server comparison should not pretend one seed/sample is enough | Add fixed seeds, samples, selection rule, and GPU-hour accounting before any multi-seed launch |
+| P2 | Predeclare large-target split/fallback policy | `casp16_server_protein_v1` or new benchmark version | design needed | Extra seeds cannot fix `n_token > 2560` hard failures | Promote only a target-agnostic rule that preserves benchmark discipline |
 
 ## Latest Baseline Result
 
@@ -16,20 +18,22 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | `server_protenix_full_msa_template_seed101` | complete and scored | `0.063962` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | unranked until QSglob exists | 8 Protenix jobs failed with `n_token > 2560`: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`, `H1272`, `T1295O` |
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | complete and scored | `0.066908` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | unranked until QSglob exists | Same 8 Protenix token-limit failures as baseline; small net domain gain from `T1234`, `T1298`, and `T1210` |
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | complete and scored | `0.065114` | 15 ok / 29 missing prediction / 27 failed or missing-reference over 71 official server-domain targets | unranked until QSglob exists | Produced 99/106 CIFs and rescued `T1295` inference, but `T1295` still scores `0` because the local server benchmark lacks a reference mapping |
+| `server_protenix_yang_antibody_fv_cleanup_seed101` | complete and scored | `0.060677` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | unranked until QSglob exists | Produced 98/106 CIFs; antibody oligo predictions exist for H0222/H0223/H0225/H1222/H1223/H1225 but cannot be ranked without QSglob |
 
 ## Queued Next
 
 | Priority | Run | Strategy | Artifact | Benchmark | Status | Hypothesis |
 | --- | --- | --- | --- | --- | --- | --- |
 | done | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `yang_oversize_domain_monomer_fallback_v1` | `strategies/yang_oversize_domain_monomer_fallback_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | complete and scored | Rescue the known `T1295` server-domain zero caused by Protenix `n_token > 2560` by replacing only a single-entity domain `A8` job with one representative chain |
-| P1 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `yang_antibody_fv_cleanup_v1` | `strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending, next to launch | Antibody-antigen targets may benefit from Fv-style constructs while preserving all 106 server jobs |
-| P2 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `yang_terminal_tag_antibody_fv_cleanup_v1` | `strategies/yang_terminal_tag_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind individual ablations | Combined terminal-tag plus antibody-Fv cleanup tests whether non-overlapping construct fixes compose |
-| P3 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `yang_epitope_tag_cleanup_v1` | `strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending behind combined cleanup | Broader epitope/His/TEV tag cleanup may rescue H1258/H0258-style expression artifacts while staying sequence-only |
+| done | `server_protenix_yang_antibody_fv_cleanup_seed101` | `yang_antibody_fv_cleanup_v1` | `strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | complete and scored negative | Antibody-Fv cleanup lowered the ranked domain mean and cannot yet be judged on oligos because QSglob is unavailable |
+| deferred | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `yang_terminal_tag_antibody_fv_cleanup_v1` | `strategies/yang_terminal_tag_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | deferred | Do not launch the stacked run before QSglob or a positive antibody-complex signal exists |
+| deferred | `server_protenix_yang_epitope_tag_cleanup_seed101` | `yang_epitope_tag_cleanup_v1` | `strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | deferred | Token-limit hard failures need a predeclared split/fallback policy before another construct-cleanup full run |
 
-The terminal-tag and oversize-domain fallback runs are complete and scored.
-The next `./casp16 run-next --benchmark casp16_server_protein_v1 --dry-run`
-should select antibody Fv cleanup, followed by the combined cleanup run and
-then epitope tag cleanup.
+The terminal-tag, oversize-domain fallback, and antibody-Fv runs are complete
+and scored. The next valuable work is scorer/benchmark capability, not another
+single-seed construct rerun. `run-next` should not be used again until the
+deferred statuses are intentional or new run specs are created for the next
+predeclared policy.
 
 Generation commands used:
 
@@ -101,6 +105,11 @@ The oversize-domain fallback result is a reminder to spend realistic attack
 compute carefully: extra seeds will not fix hard Protenix token-limit failures,
 missing references, or missing QSglob. Clean coverage, reference mapping, and
 scorer availability should come before a costly multi-candidate push.
+
+The antibody-Fv result reinforces the same rule. A strategy that is negative on
+the ranked domain track and unmeasurable on oligos should not be promoted to a
+multi-seed attack tier merely because CASP16 winners likely used more than one
+internal candidate.
 
 ## Backlog
 
