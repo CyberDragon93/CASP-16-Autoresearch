@@ -192,6 +192,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             output_json=output_json,
             manifest_path=manifest,
             strategy=args.strategy,
+            domain_definitions_path=benchmark_dir / "domain_definitions.tsv",
+            targets_path=benchmark_dir / "targets.tsv",
         )
         print_json(summary)
         return 0

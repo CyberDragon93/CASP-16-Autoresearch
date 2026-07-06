@@ -16,11 +16,13 @@ STRATEGY_YANG_TERMINAL_TAG_CLEANUP = "yang_terminal_tag_cleanup_v1"
 STRATEGY_YANG_EPITOPE_TAG_CLEANUP = "yang_epitope_tag_cleanup_v1"
 STRATEGY_YANG_LOW_COMPLEXITY_TERMINAL_CLEANUP = "yang_low_complexity_terminal_cleanup_v1"
 STRATEGY_YANG_HYDROPHOBIC_LEADER_CLEANUP = "yang_hydrophobic_leader_cleanup_v1"
+STRATEGY_YANG_DOMAIN_FRAGMENT_INPUTS = "yang_domain_fragment_inputs_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
     STRATEGY_YANG_LOW_COMPLEXITY_TERMINAL_CLEANUP,
     STRATEGY_YANG_HYDROPHOBIC_LEADER_CLEANUP,
+    STRATEGY_YANG_DOMAIN_FRAGMENT_INPUTS,
 )
 MIN_REMAINING_PROTEIN_LENGTH = 30
 LOW_COMPLEXITY_TRIM_WINDOW = 40
@@ -61,6 +63,17 @@ MANIFEST_FIELDS = [
     "removed_n",
     "removed_c",
     "rules",
+]
+DOMAIN_FRAGMENT_MANIFEST_FIELDS = [
+    "fragment_id",
+    "source_target_id",
+    "domain_id",
+    "residue_ranges",
+    "status",
+    "skip_reason",
+    "original_len",
+    "fragment_len",
+    "chain_ids",
 ]
 
 
@@ -212,9 +225,21 @@ def derive_strategy_inputs(
     output_json: Path,
     manifest_path: Path,
     strategy: str = STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
+    domain_definitions_path: Path | None = None,
+    targets_path: Path | None = None,
 ) -> dict[str, object]:
     if strategy not in SUPPORTED_STRATEGIES:
         raise ValueError(f"unsupported strategy: {strategy}")
+    if strategy == STRATEGY_YANG_DOMAIN_FRAGMENT_INPUTS:
+        if domain_definitions_path is None:
+            raise ValueError("domain_definitions_path is required for domain fragment strategy")
+        return derive_domain_fragment_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
+            domain_definitions_path=domain_definitions_path,
+            targets_path=targets_path,
+        )
 
     with input_json.open(encoding="utf-8") as handle:
         jobs = json.load(handle)
@@ -296,6 +321,176 @@ def _write_manifest(path: Path, rows: Sequence[Mapping[str, str]]) -> None:
     ensure_dir(path.parent)
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=MANIFEST_FIELDS, delimiter="\t", lineterminator="\n")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+
+
+def derive_domain_fragment_inputs(
+    *,
+    input_json: Path,
+    output_json: Path,
+    manifest_path: Path,
+    domain_definitions_path: Path,
+    targets_path: Path | None = None,
+) -> dict[str, object]:
+    with input_json.open(encoding="utf-8") as handle:
+        jobs = json.load(handle)
+
+    domain_rows = load_domain_definitions(domain_definitions_path)
+    domains_by_id = {row["domain_id"]: row for row in domain_rows}
+    target_domains = domains_by_target(domain_rows)
+    if targets_path is not None and targets_path.exists():
+        target_domains.update(load_target_domain_aliases(targets_path, domains_by_id))
+
+    fragment_jobs: list[dict[str, Any]] = []
+    manifest_rows: list[dict[str, str]] = []
+    source_targets: set[str] = set()
+    skipped_domains = 0
+    emitted_domains = 0
+
+    for job in jobs:
+        source_target_id = str(job.get("name", ""))
+        domain_ids = target_domains.get(source_target_id, ())
+        if not domain_ids:
+            continue
+        proteins = [(index, entity["proteinChain"]) for index, entity in enumerate(job.get("sequences", [])) if isinstance(entity, dict) and isinstance(entity.get("proteinChain"), dict)]
+        for domain_id in domain_ids:
+            fragment_id = f"{source_target_id}__{domain_id}"
+            row = domains_by_id.get(domain_id)
+            status = "ok"
+            skip_reason = ""
+            fragment_sequence = ""
+            original_len = 0
+            chain_ids = ""
+            residue_ranges = row.get("residue_ranges", "") if row else ""
+
+            if row is None:
+                status, skip_reason = "skip", "domain_definition_missing"
+            elif len(proteins) != 1:
+                status, skip_reason = "skip", "requires_single_protein_entity"
+            else:
+                _, protein = proteins[0]
+                original = str(protein.get("sequence", ""))
+                original_len = len(original)
+                chain_ids = ",".join(str(item) for item in _as_sequence(protein.get("id", [])))
+                count = int(protein.get("count", 1) or 1)
+                ranges = parse_residue_ranges(residue_ranges)
+                if count != 1:
+                    status, skip_reason = "skip", "requires_single_copy_entity"
+                elif len(ranges) != 1:
+                    status, skip_reason = "skip", "non_contiguous_domain"
+                elif not ranges:
+                    status, skip_reason = "skip", "invalid_domain_range"
+                else:
+                    start, end = ranges[0]
+                    if start < 1 or end > original_len or start > end:
+                        status, skip_reason = "skip", "domain_range_out_of_bounds"
+                    else:
+                        fragment_sequence = original[start - 1 : end]
+
+            if status == "ok":
+                fragment_jobs.append(
+                    {
+                        "name": fragment_id,
+                        "sequences": [
+                            {
+                                "proteinChain": {
+                                    "sequence": fragment_sequence,
+                                    "count": 1,
+                                    "id": ["A"],
+                                }
+                            }
+                        ],
+                    }
+                )
+                source_targets.add(source_target_id)
+                emitted_domains += 1
+            else:
+                skipped_domains += 1
+
+            manifest_rows.append(
+                {
+                    "fragment_id": fragment_id,
+                    "source_target_id": source_target_id,
+                    "domain_id": domain_id,
+                    "residue_ranges": residue_ranges,
+                    "status": status,
+                    "skip_reason": skip_reason or "none",
+                    "original_len": str(original_len),
+                    "fragment_len": str(len(fragment_sequence)),
+                    "chain_ids": chain_ids or "none",
+                }
+            )
+
+    ensure_dir(output_json.parent)
+    output_json.write_text(json.dumps(fragment_jobs, indent=2) + "\n", encoding="utf-8")
+    write_manifest(manifest_path, manifest_rows, DOMAIN_FRAGMENT_MANIFEST_FIELDS)
+    return {
+        "strategy": STRATEGY_YANG_DOMAIN_FRAGMENT_INPUTS,
+        "input_json": str(input_json),
+        "output_json": str(output_json),
+        "manifest": str(manifest_path),
+        "domain_definitions": str(domain_definitions_path),
+        "targets": str(targets_path) if targets_path is not None else "",
+        "input_sha256": file_sha256(input_json),
+        "output_sha256": file_sha256(output_json),
+        "source_targets": len(source_targets),
+        "fragment_jobs": len(fragment_jobs),
+        "emitted_domains": emitted_domains,
+        "skipped_domains": skipped_domains,
+    }
+
+
+def load_domain_definitions(path: Path) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle, delimiter="\t"))
+
+
+def domains_by_target(domain_rows: Sequence[Mapping[str, str]]) -> dict[str, tuple[str, ...]]:
+    domains: dict[str, list[str]] = {}
+    for row in domain_rows:
+        target_id = row.get("target_id", "")
+        domain_id = row.get("domain_id", "")
+        if target_id and domain_id:
+            domains.setdefault(target_id, []).append(domain_id)
+    return {target_id: tuple(domain_ids) for target_id, domain_ids in domains.items()}
+
+
+def load_target_domain_aliases(path: Path, domains_by_id: Mapping[str, Mapping[str, str]]) -> dict[str, tuple[str, ...]]:
+    aliases: dict[str, tuple[str, ...]] = {}
+    with path.open(encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle, delimiter="\t"):
+            if row.get("track") != "protein_domain":
+                continue
+            domain_ids = tuple(domain_id for domain_id in row.get("domain_ids", "").split(",") if domain_id in domains_by_id)
+            if domain_ids:
+                aliases[row.get("target_id", "")] = domain_ids
+    return aliases
+
+
+def parse_residue_ranges(value: str) -> list[tuple[int, int]]:
+    ranges: list[tuple[int, int]] = []
+    for chunk in value.split(","):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        if "-" not in chunk:
+            return []
+        start_text, end_text = chunk.split("-", 1)
+        try:
+            start = int(start_text)
+            end = int(end_text)
+        except ValueError:
+            return []
+        ranges.append((start, end))
+    return ranges
+
+
+def write_manifest(path: Path, rows: Sequence[Mapping[str, str]], fieldnames: Sequence[str]) -> None:
+    ensure_dir(path.parent)
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, delimiter="\t", lineterminator="\n")
         writer.writeheader()
         for row in rows:
             writer.writerow(row)

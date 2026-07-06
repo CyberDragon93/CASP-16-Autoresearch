@@ -9,6 +9,7 @@ from casp16_leaderboard.strategies import (
     clean_low_complexity_terminal_regions,
     clean_terminal_expression_tags,
     derive_strategy_inputs,
+    parse_residue_ranges,
 )
 
 
@@ -188,3 +189,87 @@ def test_derive_hydrophobic_leader_strategy_uses_sequence_only_rule(tmp_path) ->
     with manifest.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle, delimiter="\t"))
     assert rows[0]["rules"] == "trim_n_hydrophobic_leader:29"
+
+
+def test_parse_residue_ranges_handles_contiguous_and_split_ranges() -> None:
+    assert parse_residue_ranges("3-20") == [(3, 20)]
+    assert parse_residue_ranges("301-401,468-535") == [(301, 401), (468, 535)]
+    assert parse_residue_ranges("bad") == []
+
+
+def test_derive_domain_fragment_strategy_uses_target_domain_aliases(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "domain_fragments" / "inputs.json"
+    manifest = tmp_path / "domain_fragments" / "manifest.tsv"
+    domains = tmp_path / "domain_definitions.tsv"
+    targets = tmp_path / "targets.tsv"
+    input_json.write_text(
+        json.dumps([{"name": "T0240", "sequences": [{"proteinChain": {"sequence": "ACDEFGHIKL", "count": 1, "id": ["A"]}}]}]) + "\n",
+        encoding="utf-8",
+    )
+    domains.write_text(
+        "\t".join(["target_id", "target_len", "domain_id", "residue_ranges", "domain_len", "difficulty", "pdb_ids", "source"])
+        + "\n"
+        + "\t".join(["T1240", "10", "T1240-D1", "2-5", "4", "easy", "", "fixture"])
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\t".join(["target_id", "track", "domain_ids"])
+        + "\n"
+        + "\t".join(["T0240", "protein_domain", "T1240-D1"])
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_domain_fragment_inputs_v1",
+        domain_definitions_path=domains,
+        targets_path=targets,
+    )
+
+    assert summary["fragment_jobs"] == 1
+    assert summary["source_targets"] == 1
+    fragment_jobs = json.loads(output_json.read_text(encoding="utf-8"))
+    assert fragment_jobs == [{"name": "T0240__T1240-D1", "sequences": [{"proteinChain": {"sequence": "CDEF", "count": 1, "id": ["A"]}}]}]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["status"] == "ok"
+    assert rows[0]["skip_reason"] == "none"
+
+
+def test_derive_domain_fragment_strategy_skips_non_contiguous_ranges(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "domain_fragments" / "inputs.json"
+    manifest = tmp_path / "domain_fragments" / "manifest.tsv"
+    domains = tmp_path / "domain_definitions.tsv"
+    input_json.write_text(
+        json.dumps([{"name": "T1228V1", "sequences": [{"proteinChain": {"sequence": "ACDEFGHIKL", "count": 1, "id": ["A"]}}]}]) + "\n",
+        encoding="utf-8",
+    )
+    domains.write_text(
+        "\t".join(["target_id", "target_len", "domain_id", "residue_ranges", "domain_len", "difficulty", "pdb_ids", "source"])
+        + "\n"
+        + "\t".join(["T1228V1", "10", "T1228V1-D3", "2-4,7-8", "5", "hard", "", "fixture"])
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_domain_fragment_inputs_v1",
+        domain_definitions_path=domains,
+    )
+
+    assert summary["fragment_jobs"] == 0
+    assert summary["skipped_domains"] == 1
+    assert json.loads(output_json.read_text(encoding="utf-8")) == []
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["status"] == "skip"
+    assert rows[0]["skip_reason"] == "non_contiguous_domain"
