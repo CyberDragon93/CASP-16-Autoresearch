@@ -29,6 +29,9 @@ where methods should change.
 - Multi-candidate work now has a separate policy:
   `docs/SERVER_ATTACK_POLICY.md` and
   `attack_budgets/casp16_server_attack_protenix5.json`.
+- First attack run spec:
+  `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
+  inputs with seeds `101..105` and `protenix_confidence_v1`.
 
 ## Main Objective
 
@@ -95,8 +98,8 @@ competitive result.
    `n_token > 2560` failures before launching another full run.
 6. Re-score current OpenDDE and Protenix-style baselines on the server
    benchmark with complete prediction coverage rather than local-v1 reuse.
-7. Use `server_attack` only after the budget and selection policy are locked;
-   the current defined budget is `casp16_server_attack_protenix5`.
+7. Monitor and score `server_attack_protenix_terminal_tag_seed101_105`, the
+   first fixed 5-candidate attack run. Keep it separate from `dev_fixed`.
 8. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.

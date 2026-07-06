@@ -136,8 +136,9 @@ Useful strategy hypotheses:
    cleanup once the queued ablations finish.
 8. QSglob scorer installation/integration: without this, oligo server runs
    remain diagnostic no matter how good the structures look.
-9. `server_attack` budget: `casp16_server_attack_protenix5` is defined but
-    not launched; use only for a separate multi-candidate comparison.
+9. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
+   is the first queued 5-candidate terminal-tag attack run; use only for a
+   separate multi-candidate comparison.
 10. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
    CASP domain-summary metadata; useful for learning whether domain
    decomposition helps, but not a server-ranked strategy as-is.

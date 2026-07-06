@@ -13,6 +13,7 @@ leaderboard progress.
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | scored | target-agnostic Yang-style terminal tag cleanup rerun | yes for domain track |
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | scored | single-entity oversize domain fallback recovered `T1295` inference but not score, because `T1295` lacks local reference mapping | yes for domain track |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | scored negative | full-set antibody Fv constant-region cleanup rerun | yes for domain track |
+| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | pending attack | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -101,9 +102,10 @@ leaderboard progress.
    cleanup.
 7. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
    the oligo track.
-8. Define the `server_attack` budget tier before any multi-seed or
-   multi-sample run. This must be separate from `dev_fixed`, with fixed seed
-   list, sample count, selection rule, and GPU-hour accounting.
+8. Created `server_attack_protenix_terminal_tag_seed101_105`, the first
+   multi-candidate attack run. It keeps terminal-tag cleanup inputs, uses seeds
+   `101,102,103,104,105`, one sample each, and selects by
+   `protenix_confidence_v1`. It is attack-tier only.
 9. Start target_lab loops on H1258 and H1232 only as diagnostics for
    stoichiometry/construct tricks; promotion requires a target-agnostic full
    benchmark rerun.

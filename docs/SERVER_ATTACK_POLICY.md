@@ -18,7 +18,9 @@ The first locked attack budget is
 - selected model policy: `protenix_confidence_v1`
 - MSA/templates/default params/cache/fusion/TF32: enabled
 
-The attack budget is defined but not launched.
+The first run spec using this budget is
+`server_attack_protenix_terminal_tag_seed101_105`. It is queued as an attack
+row, not a `dev_fixed` row.
 
 ## Selection Rule
 
@@ -40,7 +42,7 @@ scores `0` instead of silently falling back to the first model.
 
 ## Launch Gate
 
-Do not launch a `server_attack` run just because a winner likely used multiple
+Do not launch additional `server_attack` runs just because a winner likely used multiple
 candidates. Launch only when the run answers a real leaderboard question:
 
 - A `dev_fixed` strategy has a positive full-benchmark signal, or the attack is
