@@ -38,9 +38,10 @@ Generation commands used:
 | Priority | Strategy | Status | Reason To Try | Stop Condition |
 | --- | --- | --- | --- | --- |
 | P2 | Install OpenStructure `ost` for QSglob | not started | Oligo server scores are not rank-comparable without QSglob | If install becomes a build rabbit hole, keep oligos diagnostic and score domains first |
-| P3 | Domain crop/chain mapping | not started | Domain GDT_TS can be noisy or wrong without explicit CASP domain crops | Stop after target classes with clear mapping; do not hand-map every hard outlier |
-| P4 | Domain segmentation inputs | design only | MULTICOM-style domain segmentation is a plausible hard-target gain | Promote only if generated from target metadata/sequence features before scoring |
-| P5 | Extra sampling/ranking lab | diagnostic only | CASP16 reports show sampling helps, but ranking is fragile | Never use best-of-N for ranked v1 without a new benchmark version |
+| P3 | `yang_epitope_tag_cleanup_v1` | artifacts generated, not queued | H1258/H0258 contain obvious epitope/His/TEV expression prefixes not covered by the conservative queued cleanup run | Queue only after baseline results, or if we decide to skip the conservative ablation |
+| P4 | Domain crop/chain mapping | not started | Domain GDT_TS can be noisy or wrong without explicit CASP domain crops | Stop after target classes with clear mapping; do not hand-map every hard outlier |
+| P5 | Domain segmentation inputs | design only | MULTICOM-style domain segmentation is a plausible hard-target gain | Promote only if generated from target metadata/sequence features before scoring |
+| P6 | Extra sampling/ranking lab | diagnostic only | CASP16 reports show sampling helps, but ranking is fragile | Never use best-of-N for ranked v1 without a new benchmark version |
 
 ## Evidence Links
 

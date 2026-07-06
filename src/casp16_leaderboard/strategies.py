@@ -11,14 +11,21 @@ from .runs import file_sha256
 
 
 STRATEGY_YANG_TERMINAL_TAG_CLEANUP = "yang_terminal_tag_cleanup_v1"
-SUPPORTED_STRATEGIES = (STRATEGY_YANG_TERMINAL_TAG_CLEANUP,)
+STRATEGY_YANG_EPITOPE_TAG_CLEANUP = "yang_epitope_tag_cleanup_v1"
+SUPPORTED_STRATEGIES = (STRATEGY_YANG_TERMINAL_TAG_CLEANUP, STRATEGY_YANG_EPITOPE_TAG_CLEANUP)
 MIN_REMAINING_PROTEIN_LENGTH = 30
 
-N_TERMINAL_TAGS = (
+TERMINAL_N_TAGS = (
     "MGSSHHHHHHSSGLVPRGSH",
     "MGSSHHHHHHSSGLVPRGS",
     "MHHHHHHSSG",
     "MHHHHHH",
+)
+EPITOPE_N_TAGS = (
+    "MGSDYKDHDGDYKDHDIDYKDDDDKLG",
+    "MGSHHHHHHSGENLYFQG",
+    "MGSSHHHHHHSSGENLYFQG",
+    "MHHHHHHSSGENLYFQG",
 )
 C_TERMINAL_TAGS = (
     "GSHHHHHH",
@@ -47,12 +54,20 @@ class SequenceCleanup:
 
 
 def clean_terminal_expression_tags(sequence: str) -> SequenceCleanup:
+    return _clean_with_tag_sets(sequence, n_tags=TERMINAL_N_TAGS, c_tags=C_TERMINAL_TAGS)
+
+
+def clean_epitope_expression_tags(sequence: str) -> SequenceCleanup:
+    return _clean_with_tag_sets(sequence, n_tags=EPITOPE_N_TAGS + TERMINAL_N_TAGS, c_tags=C_TERMINAL_TAGS)
+
+
+def _clean_with_tag_sets(sequence: str, *, n_tags: Sequence[str], c_tags: Sequence[str]) -> SequenceCleanup:
     cleaned = sequence
     removed_n = 0
     removed_c = 0
     rules: list[str] = []
 
-    for tag in N_TERMINAL_TAGS:
+    for tag in n_tags:
         if cleaned.startswith(tag) and len(cleaned) - len(tag) >= MIN_REMAINING_PROTEIN_LENGTH:
             cleaned = cleaned[len(tag) :]
             removed_n += len(tag)
@@ -87,6 +102,7 @@ def derive_strategy_inputs(
     changed_targets: set[str] = set()
     changed_sequences = 0
     protein_sequences = 0
+    cleaner = clean_epitope_expression_tags if strategy == STRATEGY_YANG_EPITOPE_TAG_CLEANUP else clean_terminal_expression_tags
 
     for job in jobs:
         optimized_job = _copy_json_dict(job)
@@ -96,7 +112,7 @@ def derive_strategy_inputs(
             if not isinstance(protein, dict):
                 continue
             original = str(protein.get("sequence", ""))
-            cleanup = clean_terminal_expression_tags(original)
+            cleanup = cleaner(original)
             chain_ids = ",".join(str(item) for item in _as_sequence(protein.get("id", [])))
             changed = cleanup.sequence != original
             protein_sequences += 1

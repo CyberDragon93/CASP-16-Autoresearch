@@ -3,7 +3,7 @@ from __future__ import annotations
 import csv
 import json
 
-from casp16_leaderboard.strategies import clean_terminal_expression_tags, derive_strategy_inputs
+from casp16_leaderboard.strategies import clean_epitope_expression_tags, clean_terminal_expression_tags, derive_strategy_inputs
 
 
 def test_clean_terminal_expression_tags_removes_obvious_tags() -> None:
@@ -18,6 +18,16 @@ def test_clean_terminal_expression_tags_keeps_short_peptides() -> None:
     cleaned = clean_terminal_expression_tags("MHHHHHHACDEFG")
     assert cleaned.sequence == "MHHHHHHACDEFG"
     assert cleaned.rules == ()
+
+
+def test_clean_epitope_expression_tags_removes_flag_and_tev_his_prefixes() -> None:
+    flag_cleaned = clean_epitope_expression_tags("MGSDYKDHDGDYKDHDIDYKDDDDKLG" + "ACDEFGHIKLMNPQRSTVWY" * 3)
+    assert flag_cleaned.sequence == "ACDEFGHIKLMNPQRSTVWY" * 3
+    assert flag_cleaned.rules == ("trim_n:MGSDYKDHDGDYKDHDIDYKDDDDKLG",)
+
+    tev_cleaned = clean_epitope_expression_tags("MGSHHHHHHSGENLYFQG" + "ACDEFGHIKLMNPQRSTVWY" * 3)
+    assert tev_cleaned.sequence == "ACDEFGHIKLMNPQRSTVWY" * 3
+    assert tev_cleaned.rules == ("trim_n:MGSHHHHHHSGENLYFQG",)
 
 
 def test_derive_strategy_inputs_preserves_counts_and_writes_manifest(tmp_path) -> None:
@@ -64,3 +74,29 @@ def test_derive_strategy_inputs_preserves_counts_and_writes_manifest(tmp_path) -
     assert rows[0]["chain_ids"] == "A,B"
     assert rows[0]["changed"] == "true"
     assert rows[0]["rules"] == "trim_n:MGSSHHHHHHSSGLVPRGSH"
+
+
+def test_derive_epitope_strategy_uses_extended_rules(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "epitope" / "inputs.json"
+    manifest = tmp_path / "epitope" / "manifest.tsv"
+    sequence = "MGSHHHHHHSGENLYFQG" + "ACDEFGHIKLMNPQRSTVWY" * 3
+    input_json.write_text(
+        json.dumps([{"name": "H1258", "sequences": [{"proteinChain": {"sequence": sequence, "count": 1, "id": ["A"]}}]}]) + "\n",
+        encoding="utf-8",
+    )
+
+    terminal_output = tmp_path / "terminal" / "inputs.json"
+    terminal_manifest = tmp_path / "terminal" / "manifest.tsv"
+    terminal_summary = derive_strategy_inputs(input_json=input_json, output_json=terminal_output, manifest_path=terminal_manifest)
+    epitope_summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_epitope_tag_cleanup_v1",
+    )
+
+    assert terminal_summary["changed_sequences"] == 0
+    assert epitope_summary["changed_sequences"] == 1
+    optimized = json.loads(output_json.read_text(encoding="utf-8"))
+    assert optimized[0]["sequences"][0]["proteinChain"]["sequence"] == "ACDEFGHIKLMNPQRSTVWY" * 3
