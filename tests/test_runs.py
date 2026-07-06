@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, build_protenix_command, list_run_rows, load_run_specs, register_existing_run, register_run_spec, run_next, write_run_script, write_runs_manifest
+from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, register_existing_run, register_run_spec, run_next, write_run_script, write_runs_manifest
 
 
 def test_build_protenix_command_contains_strategy_knobs() -> None:
@@ -146,3 +146,36 @@ def test_write_run_script_sets_protenix_runtime_environment(tmp_path) -> None:
     assert "export CUDA_HOME=" in text
     assert "cusparse.h" in text
     assert "export CPATH=" in text
+
+
+def test_create_benchmark_run_spec_uses_run_local_input_copy(tmp_path) -> None:
+    benchmark_dir = tmp_path / "benchmarks" / "casp16_server_protein_v1"
+    benchmark_dir.mkdir(parents=True)
+    input_json = benchmark_dir / "inputs.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    input_json.write_text('[{"name":"T1","sequences":[]}]\n', encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\n", encoding="utf-8")
+    references.write_text("target_id\treference_path\n", encoding="utf-8")
+    protenix_bin = tmp_path / "protenix"
+    protenix_bin.write_text("#!/usr/bin/env bash\necho protenix-test\n", encoding="utf-8")
+    protenix_bin.chmod(0o755)
+
+    summary = create_run_spec(
+        project_root=tmp_path,
+        run_id="server_full",
+        input_json=input_json,
+        input_manifest=input_manifest,
+        benchmark_name="casp16_server_protein_v1",
+        benchmark_version="1",
+        benchmark_dir=benchmark_dir,
+        references_manifest=references,
+        protenix_bin=protenix_bin,
+        protenix_root_dir=tmp_path / "protenix_data",
+    )
+
+    spec = json.loads(Path(str(summary["run_spec"])).read_text(encoding="utf-8"))
+    runtime_input = tmp_path / "runs" / "server_full" / "inputs" / "inputs.json"
+    assert runtime_input.exists()
+    assert spec["input_json"] == str(runtime_input)
+    assert str(input_json) not in (tmp_path / "runs" / "server_full" / "run.sh").read_text(encoding="utf-8")

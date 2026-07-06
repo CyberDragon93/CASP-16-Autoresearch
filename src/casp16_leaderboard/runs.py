@@ -167,14 +167,19 @@ def create_run_spec(
     extra_args: Sequence[str] | None = None,
 ) -> dict[str, object]:
     run_dir = project_root / "runs" / run_id
+    runtime_input_json = input_json
     prediction_dir = run_dir / "predictions" / model_name
     stdout_path = run_dir / "logs" / "stdout.log"
     stderr_path = run_dir / "logs" / "stderr.log"
     ensure_dir(run_dir)
     ensure_dir(run_dir / "logs")
+    if benchmark_name:
+        runtime_input_json = run_dir / "inputs" / input_json.name
+        ensure_dir(runtime_input_json.parent)
+        shutil.copy2(input_json, runtime_input_json)
     command = build_protenix_command(
         protenix_bin=protenix_bin,
-        input_json=input_json,
+        input_json=runtime_input_json,
         output_dir=prediction_dir,
         model_name=model_name,
         seeds=seeds,
@@ -200,9 +205,9 @@ def create_run_spec(
         benchmark_version=benchmark_version,
         benchmark_dir=str(benchmark_dir or ""),
         model_name=model_name,
-        input_json=str(input_json),
+        input_json=str(runtime_input_json),
         input_manifest=str(input_manifest),
-        input_sha256=file_sha256(input_json),
+        input_sha256=file_sha256(runtime_input_json),
         input_manifest_sha256=file_sha256(input_manifest),
         references_manifest=str(references_manifest or ""),
         references_sha256=file_sha256(references_manifest) if references_manifest else "",

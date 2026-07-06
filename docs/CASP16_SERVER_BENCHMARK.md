@@ -170,9 +170,10 @@ whole target set.
 3. Partial: domain scoring now requires parsed `GDT_TS` and uses the configured
    TMscore/USalign path by default. Next, add explicit domain cropping and
    chain/residue mapping.
-4. Partial: oligo scoring now requires a `QSglob` scorer and refuses DockQ as a
-   ranked substitute. Next, add or vendor a real `QSglob` scorer plus assembly
-   mapping. Keep DockQ as a diagnostic column.
+4. Partial: oligo scoring now requires a `QSglob` scorer, refuses DockQ as a
+   ranked substitute, and can parse OpenStructure `ost compare-structures
+   --qs-score` JSON when an `ost` binary is available. Next, install/vendor a
+   real scorer plus assembly mapping. Keep DockQ as a diagnostic column.
 5. Done: add `leaderboards/casp16_server_protein_v1/` artifacts:
    `RESULTS.md`, `runs.csv`, `target_scores.csv`, `coverage.md`,
    `official_server_groups.csv`, `official_all_groups.csv`, and
@@ -183,8 +184,8 @@ whole target set.
 ## First Experiments After The Benchmark Exists
 
 - Re-score the best current OpenDDE run on the official-compatible target set.
-- Install or implement a `QSglob` scorer before treating any server oligo run as
-  rank-eligible.
+- Install OpenStructure `ost` or another validated `QSglob` scorer before
+  treating any server oligo run as rank-eligible.
 - Separate automatic full-target runs from manual rescue runs.
 - Add Yang-Server-style input optimization as strategy code, not benchmark
   edits: disorder trimming, domain decomposition, MSA/template breadth, and

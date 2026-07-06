@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from casp16_leaderboard.scoring import find_prediction_for_target, parse_dockq_output, parse_qsglob_output, parse_tmscore_output, score_target
+from casp16_leaderboard.scoring import find_prediction_for_target, parse_dockq_output, parse_ost_qs_json, parse_qsglob_output, parse_tmscore_output, score_target
 
 
 def test_parse_tmscore_output_normalizes_gdt() -> None:
@@ -21,8 +21,29 @@ def test_parse_qsglob_output() -> None:
     assert parse_qsglob_output("QSscore: 0.641")["qsglob"] == 0.641
 
 
+def test_parse_openstructure_qs_json() -> None:
+    assert parse_ost_qs_json('{"status": "SUCCESS", "qs_global": 0.582, "qs_best": 0.701}')["qsglob"] == 0.582
+
+
 def _write_fake_tool(path, output: str, *, exit_code: int = 0) -> str:
     path.write_text(f"#!/usr/bin/env bash\ncat <<'OUT'\n{output}\nOUT\nexit {exit_code}\n", encoding="utf-8")
+    path.chmod(0o755)
+    return str(path)
+
+
+def _write_fake_ost(path, qsglob: float) -> str:
+    path.write_text(
+        "#!/usr/bin/env bash\n"
+        "out=out.json\n"
+        "while [[ $# -gt 0 ]]; do\n"
+        "  case \"$1\" in\n"
+        "    -o|--output) out=\"$2\"; shift 2 ;;\n"
+        "    *) shift ;;\n"
+        "  esac\n"
+        "done\n"
+        f"printf '{{\"status\":\"SUCCESS\",\"qs_global\":{qsglob}}}\\n' > \"$out\"\n",
+        encoding="utf-8",
+    )
     path.chmod(0o755)
     return str(path)
 
@@ -116,6 +137,24 @@ def test_server_oligo_scores_qsglob_when_available(tmp_path) -> None:
     )
     assert row["score"] == "0.642000"
     assert row["qsglob"] == "0.642000"
+    assert row["metric"] == "QSglob"
+    assert row["status"] == "ok"
+
+
+def test_server_oligo_scores_openstructure_qsglob(tmp_path) -> None:
+    output_dir, reference = _write_prediction_and_reference(tmp_path, "H1202")
+    ost = _write_fake_ost(tmp_path / "ost", 0.777)
+    row = score_target(
+        {"run_id": "r1", "output_dir": output_dir},
+        {"target_id": "H1202", "track": "protein_oligo", "rank_eligible": "true", "official_metric": "QSglob"},
+        {"reference_path": reference},
+        benchmark="casp16_server_protein_v1",
+        tm_tool="",
+        dockq_tool="",
+        qsglob_tool=ost,
+    )
+    assert row["score"] == "0.777000"
+    assert row["qsglob"] == "0.777000"
     assert row["metric"] == "QSglob"
     assert row["status"] == "ok"
 

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-import re
+import json
 import os
+import re
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -81,6 +83,22 @@ def parse_qsglob_output(text: str) -> dict[str, float]:
     return {}
 
 
+def parse_ost_qs_json(text: str) -> dict[str, float]:
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return {}
+    value = payload.get("qs_global")
+    if value is None:
+        value = payload.get("QSglob")
+    if value is None:
+        value = payload.get("qsglob")
+    try:
+        return {"qsglob": float(value)} if value is not None else {}
+    except (TypeError, ValueError):
+        return {}
+
+
 def find_prediction_for_target(output_dir: Path, target_id: str) -> Path | None:
     if not output_dir.exists():
         return None
@@ -107,6 +125,33 @@ def run_metric(command: Sequence[str], *, timeout_seconds: int = 300) -> tuple[i
     return completed.returncode, completed.stdout, completed.stderr
 
 
+def is_openstructure_tool(tool: str) -> bool:
+    return Path(tool).name == "ost"
+
+
+def run_openstructure_qsglob(tool: str, prediction_path: Path, reference_path: Path) -> tuple[int, dict[str, float], str]:
+    with tempfile.TemporaryDirectory(prefix="casp16_ost_qs_") as tmp_dir:
+        output_json = Path(tmp_dir) / "qs.json"
+        code, stdout, stderr = run_metric(
+            [
+                tool,
+                "compare-structures",
+                "-m",
+                str(prediction_path),
+                "-r",
+                str(reference_path),
+                "--qs-score",
+                "-o",
+                str(output_json),
+            ],
+            timeout_seconds=600,
+        )
+        if code != 0:
+            return code, {}, stderr
+        text = output_json.read_text(encoding="utf-8") if output_json.exists() else stdout
+        return code, parse_ost_qs_json(text), stderr
+
+
 def score_benchmark_runs(
     *,
     project_root: Path,
@@ -122,7 +167,7 @@ def score_benchmark_runs(
     specs = [spec for spec in load_run_specs(project_root / "runs", registered_only=True) if spec.get("benchmark_name", benchmark) == benchmark]
     tm_tool = resolve_tool(tmscore_bin or DEFAULT_TMSCORE_BIN, ["TMscore", "TMscore64", "USalign", str(DEFAULT_USALIGN_BIN)])
     dockq_tool = resolve_tool(dockq_bin or DEFAULT_DOCKQ_BIN, ["DockQ"])
-    qsglob_tool = resolve_tool(qsglob_bin or DEFAULT_QSGLOB_BIN, ["qsscore", "qs-score", "QSscore", "qs_score"])
+    qsglob_tool = resolve_tool(qsglob_bin or DEFAULT_QSGLOB_BIN, ["qsscore", "qs-score", "QSscore", "qs_score", "ost"])
 
     rows: list[dict[str, Any]] = []
     for spec in specs:
@@ -206,10 +251,15 @@ def score_target(
         if requires_official_qsglob(benchmark, target):
             if not qsglob_tool:
                 return {**base, "metric": "QSglob", "status": "metric_unavailable", "message": "QSglob_scorer_not_found"}
-            code, stdout, stderr = run_metric([qsglob_tool, str(prediction_path), str(reference_path)])
-            if code != 0:
-                return {**base, "metric": "QSglob", "status": "metric_failed", "message": stderr.strip()[:240]}
-            parsed = parse_qsglob_output(stdout)
+            if is_openstructure_tool(qsglob_tool):
+                code, parsed, stderr = run_openstructure_qsglob(qsglob_tool, prediction_path, reference_path)
+                if code != 0:
+                    return {**base, "metric": "QSglob", "status": "metric_failed", "message": stderr.strip()[:240]}
+            else:
+                code, stdout, stderr = run_metric([qsglob_tool, str(prediction_path), str(reference_path)])
+                if code != 0:
+                    return {**base, "metric": "QSglob", "status": "metric_failed", "message": stderr.strip()[:240]}
+                parsed = parse_qsglob_output(stdout)
             score = parsed.get("qsglob")
             if score is None:
                 return {**base, "metric": "QSglob", "status": "metric_unparseable", "message": "no_QSglob"}

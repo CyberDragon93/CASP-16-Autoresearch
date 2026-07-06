@@ -9,7 +9,7 @@ leaderboard progress.
 | Run | Benchmark | Status | Purpose | Rank eligible |
 | --- | --- | --- | --- | --- |
 | `server_eval_opendde_v1_full_msa_template_bf16_h1220_t1220s1` | `casp16_server_protein_v1` | scored diagnostic | reuse 35 existing OpenDDE local-v1 predictions to expose server coverage gap | no |
-| `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | pending | full server-target Protenix baseline with real MSA/template settings | yes, once predictions and required scorers exist |
+| `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | running | full server-target Protenix baseline with real MSA/template settings | yes, once predictions and required scorers exist |
 
 ## Current Score Truth
 
@@ -22,16 +22,21 @@ leaderboard progress.
 
 ## Next Experiment Queue
 
-1. Run `server_protenix_full_msa_template_seed101` on a GH200 node to generate
-   predictions for the 106 server benchmark Protenix jobs.
-   - Submit from a Vista login node with
-     `sbatch runs/server_protenix_full_msa_template_seed101/run_gh200.slurm`.
-   - Startup sanity has passed through Protenix argparse help with
-     `cuda/12.5`, Protenix source-first `PYTHONPATH`, and NVIDIA math libs
-     include/library paths for `cusparse.h`.
+1. Running `server_protenix_full_msa_template_seed101` on GH200 node
+   `c610-032` to generate predictions for the 106 server benchmark Protenix
+   jobs.
+   - Started by `./casp16 run-next --benchmark casp16_server_protein_v1` inside
+     active Vista allocation `797582` at `2026-07-06T01:02:31Z`.
+   - Current phase: Protenix MSA/template search with real MSA/templates,
+     seed `101`, sample `1`, and `first_output_only`.
+   - Startup sanity has passed through Protenix argparse help with `cuda/12.5`,
+     Protenix source-first `PYTHONPATH`, and NVIDIA math libs include/library
+     paths for `cusparse.h`.
 2. Score the domain track immediately after predictions finish; oligo rows will
-   stay `metric_unavailable` until a QSglob scorer exists.
-3. Install or implement QSglob, then rescore the oligo track.
+   stay `metric_unavailable` until an OpenStructure `ost` or equivalent QSglob
+   scorer is installed.
+3. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
+   the oligo track.
 4. Start target_lab loops on H1258 and H1232 only as diagnostics for
    stoichiometry/construct tricks; promotion requires a target-agnostic full
    benchmark rerun.

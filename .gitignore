@@ -12,6 +12,10 @@ data/official/references/mmcif/
 # Large derived table; regenerate with `./casp16 leaderboard`.
 leaderboards/official_records.csv
 
+# Protenix writes this next to an input JSON during MSA generation. Benchmark
+# runs should use run-local input copies so protected benchmark inputs stay clean.
+benchmarks/*/inputs-update-msa.json
+
 # Runtime outputs from local predictions.
 runs/*/__pycache__/
 runs/*/features
