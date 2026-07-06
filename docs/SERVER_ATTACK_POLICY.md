@@ -61,6 +61,8 @@ winner-chasing tier, not a queued run. It targets
 `casp16_server_protein_v2_aliasfix`, declares seeds `101..125`, and keeps
 `sample_per_seed=1` for 25 candidates per target. The selector is still
 `protenix_confidence_v1`, so it remains reference-free and score-free.
+Shard run ids, seed ranges, and input artifacts are locked in
+`attack_budgets/casp16_server_attack_protenix25_shards.tsv`.
 
 Because Protenix loops serially over seeds, this budget must be executed as
 five predeclared five-seed shards and merged only after all shards finish. A
@@ -68,6 +70,22 @@ partial 25-seed attempt is unranked unless it is explicitly reported as
 partial. Launch this tier only after the current `protenix5` attack and the
 v2 alias-fixed `dev_fixed` baseline have produced evidence that the extra
 candidate spend is worth the GPU-hours.
+
+When the launch gate opens, generate each shard with the TSV row's fields:
+
+```bash
+./casp16 run-spec \
+  --run-id <run_id> \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --input-json strategies/yang_oligo_stoichiometry_token_safe_v1/casp16_server_protein_v2_aliasfix/inputs.json \
+  --input-manifest strategies/yang_oligo_stoichiometry_token_safe_v1/casp16_server_protein_v2_aliasfix/manifest.tsv \
+  --strategy yang_coverage_stoich_token_safe_v1_server_attack_protenix25 \
+  --seeds <shard_seeds> \
+  --sample 1 \
+  --selected-model-policy protenix_confidence_v1 \
+  --use-msa --use-template --use-default-params \
+  --enable-cache --enable-fusion
+```
 
 ## Execution Semantics
 

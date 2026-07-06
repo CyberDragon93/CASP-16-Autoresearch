@@ -176,8 +176,10 @@ Useful strategy hypotheses:
     submitted yet.
 17. `casp16_server_attack_protenix25`: planned but not queued. It targets the
     alias-fixed v2 server benchmark with seeds `101..125`, one sample per seed,
-    and `protenix_confidence_v1`; run as seed shards only after the current
-    5-seed attack and v2 dev baseline justify the larger spend.
+    and `protenix_confidence_v1`; the shard run ids and seed ranges are locked
+    in `attack_budgets/casp16_server_attack_protenix25_shards.tsv`. Run as
+    seed shards only after the current 5-seed attack and v2 dev baseline
+    justify the larger spend.
 18. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
     CASP domain-summary metadata; useful for learning whether domain
     decomposition helps, but not a server-ranked strategy as-is.

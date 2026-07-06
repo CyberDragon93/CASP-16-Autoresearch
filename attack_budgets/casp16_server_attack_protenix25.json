@@ -42,6 +42,7 @@
   ],
   "sample_per_seed": 1,
   "total_candidates_per_target": 25,
+  "shard_manifest": "attack_budgets/casp16_server_attack_protenix25_shards.tsv",
   "selected_model_policy": "protenix_confidence_v1",
   "selection_formula": "0.20*plddt_norm + 0.50*ptm + 0.30*iptm - 0.10*disorder - 0.20*has_clash",
   "allowed_selection_signals": [

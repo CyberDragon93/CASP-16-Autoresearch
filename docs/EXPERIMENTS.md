@@ -256,6 +256,14 @@ leaderboard progress.
       justified.
     - This is not a new leaderboard score and does not change any completed
       run's budget tier.
+27. Added the concrete `protenix25` shard manifest
+    `attack_budgets/casp16_server_attack_protenix25_shards.tsv`. It fixes five
+    planned shard run ids, each shard's seed range, the v2 coverage/stoich input
+    artifact, and `protenix_confidence_v1` as the selector.
+    - The shard rows are not registered in `runs/manifest.tsv`, so they cannot
+      be accidentally selected by `run-next` or scored as missing predictions.
+    - When the launch gate opens, create run specs from the shard TSV rather
+      than inventing seeds or input artifacts on the fly.
 
 ## Strategy Decision Log
 
