@@ -16,9 +16,9 @@ from .benchmark import (
 )
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
-from .msa_cache import reuse_msa_paths
+from .msa_cache import build_msa_cache_index, reuse_msa_paths
 from .official import ingest_official_data
-from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, merge_prediction_shards, register_existing_run, run_next
+from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, run_next
 from .scoring import score_benchmark_runs
 from .strategies import STRATEGY_YANG_TERMINAL_TAG_CLEANUP, derive_strategy_inputs
 
@@ -47,6 +47,54 @@ def resolve_msa_source_jsons(root: Path, explicit_paths: Sequence[Path] | None, 
     if missing:
         raise FileNotFoundError(f"MSA source JSON not found: {', '.join(missing)}")
     return sources
+
+
+def _spec_bool(value: object, *, default: bool = False) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None or value == "":
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
+def discover_msa_source_jsons(root: Path, *, run_ids: Sequence[str] | None, benchmarks: Sequence[str] | None) -> list[Path]:
+    requested_run_ids = {run_id for run_id in run_ids or [] if run_id}
+    requested_benchmarks = {benchmark for benchmark in benchmarks or [] if benchmark}
+    sources: list[Path] = []
+    matched_run_ids: set[str] = set()
+    for spec in sorted(load_run_specs(root / "runs", registered_only=False), key=lambda item: str(item.get("run_id", ""))):
+        run_id = str(spec.get("run_id", ""))
+        if requested_run_ids and run_id not in requested_run_ids:
+            continue
+        if requested_benchmarks and str(spec.get("benchmark_name", "")) not in requested_benchmarks:
+            continue
+        if str(spec.get("backend", "")) != "protenix":
+            continue
+        if not _spec_bool(spec.get("use_msa"), default=False):
+            continue
+        run_dir = Path(str(spec.get("_run_dir", root / "runs" / run_id)))
+        candidates = [run_dir / "inputs" / "inputs-update-msa.json", run_dir / "inputs" / "inputs-final-updated.json"]
+        source = next((path for path in candidates if path.exists()), None)
+        if source is None:
+            continue
+        sources.append(source.resolve())
+        matched_run_ids.add(run_id)
+    missing_run_ids = requested_run_ids - matched_run_ids
+    if missing_run_ids:
+        raise FileNotFoundError(f"no MSA-updated source JSON found for run(s): {', '.join(sorted(missing_run_ids))}")
+    return sources
+
+
+def unique_paths(paths: Sequence[Path]) -> list[Path]:
+    seen: set[str] = set()
+    unique: list[Path] = []
+    for path in paths:
+        resolved = path.resolve()
+        key = str(resolved)
+        if key not in seen:
+            unique.append(resolved)
+            seen.add(key)
+    return unique
 
 
 def validate_msa_reuse_summary(summary: dict[str, object], *, require_complete: bool, min_reuse_fraction: float | None) -> None:
@@ -103,10 +151,18 @@ def build_parser() -> argparse.ArgumentParser:
     strategy_inputs.add_argument("--output-json", type=Path, default=None, help="Defaults to <root>/strategies/<strategy>/<benchmark>/inputs.json.")
     strategy_inputs.add_argument("--manifest", type=Path, default=None, help="Defaults to <root>/strategies/<strategy>/<benchmark>/manifest.tsv.")
 
+    build_msa_cache = subparsers.add_parser("build-msa-cache", help="Build an exact-sequence MSA cache index from existing Protenix runs.")
+    build_msa_cache.add_argument("--benchmark", action="append", default=None, help="Scan MSA sources from this benchmark; repeatable. Defaults to all Protenix MSA runs.")
+    build_msa_cache.add_argument("--run-id", action="append", default=None, help="Scan this run id; repeatable.")
+    build_msa_cache.add_argument("--msa-source-json", type=Path, action="append", default=None, help="Explicit Protenix inputs-update-msa.json source; repeatable.")
+    build_msa_cache.add_argument("--output-tsv", type=Path, default=None, help="Defaults to <root>/data/msa_cache/index.tsv.")
+    build_msa_cache.add_argument("--min-records", type=int, default=1, help="Fail if the built index has fewer usable sequence records.")
+
     reuse_msa = subparsers.add_parser("reuse-msa", help="Inject existing Protenix MSA paths into a new input JSON by exact protein sequence match.")
     reuse_msa.add_argument("--input-json", type=Path, required=True)
     reuse_msa.add_argument("--msa-source-json", type=Path, action="append", default=None, help="Existing Protenix inputs-update-msa.json; repeatable.")
     reuse_msa.add_argument("--source-run-id", action="append", default=None, help="Use runs/<run_id>/inputs/inputs-update-msa.json as an MSA source; repeatable.")
+    reuse_msa.add_argument("--cache-index", type=Path, action="append", default=None, help="Exact-sequence MSA cache index TSV from build-msa-cache; repeatable.")
     reuse_msa.add_argument("--output-json", type=Path, required=True)
     reuse_msa.add_argument("--report-tsv", type=Path, required=True)
     reuse_msa.add_argument("--overwrite-existing", action="store_true", help="Replace existing MSA paths in the input JSON when an exact sequence match exists.")
@@ -279,11 +335,46 @@ def main(argv: Sequence[str] | None = None) -> int:
         print_json(summary)
         return 0
 
+    if args.command == "build-msa-cache":
+        should_discover_sources = bool(args.run_id or args.benchmark or not args.msa_source_json)
+        discovered_sources = (
+            discover_msa_source_jsons(root, run_ids=args.run_id, benchmarks=args.benchmark)
+            if should_discover_sources
+            else []
+        )
+        explicit_sources = [path.resolve() for path in (args.msa_source_json or [])]
+        sources = unique_paths([*discovered_sources, *explicit_sources])
+        if not sources:
+            raise ValueError("no Protenix MSA source JSONs found; provide --run-id, --benchmark, or --msa-source-json")
+        missing = [str(path) for path in sources if not path.exists()]
+        if missing:
+            raise FileNotFoundError(f"MSA source JSON not found: {', '.join(missing)}")
+        output_tsv = (args.output_tsv or (root / "data" / "msa_cache" / "index.tsv")).resolve()
+        summary = build_msa_cache_index(source_jsons=sources, output_tsv=output_tsv)
+        if int(summary.get("source_sequence_records", 0) or 0) < args.min_records:
+            raise RuntimeError(
+                f"MSA cache index has {summary.get('source_sequence_records', 0)} usable record(s), "
+                f"below required {args.min_records}"
+            )
+        print_json(summary)
+        return 0
+
     if args.command == "reuse-msa":
-        msa_source_jsons = resolve_msa_source_jsons(root, args.msa_source_json, args.source_run_id)
+        msa_source_jsons = (
+            resolve_msa_source_jsons(root, args.msa_source_json, args.source_run_id)
+            if (args.msa_source_json or args.source_run_id)
+            else []
+        )
+        msa_cache_indexes = [path.resolve() for path in (args.cache_index or [])]
+        if not msa_source_jsons and not msa_cache_indexes:
+            raise ValueError("provide at least one --cache-index, --msa-source-json, or --source-run-id")
+        missing_indexes = [str(path) for path in msa_cache_indexes if not path.exists()]
+        if missing_indexes:
+            raise FileNotFoundError(f"MSA cache index not found: {', '.join(missing_indexes)}")
         summary = reuse_msa_paths(
             input_json=args.input_json.resolve(),
             msa_source_jsons=msa_source_jsons,
+            msa_cache_indexes=msa_cache_indexes,
             output_json=args.output_json.resolve(),
             report_tsv=args.report_tsv.resolve(),
             overwrite_existing=args.overwrite_existing,

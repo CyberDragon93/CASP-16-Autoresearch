@@ -68,8 +68,8 @@ Allowed during strategy design and prediction:
 - coverage summaries and failure summaries
 - public method documentation and model documentation
 - previous Protenix `inputs-update-msa.json` MSA paths only through
-  exact-sequence reuse, with a recorded reuse report and a coverage guard for
-  queued attack runs
+  exact-sequence reuse or a derived `build-msa-cache` index, with a recorded
+  reuse report and a coverage guard for queued attack runs
 
 Forbidden during strategy design and prediction:
 

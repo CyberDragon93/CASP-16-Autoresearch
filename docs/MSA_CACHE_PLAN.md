@@ -20,23 +20,34 @@ specs, attack shards, and strategy variants that keep some sequences identical.
 Use:
 
 ```bash
+./casp16 build-msa-cache \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --output-tsv data/msa_cache/index.tsv
+
 ./casp16 reuse-msa \
   --input-json <new_inputs.json> \
-  --source-run-id <completed_or_stable_source_run> \
+  --cache-index data/msa_cache/index.tsv \
   --output-json <new_inputs.with_msa.json> \
   --report-tsv <msa_reuse.tsv> \
   --require-complete
 ```
 
-The command injects MSA paths only by exact protein sequence SHA256. If the
-sequence was trimmed, windowed, recovered, or otherwise changed, it misses and
-Protenix will search MSA normally. Existing valid MSA paths in the input are
+The index command scans existing Protenix runs with `use_msa=true`, reads their
+run-local `inputs-update-msa.json` or `inputs-final-updated.json`, and writes a
+small TSV keyed by exact protein sequence SHA256. It records source run, source
+task, source JSON hash, paired/unpaired MSA paths, and file sizes. Large MSA
+files stay in the original run directories.
+
+The reuse command injects MSA paths only by exact protein sequence SHA256. If
+the sequence was trimmed, windowed, recovered, or otherwise changed, it misses
+and Protenix will search MSA normally. Existing valid MSA paths in the input are
 kept unless `--overwrite-existing` is set.
 
 Use `--source-run-id` for normal repo workflows; it resolves
 `runs/<run_id>/inputs/inputs-update-msa.json` and falls back to
-`inputs-final-updated.json` when present. Use `--msa-source-json` only when the
-source is outside the repo's `runs/` tree.
+`inputs-final-updated.json` when present. Use `--cache-index` for multi-run
+reuse across attack shards and strategy variants. Use `--msa-source-json` only
+when the source is outside the repo's `runs/` tree.
 
 For attack shards that are expected to reuse every unchanged chain, use
 `--require-complete`. For ablations where some sequences intentionally change,
@@ -51,6 +62,8 @@ The JSON summary reports `reused`, `kept_existing`, `covered`,
   require a new MSA.
 - Missing or stale MSA path means no reuse.
 - Treat MSA source JSON and reuse report as run artifacts, not benchmark files.
+- Treat `data/msa_cache/index.tsv` as a derived local cache manifest; rebuild it
+  from run artifacts when source runs change.
 - Report `reused`, `kept_existing`, and `missing_source` counts in strategy
   notes before launching a cache-reused run.
 - Use a coverage guard (`--require-complete` or `--min-reuse-fraction`) for
@@ -65,8 +78,8 @@ The JSON summary reports `reused`, `kept_existing`, `covered`,
    records and now backs
    `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105`.
 2. For planned `protenix25_nofail` seed shards, build every shard input from
-   the same MSA-reused artifact. The five shards should not each repeat MSA
-   search for the same 165 jobs.
+   the same MSA cache index or the same MSA-reused artifact. The five shards
+   should not each repeat MSA search for the same 165 jobs.
 3. For strategy ablations, reuse only unchanged chains. The TSV report should
    show which changed chains will force fresh MSA search.
 
