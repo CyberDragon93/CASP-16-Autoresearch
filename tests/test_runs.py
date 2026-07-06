@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from casp16_leaderboard.runs import build_protenix_command, list_run_rows, load_run_specs, register_existing_run, register_run_spec, run_next, write_runs_manifest
+from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, build_protenix_command, list_run_rows, load_run_specs, register_existing_run, register_run_spec, run_next, write_run_script, write_runs_manifest
 
 
 def test_build_protenix_command_contains_strategy_knobs() -> None:
@@ -129,3 +129,20 @@ def test_register_existing_run_is_diagnostic_not_pending(tmp_path) -> None:
     assert rows[0]["status"] == "ok"
     assert rows[0]["rank_eligible"] is False
     assert run_next(tmp_path, benchmark="casp16_server_protein_v1", dry_run=True)["status"] == "no_pending_runs"
+
+
+def test_write_run_script_sets_protenix_runtime_environment(tmp_path) -> None:
+    script = tmp_path / "run.sh"
+    write_run_script(
+        script,
+        ["/env/bin/protenix", "pred", "-i", "inputs.json"],
+        protenix_root_dir=tmp_path / "protenix_data",
+        protenix_bin=Path("/env/bin/protenix"),
+    )
+
+    text = script.read_text(encoding="utf-8")
+    assert f"export PYTHONPATH={DEFAULT_PROTENIX_SOURCE}" in text
+    assert "command -v nvcc" in text
+    assert "export CUDA_HOME=" in text
+    assert "cusparse.h" in text
+    assert "export CPATH=" in text

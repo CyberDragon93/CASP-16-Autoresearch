@@ -35,7 +35,10 @@ then improve methods against that harder target set.
 - `docs/LEADERBOARD_RULES.md`: locked local leaderboard rules
 - `docs/CASP16_SERVER_BENCHMARK.md`: plan for server-track comparison
 - `docs/CASP16_WINNER_RECIPES.md`: notes on known CASP16 winning approaches
+- `docs/EXPERIMENTS.md`: append-only autoresearch experiment log
 - `docs/STRATEGY_TEMPLATE.md`: template for each new strategy record
+- `target_lab/TARGET_RECOMMENDATIONS.txt`: target_lab diagnostics and
+  non-ranked single-target learning targets
 - `benchmarks/casp16_protein_v1/`: current locked local benchmark
 - `runs/`: append-only run specs, scripts, logs, and manifests
 - `leaderboards/`: generated leaderboard artifacts

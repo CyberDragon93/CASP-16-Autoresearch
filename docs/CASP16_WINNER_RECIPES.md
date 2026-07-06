@@ -43,6 +43,15 @@ For local work, these ideas should become strategy scripts that transform
 inputs or select allowed outputs under a fixed budget. They must not change the
 benchmark target set or inspect references.
 
+### Recipe Cards
+
+| ID | Recipe | CASP16 clue | Local implementation | Promotion gate |
+| --- | --- | --- | --- | --- |
+| D1 | Construct trimming | Yang-lab reports removed intrinsically disordered regions and CASP16 monomer assessment highlights fragment/construct design | create target-agnostic sequence-window variants from disorder/low-complexity predictors; never choose windows from reference scores | improves full `protein_domain` mean, not only a handpicked target |
+| D2 | Domain decomposition | top monomer pipelines refined constructs and handled domains separately | split long/multi-domain targets using public domain predictors or sequence features, predict domains, then score domain outputs explicitly | no target-specific native/reference inspection; domain mapping must be declared before scoring |
+| D3 | MSA/template depth | Yang/trRosetta workflows emphasize optimized MSA/template inputs | full MSA/template Protenix/OpenDDE server run; record MSA source, template mode, cache paths | higher full-set coverage and no regression on positive controls |
+| D4 | AF3-style model selection | assessment says AF3 adoption improved confidence/model selection | compare Protenix/OpenDDE first-model policy against allowed diagnostic confidence/consensus only after all predictions exist | confidence remains diagnostic until quality metric validates it on full benchmark |
+
 ## Protein Oligos
 
 Protein-complex performance is driven by more than per-chain fold quality.
@@ -61,6 +70,17 @@ Useful strategy hypotheses:
 
 For the server benchmark, a method that produces good monomer structures but
 wrong assemblies should score poorly on the oligo track.
+
+### Recipe Cards
+
+| ID | Recipe | CASP16 clue | Local implementation | Promotion gate |
+| --- | --- | --- | --- | --- |
+| O1 | Exact stoichiometry | Phase 0 showed stoichiometry is still hard, especially high-order assemblies | preserve `Oligo.State`, validate chain counts, fail fast when input expansion is ambiguous | no silent chain/entity mismatch in `input_manifest.tsv` |
+| O2 | Construct refinement | complex assessment highlights partial constructs over full sequences | generate target-agnostic construct variants from sequence/domain annotations for large complexes | improves fixed-set QSglob once scorer exists; DockQ-only wins stay diagnostic |
+| O3 | Customized MSA/template | top complex groups beat default AFM/AF3 via customized MSAs, templates, and sampling | full MSA/template baseline first, then compare MSA-cache and template modes | full server target coverage increases before target_lab tuning |
+| O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | keep ranked budget at sample 1; run extra samples only as `target_lab` diagnostics for ranking research | promotion requires a predeclared first-output policy or a new benchmark version |
+| O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | target_lab branch for H1232/H1223/H1225 using docking-style assembly refinement | must become target-agnostic for antibody complexes before leaderboard use |
+| O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
 
 ## AF3-Style Systems
 
@@ -84,3 +104,17 @@ Useful strategy hypotheses:
 - treating DockQ as interchangeable with `QSglob`
 - treating TM-score as interchangeable with official domain `GDT_TS`
 
+## Active Reproduction Order
+
+1. Full server-target MSA/template baseline with Protenix: increase coverage
+   from 35 reused local predictions toward all 106 generated server jobs.
+2. QSglob scorer installation/integration: without this, oligo server runs
+   remain diagnostic no matter how good the structures look.
+3. Domain crop/chain mapping: needed before domain scores can be trusted on
+   multi-domain or multi-chain targets.
+4. H1258/H1232 target_lab loop: use these as fast learning targets for
+   stoichiometry, construct refinement, and antibody-complex behavior, then
+   promote only target-agnostic changes.
+5. Model-selection research: collect confidence/consensus after predictions,
+   but keep ranked `first_output_only` unless a new benchmark version is
+   created.
