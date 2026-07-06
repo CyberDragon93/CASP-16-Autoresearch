@@ -57,14 +57,19 @@ are useful for detecting alias/assembly false-zero classes, but they are not a
 strong exact-oligo quality signal yet.
 The nonranked seed-101 scoreable-attack probe improves the partial domain
 picture: 24 exact domain predictions score 17 nonzero targets, with fixed-set
-domain mean `0.099576`. Its oligo positives (`T1298O=0.941`,
-`T2249V1O=0.158`, `T1249V1O=0.101`) are still `sequence_lookup` fallback
-matches, so the next oligo gate is exact `*O` prediction/assembly scoring, not
-blindly increasing the seed count.
+domain mean `0.099576`. After the scorer exact-artifact gate, its oligo rows are
+104/104 `missing_prediction`: the previous `sequence_lookup` fallback positives
+are not counted when the run input declares exact `TxxxxO`/`Hxxxx` jobs. The
+next oligo gate is exact `*O` prediction/assembly scoring, not blindly
+increasing the seed count.
 Before spending another winner-scale budget, the high-leverage work is still
 reference recovery, prediction coverage, and QSglob assembly mapping. More
 seeds cannot rescue targets that are missing predictions, missing references,
 or mapped to QSglob false zeros.
+The concrete reference-recovery worklist is
+`diagnostics/reference_gap/casp16_server_protein_v2_aliasfix_missing_references.tsv`;
+its first block is 40 existing v2 diagnostic predictions that are currently
+scored as `missing_reference`.
 
 ## Active Score Gates
 
@@ -72,9 +77,10 @@ or mapped to QSglob false zeros.
    `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
    It must first finish all five declared candidates for the 74-job scoreable
    input before it can be ranked as a `server_attack` row.
-   The partial seed-101 probe is useful for direction, but it is not evidence
-   to launch the planned 25-candidate budget before the current five-candidate
-   row finishes and exact/fallback match types are checked.
+   The partial seed-101 probe is useful for domain direction, but it is not
+   evidence to launch the planned 25-candidate budget before the current
+   five-candidate row reaches exact oligo jobs and exact/fallback match types
+   are checked.
    If other v2 rows are pending or partially running, use
    `./casp16 score --benchmark casp16_server_protein_v2_aliasfix --run-id <run_id> --output-dir diagnostics/...`
    for the first readout so pending attack rows do not contaminate a diagnostic

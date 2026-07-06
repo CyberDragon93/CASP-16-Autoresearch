@@ -76,6 +76,26 @@ reference-only probe that additionally tried to inherit PDB ids through
 `TxxxxO -> Txxxx` and `S/V` subtarget-to-base aliases recovered 0 new
 references beyond v2.
 
+## V2 Reference-Gap Priority Artifact
+
+`diagnostics/reference_gap/casp16_server_protein_v2_aliasfix_missing_references.tsv`
+is the current worklist for reference recovery. It keeps the fixed server
+denominator intact and sorts gaps by immediate scoring usefulness rather than
+by model strategy. The companion summary is
+`diagnostics/reference_gap/README.md`.
+
+Current split:
+
+- 40 targets have an existing v2 diagnostic prediction but score
+  `missing_reference`; these are the first reference-registry targets to fix.
+- 51 targets are still pure reference-registry gaps.
+- 5 targets need sequence/input alias resolution before reference work can
+  unlock scoring.
+
+Use this artifact only for evaluation-infrastructure work. It must not be used
+to tune target-specific prediction strategies, and accepted references still
+need explicit native provenance plus chain/domain/assembly mapping.
+
 ## RCSB Sequence-Search Probe
 
 RCSB sequence search is useful for triage, but it is not safe as an automatic

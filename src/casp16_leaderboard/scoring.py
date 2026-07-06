@@ -149,6 +149,32 @@ def prediction_aliases_for_target(target: Mapping[str, str]) -> list[str]:
     return aliases
 
 
+def run_input_task_names(spec: Mapping[str, Any]) -> set[str]:
+    cached = spec.get("_input_task_names")
+    if isinstance(cached, set):
+        return {str(item) for item in cached}
+    if isinstance(cached, (list, tuple)):
+        return {str(item) for item in cached}
+    input_json = str(spec.get("input_json", "") or "").strip()
+    if not input_json:
+        return set()
+    path = Path(input_json)
+    if not path.exists():
+        return set()
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()
+    if not isinstance(payload, list):
+        return set()
+    return {str(task.get("name", "") or "").strip() for task in payload if isinstance(task, Mapping)}
+
+
+def exact_prediction_required(spec: Mapping[str, Any], target: Mapping[str, str]) -> bool:
+    target_id = str(target.get("target_id", "") or "").strip()
+    return bool(target_id and target_id in run_input_task_names(spec))
+
+
 def prediction_match_for_target(output_dir: Path, target: Mapping[str, str], prediction_path: Path) -> dict[str, str]:
     aliases = {
         "exact": str(target.get("target_id", "") or "").strip(),
@@ -416,6 +442,8 @@ def score_benchmark_runs(
     rows: list[dict[str, Any]] = []
     scored_targets = [target for target in targets if target.get("track") in {"protein_domain", "protein_oligo"}]
     for spec in specs:
+        spec = dict(spec)
+        spec["_input_task_names"] = run_input_task_names(spec)
         output_path = Path(str(spec.get("output_dir", "")))
         candidates_by_target = prediction_candidate_index_for_targets(output_path, scored_targets)
         for target in scored_targets:
@@ -482,6 +510,8 @@ def probe_qsglob_targets(
     references = {row["target_id"]: row for row in read_benchmark_references(project_root, benchmark)}
     rows: list[dict[str, Any]] = []
     for spec in specs:
+        spec = dict(spec)
+        spec["_input_task_names"] = run_input_task_names(spec)
         output_path = Path(str(spec.get("output_dir", "")))
         candidates_by_target = prediction_candidate_index_for_targets(output_path, probe_targets)
         for target in probe_targets:
@@ -580,6 +610,8 @@ def score_target(
         if prediction_candidates is not None
         else prediction_candidates_for_aliases(output_dir, prediction_aliases_for_target(target))
     )
+    if exact_prediction_required(spec, target):
+        candidates = filter_prediction_candidates(candidates, output_dir, str(target.get("target_id", "")))
     base["observed_candidate_count"] = len(candidates)
     if budget_tier == "server_attack" and 0 < len(candidates) < expected_candidates:
         return {
@@ -594,7 +626,10 @@ def score_target(
         prediction_candidates=candidates,
     )
     if selection.get("status") == "missing_prediction":
-        return {**base, "status": "missing_prediction", "message": "no_prediction_file"}
+        message = "no_prediction_file"
+        if exact_prediction_required(spec, target):
+            message = "no_exact_prediction_file:target_declared_in_run_input"
+        return {**base, "status": "missing_prediction", "message": message}
     if selection.get("status") != "ok":
         return {**base, "status": selection.get("status", "selection_failed"), "message": selection.get("message", "selection_failed")}
     prediction_path = Path(str(selection["prediction_path"]))

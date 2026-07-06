@@ -1,0 +1,58 @@
+# CASP16 Server V2 Reference Gap Priorities
+
+Generated from `benchmarks/casp16_server_protein_v2_aliasfix/targets.tsv` and the current v2 diagnostic score table. This is evaluation-infrastructure triage only; do not use native/reference data during prediction or strategy selection.
+
+- benchmark: `casp16_server_protein_v2_aliasfix`
+- diagnostic probe run: `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
+- missing-reference ranked targets: 96
+- prediction_waiting_on_reference: 40
+- reference_registry_gap: 51
+- sequence_or_input_gap_before_reference: 5
+
+## Track Counts
+
+| track | blocker class | targets |
+| --- | --- | ---: |
+| `protein_domain` | `prediction_waiting_on_reference` | 26 |
+| `protein_domain` | `reference_registry_gap` | 17 |
+| `protein_domain` | `sequence_or_input_gap_before_reference` | 2 |
+| `protein_oligo` | `prediction_waiting_on_reference` | 14 |
+| `protein_oligo` | `reference_registry_gap` | 34 |
+| `protein_oligo` | `sequence_or_input_gap_before_reference` | 3 |
+
+## First 25 Targets To Triage
+
+| priority | target | track | blocker | len | domains | state | probe status | next action |
+| ---: | --- | --- | --- | ---: | ---: | --- | --- | --- |
+| 1 | `T1276` | `protein_domain` | `prediction_waiting_on_reference` | 40 | 1 | `A1` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 2 | `T1284` | `protein_domain` | `prediction_waiting_on_reference` | 120 | 1 | `A1` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 3 | `T1228V1` | `protein_domain` | `prediction_waiting_on_reference` | 121 | 4 | `A1` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 4 | `T1226` | `protein_domain` | `prediction_waiting_on_reference` | 123 | 1 | `A1` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 5 | `T1231` | `protein_domain` | `prediction_waiting_on_reference` | 142 | 1 | `A1` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 6 | `T1207` | `protein_domain` | `prediction_waiting_on_reference` | 144 | 1 | `A1` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 7 | `T1274` | `protein_domain` | `prediction_waiting_on_reference` | 167 | 1 | `A1` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 8 | `T0246` | `protein_domain` | `prediction_waiting_on_reference` | 168 | 1 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 9 | `T1246` | `protein_domain` | `prediction_waiting_on_reference` | 168 | 1 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 10 | `T1259` | `protein_domain` | `prediction_waiting_on_reference` | 243 | 1 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 11 | `T0259` | `protein_domain` | `prediction_waiting_on_reference` | 243 | 1 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 12 | `T1243` | `protein_domain` | `prediction_waiting_on_reference` | 293 | 1 | `A1` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 13 | `T1278` | `protein_domain` | `prediction_waiting_on_reference` | 380 | 1 | `A1` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 14 | `T1292` | `protein_domain` | `prediction_waiting_on_reference` | 392 | 1 | `A2` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 15 | `T1294V1` | `protein_domain` | `prediction_waiting_on_reference` | 428 | 1 | `A2` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 16 | `T1279` | `protein_domain` | `prediction_waiting_on_reference` | 428 | 2 | `An` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 17 | `T0270` | `protein_domain` | `prediction_waiting_on_reference` | 437 | 2 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 18 | `T1270` | `protein_domain` | `prediction_waiting_on_reference` | 437 | 2 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 19 | `T0237` | `protein_domain` | `prediction_waiting_on_reference` | 488 | 1 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 20 | `T1237` | `protein_domain` | `prediction_waiting_on_reference` | 488 | 1 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 21 | `T0240` | `protein_domain` | `prediction_waiting_on_reference` | 653 | 2 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 22 | `T1240` | `protein_domain` | `prediction_waiting_on_reference` | 653 | 2 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 23 | `T1218` | `protein_domain` | `prediction_waiting_on_reference` | 1164 | 3 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 24 | `T0218` | `protein_domain` | `prediction_waiting_on_reference` | 1164 | 3 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+| 25 | `T1257` | `protein_domain` | `prediction_waiting_on_reference` | 1263 | 1 | `UNK` | `missing_reference` | `find_native_reference_then_score_existing_prediction` |
+
+## Rules
+
+- Do not remove these targets from the server denominator.
+- Do not fill local scores from official score tables.
+- Accept a reference only after native structure provenance, sequence/construct coverage, chain mapping, and domain/assembly mapping are explicit.
+- Any accepted registry expansion should become a new benchmark version such as `casp16_server_protein_v3_refmap`, not an in-place rewrite of v2.

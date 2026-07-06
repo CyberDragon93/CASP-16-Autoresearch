@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from casp16_leaderboard.scoring import (
     find_prediction_for_target,
     parse_dockq_output,
@@ -290,6 +292,39 @@ def test_server_oligo_uses_sequence_lookup_prediction_alias(tmp_path) -> None:
     assert row["prediction_match_type"] == "sequence_lookup"
     assert row["prediction_match_alias"] == "T0206"
     assert row["qsglob"] == "0.321000"
+
+
+def test_declared_exact_oligo_input_does_not_score_sequence_lookup_fallback(tmp_path) -> None:
+    output_dir = tmp_path / "predictions"
+    pred_dir = output_dir / "T0206" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    (pred_dir / "T0206_sample_0.cif").write_text("data_lookup\n", encoding="utf-8")
+    input_json = tmp_path / "inputs.json"
+    input_json.write_text(json.dumps([{"name": "T0206O", "sequences": []}]), encoding="utf-8")
+    reference = tmp_path / "ref.cif"
+    reference.write_text("data_ref\n", encoding="utf-8")
+    ost = _write_fake_ost(tmp_path / "ost", 0.321)
+
+    row = score_target(
+        {"run_id": "r1", "output_dir": str(output_dir), "input_json": str(input_json)},
+        {
+            "target_id": "T0206O",
+            "sequence_lookup_id": "T0206",
+            "track": "protein_oligo",
+            "rank_eligible": "true",
+            "official_metric": "QSglob",
+        },
+        {"reference_path": str(reference)},
+        benchmark="casp16_server_protein_v2_aliasfix",
+        tm_tool="",
+        dockq_tool="",
+        qsglob_tool=ost,
+    )
+
+    assert row["status"] == "missing_prediction"
+    assert row["observed_candidate_count"] == 0
+    assert row["message"] == "no_exact_prediction_file:target_declared_in_run_input"
+    assert row["prediction_path"] == ""
 
 
 def test_prediction_candidate_index_for_targets_prefers_exact_alias(tmp_path) -> None:

@@ -58,6 +58,13 @@ where methods should change.
   diagnostic is `T1249V1O` at QSglob `0.096`. Reference recovery,
   missing-prediction coverage, and target-agnostic QSglob assembly mapping
   should happen before spending 25-seed shards.
+- Reference recovery now has a concrete v2 worklist:
+  `diagnostics/reference_gap/casp16_server_protein_v2_aliasfix_missing_references.tsv`.
+  It contains 96 ranked missing-reference targets; 40 already have a v2
+  diagnostic prediction waiting on native/reference mapping, 51 are pure
+  reference-registry gaps, and 5 need sequence/input alias repair first. Treat
+  this only as scoring-infrastructure triage, never as target-specific
+  prediction guidance.
 - Multi-candidate work now has a separate policy:
   `docs/SERVER_ATTACK_POLICY.md` and
   `attack_budgets/casp16_server_attack_protenix5.json`.
@@ -103,8 +110,8 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
-  is running. The `2026-07-06 18:25 CDT` check found seed CIF counts
-  `98/98/67/0/0`; the log still hits the known `n_token > 2560` classes, so it
+  is running. The `2026-07-06 18:44 CDT` check found seed CIF counts
+  `98/98/81/0/0`; the log still hits the known `n_token > 2560` classes, so it
   is incomplete and must not be scored as a five-candidate result.
 - Superseded second attack run spec:
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
@@ -164,17 +171,18 @@ where methods should change.
   `T0234O -> T0234`, etc.), not exact `*O` prediction artifacts. Treat their
   zeros as alias/assembly diagnostics until exact oligo jobs finish; they are
   not enough evidence to launch a larger seed budget.
-- `2026-07-06 18:40 CDT` nonranked seed-101 probe:
+- `2026-07-06 18:40 CDT` nonranked seed-101 probe, refreshed after the
+  exact-artifact gate:
   `diagnostics/score_probes/server_v2_scoreable_attack_seed101_probe_20260706/target_scores.csv`
   temporarily scores the current scoreable-attack seed-101 artifacts as a
   one-candidate diagnostic. It has 24/71 exact domain predictions scored, 17
   nonzero, fixed-set domain mean `0.099576`; strongest domain targets are
   `T2249V1=0.9248`, `T1299=0.9137`, `T1249V1=0.8628`, `T1234=0.8258`, and
-  `T2234=0.8095`. Oligo has 14 scorer-ok rows but all are still
-  `sequence_lookup` fallback matches; nonzero QSglob rows are `T1298O=0.941`,
-  `T2249V1O=0.158`, and `T1249V1O=0.101`. This is encouraging for domain
-  quality but not yet proof that exact oligo assemblies are being scored
-  correctly.
+  `T2234=0.8095`. The older fallback-only oligo positives were rejected by the
+  exact gate: if a run input declares `TxxxxO`/`Hxxxx` then scorer now requires
+  that exact artifact before QSglob scoring. Current oligo status is therefore
+  104/104 `missing_prediction`, which is correct while Protenix has not yet
+  reached the exact oligo tasks.
 - Filtered scoring is now available through `./casp16 score --run-id <run_id>`.
   Use it with an explicit `--output-dir diagnostics/...` for the first readout
   of completed runs while attack rows are still pending or partial. The first

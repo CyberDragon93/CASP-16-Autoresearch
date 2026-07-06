@@ -138,6 +138,12 @@ leaderboard, all eight oligo `ok` rows are `sequence_lookup` matches such as
 `T0206O -> T0206`, so their zeros should be interpreted as alias/assembly
 diagnostics rather than as final exact-oligo job quality.
 
+The scorer now also enforces exact artifacts when a run input declares the exact
+target task. If `runs/<run_id>/inputs/*.json` contains `T0206O`, a `T0206`
+prediction is no longer accepted as the `T0206O` score; the row remains
+`missing_prediction` until the exact `T0206O` artifact exists. This prevents
+partial runs from accidentally scoring domain/base outputs as oligo assemblies.
+
 ## Next Work
 
 - Score server oligo targets with `ost` once the active run is complete, so
