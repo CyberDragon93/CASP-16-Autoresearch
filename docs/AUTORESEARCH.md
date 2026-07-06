@@ -200,6 +200,8 @@ then improve methods against that harder target set.
 - `docs/LEADERBOARD_RULES.md`: locked local leaderboard rules
 - `docs/CASP16_SERVER_BENCHMARK.md`: plan for server-track comparison
 - `docs/CASP16_WINNER_RECIPES.md`: notes on known CASP16 winning approaches
+- `docs/SERVER_SCORE_TARGETS.md`: official server leaders to beat and current
+  local gap
 - `docs/SERVER_ATTACK_POLICY.md`: fixed multi-seed attack-budget rules
 - `docs/QSGLOB_SCORER.md`: installed OpenStructure QSglob scorer, mapping
   diagnostics, and validation notes
@@ -239,7 +241,8 @@ generated as a full fixed-budget server benchmark run. Current
 
 The server baselines remain far ahead: domain server top `110s` has fixed mean
 `0.923321` on GDT_TS, and oligo server top `456s` has fixed mean `0.582615` on
-QSglob.
+QSglob. `docs/SERVER_SCORE_TARGETS.md` is the pinned score target for this
+autoresearch loop.
 
 The best current local full Protenix server-domain run is
 `server_protenix_yang_terminal_tag_cleanup_seed101`, with fixed-set mean

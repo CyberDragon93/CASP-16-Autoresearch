@@ -756,6 +756,23 @@ Interpretation: this closes the planned `protenix25` execution loop without
 launching any extra GPU work or weakening the fail-closed partial-candidate
 rule.
 
+### 2026-07-06 Server Score Targets Pinned
+
+Decision: add `docs/SERVER_SCORE_TARGETS.md` as the fixed score target for the
+autoresearch loop.
+
+Evidence: the document is derived from
+`leaderboards/casp16_server_protein_v2_aliasfix/official_groups.csv` and
+`leaderboards/casp16_server_protein_v1/runs.csv`. The official server leaders
+to beat are domain group `110s` with fixed GDT_TS mean `0.923321` and oligo
+group `456s` with fixed QSglob mean `0.582615`. The best current local full
+Protenix row remains `server_protenix_yang_terminal_tag_cleanup_seed101`, with
+domain mean `0.066908` and oligo mean `0.045865`.
+
+Interpretation: this makes the gap explicit and keeps future agent iterations
+from treating target-lab wins, partial multi-seed outputs, confidence-only
+selection, or DockQ-only oligo diagnostics as server-leaderboard progress.
+
 ### 2026-07-06 Terminal Tag Cleanup Result
 
 Decision: keep `yang_terminal_tag_cleanup_v1` as a weak positive construct

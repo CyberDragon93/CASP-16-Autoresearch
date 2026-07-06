@@ -30,6 +30,10 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 ## Latest Baseline Result
 
+Pinned server targets live in `docs/SERVER_SCORE_TARGETS.md`: beat domain
+leader `110s` fixed mean `0.923321` on GDT_TS and oligo leader `456s` fixed
+mean `0.582615` on QSglob.
+
 | Run | Status | Domain mean | Domain coverage | Oligo status | Key failure signal |
 | --- | --- | --- | --- | --- | --- |
 | `server_protenix_full_msa_template_seed101` | complete and scored | `0.063962` | 15 ok / 30 missing prediction / 26 missing reference over 71 official server-domain targets | needs QSglob rescore after mapping validation | 8 Protenix jobs failed with `n_token > 2560`: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`, `H1272`, `T1295O` |
