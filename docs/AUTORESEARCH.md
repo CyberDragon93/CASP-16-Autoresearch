@@ -95,8 +95,8 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
-  is running. The `2026-07-06 17:11 CDT` check found seed CIF counts
-  `98/98/13/0/0`, so it is still incomplete and must not be scored as a
+  is running. The `2026-07-06 17:56 CDT` check found seed CIF counts
+  `98/98/47/0/0`, so it is still incomplete and must not be scored as a
   five-candidate result.
 - Queued second attack run spec:
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
@@ -130,8 +130,9 @@ where methods should change.
   reuse before launch. The fixed 175-target server benchmark scoring set is not
   changed: skipped no-reference targets still score 0 locally. `run-next
   --dry-run` selected this row. Slurm job `811751` is now running on
-  `c636-072`; the Protenix log confirms `inputs.msa-reuse.json`, skips MSA
-  update, and starts `T0206` as `1/74`.
+  `c636-072`; the Protenix log confirms `inputs.msa-reuse.json` and skips MSA
+  update. The `2026-07-06 17:56 CDT` check found 9/74 seed-101 CIFs after the
+  long `T1210` target completed.
 - Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   produced 39/165 CIFs and then spent extended GPU time on `T1295`, which is
@@ -160,9 +161,10 @@ where methods should change.
   MSA paths and intentionally misses the 8 changed sequences. It is registered
   as
   `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101`.
-  Slurm job `811754` is submitted with dependency `afterany:811751`, but the
-  run row is now deferred until the scoreable-subset attack and full v2 dev
-  score clarify whether this ablation deserves a slot.
+  The pending Slurm wrapper job `811754` was cancelled after `run-next
+  --dry-run` showed no pending v2 row. The run row stays deferred until the
+  scoreable-subset attack and full v2 dev score clarify whether this ablation
+  deserves a slot.
 - New coverage-recovery strategy:
   `yang_large_target_split_or_fallback_v1`, which predeclares a token-budget
   fallback for the eight known Protenix `n_token > 2560` failures.

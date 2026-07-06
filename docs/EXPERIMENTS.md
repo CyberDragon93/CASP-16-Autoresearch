@@ -13,7 +13,7 @@ leaderboard progress.
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | scored | target-agnostic Yang-style terminal tag cleanup rerun | yes for domain track |
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | scored | single-entity oversize domain fallback recovered `T1295` inference but not score, because `T1295` lacks local reference mapping | yes for domain track |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | scored negative | full-set antibody Fv constant-region cleanup rerun | yes for domain track |
-| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` running; 98/98/13/0/0 CIFs by seed at `2026-07-06 17:11 CDT` | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
+| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` running; 98/98/47/0/0 CIFs by seed at `2026-07-06 17:56 CDT` | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | recover missing/misparsed protein-domain sequences on top of terminal-tag cleanup | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
@@ -24,9 +24,9 @@ leaderboard progress.
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 stack plus large-target fallback for the 11 remaining over-token jobs | keep only as ablation |
 | `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | cancelled:scoreable_subset_attack; 39/165 CIFs, stopped on no-reference `T1295` | current strongest v2 no-over-token input stack with protein-oligo sequence recovery; keep partial artifacts/MSA cache only | not a complete dev row |
-| `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | Slurm job `811751` running on `c636-072`; MSA update skipped and `T0206` started as `1/74` | five-seed attack on the current strongest v2 nofail stack, filtered to 74 locally scoreable jobs with 141/141 exact-sequence MSA paths reused | attack tier only; skipped no-reference targets still score 0 locally |
-| `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:scoreable_subset_attack; Slurm wrapper job `811751` remains pending on `afterany:810938` | full 165-job MSA-reuse predecessor that repeats no-reference heavy jobs before reference recovery | attack tier only; run only as ablation |
-| `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | deferred:wait_scoreable_attack; Slurm wrapper job `811754` remains pending on `afterany:811751` | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | re-enable only after scoreable attack/full v2 score |
+| `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | Slurm job `811751` running on `c636-072`; MSA update skipped, long `T1210` completed, and 9/74 seed-101 CIFs exist at `2026-07-06 17:56 CDT` | five-seed attack on the current strongest v2 nofail stack, filtered to 74 locally scoreable jobs with 141/141 exact-sequence MSA paths reused | attack tier only; skipped no-reference targets still score 0 locally |
+| `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:scoreable_subset_attack; former wrapper job `811751` is now running the scoreable-subset run selected by `run-next` | full 165-job MSA-reuse predecessor that repeats no-reference heavy jobs before reference recovery | attack tier only; run only as ablation |
+| `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | deferred:slurm_wrapper_cancelled; Slurm job `811754` is `CANCELLED+` and no longer queued | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | re-enable only after scoreable attack/full v2 score |
 | `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:msa_reuse_attack | non-reuse predecessor of the current five-seed v2 no-over-token attack | attack tier only; run only as ablation |
 | `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending; superseded candidate | older five-seed no-over-token attack that lacks protein-oligo sequence recovery | attack tier only; run only as ablation |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
@@ -240,6 +240,10 @@ leaderboard progress.
       `afterany:811751` using the hydrophobic-leader ablation wrapper. It also
       calls `run-next`, so it should run only after the attack clears and the
       next pending v2 row is the hydrophobic-leader `dev_fixed` ablation.
+    - `2026-07-06 17:56 CDT`: cancelled pending wrapper `811754` after
+      `run-next --dry-run` returned `no_pending_runs` for
+      `casp16_server_protein_v2_aliasfix`; the hydrophobic-leader row remains a
+      deferred ablation, not queued compute.
     - `2026-07-06 17:11 CDT` live check: the active nofail dev row has 39/165
       CIFs; the v1 terminal-tag attack seed counts are `98/98/13/0/0`. A
       bounded v2 QSglob probe on the eight completed oligo targets with
@@ -272,6 +276,11 @@ leaderboard progress.
       selected the scoreable attack. The Protenix log confirms
       `inputs.msa-reuse.json`, reports that MSA results do not need updating,
       and starts inference at `T0206` as job `1/74`.
+    - `2026-07-06 17:56 CDT` live check: terminal-tag attack seed counts are
+      `98/98/47/0/0`; scoreable v2 attack has 9/74 seed-101 CIFs and has
+      completed long target `T1210`. The hydrophobic-leader wrapper job
+      `811754` was cancelled before launch because v2 `run-next --dry-run`
+      now returns `no_pending_runs`.
 22. Installed OpenStructure 2.11.1 in the isolated conda env
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob` and configured
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` as the
@@ -454,8 +463,8 @@ leaderboard progress.
       with 141/141 protein-chain MSA paths reused from `data/msa_cache/index.tsv`.
     - Queue update: the older full-input MSA attack is
       `superseded:scoreable_subset_attack`, and the hydrophobic-leader ablation
-      is `deferred:wait_scoreable_attack`. `run-next --dry-run` now selects the
-      scoreable-subset attack after the active v2 dev row clears.
+      is `deferred:slurm_wrapper_cancelled`. `run-next --dry-run` now reports
+      no pending v2 rows while the scoreable-subset attack is running.
     - Follow-up: the full-input v2 dev row reached `T1295`, a local
       `no_reference_pdb` target, and was cancelled after 39/165 CIFs so the
       pending Slurm wrapper can spend the next GH200 slot on the 74-job
