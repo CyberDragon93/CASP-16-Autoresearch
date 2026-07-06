@@ -14,6 +14,7 @@ leaderboard progress.
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | scored | single-entity oversize domain fallback recovered `T1295` inference but not score, because `T1295` lacks local reference mapping | yes for domain track |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | scored negative | full-set antibody Fv constant-region cleanup rerun | yes for domain track |
 | `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` pending | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
+| `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | strategy artifacts generated | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | not queued while attack job is pending |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -113,9 +114,12 @@ leaderboard progress.
    benchmark rerun.
 10. Add domain cropping and chain/residue mapping before drawing conclusions
    from hard multi-domain domain targets.
-11. Design a broader `yang_large_target_split_or_fallback_v1` only after the
-    conservative `T1295` fallback is scored. Multi-entity oligo/domain failures
-    still need a separate predeclared split rule or a new benchmark version.
+11. Generated `yang_large_target_split_or_fallback_v1` after the conservative
+    `T1295` fallback showed that coverage recovery is useful but incomplete.
+    It changes exactly
+    `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`, `H1272`, and
+    `T1295O`, reducing each optimized job below 2560 tokens by epitope cleanup
+    and original-order chain/copy budget fallback.
 
 ## Strategy Decision Log
 

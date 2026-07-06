@@ -32,6 +32,9 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`.
+- New coverage-recovery strategy:
+  `yang_large_target_split_or_fallback_v1`, which predeclares a token-budget
+  fallback for the eight known Protenix `n_token > 2560` failures.
 
 ## Main Objective
 
@@ -94,13 +97,15 @@ competitive result.
 3. Improve the reference/domain registry for the 121 server-benchmark targets
    that currently lack a cached reference mapping.
 4. Add oligo assembly mapping.
-5. Predeclare a large-target split/fallback policy for the eight
-   `n_token > 2560` failures before launching another full run.
+5. Queue and score the generated large-target split/fallback policy for the
+   eight `n_token > 2560` failures after the active attack job.
 6. Re-score current OpenDDE and Protenix-style baselines on the server
    benchmark with complete prediction coverage rather than local-v1 reuse.
 7. Monitor and score `server_attack_protenix_terminal_tag_seed101_105`, the
    first fixed 5-candidate attack run. Keep it separate from `dev_fixed`.
-8. Implement strategy experiments inspired by CASP16 winners: disorder
+8. Queue `yang_large_target_split_or_fallback_v1` after the attack job if
+   coverage recovery is still the highest-leverage next move.
+9. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.
 

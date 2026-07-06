@@ -56,7 +56,7 @@ benchmark target set or inspect references.
 | D2 | Domain decomposition | top monomer pipelines refined constructs and handled domains separately | `./casp16 strategy-inputs --strategy yang_domain_fragment_inputs_v1` creates post hoc CASP-domain fragment inputs for target-lab learning | not server-ranked; promotion needs a new benchmark version or predeclared segmentation rule |
 | D3 | MSA/template depth | Yang/trRosetta workflows emphasize optimized MSA/template inputs | full MSA/template Protenix/OpenDDE server run; record MSA source, template mode, cache paths | higher full-set coverage and no regression on positive controls |
 | D4 | AF3-style model selection | assessment says AF3 adoption improved confidence/model selection | `protenix_confidence_v1` is implemented for the separate `server_attack` tier; `dev_fixed` remains first-output-only | attack runs must use the locked seed/sample budget and never compare directly against `dev_fixed` rows |
-| D5 | Large-target split/fallback | top methods used target handling and construct/domain decomposition; baseline Protenix lost 8 jobs to `n_token > 2560` before prediction | `./casp16 strategy-inputs --strategy yang_oversize_domain_monomer_fallback_v1` first rescues only the safe `T1295` protein-domain `A8` case; broader multi-entity fallback remains a separate design problem | server-v1 promotion only if the fixed budget and target IDs are preserved; otherwise create a new benchmark version |
+| D5 | Large-target split/fallback | top methods used target handling and construct/domain decomposition; baseline Protenix lost 8 jobs to `n_token > 2560` before prediction | `./casp16 strategy-inputs --strategy yang_large_target_split_or_fallback_v1` predeclares chain/copy fallback for all eight hard failures after the conservative `T1295` probe | treat as coverage recovery; assembly quality may regress when chains are dropped |
 
 ## Protein Oligos
 
@@ -87,7 +87,7 @@ wrong assemblies should score poorly on the oligo track.
 | O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | `attack_budgets/casp16_server_attack_protenix5.json` defines a fixed 5-candidate Protenix attack budget with confidence-only selection | launch only after the target question is worth multi-seed compute and budget accounting is recorded |
 | O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `yang_antibody_fv_cleanup_v1` completed a full-set run; `yang_antibody_fv_fragment_inputs_v1` remains target_lab | do not promote until QSglob can evaluate the antibody oligo predictions |
 | O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
-| O7 | Oversize complex fallback | complex targets can exceed AF3-like token limits, and the baseline lost H0217/H0258/H0272/H1217/H1258/H1272 before any model was produced | make a predeclared split/fallback policy for oversize complexes, then score as diagnostic unless a server-compatible rule is locked | do not claim server-track improvement from manual per-target rescues |
+| O7 | Oversize complex fallback | complex targets can exceed AF3-like token limits, and the baseline lost H0217/H0258/H0272/H1217/H1258/H1272 before any model was produced | `yang_large_target_split_or_fallback_v1` keeps under-budget chain/copy prefixes and records dropped chains | score as coverage recovery until QSglob and assembly mapping are trustworthy |
 
 ## AF3-Style Systems
 
@@ -131,9 +131,9 @@ Useful strategy hypotheses:
    `yang_hydrophobic_leader_cleanup_v1`: generated as risk-increasing
    construct-cleanup artifacts; promote only after baseline or conservative
    cleanup evidence.
-7. `yang_large_target_split_or_fallback_v1`: design next from the 8 oversize
-   failures; this is likely higher leverage than additional small construct
-   cleanup once the queued ablations finish.
+7. `yang_large_target_split_or_fallback_v1`: generated from the 8 oversize
+   failures; queue after the active attack job if coverage recovery remains
+   higher leverage than another construct cleanup.
 8. QSglob scorer installation/integration: without this, oligo server runs
    remain diagnostic no matter how good the structures look.
 9. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`

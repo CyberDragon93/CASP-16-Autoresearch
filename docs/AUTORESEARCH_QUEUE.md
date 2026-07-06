@@ -9,7 +9,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | --- | --- | --- | --- | --- | --- |
 | P0 | Install OpenStructure `ost` / QSglob scorer | `casp16_server_protein_v1` | not started | Required to compare the 104 official server oligo targets and judge antibody-complex strategies | Install or register a QSglob-compatible scorer, then rerun `./casp16 score` and `./casp16 leaderboard` |
 | P1 | Run `server_attack_protenix_terminal_tag_seed101_105` | separate from `dev_fixed` | Slurm job `810719` pending | Winner-level server comparison should not pretend one seed/sample is enough | Monitor GH200 job, then score with `protenix_confidence_v1` while keeping attack rows out of `dev_fixed` ranks |
-| P2 | Predeclare large-target split/fallback policy | `casp16_server_protein_v1` or new benchmark version | design needed | Extra seeds cannot fix `n_token > 2560` hard failures | Promote only a target-agnostic rule that preserves benchmark discipline |
+| P2 | `yang_large_target_split_or_fallback_v1` | `casp16_server_protein_v1` | artifacts generated | Extra seeds cannot fix `n_token > 2560` hard failures | Queue after the active attack job if coverage recovery remains highest leverage |
 
 ## Latest Baseline Result
 
@@ -29,6 +29,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | deferred | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `yang_terminal_tag_antibody_fv_cleanup_v1` | `strategies/yang_terminal_tag_antibody_fv_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | deferred | Do not launch the stacked run before QSglob or a positive antibody-complex signal exists |
 | deferred | `server_protenix_yang_epitope_tag_cleanup_seed101` | `yang_epitope_tag_cleanup_v1` | `strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | deferred | Token-limit hard failures need a predeclared split/fallback policy before another construct-cleanup full run |
 | P1 | `server_attack_protenix_terminal_tag_seed101_105` | `yang_terminal_tag_cleanup_v1_server_attack` | `runs/server_attack_protenix_terminal_tag_seed101_105/` | `casp16_server_protein_v1` | Slurm job `810719` pending | Five fixed seeds on the current best terminal-tag cleanup strategy, selected by predeclared confidence-only policy |
+| P2 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `yang_large_target_split_or_fallback_v1` | `strategies/yang_large_target_split_or_fallback_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | strategy artifacts generated, not queued | Convert the eight `n_token > 2560` failures into under-budget jobs by predeclared chain/copy fallback |
 
 The terminal-tag, oversize-domain fallback, and antibody-Fv runs are complete
 and scored. The next valuable work is scorer/benchmark capability, not another
@@ -123,7 +124,8 @@ internal candidate.
 | P9 | `yang_antibody_fv_fragment_inputs_v1` | target-lab artifacts generated, not queued | Fv-only changed-target jobs are useful for fast antibody assembly diagnosis | Not server-ranked; keep separate from full-set claims |
 | P10 | Domain crop/chain mapping | not started | Domain GDT_TS can be noisy or wrong without explicit CASP domain crops | Stop after target classes with clear mapping; do not hand-map every hard outlier |
 | P11 | Validate `server_attack` budget | first run spec pending | Winner-like server runs almost certainly use more than one internal candidate; local attack runs need fixed multi-seed/multi-sample rules | Score `server_attack_protenix_terminal_tag_seed101_105` and compare only as attack-tier evidence |
-| P12 | Extra sampling/ranking lab | diagnostic only | CASP16 reports show sampling helps, but ranking is fragile | Never use best-of-N for ranked v1 without a new benchmark version |
+| P12 | `yang_large_target_split_or_fallback_v1` | artifacts generated | The new fallback changes exactly the 8 known token-limit failures and brings each optimized job under 2560 tokens | Queue only after the active attack job, then judge as coverage recovery rather than full assembly quality |
+| P13 | Extra sampling/ranking lab | diagnostic only | CASP16 reports show sampling helps, but ranking is fragile | Never use best-of-N for ranked v1 without a new benchmark version |
 
 ## Evidence Links
 

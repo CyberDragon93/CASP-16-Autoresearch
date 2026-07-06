@@ -227,6 +227,138 @@ def test_derive_oversize_domain_monomer_fallback_skips_multi_entity_domains(tmp_
     assert rows[0]["skip_reason"] == "requires_single_protein_entity"
 
 
+def test_large_target_fallback_cleans_then_keeps_main_chain(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "large_fallback" / "inputs.json"
+    manifest = tmp_path / "large_fallback" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    tagged_main = "MGSDYKDHDGDYKDHDIDYKDDDDKLG" + ("A" * 2535)
+    partner = "MGSHHHHHHSGENLYFQG" + ("C" * 247)
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "H1258",
+                    "sequences": [
+                        {"proteinChain": {"sequence": tagged_main, "count": 1, "id": ["A"]}},
+                        {"proteinChain": {"sequence": partner, "count": 1, "id": ["B"]}},
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text("\t".join(["target_id", "track"]) + "\n" + "\t".join(["H1258", "protein_oligo"]) + "\n", encoding="utf-8")
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_large_target_split_or_fallback_v1",
+        targets_path=targets,
+    )
+
+    assert summary["changed_targets"] == 1
+    optimized = json.loads(output_json.read_text(encoding="utf-8"))
+    assert len(optimized[0]["sequences"]) == 1
+    assert optimized[0]["sequences"][0]["proteinChain"]["id"] == ["A"]
+    assert optimized[0]["sequences"][0]["proteinChain"]["sequence"] == "A" * 2535
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["status"] == "changed"
+    assert rows[0]["optimized_total_len"] == "2535"
+    assert rows[0]["optimized_chain_ids"] == "A"
+    assert rows[0]["dropped_chain_ids"] == "B"
+    assert rows[0]["rules"] == "oversize_epitope_cleanup,oversize_prefix_budget:2560,dropped_chains:1"
+
+
+def test_large_target_fallback_uses_prefix_budget_for_multi_entity_complex(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "large_fallback" / "inputs.json"
+    manifest = tmp_path / "large_fallback" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    lengths = [305, 351, 452, 523, 721, 587]
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "H0217",
+                    "sequences": [
+                        {"proteinChain": {"sequence": chr(65 + index) * length, "count": 1, "id": [chr(65 + index)]}}
+                        for index, length in enumerate(lengths)
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text("\t".join(["target_id", "track"]) + "\n" + "\t".join(["H0217", "protein_oligo"]) + "\n", encoding="utf-8")
+
+    derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_large_target_split_or_fallback_v1",
+        targets_path=targets,
+    )
+
+    optimized = json.loads(output_json.read_text(encoding="utf-8"))
+    assert [entity["proteinChain"]["id"][0] for entity in optimized[0]["sequences"]] == ["A", "B", "C", "D", "E"]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["optimized_total_len"] == str(sum(lengths[:5]))
+    assert rows[0]["dropped_chain_ids"] == "F"
+    assert rows[0]["rules"] == "oversize_prefix_budget:2560,dropped_chains:1"
+
+
+def test_large_target_fallback_caps_single_entity_copy_count(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "large_fallback" / "inputs.json"
+    manifest = tmp_path / "large_fallback" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    sequence = "ACDEFGHIKLMNPQRSTVWY" * 24
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1295O",
+                    "sequences": [
+                        {
+                            "proteinChain": {
+                                "sequence": sequence,
+                                "count": 8,
+                                "id": ["A", "B", "C", "D", "E", "F", "G", "H"],
+                            }
+                        }
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text("\t".join(["target_id", "track"]) + "\n" + "\t".join(["T1295O", "protein_oligo"]) + "\n", encoding="utf-8")
+
+    derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_large_target_split_or_fallback_v1",
+        targets_path=targets,
+    )
+
+    optimized = json.loads(output_json.read_text(encoding="utf-8"))
+    protein = optimized[0]["sequences"][0]["proteinChain"]
+    assert protein["count"] == 5
+    assert protein["id"] == ["A", "B", "C", "D", "E"]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert rows[0]["optimized_total_len"] == str(len(sequence) * 5)
+    assert rows[0]["dropped_chain_ids"] == "F,G,H"
+
+
 def test_derive_epitope_strategy_uses_extended_rules(tmp_path) -> None:
     input_json = tmp_path / "inputs.json"
     output_json = tmp_path / "epitope" / "inputs.json"
