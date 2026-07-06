@@ -623,3 +623,35 @@ def test_score_target_fails_closed_for_partial_attack_candidates(tmp_path) -> No
     assert row["score"] == "0.000000"
     assert row["candidate_count"] == 2
     assert row["observed_candidate_count"] == 1
+
+
+def test_score_target_fails_closed_for_partial_aliasfix_attack_candidates(tmp_path) -> None:
+    output_dir = tmp_path / "predictions"
+    pred_dir = output_dir / "T0206" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    (pred_dir / "T0206_sample_0.cif").write_text("data_pred\n", encoding="utf-8")
+    (pred_dir / "T0206_summary_confidence_sample_0.json").write_text('{"plddt": 90.0, "ptm": 0.80, "iptm": 0.0}\n', encoding="utf-8")
+    reference = tmp_path / "ref.cif"
+    reference.write_text("data_ref\n", encoding="utf-8")
+    qsglob = _write_fake_ost(tmp_path / "ost", 0.500)
+
+    row = score_target(
+        {"run_id": "r1", "output_dir": str(output_dir), "seeds": "101,102", "sample": 1, "selected_model_policy": "protenix_confidence_v1"},
+        {
+            "target_id": "T0206O",
+            "sequence_lookup_id": "T0206",
+            "track": "protein_oligo",
+            "rank_eligible": "true",
+            "official_metric": "QSglob",
+        },
+        {"reference_path": str(reference)},
+        benchmark="casp16_server_protein_v2_aliasfix",
+        tm_tool="",
+        dockq_tool="",
+        qsglob_tool=qsglob,
+    )
+
+    assert row["status"] == "partial_candidates"
+    assert row["score"] == "0.000000"
+    assert row["candidate_count"] == 2
+    assert row["observed_candidate_count"] == 1
