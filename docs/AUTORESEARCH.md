@@ -68,6 +68,11 @@ where methods should change.
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
   sequence-recovery + large-target fallback + token-safe stoichiometry inputs
   with the same five-candidate `protenix5` budget. It is not submitted yet.
+- Queued v2 no-over-token attack run spec:
+  `server_v2_attack_nofail_protenix5_seed101_105`, using the v2
+  coverage/stoich/low-complexity/large-fallback input with 0 over-token jobs
+  and the same five-candidate `protenix5` budget. It is not submitted yet and
+  waits behind the three v2 `dev_fixed` rows.
 - New coverage-recovery strategy:
   `yang_large_target_split_or_fallback_v1`, which predeclares a token-budget
   fallback for the eight known Protenix `n_token > 2560` failures.
@@ -261,6 +266,9 @@ competitive result.
     winner-scale budget if the no-over-token v2 stack scores well enough to
     justify 25-seed compute. Do not launch it before the active `protenix5`
     and v2 dev rows give evidence, unless a supersession decision is recorded.
+24. Keep `server_v2_attack_nofail_protenix5_seed101_105` queued behind the
+    three v2 `dev_fixed` rows as the first five-candidate no-over-token attack
+    check.
 
 ## Run Discipline
 
