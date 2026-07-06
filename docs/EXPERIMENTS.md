@@ -13,7 +13,7 @@ leaderboard progress.
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | scored | target-agnostic Yang-style terminal tag cleanup rerun | yes for domain track |
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | scored | single-entity oversize domain fallback recovered `T1295` inference but not score, because `T1295` lacks local reference mapping | yes for domain track |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | scored negative | full-set antibody Fv constant-region cleanup rerun | yes for domain track |
-| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` running | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
+| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` running; 98/89/0/0/0 CIFs by seed at `2026-07-06 16:32 CDT` | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | recover missing/misparsed protein-domain sequences on top of terminal-tag cleanup | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
@@ -23,7 +23,7 @@ leaderboard progress.
 | `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | superseded; Slurm wrapper job `810938` is running the current nofail dev row | older alias-fixed v2 baseline using coverage + token-safe stoichiometry inputs | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 stack plus large-target fallback for the 11 remaining over-token jobs | keep only as ablation |
-| `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` running | current strongest v2 no-over-token `dev_fixed` input stack with protein-oligo sequence recovery | yes for domain track; oligo after QSglob mapping validation |
+| `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` running; 18/165 CIFs at `2026-07-06 16:32 CDT` | current strongest v2 no-over-token `dev_fixed` input stack with protein-oligo sequence recovery | yes for domain track; oligo after QSglob mapping validation |
 | `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending, not submitted | five-seed attack on the current strongest v2 no-over-token stack with exact-sequence MSA reuse and confidence-only model selection | attack tier only |
 | `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | pending, not submitted | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | yes for domain track; oligo after QSglob mapping validation |
 | `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:msa_reuse_attack | non-reuse predecessor of the current five-seed v2 no-over-token attack | attack tier only; run only as ablation |
@@ -134,6 +134,9 @@ leaderboard progress.
    `protenix_confidence_v1`. It is attack-tier only.
    - Submitted to Vista GH200 as Slurm job `810719` at `2026-07-06T15:29Z`;
      initial queue state was `PENDING (Priority)`.
+   - `2026-07-06 16:32 CDT` live check: seed CIF counts are `98`, `89`, `0`,
+     `0`, and `0`; the run is incomplete and must not be scored as a full
+     five-candidate attack.
 9. Start target_lab loops on H1258 and H1232 only as diagnostics for
    stoichiometry/construct tricks; promotion requires a target-agnostic full
    benchmark rerun.
@@ -221,6 +224,10 @@ leaderboard progress.
       `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`;
       the dependency was later cleared and the wrapper job is now running the
       newer oligo-recovery nofail dev row through `run-next`.
+    - `2026-07-06 16:32 CDT` live check: the active nofail dev row has 18/165
+      CIFs. MSA/template preprocessing completed and inference is progressing,
+      so wait for completion before scoring or launching the dependent
+      `protenix5` MSA-reuse attack.
 22. Installed OpenStructure 2.11.1 in the isolated conda env
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob` and configured
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` as the

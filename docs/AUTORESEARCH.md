@@ -78,9 +78,9 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
-  is running; the latest recorded check found 98 `seed_101` CIFs and 79
-  `seed_102` CIFs, so it is still incomplete and must not be scored as a
-  five-candidate result.
+  is running. The `2026-07-06 16:32 CDT` check found 98 `seed_101` CIFs, 89
+  `seed_102` CIFs, and no `seed_103..105` CIFs, so it is still incomplete and
+  must not be scored as a five-candidate result.
 - Queued second attack run spec:
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
   sequence-recovery + large-target fallback + token-safe stoichiometry inputs
@@ -102,6 +102,12 @@ where methods should change.
   current v2 dev row's `inputs-update-msa.json`. The reuse report has 268
   protein chains reused, 0 missing sources, and 0 kept-existing rows. This
   supersedes the non-reuse attack row for the next v2 `protenix5` launch.
+- Active v2 no-over-token dev row:
+  `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
+  is running as Slurm job `810938`. The `2026-07-06 16:32 CDT` check found
+  18/165 CIFs. MSA/template preprocessing is complete and inference is
+  progressing, so do not score or launch dependent queue entries until the run
+  either finishes or clearly fails.
 - New v2 hydrophobic-leader nofail derivative:
   `yang_oligo_sequence_stoich_low_complexity_hydrophobic_leader_large_fallback_v1`
   starts from the strongest v2 nofail stack and applies the existing
