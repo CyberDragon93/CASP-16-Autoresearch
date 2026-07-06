@@ -103,8 +103,9 @@ competitive result.
    benchmark with complete prediction coverage rather than local-v1 reuse.
 7. Monitor and score `server_attack_protenix_terminal_tag_seed101_105`, the
    first fixed 5-candidate attack run. Keep it separate from `dev_fixed`.
-8. Queue `yang_large_target_split_or_fallback_v1` after the attack job if
-   coverage recovery is still the highest-leverage next move.
+8. Submit `server_protenix_yang_large_target_split_or_fallback_seed101` after
+   the active attack job if coverage recovery remains the highest-leverage next
+   move.
 9. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.

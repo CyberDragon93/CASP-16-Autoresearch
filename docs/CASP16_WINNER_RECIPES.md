@@ -131,9 +131,10 @@ Useful strategy hypotheses:
    `yang_hydrophobic_leader_cleanup_v1`: generated as risk-increasing
    construct-cleanup artifacts; promote only after baseline or conservative
    cleanup evidence.
-7. `yang_large_target_split_or_fallback_v1`: generated from the 8 oversize
-   failures; queue after the active attack job if coverage recovery remains
-   higher leverage than another construct cleanup.
+7. `yang_large_target_split_or_fallback_v1`: generated and queued as
+   `server_protenix_yang_large_target_split_or_fallback_seed101`; run after
+   the active attack job if coverage recovery remains higher leverage than
+   another construct cleanup.
 8. QSglob scorer installation/integration: without this, oligo server runs
    remain diagnostic no matter how good the structures look.
 9. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`

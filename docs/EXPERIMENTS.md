@@ -14,7 +14,7 @@ leaderboard progress.
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | scored | single-entity oversize domain fallback recovered `T1295` inference but not score, because `T1295` lacks local reference mapping | yes for domain track |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | scored negative | full-set antibody Fv constant-region cleanup rerun | yes for domain track |
 | `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` pending | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
-| `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | strategy artifacts generated | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | not queued while attack job is pending |
+| `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
