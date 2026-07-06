@@ -56,6 +56,10 @@ where methods should change.
   `server_protenix_yang_oligo_stoichiometry_token_safe_seed101`, restores exact
   copy counts for 5 under-budget oligo jobs while keeping the largest
   optimized job at 2535 tokens.
+- New H1258 target-lab artifact:
+  `target_lab/h1258_interaction_window_v1/` builds the public
+  LRRK2-interaction-window clue as LRRK2 residues 861-1014 plus 14-3-3 A1B2.
+  It is 648 tokens and must stay out of ranked workflows until generalized.
 
 ## Main Objective
 
@@ -140,7 +144,10 @@ competitive result.
     useful oligo signal.
 12. Build public/domain-window experiments for oversize exact-stoichiometry
     systems such as H1258.
-13. Implement strategy experiments inspired by CASP16 winners: disorder
+13. Run the H1258 target-lab interaction-window job when a small GH200 slot is
+    available, then decide whether a target-agnostic window rule is worth a
+    full benchmark candidate.
+14. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.
 

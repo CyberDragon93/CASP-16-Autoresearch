@@ -14,6 +14,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | P4 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | Combine the two coverage fixes before spending larger attack budgets | Submit after the attack and component coverage runs unless their results make the stack unnecessary |
 | P5 | `yang_oligo_stoichiometry_recovery_v1` derivative | `casp16_server_protein_v1` | artifacts generated, not queued | Several oligo inputs silently use one copy per entity despite official A/B copy counts | Build token-safe or windowed derivative before queuing a full run |
 | P6 | `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | Restores exact stoichiometry for 5 under-budget oligo jobs without reintroducing token-limit failures | Submit after active pending jobs if exact stoichiometry remains the next oligo signal |
+| P7 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | Public CASP16 complex clue says top Yang H1258 models used LRRK2 interaction-domain window | Run manually in a small slot; promote only as a target-agnostic window rule |
 
 ## Latest Baseline Result
 
@@ -38,6 +39,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | P4 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `yang_sequence_recovery_large_target_fallback_v1` | `runs/server_protenix_yang_sequence_recovery_large_target_fallback_seed101/` | `casp16_server_protein_v1` | pending behind active jobs | Stack sequence recovery with token-budget fallback; 40 unique changed targets and max optimized job 2535 tokens |
 | generated | not queued | `yang_oligo_stoichiometry_recovery_v1` | `strategies/yang_oligo_stoichiometry_recovery_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | artifacts generated | Restore official oligo copy counts for 9 existing jobs; 5 remain under token limit and 4 need construct/window handling |
 | P6 | `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `yang_oligo_stoichiometry_token_safe_v1` | `runs/server_protenix_yang_oligo_stoichiometry_token_safe_seed101/` | `casp16_server_protein_v1` | pending behind active jobs | Apply exact stoichiometry only for under-budget oligo jobs on top of stacked coverage recovery |
+| target_lab | not queued | `h1258_interaction_window_v1` | `target_lab/h1258_interaction_window_v1/` | target_lab only | artifact generated | LRRK2 residues 861-1014 plus 14-3-3 A1B2, total 648 tokens |
 
 The terminal-tag, oversize-domain fallback, and antibody-Fv runs are complete
 and scored. The next valuable work is scorer/benchmark capability, not another
@@ -143,6 +145,7 @@ internal candidate.
 | P14 | `yang_sequence_recovery_large_target_fallback_v1` | queued as `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | Sequence recovery exposes two additional oversized domain jobs, so the fixes should be tested together before larger attack budgets | Run only after active pending jobs unless component results make the stack unnecessary |
 | P15 | `yang_oligo_stoichiometry_recovery_v1` | artifacts generated | Exact stoichiometry changes H1232/H1233/H1236/H1244/H1267 safely and exposes H1217/H1227/H1258/H1265 as oversized realistic assemblies | Do not queue exact full assemblies directly; create a token-safe or domain-window derivative first |
 | P16 | `yang_oligo_stoichiometry_token_safe_v1` | queued as `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | This is the token-safe derivative: 5 exact-stoichiometry changes, max job 2535 tokens | Run after active pending jobs; keep oligos diagnostic until QSglob is available |
+| P17 | H1258 interaction-window target_lab | artifact generated | Public assessment says top Yang H1258 models used LRRK2 interacting region instead of full-length LRRK2 | Run as target_lab only; never count it as a ranked server result |
 
 ## Evidence Links
 

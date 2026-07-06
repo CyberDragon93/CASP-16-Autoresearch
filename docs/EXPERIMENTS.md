@@ -19,6 +19,7 @@ leaderboard progress.
 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
 | `yang_oligo_stoichiometry_recovery_v1` | `casp16_server_protein_v1` | artifacts generated, not queued | restore official oligo copy counts that collapsed to one copy per entity | not queued until token-safe/windowed derivative exists |
 | `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes for domain track; oligo diagnostic until QSglob exists |
+| `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -145,6 +146,11 @@ leaderboard progress.
     `H1233`, `H1236`, `H1244`, and `H1267`, skips exact recovery for oversize
     or upstream-reduced assemblies, preserves 135 Protenix jobs, and keeps the
     largest optimized job at 2535 tokens.
+16. Generated `target_lab/h1258_interaction_window_v1` from the public CASP16
+    complex-assessment clue that top Yang H1258 models used the LRRK2
+    interacting region. The artifact uses LRRK2 residues 861-1014 after tag
+    cleanup plus 14-3-3 A1B2, total length 648. It is target_lab-only and not
+    a ranked run.
 
 ## Strategy Decision Log
 

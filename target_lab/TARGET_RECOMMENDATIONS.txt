@@ -50,6 +50,7 @@ Top recommendations
      the full A1B2 assembly through Protenix. CASP16 complex assessment notes
      that top Yang models used the interacting LRRK2 region rather than the
      full-length chain.
+     Artifact: `target_lab/h1258_interaction_window_v1/`.
    - Compare full A1B2 prediction against smaller subcomplex jobs such as A1B1
      or B2, but keep these as target_lab diagnostics.
    - Try stricter MSA/template cache reuse and record exact MSA parameters.

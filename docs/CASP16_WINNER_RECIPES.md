@@ -87,6 +87,7 @@ wrong assemblies should score poorly on the oligo track.
 | O1a | Server stoichiometry recovery | local server-target rows can lose explicit target-list stoichiometry and collapse assemblies to one copy per entity | `yang_oligo_stoichiometry_recovery_v1` restores official parsed `Oligo.State` for protein-only oligo jobs | queue only a token-safe or windowed derivative; exact recovered full assemblies can exceed Protenix limits |
 | O1b | Token-safe stoichiometry | exact stoichiometry helps only if the assembly is still runnable under the fixed Protenix budget | `yang_oligo_stoichiometry_token_safe_v1` starts from stacked coverage recovery and restores only under-budget copy counts | queue as a full benchmark candidate after current coverage runs |
 | O2 | Construct refinement | complex assessment highlights partial constructs over full sequences | generate target-agnostic construct variants from sequence/domain annotations for large complexes | improves fixed-set QSglob once scorer exists; DockQ-only wins stay diagnostic |
+| O2a | H1258 public interaction window | CASP16 complex assessment notes top Yang H1258 models used the LRRK2 interacting region rather than full-length LRRK2 | `target_lab/h1258_interaction_window_v1/` builds LRRK2 861-1014 plus 14-3-3 A1B2 | target_lab only; promotion requires a target-agnostic window rule |
 | O3 | Customized MSA/template | top complex groups beat default AFM/AF3 via customized MSAs, templates, and sampling | full MSA/template baseline first, then compare MSA-cache and template modes | full server target coverage increases before target_lab tuning |
 | O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | `attack_budgets/casp16_server_attack_protenix5.json` defines a fixed 5-candidate Protenix attack budget with confidence-only selection | launch only after the target question is worth multi-seed compute and budget accounting is recorded |
 | O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `yang_antibody_fv_cleanup_v1` completed a full-set run; `yang_antibody_fv_fragment_inputs_v1` remains target_lab | do not promote until QSglob can evaluate the antibody oligo predictions |
@@ -156,23 +157,26 @@ Useful strategy hypotheses:
    stacked coverage recovery. It changes the 5 under-budget
    exact-stoichiometry oligo jobs while keeping the largest optimized job at
    2535 tokens.
-12. QSglob scorer installation/integration: without this, oligo server runs
+12. `target_lab/h1258_interaction_window_v1`: generated a target-lab-only
+   public interaction-window input with LRRK2 residues 861-1014 and 14-3-3
+   A1B2 stoichiometry. Total length is 648 tokens.
+13. QSglob scorer installation/integration: without this, oligo server runs
    remain diagnostic no matter how good the structures look.
-13. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
+14. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
    is the first queued 5-candidate terminal-tag attack run; use only for a
    separate multi-candidate comparison.
-14. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
+15. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
    CASP domain-summary metadata; useful for learning whether domain
    decomposition helps, but not a server-ranked strategy as-is.
-15. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
+16. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
    for antibody-antigen complexes, trimming antibody constant regions while
    preserving antigen chains; useful for O5 learning, not a server-ranked
    strategy as-is.
-16. Domain crop/chain mapping: needed before domain scores can be trusted on
+17. Domain crop/chain mapping: needed before domain scores can be trusted on
    multi-domain or multi-chain targets.
-17. H1258/H1232 target_lab loop: use these as fast learning targets for
+18. H1258/H1232 target_lab loop: use these as fast learning targets for
    stoichiometry, construct refinement, and antibody-complex behavior, then
    promote only target-agnostic changes.
-18. Model-selection research: collect confidence/consensus after predictions,
+19. Model-selection research: collect confidence/consensus after predictions,
    but keep ranked `first_output_only` unless a new benchmark version is
    created.
