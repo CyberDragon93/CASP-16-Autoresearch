@@ -117,13 +117,15 @@ where methods should change.
   `data/msa_cache/index.tsv` for 141/141 protein chains and requires complete
   reuse before launch. The fixed 175-target server benchmark scoring set is not
   changed: skipped no-reference targets still score 0 locally. `run-next
-  --dry-run` now selects this row after the active v2 dev run clears.
-- Active v2 no-over-token dev row:
+  --dry-run` selected this row. Slurm job `811751` is now running on
+  `c636-072`; the Protenix log confirms `inputs.msa-reuse.json`, skips MSA
+  update, and starts `T0206` as `1/74`.
+- Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
-  is running as Slurm job `810938`. The `2026-07-06 17:11 CDT` check found
-  39/165 CIFs. MSA/template preprocessing is complete and inference is
-  progressing, so do not score or launch dependent queue entries until the run
-  either finishes or clearly fails.
+  produced 39/165 CIFs and then spent extended GPU time on `T1295`, which is
+  `no_reference_pdb` in the local benchmark. It is append-only marked
+  `cancelled:scoreable_subset_attack`; keep its partial predictions/MSA cache
+  only, and do not resume full-input v2 dev before reference recovery.
 - Early v2 oligo probe:
   `diagnostics/qsglob_probes/server_v2_partial_early_oligo_probe.csv` scored
   the eight completed oligo targets that already had references
@@ -389,15 +391,17 @@ competitive result.
     justify 25-seed compute. Its JSON and shard manifest now point at the
     MSA-reused
     `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1` input.
-24. Score
+24. Do not resume
     `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
-    before deciding whether to launch the corresponding five-candidate attack
-    or jump directly to a larger predeclared budget.
+    before reference recovery. It was cancelled at `T1295` after producing
+    partial artifacts and MSA cache; local score progress now comes from the
+    scoreable-subset attack.
 25. Prefer
     `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`
     for the first v2 five-candidate no-over-token attack while local references
     are incomplete. It preserves the fixed scoring set but avoids spending GPU
-    time on jobs that currently cannot affect local score.
+    time on jobs that currently cannot affect local score. This is now running
+    as Slurm job `811751`.
 26. Run the hydrophobic-leader nofail `dev_fixed` derivative only after the
     active v2 nofail row and scoreable-subset MSA attack are handled. It is a
     narrow construct-cleanup ablation, not a replacement for the current main

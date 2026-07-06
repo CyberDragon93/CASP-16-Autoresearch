@@ -23,8 +23,8 @@ leaderboard progress.
 | `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | superseded; Slurm wrapper job `810938` is running the current nofail dev row | older alias-fixed v2 baseline using coverage + token-safe stoichiometry inputs | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 stack plus large-target fallback for the 11 remaining over-token jobs | keep only as ablation |
-| `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` running; 39/165 CIFs at `2026-07-06 17:11 CDT` | current strongest v2 no-over-token `dev_fixed` input stack with protein-oligo sequence recovery | yes for domain track; oligo after QSglob mapping validation |
-| `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending; `run-next --dry-run` selects it after the active v2 dev row clears | five-seed attack on the current strongest v2 nofail stack, filtered to 74 locally scoreable jobs with 141/141 exact-sequence MSA paths reused | attack tier only; skipped no-reference targets still score 0 locally |
+| `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | cancelled:scoreable_subset_attack; 39/165 CIFs, stopped on no-reference `T1295` | current strongest v2 no-over-token input stack with protein-oligo sequence recovery; keep partial artifacts/MSA cache only | not a complete dev row |
+| `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | Slurm job `811751` running on `c636-072`; MSA update skipped and `T0206` started as `1/74` | five-seed attack on the current strongest v2 nofail stack, filtered to 74 locally scoreable jobs with 141/141 exact-sequence MSA paths reused | attack tier only; skipped no-reference targets still score 0 locally |
 | `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:scoreable_subset_attack; Slurm wrapper job `811751` remains pending on `afterany:810938` | full 165-job MSA-reuse predecessor that repeats no-reference heavy jobs before reference recovery | attack tier only; run only as ablation |
 | `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | deferred:wait_scoreable_attack; Slurm wrapper job `811754` remains pending on `afterany:811751` | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | re-enable only after scoreable attack/full v2 score |
 | `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:msa_reuse_attack | non-reuse predecessor of the current five-seed v2 no-over-token attack | attack tier only; run only as ablation |
@@ -262,6 +262,16 @@ leaderboard progress.
       `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`
       after the active v2 dev row clears. The hydrophobic-leader row is
       append-only deferred.
+    - `2026-07-06 17:36 CDT`: cancelled the active full-input v2 dev Slurm job
+      `810938` after it spent extended GPU time on `T1295`, which is
+      `no_reference_pdb` locally. The row is append-only marked
+      `cancelled:scoreable_subset_attack`, and dependency was cleared from
+      wrapper job `811751`; it is now pending on normal Slurm priority and will
+      launch the scoreable attack through `run-next`.
+    - `2026-07-06 17:37 CDT`: wrapper job `811751` started on `c636-072` and
+      selected the scoreable attack. The Protenix log confirms
+      `inputs.msa-reuse.json`, reports that MSA results do not need updating,
+      and starts inference at `T0206` as job `1/74`.
 22. Installed OpenStructure 2.11.1 in the isolated conda env
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob` and configured
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` as the
@@ -446,6 +456,10 @@ leaderboard progress.
       `superseded:scoreable_subset_attack`, and the hydrophobic-leader ablation
       is `deferred:wait_scoreable_attack`. `run-next --dry-run` now selects the
       scoreable-subset attack after the active v2 dev row clears.
+    - Follow-up: the full-input v2 dev row reached `T1295`, a local
+      `no_reference_pdb` target, and was cancelled after 39/165 CIFs so the
+      pending Slurm wrapper can spend the next GH200 slot on the 74-job
+      scoreable attack instead.
     - Guardrail: this does not change benchmark scoring. The fixed 175 server
       targets remain in scoring, and skipped no-reference targets score 0
       locally. This is a compute-saving local-measurement tactic, not an
