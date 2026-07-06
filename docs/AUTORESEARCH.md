@@ -52,8 +52,10 @@ where methods should change.
   limit and 4 require construct/domain-window handling.
 - New token-safe stoichiometry strategy:
   `yang_oligo_stoichiometry_token_safe_v1`, generated on top of stacked
-  coverage recovery, restores exact copy counts for 5 under-budget oligo jobs
-  while keeping the largest optimized job at 2535 tokens.
+  coverage recovery and queued as
+  `server_protenix_yang_oligo_stoichiometry_token_safe_seed101`, restores exact
+  copy counts for 5 under-budget oligo jobs while keeping the largest
+  optimized job at 2535 tokens.
 
 ## Main Objective
 
@@ -132,7 +134,7 @@ competitive result.
     `server_protenix_yang_sequence_recovery_large_target_fallback_seed101`
     candidate after the active pending jobs if the component coverage fixes
     still look complementary.
-11. Queue the token-safe
+11. Submit the token-safe
     `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` candidate
     after the current coverage jobs if exact stoichiometry remains the next
     useful oligo signal.

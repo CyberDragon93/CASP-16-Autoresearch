@@ -151,9 +151,11 @@ Useful strategy hypotheses:
    stoichiometry artifact on top of terminal-tag cleanup. It changes 9 existing
    oligo jobs; 5 remain under the Protenix limit and 4 expose the need for
    construct/domain-window strategies.
-11. `yang_oligo_stoichiometry_token_safe_v1`: generated on top of stacked
-   coverage recovery. It changes the 5 under-budget exact-stoichiometry oligo
-   jobs while keeping the largest optimized job at 2535 tokens.
+11. `yang_oligo_stoichiometry_token_safe_v1`: generated and queued as
+   `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` on top of
+   stacked coverage recovery. It changes the 5 under-budget
+   exact-stoichiometry oligo jobs while keeping the largest optimized job at
+   2535 tokens.
 12. QSglob scorer installation/integration: without this, oligo server runs
    remain diagnostic no matter how good the structures look.
 13. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`

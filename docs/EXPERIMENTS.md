@@ -18,7 +18,7 @@ leaderboard progress.
 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | recover missing/misparsed protein-domain sequences on top of terminal-tag cleanup | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
 | `yang_oligo_stoichiometry_recovery_v1` | `casp16_server_protein_v1` | artifacts generated, not queued | restore official oligo copy counts that collapsed to one copy per entity | not queued until token-safe/windowed derivative exists |
-| `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | artifacts generated, run spec not created | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes after run spec is created; oligo diagnostic until QSglob exists |
+| `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes for domain track; oligo diagnostic until QSglob exists |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -139,10 +139,11 @@ leaderboard progress.
     under the 2560-token limit; `H1217`, `H1227`, `H1258`, and `H1265` become
     realistic but oversized assemblies, so they need construct/domain-window
     handling before a ranked full run.
-15. Generated `yang_oligo_stoichiometry_token_safe_v1` on top of stacked
-    coverage recovery. It restores exact copy counts for `H1232`, `H1233`,
-    `H1236`, `H1244`, and `H1267`, skips exact recovery for oversize or
-    upstream-reduced assemblies, preserves 135 Protenix jobs, and keeps the
+15. Generated and queued
+    `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` on top of
+    stacked coverage recovery. It restores exact copy counts for `H1232`,
+    `H1233`, `H1236`, `H1244`, and `H1267`, skips exact recovery for oversize
+    or upstream-reduced assemblies, preserves 135 Protenix jobs, and keeps the
     largest optimized job at 2535 tokens.
 
 ## Strategy Decision Log
