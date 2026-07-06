@@ -74,6 +74,12 @@ This keeps two questions separate: "did the strategy improve under a fair
 single-seed development budget?" and "how close can a realistic automated
 server budget get to the CASP16 server winners?"
 
+The current five-candidate policy is only the first realistic attack tier. It
+should not be read as an estimate of the true winner budget. If later work uses
+more seeds, more samples, multiple engines, MSA/template variants, or a stronger
+predeclared selector, that becomes a new attack-budget version with its own
+artifact manifest and leaderboard tier.
+
 Existing prediction directories can be registered for diagnostic reuse without
 creating a runnable job:
 

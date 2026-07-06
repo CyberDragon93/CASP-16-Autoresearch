@@ -105,6 +105,12 @@ and a predeclared confidence-only model selection rule. Do not mix
 `server_attack` rows into `dev_fixed` rankings, and do not choose the submitted
 model using references, official scores, or target-score feedback.
 
+The first `server_attack` budget uses five candidates per target because it is
+the smallest useful realism check, not because CASP16 winners are assumed to
+have used only five candidates. Any larger candidate budget must be a new
+predeclared attack-budget version and should report candidates per target,
+expected GPU-hours, actual wall time, and selection policy.
+
 The oversize-domain fallback result is a reminder to spend realistic attack
 compute carefully: extra seeds will not fix hard Protenix token-limit failures,
 missing references, or missing QSglob. Clean coverage, reference mapping, and

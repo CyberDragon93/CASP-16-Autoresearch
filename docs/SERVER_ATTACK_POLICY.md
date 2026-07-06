@@ -22,6 +22,20 @@ The first run spec using this budget is
 `server_attack_protenix_terminal_tag_seed101_105`. It has been submitted as
 Slurm job `810719` and remains an attack row, not a `dev_fixed` row.
 
+## Budget Reality
+
+Treat `protenix5` as the first local attack tier, not as a claim about the
+actual CASP16 winner compute. Strong CASP16 server systems likely generated
+multiple internal candidates per target through some mix of stochastic seeds,
+sampling, engines, MSA/template variants, and model ranking. In this repo,
+`seed`, `sample`, engine choice, and selection policy are all part of the
+candidate budget and must be declared before scoring.
+
+If a strategy needs more realistic compute, create a new attack-budget JSON
+such as `protenix25` or an ensemble budget. Do not mutate
+`casp16_server_attack_protenix5.json`, and do not compare the higher-budget
+rows against `dev_fixed` or `protenix5` rows as if the compute were identical.
+
 ## Selection Rule
 
 `protenix_confidence_v1` is a pre-scoring confidence-only model selector:
