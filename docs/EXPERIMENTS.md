@@ -89,6 +89,22 @@ Launch gate: run with the same Protenix/MSA/template/seed/sample budget only
 after the current baseline frees the GH200 and the conservative tag-cleanup
 ablation has either run or been intentionally skipped.
 
+### 2026-07-05 Terminal Tag + Antibody Fv Stack
+
+Decision: generate `yang_terminal_tag_antibody_fv_cleanup_v1` as a full-set
+sequence-only combined construct-cleanup artifact, but keep it behind the
+individual ablations until their full-run results exist.
+
+Rationale: terminal expression tags and antibody constant-region cleanup touch
+non-overlapping target groups in `casp16_server_protein_v1`. The combined input
+preserves all 106 server jobs, audits 172 protein chains, and changes 23
+protein sequences across 15 targets. This is a cheap way to test whether two
+winner-style construct adjustments compose without changing benchmark
+eligibility.
+
+Launch gate: queue with the same Protenix/MSA/template/cache/fusion/seed/sample
+budget after the individual terminal-tag and antibody-Fv ablations.
+
 ### 2026-07-05 Dynamic Terminal IDR Scan
 
 Decision: do not implement the first dynamic terminal-IDR cleanup heuristic as

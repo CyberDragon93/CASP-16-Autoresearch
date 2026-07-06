@@ -52,6 +52,7 @@ benchmark target set or inspect references.
 | D1b | Epitope/TEV tag cleanup | some server inputs visibly include longer N-terminal epitope/His/TEV expression artifacts | `./casp16 strategy-inputs --strategy yang_epitope_tag_cleanup_v1` extends D1a to FLAG-like and His-TEV prefixes while staying sequence-only | queue only after the baseline or after deciding to skip the conservative D1a ablation |
 | D1c | Terminal low-complexity cleanup | Yang-style construct refinement often removes disordered terminal noise; CASP monomer assessment highlights construct design | `./casp16 strategy-inputs --strategy yang_low_complexity_terminal_cleanup_v1` trims only 40-aa terminal low-complexity windows after tag cleanup | queue only after conservative tag cleanup helps or baseline failures justify the extra risk |
 | D1d | Hydrophobic leader cleanup | construct refinement can remove signal-like N-terminal leaders that are not part of the scored folded core | `./casp16 strategy-inputs --strategy yang_hydrophobic_leader_cleanup_v1` trims a small set of sequence-only hydrophobic-leader candidates after D1c | risky branch; queue only after baseline or tag-cleanup evidence justifies it |
+| D1e | Conservative construct stack | non-overlapping low-risk construct cleanups may compose better than either ablation alone | `./casp16 strategy-inputs --strategy yang_terminal_tag_antibody_fv_cleanup_v1` stacks terminal tag cleanup with antibody Fv cleanup on the full server set | queue after individual ablations; judge only by full-set mean |
 | D2 | Domain decomposition | top monomer pipelines refined constructs and handled domains separately | `./casp16 strategy-inputs --strategy yang_domain_fragment_inputs_v1` creates post hoc CASP-domain fragment inputs for target-lab learning | not server-ranked; promotion needs a new benchmark version or predeclared segmentation rule |
 | D3 | MSA/template depth | Yang/trRosetta workflows emphasize optimized MSA/template inputs | full MSA/template Protenix/OpenDDE server run; record MSA source, template mode, cache paths | higher full-set coverage and no regression on positive controls |
 | D4 | AF3-style model selection | assessment says AF3 adoption improved confidence/model selection | compare Protenix/OpenDDE first-model policy against allowed diagnostic confidence/consensus only after all predictions exist | confidence remains diagnostic until quality metric validates it on full benchmark |
@@ -130,11 +131,14 @@ Useful strategy hypotheses:
 7. `yang_antibody_fv_cleanup_v1`: generated as a full-set sequence-only
    ranked-candidate artifact for the O5 antibody-complex branch; queue after
    the baseline and lower-risk terminal-tag cleanup rather than before them.
-8. Domain crop/chain mapping: needed before domain scores can be trusted on
+8. `yang_terminal_tag_antibody_fv_cleanup_v1`: generated as a full-set
+   combined construct-cleanup artifact; queue after the individual ablations to
+   test whether the non-overlapping changes compose.
+9. Domain crop/chain mapping: needed before domain scores can be trusted on
    multi-domain or multi-chain targets.
-9. H1258/H1232 target_lab loop: use these as fast learning targets for
+10. H1258/H1232 target_lab loop: use these as fast learning targets for
    stoichiometry, construct refinement, and antibody-complex behavior, then
    promote only target-agnostic changes.
-10. Model-selection research: collect confidence/consensus after predictions,
+11. Model-selection research: collect confidence/consensus after predictions,
    but keep ranked `first_output_only` unless a new benchmark version is
    created.

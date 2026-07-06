@@ -19,6 +19,7 @@ STRATEGY_YANG_HYDROPHOBIC_LEADER_CLEANUP = "yang_hydrophobic_leader_cleanup_v1"
 STRATEGY_YANG_DOMAIN_FRAGMENT_INPUTS = "yang_domain_fragment_inputs_v1"
 STRATEGY_YANG_ANTIBODY_FV_INPUTS = "yang_antibody_fv_fragment_inputs_v1"
 STRATEGY_YANG_ANTIBODY_FV_CLEANUP = "yang_antibody_fv_cleanup_v1"
+STRATEGY_YANG_TERMINAL_TAG_ANTIBODY_FV_CLEANUP = "yang_terminal_tag_antibody_fv_cleanup_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
@@ -27,6 +28,7 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_DOMAIN_FRAGMENT_INPUTS,
     STRATEGY_YANG_ANTIBODY_FV_INPUTS,
     STRATEGY_YANG_ANTIBODY_FV_CLEANUP,
+    STRATEGY_YANG_TERMINAL_TAG_ANTIBODY_FV_CLEANUP,
 )
 MIN_REMAINING_PROTEIN_LENGTH = 30
 LOW_COMPLEXITY_TRIM_WINDOW = 40
@@ -177,6 +179,17 @@ def clean_antibody_fv_constant_regions(sequence: str) -> SequenceCleanup:
     )
 
 
+def clean_terminal_tags_then_antibody_fv_regions(sequence: str) -> SequenceCleanup:
+    tag_cleanup = clean_terminal_expression_tags(sequence)
+    fv_cleanup = clean_antibody_fv_chain(tag_cleanup.sequence)
+    return SequenceCleanup(
+        sequence=fv_cleanup.sequence,
+        removed_n=tag_cleanup.removed_n,
+        removed_c=tag_cleanup.removed_c + fv_cleanup.removed_c,
+        rules=tag_cleanup.rules + fv_cleanup.rules,
+    )
+
+
 def is_low_complexity_terminal_segment(sequence: str) -> bool:
     if not sequence:
         return False
@@ -309,6 +322,8 @@ def derive_strategy_inputs(
         cleaner = clean_hydrophobic_leader_regions
     if strategy == STRATEGY_YANG_ANTIBODY_FV_CLEANUP:
         cleaner = clean_antibody_fv_constant_regions
+    if strategy == STRATEGY_YANG_TERMINAL_TAG_ANTIBODY_FV_CLEANUP:
+        cleaner = clean_terminal_tags_then_antibody_fv_regions
 
     for job in jobs:
         optimized_job = _copy_json_dict(job)

@@ -10,6 +10,7 @@ from casp16_leaderboard.strategies import (
     clean_hydrophobic_leader_regions,
     clean_low_complexity_terminal_regions,
     clean_terminal_expression_tags,
+    clean_terminal_tags_then_antibody_fv_regions,
     derive_strategy_inputs,
     parse_residue_ranges,
 )
@@ -309,6 +310,20 @@ def test_clean_antibody_fv_constant_regions_returns_manifest_compatible_cleanup(
     assert cleaned.rules == (f"trim_c_antibody_constant:{len(variable)}",)
 
 
+def test_clean_terminal_tags_then_antibody_fv_regions_composes_rules() -> None:
+    variable = "QVQLVQSGAEVKKPGSSVKVPCKASGGTFSTYPISWVRQAPGQGLEWMGRIIPDPPMANIAQKFQGRVSFSADKSTTIVYMELSSLRSEDTAVYFCAREILQSPPFAVDVWGQGTMVAVSS"
+    constant = "ASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKVEPKSC"
+    tagged = "MGSSHHHHHHSSGLVPRGSH" + variable + constant
+    cleaned = clean_terminal_tags_then_antibody_fv_regions(tagged)
+    assert cleaned.sequence == variable
+    assert cleaned.removed_n == len("MGSSHHHHHHSSGLVPRGSH")
+    assert cleaned.removed_c == len(constant)
+    assert cleaned.rules == (
+        "trim_n:MGSSHHHHHHSSGLVPRGSH",
+        f"trim_c_antibody_constant:{len(variable)}",
+    )
+
+
 def test_derive_antibody_fv_strategy_generates_target_lab_complex(tmp_path) -> None:
     input_json = tmp_path / "inputs.json"
     output_json = tmp_path / "antibody_fv" / "inputs.json"
@@ -400,3 +415,51 @@ def test_derive_antibody_fv_cleanup_preserves_full_set_and_job_names(tmp_path) -
         rows = list(csv.DictReader(handle, delimiter="\t"))
     assert [row["changed"] for row in rows] == ["false", "true", "false"]
     assert rows[1]["rules"] == f"trim_c_antibody_constant:{len(heavy_variable)}"
+
+
+def test_derive_terminal_tag_antibody_fv_cleanup_combines_full_set_changes(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "terminal_antibody_fv" / "inputs.json"
+    manifest = tmp_path / "terminal_antibody_fv" / "manifest.tsv"
+    antigen = "SKPNNDFHFEVFNFVPCSICSNNPTCWAICKRIPNKKPGKK"
+    heavy_variable = "QVQLVQSGAEVKKPGSSVKVPCKASGGTFSTYPISWVRQAPGQGLEWMGRIIPDPPMANIAQKFQGRVSFSADKSTTIVYMELSSLRSEDTAVYFCAREILQSPPFAVDVWGQGTMVAVSS"
+    constant = "ASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKVEPKSC"
+    ordinary = "ACDEFGHIKLMNPQRSTVWY" * 4
+    tagged_ordinary = ordinary + "HHHHHH"
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "H1222",
+                    "sequences": [
+                        {"proteinChain": {"sequence": antigen, "count": 1, "id": ["A"]}},
+                        {"proteinChain": {"sequence": heavy_variable + constant, "count": 1, "id": ["B"]}},
+                    ],
+                },
+                {"name": "T1201", "sequences": [{"proteinChain": {"sequence": tagged_ordinary, "count": 1, "id": ["A"]}}]},
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_terminal_tag_antibody_fv_cleanup_v1",
+    )
+
+    assert summary["jobs"] == 2
+    assert summary["changed_sequences"] == 2
+    assert summary["changed_targets"] == 2
+    optimized = json.loads(output_json.read_text(encoding="utf-8"))
+    assert [job["name"] for job in optimized] == ["H1222", "T1201"]
+    assert optimized[0]["sequences"][0]["proteinChain"]["sequence"] == antigen
+    assert optimized[0]["sequences"][1]["proteinChain"]["sequence"] == heavy_variable
+    assert optimized[1]["sequences"][0]["proteinChain"]["sequence"] == ordinary
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert [row["changed"] for row in rows] == ["false", "true", "true"]
+    assert rows[1]["rules"] == f"trim_c_antibody_constant:{len(heavy_variable)}"
+    assert rows[2]["rules"] == "trim_c:HHHHHH"
