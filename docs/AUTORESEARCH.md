@@ -52,6 +52,12 @@ where methods should change.
   and five predeclared seed shards. Shard run ids and seed ranges are locked in
   `attack_budgets/casp16_server_attack_protenix25_shards.tsv`. It is not queued
   yet.
+- A no-over-token larger planned attack tier now exists as
+  `attack_budgets/casp16_server_attack_protenix25_nofail.json`: same 25 seeds
+  and selector, but using the v2 coverage/stoich/low-complexity/large-fallback
+  input with 0 jobs above Protenix's token limit. Shards are locked in
+  `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`. It is
+  not queued yet.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
   about chasing CASP16 server winners must report the attack budget, candidates
   per target, selector, and GPU cost.
@@ -251,6 +257,10 @@ competitive result.
     `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`
     to test whether removing the remaining 11 token-limit hard failures is
     worth the assembly simplification.
+23. Keep `casp16_server_attack_protenix25_nofail` as the stronger planned
+    winner-scale budget if the no-over-token v2 stack scores well enough to
+    justify 25-seed compute. Do not launch it before the active `protenix5`
+    and v2 dev rows give evidence, unless a supersession decision is recorded.
 
 ## Run Discipline
 

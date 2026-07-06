@@ -323,6 +323,16 @@ leaderboard progress.
       low-complexity ablation.
     - Interpretation: this is a coverage-recovery candidate, not a claim that
       cropped assemblies preserve official oligo fidelity.
+31. Added the planned `casp16_server_attack_protenix25_nofail` budget as a
+    separate 25-seed attack tier. It uses the same seeds `101..125`, one sample
+    per seed, and `protenix_confidence_v1` selector as the existing
+    `protenix25` plan, but points to the no-over-token v2 fallback input.
+    - Shards are locked in
+      `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
+    - This does not queue or submit any run specs.
+    - Launch gate: score the active `protenix5` attack, the v2 baseline, and
+      the v2 no-over-token fallback ablation first, unless a recorded
+      supersession decision says otherwise.
 
 ## Strategy Decision Log
 

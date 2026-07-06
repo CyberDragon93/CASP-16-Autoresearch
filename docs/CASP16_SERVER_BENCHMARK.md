@@ -89,6 +89,13 @@ planned for `casp16_server_protein_v2_aliasfix` and must run as predeclared
 seed shards before any complete row can be scored. The shard manifest is
 `attack_budgets/casp16_server_attack_protenix25_shards.tsv`.
 
+`attack_budgets/casp16_server_attack_protenix25_nofail.json` is a separate
+planned 25-seed tier for the v2 no-over-token fallback stack. It keeps the same
+seeds and selector but uses
+`yang_coverage_stoich_low_complexity_large_fallback_v1`, whose input has 0
+jobs above the Protenix 2560-token limit. The shard manifest is
+`attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
+
 Existing prediction directories can be registered for diagnostic reuse without
 creating a runnable job:
 

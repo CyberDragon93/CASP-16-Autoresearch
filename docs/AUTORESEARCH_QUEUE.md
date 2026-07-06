@@ -23,6 +23,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | P13 | `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `810824` failed; resubmitted as `811114` pending | Compact batch for exact stoichiometry plus H1258 window learning | Monitor resubmitted job; do not register as ranked |
 | P14 | `target_lab/domain_fragment_batch_v1` | target_lab only | Slurm job `810862` running on `c622-022` | Compact domain-decomposition reproduction for D2 winner recipe | Monitor job; promote only target-agnostic segmentation, not CASP-domain hand crops |
 | P15 | `casp16_server_attack_protenix25` | `casp16_server_protein_v2_aliasfix` | planned, not queued | Winner-like compute is likely more than five candidates; this declares a 25-seed Protenix tier without pretending it is comparable to `dev_fixed` or `protenix5` | Launch only after the active `protenix5` attack and v2 dev baseline are scored; execute as five seed shards |
+| P16 | `casp16_server_attack_protenix25_nofail` | `casp16_server_protein_v2_aliasfix` | planned, not queued | Same 25-seed budget, but spent only after the v2 stack has 0 Protenix over-token jobs | Launch only if the v2 no-over-token fallback ablation justifies the assembly simplification |
 
 ## Latest Baseline Result
 
@@ -183,6 +184,7 @@ internal candidate.
 | P19 | Domain fragment batch | Slurm job `810862` running on `c622-022`; Protenix import/env bootstrap passed | Fast learning set for domain decomposition on long/multidomain protein targets, max fragment 1633 residues | Use only as target_lab evidence; promote only target-agnostic segmentation or new benchmark version |
 | P20 | v2 low-complexity large fallback | queued as `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | Extra seeds cannot repair v2 jobs that still exceed Protenix's token limit | Run after the v2 baseline and v2 low-complexity ablation; stop if fallback hurts scored coverage more than it recovers |
 | P21 | `protenix25` attack tier | budget JSON and shard TSV created, not queued | Winner-scale comparison needs more than the starter five candidates | Wait for `protenix5` and v2 dev baseline evidence; run only as seed-sharded attack budget |
+| P22 | `protenix25_nofail` attack tier | budget JSON and shard TSV created, not queued | If the no-over-token v2 stack wins, spend 25 seeds on runnable jobs instead of guaranteed Protenix failures | Wait for v2 no-over-token dev score; run only as seed-sharded attack budget |
 
 ## Evidence Links
 

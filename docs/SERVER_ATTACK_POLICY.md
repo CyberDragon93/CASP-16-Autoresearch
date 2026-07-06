@@ -56,7 +56,7 @@ rows against `dev_fixed` or `protenix5` rows as if the compute were identical.
 
 ## Planned Larger Budget
 
-`attack_budgets/casp16_server_attack_protenix25.json` is the next planned
+`attack_budgets/casp16_server_attack_protenix25.json` is a planned
 winner-chasing tier, not a queued run. It targets
 `casp16_server_protein_v2_aliasfix`, declares seeds `101..125`, and keeps
 `sample_per_seed=1` for 25 candidates per target. The selector is still
@@ -64,12 +64,21 @@ winner-chasing tier, not a queued run. It targets
 Shard run ids, seed ranges, and input artifacts are locked in
 `attack_budgets/casp16_server_attack_protenix25_shards.tsv`.
 
+`attack_budgets/casp16_server_attack_protenix25_nofail.json` is a separate
+planned tier for the no-over-token v2 stack. It uses the same 25 seeds and
+selector, but points every shard at
+`yang_coverage_stoich_low_complexity_large_fallback_v1`, whose generated input
+has 163 jobs and 0 jobs above Protenix's 2560-token limit. Its shard manifest
+is `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
+
 Because Protenix loops serially over seeds, this budget must be executed as
 five predeclared five-seed shards and merged only after all shards finish. A
 partial 25-seed attempt is unranked unless it is explicitly reported as
 partial. Launch this tier only after the current `protenix5` attack and the
 v2 alias-fixed `dev_fixed` baseline have produced evidence that the extra
-candidate spend is worth the GPU-hours.
+candidate spend is worth the GPU-hours. For the nofail tier, also score the
+v2 no-over-token fallback ablation first, or explicitly record why the attack
+supersedes it.
 
 When the launch gate opens, generate each shard with the TSV row's fields:
 
@@ -86,6 +95,10 @@ When the launch gate opens, generate each shard with the TSV row's fields:
   --use-msa --use-template --use-default-params \
   --enable-cache --enable-fusion
 ```
+
+For the nofail tier, use the shard TSV rows from
+`attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`; do not
+reuse the older `protenix25` input artifact by accident.
 
 ## Execution Semantics
 

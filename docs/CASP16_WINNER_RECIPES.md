@@ -91,7 +91,7 @@ wrong assemblies should score poorly on the oligo track.
 | O2a | H1258 public interaction window | CASP16 complex assessment notes top Yang H1258 models used the LRRK2 interacting region rather than full-length LRRK2 | `target_lab/h1258_interaction_window_v1/` builds LRRK2 861-1014 plus 14-3-3 A1B2 | target_lab only; promotion requires a target-agnostic window rule |
 | O2b | Small complex learning batch | exact stoichiometry and construct windows need faster feedback than full-benchmark runs | `target_lab/small_complex_stoich_batch_v1/` batches 5 exact-stoich jobs plus H1258 window | target_lab only; use for promotion decisions, not direct ranking |
 | O3 | Customized MSA/template | top complex groups beat default AFM/AF3 via customized MSAs, templates, and sampling | full MSA/template baseline first, then compare MSA-cache and template modes | full server target coverage increases before target_lab tuning |
-| O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | `attack_budgets/casp16_server_attack_protenix5.json` defines the starter 5-candidate attack tier; `attack_budgets/casp16_server_attack_protenix25.json` declares the planned 25-seed v2 tier | launch only after the target question is worth multi-seed compute and budget accounting is recorded |
+| O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | `attack_budgets/casp16_server_attack_protenix5.json` defines the starter 5-candidate attack tier; `attack_budgets/casp16_server_attack_protenix25*.json` declares planned 25-seed v2 tiers | launch only after the target question is worth multi-seed compute and budget accounting is recorded |
 | O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `yang_antibody_fv_cleanup_v1` completed a full-set run; `yang_antibody_fv_fragment_inputs_v1` remains target_lab | do not promote until QSglob assembly mapping can evaluate the antibody oligo predictions |
 | O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
 | O7 | Oversize complex fallback | complex targets can exceed AF3-like token limits, and the baseline lost H0217/H0258/H0272/H1217/H1258/H1272 before any model was produced | `yang_large_target_split_or_fallback_v1` keeps under-budget chain/copy prefixes and records dropped chains | score as coverage recovery until QSglob and assembly mapping are trustworthy |
@@ -189,21 +189,25 @@ Useful strategy hypotheses:
     in `attack_budgets/casp16_server_attack_protenix25_shards.tsv`. Run as
     seed shards only after the current 5-seed attack and v2 dev baseline
     justify the larger spend.
-20. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
+20. `casp16_server_attack_protenix25_nofail`: planned but not queued. It uses
+    the same 25-seed budget on the v2 no-over-token fallback input, with shard
+    rows locked in
+    `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
+21. `yang_domain_fragment_inputs_v1`: generated as a target-lab artifact using
     CASP domain-summary metadata; useful for learning whether domain
     decomposition helps, but not a server-ranked strategy as-is.
-21. `target_lab/domain_fragment_batch_v1`: generated and submitted as Slurm job
+22. `target_lab/domain_fragment_batch_v1`: generated and submitted as Slurm job
     `810862`. It runs 12 domain-fragment jobs from T1210, T1218, T1269, T1257,
     T1240, and T1270 to test the domain-decomposition recipe quickly.
-22. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
+23. `yang_antibody_fv_fragment_inputs_v1`: generated as a target-lab artifact
     for antibody-antigen complexes, trimming antibody constant regions while
     preserving antigen chains; useful for O5 learning, not a server-ranked
     strategy as-is.
-23. Domain crop/chain mapping: needed before domain scores can be trusted on
+24. Domain crop/chain mapping: needed before domain scores can be trusted on
     multi-domain or multi-chain targets.
-24. H1258/H1232 target_lab loop: use these as fast learning targets for
+25. H1258/H1232 target_lab loop: use these as fast learning targets for
     stoichiometry, construct refinement, and antibody-complex behavior, then
     promote only target-agnostic changes.
-25. Model-selection research: collect confidence/consensus after predictions,
+26. Model-selection research: collect confidence/consensus after predictions,
     but keep ranked `first_output_only` unless a new benchmark version is
     created.
