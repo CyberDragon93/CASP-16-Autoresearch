@@ -40,6 +40,18 @@ Generated skeleton command:
 ./casp16 leaderboard --benchmark casp16_server_protein_v1
 ```
 
+Existing prediction directories can be registered for diagnostic reuse without
+creating a runnable job:
+
+```bash
+./casp16 register-existing-run --benchmark casp16_server_protein_v1 \
+  --run-id <diagnostic_run_id> --output-dir <prediction_dir> --no-rank-eligible
+./casp16 leaderboard --benchmark casp16_server_protein_v1
+```
+
+This is for coverage and scorer-gap accounting only. It does not replace a
+full fixed-budget server-target run.
+
 Current generated artifacts live under
 `benchmarks/casp16_server_protein_v1/`. The first skeleton has 175 fixed
 official targets, 106 generated Protenix jobs, 54 currently cached references,

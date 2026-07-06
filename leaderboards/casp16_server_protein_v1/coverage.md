@@ -9,4 +9,8 @@
 
 ## Score Status
 
-_No rows._
+| status | target scores |
+| --- | --- |
+| metric_unavailable | 19 |
+| missing_prediction | 147 |
+| ok | 9 |

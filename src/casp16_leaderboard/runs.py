@@ -243,6 +243,106 @@ def create_run_spec(
     return {"run_dir": str(run_dir), "run_spec": str(run_dir / "run_spec.json"), "script": str(run_dir / "run.sh")}
 
 
+def register_existing_run(
+    *,
+    project_root: Path,
+    run_id: str,
+    output_dir: Path,
+    input_json: Path,
+    input_manifest: Path,
+    benchmark_name: str,
+    benchmark_version: str = "",
+    benchmark_dir: Path | None = None,
+    references_manifest: Path | None = None,
+    backend: str = "opendde",
+    strategy: str = "registered_existing_predictions",
+    model_name: str = "opendde_v1",
+    source_run_id: str = "",
+    seeds: str = "101",
+    sample: int = 1,
+    fixed_budget: bool = False,
+    selected_model_policy: str = "first_output_only",
+    rank_eligible: bool = False,
+    dtype: str = "",
+    cycle: int | None = None,
+    step: int | None = None,
+    use_msa: bool = True,
+    use_template: bool = True,
+    use_default_params: bool = False,
+) -> dict[str, object]:
+    output_dir = output_dir.resolve()
+    if not output_dir.exists():
+        raise FileNotFoundError(f"prediction output directory does not exist: {output_dir}")
+
+    run_dir = project_root / "runs" / run_id
+    stdout_path = run_dir / "logs" / "stdout.log"
+    stderr_path = run_dir / "logs" / "stderr.log"
+    ensure_dir(run_dir)
+    ensure_dir(run_dir / "logs")
+    prediction_count = sum(1 for _ in output_dir.glob("**/*.cif")) + sum(1 for _ in output_dir.glob("**/*.pdb"))
+    command = ["registered_existing_predictions", str(output_dir)]
+    spec = RunSpec(
+        run_id=run_id,
+        backend=backend,
+        strategy=strategy,
+        benchmark_name=benchmark_name,
+        benchmark_version=benchmark_version,
+        benchmark_dir=str(benchmark_dir or ""),
+        model_name=model_name,
+        input_json=str(input_json),
+        input_manifest=str(input_manifest),
+        input_sha256=file_sha256(input_json),
+        input_manifest_sha256=file_sha256(input_manifest),
+        references_manifest=str(references_manifest or ""),
+        references_sha256=file_sha256(references_manifest) if references_manifest else "",
+        output_dir=str(output_dir),
+        protenix_bin="",
+        protenix_root_dir="",
+        seeds=seeds,
+        sample=sample,
+        fixed_budget=fixed_budget,
+        selected_model_policy=selected_model_policy,
+        rank_eligible=rank_eligible,
+        dtype=dtype,
+        cycle=cycle,
+        step=step,
+        use_msa=use_msa,
+        use_template=use_template,
+        use_default_params=use_default_params,
+        trimul_kernel="",
+        triatt_kernel="",
+        enable_cache=False,
+        enable_fusion=False,
+        enable_tf32=False,
+        extra_args=[],
+        created_at_utc=datetime.now(timezone.utc).isoformat(),
+        git_commit=git_commit(project_root),
+        stdout_path=str(stdout_path),
+        stderr_path=str(stderr_path),
+        command=command,
+    )
+    spec_dict = asdict(spec)
+    if source_run_id:
+        spec_dict["source_run_id"] = source_run_id
+        spec_dict["parent_run"] = source_run_id
+    spec_dict["registered_existing_predictions"] = True
+    spec_dict["prediction_file_count"] = prediction_count
+    (run_dir / "run_spec.json").write_text(json.dumps(spec_dict, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (run_dir / "env_manifest.json").write_text(
+        json.dumps(check_environment(project_root=project_root), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    append_status(project_root, run_id=run_id, benchmark=benchmark_name, status="ok", message="existing_predictions_registered")
+    register_run_spec(project_root, spec_dict)
+    return {
+        "run_dir": str(run_dir),
+        "run_spec": str(run_dir / "run_spec.json"),
+        "output_dir": str(output_dir),
+        "prediction_file_count": prediction_count,
+        "rank_eligible": rank_eligible,
+    }
+
+
 def write_run_script(path: Path, command: Sequence[str], *, protenix_root_dir: Path, protenix_bin: Path = DEFAULT_PROTENIX_BIN) -> None:
     lines = [
         "#!/usr/bin/env bash",

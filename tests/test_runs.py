@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from casp16_leaderboard.runs import build_protenix_command, list_run_rows, load_run_specs, register_run_spec, write_runs_manifest
+from casp16_leaderboard.runs import build_protenix_command, list_run_rows, load_run_specs, register_existing_run, register_run_spec, run_next, write_runs_manifest
 
 
 def test_build_protenix_command_contains_strategy_knobs() -> None:
@@ -90,3 +90,42 @@ def test_register_run_spec_writes_run_dir(tmp_path) -> None:
     rows = list_run_rows(tmp_path)
     assert rows[0]["run_id"] == "new_run"
     assert rows[0]["run_dir"] == str(run_dir)
+
+
+def test_register_existing_run_is_diagnostic_not_pending(tmp_path) -> None:
+    benchmark_dir = tmp_path / "benchmarks" / "casp16_server_protein_v1"
+    benchmark_dir.mkdir(parents=True)
+    input_json = benchmark_dir / "inputs.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    input_json.write_text("[]\n", encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\n", encoding="utf-8")
+    references.write_text("target_id\treference_path\n", encoding="utf-8")
+    output_dir = tmp_path / "external_predictions"
+    prediction_dir = output_dir / "T1201" / "seed_101" / "predictions"
+    prediction_dir.mkdir(parents=True)
+    (prediction_dir / "T1201_sample_0.cif").write_text("data_T1201\n", encoding="utf-8")
+
+    summary = register_existing_run(
+        project_root=tmp_path,
+        run_id="server_eval_existing",
+        output_dir=output_dir,
+        input_json=input_json,
+        input_manifest=input_manifest,
+        benchmark_name="casp16_server_protein_v1",
+        benchmark_version="1",
+        benchmark_dir=benchmark_dir,
+        references_manifest=references,
+        source_run_id="local_parent",
+    )
+
+    assert summary["prediction_file_count"] == 1
+    spec = json.loads((tmp_path / "runs" / "server_eval_existing" / "run_spec.json").read_text(encoding="utf-8"))
+    assert spec["registered_existing_predictions"] is True
+    assert spec["rank_eligible"] is False
+    assert spec["source_run_id"] == "local_parent"
+    assert spec["output_dir"] == str(output_dir.resolve())
+    rows = list_run_rows(tmp_path, benchmark="casp16_server_protein_v1")
+    assert rows[0]["status"] == "ok"
+    assert rows[0]["rank_eligible"] is False
+    assert run_next(tmp_path, benchmark="casp16_server_protein_v1", dry_run=True)["status"] == "no_pending_runs"

@@ -9,7 +9,7 @@ from .benchmark import BENCHMARK_NAME, SERVER_BENCHMARK_NAME, build_casp16_prote
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
 from .official import ingest_official_data
-from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, run_next
+from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, register_existing_run, run_next
 from .scoring import score_benchmark_runs
 
 
@@ -75,6 +75,26 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec.add_argument("--enable-fusion", action=argparse.BooleanOptionalAction, default=False)
     run_spec.add_argument("--enable-tf32", action=argparse.BooleanOptionalAction, default=True)
     run_spec.add_argument("--extra-arg", action="append", default=None, help="Extra protenix arg string; repeatable.")
+
+    register_existing = subparsers.add_parser("register-existing-run", help="Register an existing prediction directory for diagnostic benchmark scoring.")
+    register_existing.add_argument("--run-id", required=True)
+    register_existing.add_argument("--benchmark", required=True)
+    register_existing.add_argument("--output-dir", type=Path, required=True)
+    register_existing.add_argument("--source-run-id", default="")
+    register_existing.add_argument("--backend", default="opendde")
+    register_existing.add_argument("--strategy", default="registered_existing_predictions")
+    register_existing.add_argument("--model-name", default="opendde_v1")
+    register_existing.add_argument("--input-json", type=Path, default=None, help="Defaults to <root>/benchmarks/<benchmark>/inputs.json.")
+    register_existing.add_argument("--input-manifest", type=Path, default=None, help="Defaults to <root>/benchmarks/<benchmark>/input_manifest.tsv.")
+    register_existing.add_argument("--seeds", default="101")
+    register_existing.add_argument("--sample", type=int, default=1)
+    register_existing.add_argument("--selected-model-policy", default="first_output_only")
+    register_existing.add_argument("--rank-eligible", action=argparse.BooleanOptionalAction, default=False)
+    register_existing.add_argument("--dtype", default="")
+    register_existing.add_argument("--cycle", type=int, default=None)
+    register_existing.add_argument("--step", type=int, default=None)
+    register_existing.add_argument("--use-msa", action=argparse.BooleanOptionalAction, default=True)
+    register_existing.add_argument("--use-template", action=argparse.BooleanOptionalAction, default=True)
 
     collect = subparsers.add_parser("collect", help="Collect local run artifacts into CSV/Markdown.")
     collect.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards.")
@@ -192,6 +212,38 @@ def main(argv: Sequence[str] | None = None) -> int:
             enable_fusion=args.enable_fusion,
             enable_tf32=args.enable_tf32,
             extra_args=args.extra_arg,
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "register-existing-run":
+        benchmark_payload = load_benchmark(root, args.benchmark)
+        benchmark_dir = Path(str(benchmark_payload["_benchmark_dir"]))
+        input_json = (args.input_json or (benchmark_dir / "inputs.json")).resolve()
+        input_manifest = (args.input_manifest or (benchmark_dir / "input_manifest.tsv")).resolve()
+        summary = register_existing_run(
+            project_root=root,
+            run_id=args.run_id,
+            output_dir=args.output_dir,
+            input_json=input_json,
+            input_manifest=input_manifest,
+            benchmark_name=args.benchmark,
+            benchmark_version=str(benchmark_payload.get("version", "")),
+            benchmark_dir=benchmark_dir,
+            references_manifest=benchmark_dir / "references.tsv",
+            backend=args.backend,
+            strategy=args.strategy,
+            model_name=args.model_name,
+            source_run_id=args.source_run_id,
+            seeds=args.seeds,
+            sample=args.sample,
+            selected_model_policy=args.selected_model_policy,
+            rank_eligible=args.rank_eligible,
+            dtype=args.dtype,
+            cycle=args.cycle,
+            step=args.step,
+            use_msa=args.use_msa,
+            use_template=args.use_template,
         )
         print_json(summary)
         return 0
