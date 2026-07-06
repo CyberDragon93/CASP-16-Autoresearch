@@ -23,9 +23,9 @@ The first run spec using this budget is
 Slurm job `810719` and remains an attack row, not a `dev_fixed` row. Live
 output shows Protenix running the declared seeds as a serial outer loop: all
 targets for `seed_101` are produced before `seed_102` begins.
-As of the latest check, the run has produced 67 CIF files, all under
-`seed_101`; it is therefore still incomplete and must not be scored as a full
-five-candidate attack row.
+At the latest recorded check, the run had only `seed_101` output; it is
+therefore still incomplete and must not be scored as a full five-candidate
+attack row until all declared seeds are present.
 
 The second queued run spec using the same budget is
 `server_attack_protenix_coverage_stoich_seed101_105`. It uses the stacked

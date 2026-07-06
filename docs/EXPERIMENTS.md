@@ -25,7 +25,7 @@ leaderboard progress.
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | pending behind v2 low-complexity | v2 stack plus large-target fallback for the 11 remaining over-token jobs | yes for domain track; oligo is coverage-recovery diagnostic |
 | `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending behind three v2 dev rows | five-seed attack on the no-over-token v2 stack with confidence-only model selection | attack tier only |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
-| `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `811114` running on `c639-081`; 1/6 CIF files at latest check | compact exact-stoich and H1258-window learning batch | not rank eligible |
+| `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `811114` running on `c639-081`; CIF output has started | compact exact-stoich and H1258-window learning batch | not rank eligible |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob mapping or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -182,9 +182,9 @@ leaderboard progress.
       with `protenix_cli=True`.
     - Resubmitted as Slurm job `811114`, initially pending with reason
       `Priority`.
-    - Latest check: job `811114` is running on `c639-081` and has produced
-      1/6 CIF files. Keep it target_lab-only; run `summarize_outputs.py` and
-      `score_dockq.py` only after completion.
+    - Latest recorded check: job `811114` is running on `c639-081` and has
+      started producing CIF files. Keep it target_lab-only; run
+      `summarize_outputs.py` and `score_dockq.py` only after completion.
 18. Generated `server_attack_protenix_coverage_stoich_seed101_105`, the second
     `protenix5` attack-tier run spec. It uses the stacked
     `yang_oligo_stoichiometry_token_safe_v1` inputs, seeds

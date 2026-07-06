@@ -170,8 +170,8 @@ Useful strategy hypotheses:
 15. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
     is the first queued 5-candidate terminal-tag attack run; use only for a
     separate multi-candidate comparison. It is currently incomplete: latest
-    output has 67 CIF files under `seed_101` only, so it must not be scored as
-    a complete 5-candidate row.
+    output is still `seed_101` only, so it must not be scored as a complete
+    5-candidate row.
 16. `server_attack_protenix_coverage_stoich_seed101_105`: generated as the
     second queued 5-candidate attack run, using stacked sequence recovery,
     token-budget fallback, and token-safe stoichiometry inputs. It is not
