@@ -46,6 +46,10 @@ where methods should change.
 - Multi-candidate work now has a separate policy:
   `docs/SERVER_ATTACK_POLICY.md` and
   `attack_budgets/casp16_server_attack_protenix5.json`.
+- A larger planned attack tier now exists as
+  `attack_budgets/casp16_server_attack_protenix25.json`: v2 alias-fixed
+  benchmark, seeds `101..125`, one sample per seed, confidence-only selector,
+  and five predeclared seed shards. It is not queued yet.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
   about chasing CASP16 server winners must report the attack budget, candidates
   per target, selector, and GPU cost.
@@ -220,6 +224,9 @@ competitive result.
     (`server_v2_protenix_yang_coverage_stoich_seed101`) after the active v1
     attack job finishes. This is the first v2 `dev_fixed` baseline and should
     be scored before launching larger v2 attack budgets.
+20. Keep `casp16_server_attack_protenix25` as the planned winner-scale upgrade
+    path: execute only after `protenix5` and the v2 dev baseline are scored,
+    and only as predeclared seed shards.
 
 ## Run Discipline
 

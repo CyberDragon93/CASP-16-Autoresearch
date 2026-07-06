@@ -20,6 +20,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | P10 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | Public CASP16 complex clue says top Yang H1258 models used LRRK2 interaction-domain window | Run manually in a small slot; promote only as a target-agnostic window rule |
 | P11 | `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `810824` pending | Compact batch for exact stoichiometry plus H1258 window learning | Monitor job; do not register as ranked |
 | P12 | `target_lab/domain_fragment_batch_v1` | target_lab only | Slurm job `810862` pending | Compact domain-decomposition reproduction for D2 winner recipe | Monitor job; promote only target-agnostic segmentation, not CASP-domain hand crops |
+| P13 | `casp16_server_attack_protenix25` | `casp16_server_protein_v2_aliasfix` | planned, not queued | Winner-like compute is likely more than five candidates; this declares a 25-seed Protenix tier without pretending it is comparable to `dev_fixed` or `protenix5` | Launch only after the active `protenix5` attack and v2 dev baseline are scored; execute as five seed shards |
 
 ## Latest Baseline Result
 
@@ -134,6 +135,12 @@ have used only five candidates. Any larger candidate budget must be a new
 predeclared attack-budget version and should report candidates per target,
 expected GPU-hours, actual wall time, and selection policy.
 
+The first larger planned tier is
+`attack_budgets/casp16_server_attack_protenix25.json`: 25 fixed seeds
+(`101..125`), one sample per seed, the same `protenix_confidence_v1` selector,
+and five predeclared seed shards. It is not queued until the active `protenix5`
+run and the v2 alias-fixed development baseline justify the spend.
+
 The oversize-domain fallback result is a reminder to spend realistic attack
 compute carefully: extra seeds will not fix hard Protenix token-limit failures,
 missing references, or unvalidated QSglob mapping. Clean coverage, reference
@@ -167,6 +174,7 @@ internal candidate.
 | P17 | H1258 interaction-window target_lab | artifact generated | Public assessment says top Yang H1258 models used LRRK2 interacting region instead of full-length LRRK2 | Run as target_lab only; never count it as a ranked server result |
 | P18 | Small complex stoich batch | Slurm job `810824` pending | Fast learning set for under-budget exact stoich and H1258 public window, max job 1929 tokens | Use only as target_lab evidence; promote only target-agnostic rules |
 | P19 | Domain fragment batch | Slurm job `810862` pending | Fast learning set for domain decomposition on long/multidomain protein targets, max fragment 1633 residues | Use only as target_lab evidence; promote only target-agnostic segmentation or new benchmark version |
+| P20 | `protenix25` attack tier | budget JSON created, not queued | Winner-scale comparison needs more than the starter five candidates | Wait for `protenix5` and v2 dev baseline evidence; run only as seed-sharded attack budget |
 
 ## Evidence Links
 

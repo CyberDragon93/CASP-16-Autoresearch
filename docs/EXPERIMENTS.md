@@ -245,6 +245,17 @@ leaderboard progress.
     - The current `protenix5` budget remains a starter attack tier; if we need
       winner-scale compute, create a separate locked budget such as
       `protenix25` or an ensemble tier before scoring.
+26. Created the planned `casp16_server_attack_protenix25` budget as the next
+    winner-scale candidate tier, without queuing a run. It targets
+    `casp16_server_protein_v2_aliasfix`, declares seeds `101..125`, keeps one
+    sample per seed, and uses the same `protenix_confidence_v1` selector.
+    - Execution policy: five predeclared five-seed shards, merged only after
+      all 25 candidates per target exist.
+    - Gate: score the active `protenix5` attack and the v2 alias-fixed
+      `dev_fixed` baseline first, then decide whether the 25-seed GPU spend is
+      justified.
+    - This is not a new leaderboard score and does not change any completed
+      run's budget tier.
 
 ## Strategy Decision Log
 

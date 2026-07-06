@@ -82,6 +82,12 @@ more seeds, more samples, multiple engines, MSA/template variants, or a stronger
 predeclared selector, that becomes a new attack-budget version with its own
 artifact manifest and leaderboard tier.
 
+The next planned larger tier is
+`attack_budgets/casp16_server_attack_protenix25.json`: 25 fixed Protenix seeds
+(`101..125`), one sample per seed, and the same confidence-only selector. It is
+planned for `casp16_server_protein_v2_aliasfix` and must run as predeclared
+seed shards before any complete row can be scored.
+
 Existing prediction directories can be registered for diagnostic reuse without
 creating a runnable job:
 
