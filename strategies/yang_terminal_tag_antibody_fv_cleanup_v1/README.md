@@ -39,13 +39,15 @@ Changed target groups:
 - antibody Fv cleanup: `H0222`, `H0223`, `H0225`, `H0233`, `H1222`, `H1223`,
   `H1225`, `H1233`
 
-## Launch Gate
+## Queue Status
 
-Queue this after the individual terminal-tag and antibody-Fv ablations. The
-point is to test whether the two non-overlapping construct cleanups compose
-cleanly on the fixed full server target set.
+This run is queued as
+`server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101`, behind the
+individual terminal-tag and antibody-Fv ablations. The point is to test whether
+the two non-overlapping construct cleanups compose cleanly on the fixed full
+server target set.
 
-Potential full-run spec command:
+Full-run spec command used:
 
 ```bash
 ./casp16 run-spec \

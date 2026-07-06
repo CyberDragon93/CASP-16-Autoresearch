@@ -12,6 +12,7 @@ leaderboard progress.
 | `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | running | full server-target Protenix baseline with real MSA/template settings | yes, once predictions and required scorers exist |
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | pending, blocked while baseline runs | target-agnostic Yang-style terminal tag cleanup rerun | yes, after baseline frees the GH200 |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | full-set antibody Fv constant-region cleanup rerun | yes, after lower-risk cleanup ablation |
+| `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind individual ablations | combined terminal-tag plus antibody-Fv cleanup rerun | yes, after individual ablations |
 
 ## Current Score Truth
 
@@ -47,12 +48,15 @@ leaderboard progress.
    It preserves all 106 server jobs while trimming 16 antibody constant-region
    chains across 8 antibody-antigen targets. Cache, fusion, and TF32 are
    enabled to match the baseline engine flags.
-5. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
+5. Run queued `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101`
+   after the two individual ablations to test whether their non-overlapping
+   construct changes compose on the full server target set.
+6. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
    the oligo track.
-6. Start target_lab loops on H1258 and H1232 only as diagnostics for
+7. Start target_lab loops on H1258 and H1232 only as diagnostics for
    stoichiometry/construct tricks; promotion requires a target-agnostic full
    benchmark rerun.
-7. Add domain cropping and chain/residue mapping before drawing conclusions
+8. Add domain cropping and chain/residue mapping before drawing conclusions
    from hard multi-domain domain targets.
 
 ## Strategy Decision Log
@@ -91,9 +95,9 @@ ablation has either run or been intentionally skipped.
 
 ### 2026-07-05 Terminal Tag + Antibody Fv Stack
 
-Decision: generate `yang_terminal_tag_antibody_fv_cleanup_v1` as a full-set
-sequence-only combined construct-cleanup artifact, but keep it behind the
-individual ablations until their full-run results exist.
+Decision: generate and queue `yang_terminal_tag_antibody_fv_cleanup_v1` as a
+full-set sequence-only combined construct-cleanup run behind the individual
+ablations.
 
 Rationale: terminal expression tags and antibody constant-region cleanup touch
 non-overlapping target groups in `casp16_server_protein_v1`. The combined input
