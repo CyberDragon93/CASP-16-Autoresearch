@@ -19,12 +19,13 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | P9 | `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` pending on dependency `810719` | First alias-fixed full benchmark run using the current strongest coverage + token-safe stoichiometry input | Score before launching larger v2 attack budgets |
 | P10 | `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | pending behind v2 baseline | Reproduce a Yang-style construct cleanup on top of alias-fixed coverage and token-safe stoichiometry; 27 sequence edits across 21 targets | Run only after the v2 coverage/stoich baseline is scored |
 | P11 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | pending behind v2 low-complexity | Remove the 11 remaining Protenix `n_token > 2560` hard failures from the v2 input stack | Run only after the v2 low-complexity ablation is scored; interpret as coverage recovery, not full-assembly fidelity |
-| P12 | `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending behind three v2 dev rows | First five-candidate attack on the no-over-token v2 input stack | Submit only after the three v2 `dev_fixed` rows are scored or explicitly superseded |
-| P13 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | Public CASP16 complex clue says top Yang H1258 models used LRRK2 interaction-domain window | Run manually in a small slot; promote only as a target-agnostic window rule |
-| P14 | `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `811114` running on `c639-081`; CIF output has started | Compact batch for exact stoichiometry plus H1258 window learning | Monitor job, then run summarizer and DockQ diagnostics; do not register as ranked |
-| P15 | `target_lab/domain_fragment_batch_v1` | target_lab only | Slurm job `810862` running on `c622-022` | Compact domain-decomposition reproduction for D2 winner recipe | Monitor job; promote only target-agnostic segmentation, not CASP-domain hand crops |
-| P16 | `casp16_server_attack_protenix25` | `casp16_server_protein_v2_aliasfix` | planned, not queued | Winner-like compute is likely more than five candidates; this declares a 25-seed Protenix tier without pretending it is comparable to `dev_fixed` or `protenix5` | Launch only after the active `protenix5` attack and v2 dev baseline are scored; execute as five seed shards |
-| P17 | `casp16_server_attack_protenix25_nofail` | `casp16_server_protein_v2_aliasfix` | planned, not queued | Same 25-seed budget, but spent only after the v2 stack has 0 Protenix over-token jobs | Launch only if the v2 no-over-token fallback ablation justifies the assembly simplification |
+| P12 | `yang_protein_oligo_sequence_stoich_token_safe_v1` derivative | `casp16_server_protein_v2_aliasfix` | artifacts generated, not queued | Fixes a concrete server-input realism gap: several protein-oligo rows, including `H0220/H1220/H2220`, were locally represented as RNA or missing despite official protein sequences | Decide after active v2 baseline evidence whether to queue this directly or compose it with the no-over-token fallback stack |
+| P13 | `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending behind three v2 dev rows | First five-candidate attack on the no-over-token v2 input stack | Submit only after the three v2 `dev_fixed` rows are scored or explicitly superseded |
+| P14 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | Public CASP16 complex clue says top Yang H1258 models used LRRK2 interaction-domain window | Run manually in a small slot; promote only as a target-agnostic window rule |
+| P15 | `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `811114` running on `c639-081`; CIF output has started | Compact batch for exact stoichiometry plus H1258 window learning | Monitor job, then run summarizer and DockQ diagnostics; do not register as ranked |
+| P16 | `target_lab/domain_fragment_batch_v1` | target_lab only | Slurm job `810862` running on `c622-022` | Compact domain-decomposition reproduction for D2 winner recipe | Monitor job; promote only target-agnostic segmentation, not CASP-domain hand crops |
+| P17 | `casp16_server_attack_protenix25` | `casp16_server_protein_v2_aliasfix` | planned, not queued | Winner-like compute is likely more than five candidates; this declares a 25-seed Protenix tier without pretending it is comparable to `dev_fixed` or `protenix5` | Launch only after the active `protenix5` attack and v2 dev baseline are scored; execute as five seed shards |
+| P18 | `casp16_server_attack_protenix25_nofail` | `casp16_server_protein_v2_aliasfix` | planned, not queued | Same 25-seed budget, but spent only after the v2 stack has 0 Protenix over-token jobs | Launch only if the v2 no-over-token fallback ablation justifies the assembly simplification |
 
 ## Latest Baseline Result
 
@@ -59,6 +60,8 @@ once mapping false zeros are isolated.
 | P8 | `server_v2_protenix_yang_coverage_stoich_seed101` | `yang_oligo_stoichiometry_token_safe_v1` | `runs/server_v2_protenix_yang_coverage_stoich_seed101/` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` pending on dependency `810719` | First v2 alias-fixed dev baseline; 163 Protenix jobs, 10 changed targets |
 | P9 | `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `yang_coverage_stoich_low_complexity_v1` | `runs/server_v2_protenix_yang_coverage_stoich_low_complexity_seed101/` | `casp16_server_protein_v2_aliasfix` | pending behind v2 baseline | Same v2 coverage/stoich input plus low-complexity terminal cleanup, 27 sequence edits across 21 targets |
 | P10 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `yang_coverage_stoich_low_complexity_large_fallback_v1` | `runs/server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101/` | `casp16_server_protein_v2_aliasfix` | pending behind v2 low-complexity | Same v2 stack plus large-target fallback for 11 oversize jobs; generated inputs have 0 jobs above 2560 tokens |
+| generated | not queued | `yang_protein_oligo_sequence_recovery_v1` | `strategies/yang_protein_oligo_sequence_recovery_v1/casp16_server_protein_v2_aliasfix/` | `casp16_server_protein_v2_aliasfix` | artifacts generated | Recover 5 protein-oligo targets whose local server inputs were missing or represented as nucleic-acid records despite official protein-like sequences |
+| generated | not queued | `yang_protein_oligo_sequence_stoich_token_safe_v1` | `strategies/yang_protein_oligo_sequence_stoich_token_safe_v1/casp16_server_protein_v2_aliasfix/` | `casp16_server_protein_v2_aliasfix` | artifacts generated | Compose oligo sequence recovery with token-safe stoichiometry; changes 15 targets but is not a no-over-token full stack because unrelated v2 jobs such as `H0272` still exceed 2560 tokens |
 | P11 | `server_v2_attack_nofail_protenix5_seed101_105` | `yang_coverage_stoich_low_complexity_large_fallback_v1_server_attack_protenix5` | `runs/server_v2_attack_nofail_protenix5_seed101_105/` | `casp16_server_protein_v2_aliasfix` | pending behind three v2 dev rows | Five fixed seeds on the no-over-token v2 stack, selected by confidence-only policy |
 | target_lab | not queued | `h1258_interaction_window_v1` | `target_lab/h1258_interaction_window_v1/` | target_lab only | artifact generated | LRRK2 residues 861-1014 plus 14-3-3 A1B2, total 648 tokens |
 | target_lab | `811114` | `small_complex_stoich_batch_v1` | `target_lab/small_complex_stoich_batch_v1/` | target_lab only | running on `c639-081`; CIF output has started | Six-job batch: H1232/H1233/H1236/H1244/H1267 exact stoich plus H1258 window |
@@ -138,9 +141,12 @@ model using references, official scores, or target-score feedback.
 
 The first `server_attack` budget uses five candidates per target because it is
 the smallest useful realism check, not because CASP16 winners are assumed to
-have used only five candidates. Any larger candidate budget must be a new
-predeclared attack-budget version and should report candidates per target,
-expected GPU-hours, actual wall time, and selection policy.
+have used only five candidates. A winner-like budget probably includes more
+than literal random seeds: MSA/template variants, model/backend variants,
+refinement, ranking, and submitted models all count as candidates. Any larger
+candidate budget must be a new predeclared attack-budget version and should
+report candidates per target, expected GPU-hours, actual wall time, and
+selection policy.
 
 The first larger planned tier is
 `attack_budgets/casp16_server_attack_protenix25.json`: 25 fixed seeds
@@ -185,8 +191,9 @@ internal candidate.
 | P18 | Small complex stoich batch | Slurm job `810824` failed on import-path collision; `811114` running on `c639-081`, with CIF output started | Fast learning set for under-budget exact stoich and H1258 public window, max job 1929 tokens | Use only as target_lab evidence; promote only target-agnostic rules |
 | P19 | Domain fragment batch | Slurm job `810862` running on `c622-022`; Protenix import/env bootstrap passed | Fast learning set for domain decomposition on long/multidomain protein targets, max fragment 1633 residues | Use only as target_lab evidence; promote only target-agnostic segmentation or new benchmark version |
 | P20 | v2 low-complexity large fallback | queued as `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | Extra seeds cannot repair v2 jobs that still exceed Protenix's token limit | Run after the v2 baseline and v2 low-complexity ablation; stop if fallback hurts scored coverage more than it recovers |
-| P21 | `protenix25` attack tier | budget JSON and shard TSV created, not queued | Winner-scale comparison needs more than the starter five candidates | Wait for `protenix5` and v2 dev baseline evidence; run only as seed-sharded attack budget |
-| P22 | `protenix25_nofail` attack tier | budget JSON and shard TSV created, not queued | If the no-over-token v2 stack wins, spend 25 seeds on runnable jobs instead of guaranteed Protenix failures | Wait for v2 no-over-token dev score; run only as seed-sharded attack budget |
+| P21 | `yang_protein_oligo_sequence_stoich_token_safe_v1` | artifacts generated, not queued | H0220/H1220/H2220-style false zeros may be bad input modality/sequence recovery problems before they are scorer problems | Queue only after active v2 evidence, or compose with no-over-token fallback before spending attack compute |
+| P22 | `protenix25` attack tier | budget JSON and shard TSV created, not queued | Winner-scale comparison needs more than the starter five candidates | Wait for `protenix5` and v2 dev baseline evidence; run only as seed-sharded attack budget |
+| P23 | `protenix25_nofail` attack tier | budget JSON and shard TSV created, not queued | If the no-over-token v2 stack wins, spend 25 seeds on runnable jobs instead of guaranteed Protenix failures | Wait for v2 no-over-token dev score; run only as seed-sharded attack budget |
 
 ## Evidence Links
 

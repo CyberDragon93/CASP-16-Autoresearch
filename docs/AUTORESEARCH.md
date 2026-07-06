@@ -66,6 +66,12 @@ where methods should change.
   per target, selector, and GPU cost. Run specs and manifests expose
   `budget_tier` plus `candidate_count` so multi-candidate rows stay separate
   from single-seed rankings.
+- Budget realism is mandatory: the public winner recipes almost certainly used
+  more than one internal candidate, but the hidden budget should be modeled as
+  total candidates per target, not just literal Protenix seed count. Seeds,
+  samples, MSA/template variants, model/backend variants, refinement passes,
+  ranking passes, and submitted models all count and must be declared before
+  scoring.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
@@ -122,6 +128,21 @@ where methods should change.
   and applies the target-agnostic large-target fallback to the 11 jobs still
   above Protenix's 2560-token limit, leaving 0 oversize jobs under the same
   seed-101 `dev_fixed` budget.
+- New v2 protein-oligo sequence recovery artifact:
+  `yang_protein_oligo_sequence_recovery_v1` repairs protein-oligo rows whose
+  local server inputs were missing or parsed as nucleic-acid records even
+  though the official sequence archive contains protein-like records. On
+  `casp16_server_protein_v2_aliasfix` it changes 5 targets:
+  `H0220`, `H1213`, `H1220`, `H2213`, and `H2220`.
+- New v2 protein-oligo sequence + token-safe stoichiometry artifact:
+  `yang_protein_oligo_sequence_stoich_token_safe_v1` composes the oligo
+  sequence recovery with token-safe stoichiometry recovery. On
+  `casp16_server_protein_v2_aliasfix` it changes 15 unique targets, including
+  restoring `H1220/H2220` to the recovered protein sequences with `A1B4`
+  stoichiometry. It is generated but not queued. It is not a no-over-token
+  full-stack artifact: existing v2 jobs such as `H0272` still exceed the
+  Protenix token limit, so promotion needs either a fallback stack or a
+  deliberate budget decision.
 - New H1258 target-lab artifact:
   `target_lab/h1258_interaction_window_v1/` builds the public
   LRRK2-interaction-window clue as LRRK2 residues 861-1014 plus 14-3-3 A1B2.
@@ -210,74 +231,78 @@ competitive result.
 3. Improve the reference/domain registry for the remaining 96 alias-fixed
    server-benchmark targets that currently lack a cached reference mapping.
 4. Add oligo assembly mapping.
-5. Queue and score the generated large-target split/fallback policy for the
+5. Decide whether to supersede the current v2 coverage/stoich baseline with
+   the new protein-oligo sequence recovery artifact after the active runs
+   report, especially if `H0220/H1220/H2220` remain zero because the old input
+   used RNA-like records instead of official protein records.
+6. Queue and score the generated large-target split/fallback policy for the
    eight `n_token > 2560` failures after the active attack job.
-6. Re-score current OpenDDE and Protenix-style baselines on the server
+7. Re-score current OpenDDE and Protenix-style baselines on the server
    benchmark after the QSglob mapping check, with complete prediction coverage
    rather than local-v1 reuse.
-7. Monitor and score `server_attack_protenix_terminal_tag_seed101_105`, the
+8. Monitor and score `server_attack_protenix_terminal_tag_seed101_105`, the
    first fixed 5-candidate attack run. Keep it separate from `dev_fixed`.
-8. Submit `server_protenix_yang_large_target_split_or_fallback_seed101` after
+9. Submit `server_protenix_yang_large_target_split_or_fallback_seed101` after
    the active attack job if coverage recovery remains the highest-leverage next
    move.
-9. Submit `server_protenix_yang_sequence_recovery_seed101` after the active
+10. Submit `server_protenix_yang_sequence_recovery_seed101` after the active
    pending jobs if recovering `T1212`, `T1239V1/V2`, and `T2280` looks higher
    leverage than another construct-only run.
-10. Submit the stacked
+11. Submit the stacked
     `server_protenix_yang_sequence_recovery_large_target_fallback_seed101`
     candidate after the active pending jobs if the component coverage fixes
     still look complementary.
-11. Submit the token-safe
+12. Submit the token-safe
     `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` candidate
     after the current coverage jobs if exact stoichiometry remains the next
     useful oligo signal.
-12. Build public/domain-window experiments for oversize exact-stoichiometry
+13. Build public/domain-window experiments for oversize exact-stoichiometry
     systems such as H1258.
-13. Run the H1258 target-lab interaction-window job when a small GH200 slot is
+14. Run the H1258 target-lab interaction-window job when a small GH200 slot is
     available, then decide whether a target-agnostic window rule is worth a
     full benchmark candidate.
-14. Monitor target_lab job `811114` for
+15. Monitor target_lab job `811114` for
     `target_lab/small_complex_stoich_batch_v1`, then inspect predictions for
     exact-stoichiometry and H1258-window behavior before spending full
     benchmark compute. Regenerate `SUMMARY.md` with
     `python target_lab/small_complex_stoich_batch_v1/summarize_outputs.py` and
     diagnostic `DOCKQ.md` with
     `python target_lab/small_complex_stoich_batch_v1/score_dockq.py`.
-15. Implement strategy experiments inspired by CASP16 winners: disorder
+16. Implement strategy experiments inspired by CASP16 winners: disorder
     trimming, domain decomposition, MSA/template optimization, assembly-aware
     multimer handling, and model ranking.
-16. Monitor target_lab job `810862` for
+17. Monitor target_lab job `810862` for
     `target_lab/domain_fragment_batch_v1`. It is running on `c622-022` and has
     passed the Protenix import/env bootstrap. After completion, inspect
     fragment coverage and confidence diagnostics. Promote only a
     target-agnostic segmentation rule, not CASP-domain-summary hand crops.
-17. Keep `server_attack_protenix_coverage_stoich_seed101_105` queued as the
+18. Keep `server_attack_protenix_coverage_stoich_seed101_105` queued as the
     next realistic attack-budget candidate. Submit it only when
     `./casp16 run-next --benchmark casp16_server_protein_v1 --dry-run` selects
     it, or intentionally supersede it after the component single-seed coverage
     runs report negative evidence.
-18. Done: created `casp16_server_protein_v2_aliasfix`; future serious
+19. Done: created `casp16_server_protein_v2_aliasfix`; future serious
     winner-comparison runs should target it or a newer explicit server
     benchmark version.
-19. Monitor and score Slurm job `810938`
+20. Monitor and score Slurm job `810938`
     (`server_v2_protenix_yang_coverage_stoich_seed101`) after the active v1
     attack job finishes. This is the first v2 `dev_fixed` baseline and should
     be scored before launching larger v2 attack budgets.
-20. Keep `casp16_server_attack_protenix25` as the planned winner-scale upgrade
+21. Keep `casp16_server_attack_protenix25` as the planned winner-scale upgrade
     path: execute only after `protenix5` and the v2 dev baseline are scored,
     and only as predeclared seed shards.
-21. After `server_v2_protenix_yang_coverage_stoich_seed101` is scored, run
+22. After `server_v2_protenix_yang_coverage_stoich_seed101` is scored, run
     `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` as the
     next v2 `dev_fixed` construct-cleanup ablation if queue state permits.
-22. After the v2 low-complexity ablation is scored, run
+23. After the v2 low-complexity ablation is scored, run
     `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`
     to test whether removing the remaining 11 token-limit hard failures is
     worth the assembly simplification.
-23. Keep `casp16_server_attack_protenix25_nofail` as the stronger planned
+24. Keep `casp16_server_attack_protenix25_nofail` as the stronger planned
     winner-scale budget if the no-over-token v2 stack scores well enough to
     justify 25-seed compute. Do not launch it before the active `protenix5`
     and v2 dev rows give evidence, unless a supersession decision is recorded.
-24. Keep `server_v2_attack_nofail_protenix5_seed101_105` queued behind the
+25. Keep `server_v2_attack_nofail_protenix5_seed101_105` queued behind the
     three v2 `dev_fixed` rows as the first five-candidate no-over-token attack
     check.
 

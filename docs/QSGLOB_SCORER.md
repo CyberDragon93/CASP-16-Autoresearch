@@ -40,6 +40,11 @@ Result:
   `ost_unmapped_model_chains:A,B;ost_empty_chain_mapping;ost_empty_chem_mapping`.
   This keeps the official-compatible score unchanged while making false-zero
   classes visible for triage.
+- Follow-up input audit found an additional `H0220/H1220/H2220` class: some
+  local v2 protein-oligo inputs were short nucleic-acid records even though the
+  official sequence archive has protein-like records through target aliases.
+  Those targets need sequence/input recovery before scorer mapping alone can
+  give a meaningful QSglob comparison.
 
 ## Oligo Signal Probe
 

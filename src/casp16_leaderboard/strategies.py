@@ -26,9 +26,11 @@ STRATEGY_YANG_TERMINAL_TAG_ANTIBODY_FV_CLEANUP = "yang_terminal_tag_antibody_fv_
 STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK = "yang_oversize_domain_monomer_fallback_v1"
 STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK = "yang_large_target_split_or_fallback_v1"
 STRATEGY_YANG_SEQUENCE_RECOVERY = "yang_sequence_recovery_v1"
+STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_RECOVERY = "yang_protein_oligo_sequence_recovery_v1"
 STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK = "yang_sequence_recovery_large_target_fallback_v1"
 STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY = "yang_oligo_stoichiometry_recovery_v1"
 STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE = "yang_oligo_stoichiometry_token_safe_v1"
+STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_STOICH_TOKEN_SAFE = "yang_protein_oligo_sequence_stoich_token_safe_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
@@ -41,9 +43,11 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK,
     STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK,
     STRATEGY_YANG_SEQUENCE_RECOVERY,
+    STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_RECOVERY,
     STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK,
     STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY,
     STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE,
+    STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_STOICH_TOKEN_SAFE,
 )
 PROTENIX_TOKEN_LIMIT = 2560
 MIN_REMAINING_PROTEIN_LENGTH = 30
@@ -424,6 +428,20 @@ def derive_strategy_inputs(
             targets_path=targets_path,
             official_sequences_path=official_sequences_path,
         )
+    if strategy == STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_RECOVERY:
+        if targets_path is None:
+            raise ValueError("targets_path is required for protein oligo sequence recovery strategy")
+        if official_sequences_path is None:
+            raise ValueError("official_sequences_path is required for protein oligo sequence recovery strategy")
+        return derive_sequence_recovery_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
+            targets_path=targets_path,
+            official_sequences_path=official_sequences_path,
+            tracks={"protein_oligo"},
+            strategy_name=STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_RECOVERY,
+        )
     if strategy == STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK:
         if targets_path is None:
             raise ValueError("targets_path is required for sequence recovery + large target fallback strategy")
@@ -461,6 +479,21 @@ def derive_strategy_inputs(
             official_targets_path=official_targets_path,
             strategy_name=STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE,
             token_safe=True,
+        )
+    if strategy == STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_STOICH_TOKEN_SAFE:
+        if targets_path is None:
+            raise ValueError("targets_path is required for protein oligo sequence + stoich strategy")
+        if official_sequences_path is None:
+            raise ValueError("official_sequences_path is required for protein oligo sequence + stoich strategy")
+        if official_targets_path is None:
+            raise ValueError("official_targets_path is required for protein oligo sequence + stoich strategy")
+        return derive_protein_oligo_sequence_stoich_token_safe_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
+            targets_path=targets_path,
+            official_sequences_path=official_sequences_path,
+            official_targets_path=official_targets_path,
         )
 
     with input_json.open(encoding="utf-8") as handle:
@@ -988,6 +1021,8 @@ def derive_sequence_recovery_inputs(
     manifest_path: Path,
     targets_path: Path,
     official_sequences_path: Path,
+    tracks: set[str] | None = None,
+    strategy_name: str = STRATEGY_YANG_SEQUENCE_RECOVERY,
 ) -> dict[str, object]:
     with input_json.open(encoding="utf-8") as handle:
         jobs = json.load(handle)
@@ -996,6 +1031,7 @@ def derive_sequence_recovery_inputs(
     targets = load_target_rows(targets_path)
     sequence_rows = load_sequence_rows(official_sequences_path)
     sequence_index = sequence_rows_by_alias(sequence_rows)
+    target_tracks = tracks or {"protein_domain"}
 
     recovered_jobs: list[dict[str, Any]] = []
     manifest_rows: list[dict[str, str]] = []
@@ -1006,7 +1042,7 @@ def derive_sequence_recovery_inputs(
         if not target_id:
             continue
         existing_job = jobs_by_name.get(target_id)
-        if target.get("track") != "protein_domain":
+        if target.get("track") not in target_tracks:
             continue
         original_entity_count, original_total_len = job_entity_count_and_len(existing_job)
         needs_recovery = existing_job is None or job_has_nonprotein_sequences(existing_job)
@@ -1065,7 +1101,7 @@ def derive_sequence_recovery_inputs(
     output_json.write_text(json.dumps(recovered_jobs, indent=2) + "\n", encoding="utf-8")
     write_manifest(manifest_path, manifest_rows, SEQUENCE_RECOVERY_MANIFEST_FIELDS)
     return {
-        "strategy": STRATEGY_YANG_SEQUENCE_RECOVERY,
+        "strategy": strategy_name,
         "input_json": str(input_json),
         "output_json": str(output_json),
         "manifest": str(manifest_path),
@@ -1131,6 +1167,70 @@ def derive_sequence_recovery_large_target_fallback_inputs(
         "changed_targets": len(changed_targets),
         "sequence_recovery_changed_targets": sequence_summary["changed_targets"],
         "large_target_fallback_changed_targets": fallback_summary["changed_targets"],
+    }
+
+
+def derive_protein_oligo_sequence_stoich_token_safe_inputs(
+    *,
+    input_json: Path,
+    output_json: Path,
+    manifest_path: Path,
+    targets_path: Path,
+    official_sequences_path: Path,
+    official_targets_path: Path,
+) -> dict[str, object]:
+    with tempfile.TemporaryDirectory(prefix="casp16_strategy_") as tmp:
+        tmp_dir = Path(tmp)
+        recovered_json = tmp_dir / "protein_oligo_sequence_recovery.inputs.json"
+        recovered_manifest = tmp_dir / "protein_oligo_sequence_recovery.manifest.tsv"
+        stoich_manifest = tmp_dir / "oligo_stoich_token_safe.manifest.tsv"
+        sequence_summary = derive_sequence_recovery_inputs(
+            input_json=input_json,
+            output_json=recovered_json,
+            manifest_path=recovered_manifest,
+            targets_path=targets_path,
+            official_sequences_path=official_sequences_path,
+            tracks={"protein_oligo"},
+            strategy_name=STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_RECOVERY,
+        )
+        stoich_summary = derive_oligo_stoichiometry_recovery_inputs(
+            input_json=recovered_json,
+            output_json=output_json,
+            manifest_path=stoich_manifest,
+            targets_path=targets_path,
+            official_targets_path=official_targets_path,
+            strategy_name=STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE,
+            token_safe=True,
+        )
+
+        manifest_rows: list[dict[str, str]] = []
+        changed_targets: set[str] = set()
+        for phase, path in (
+            ("protein_oligo_sequence_recovery", recovered_manifest),
+            ("oligo_stoich_token_safe", stoich_manifest),
+        ):
+            for row in load_tsv_rows(path):
+                composed = composed_manifest_row(phase, row)
+                manifest_rows.append(composed)
+                if composed["status"] == "changed":
+                    changed_targets.add(composed["target_id"])
+
+    write_manifest(manifest_path, manifest_rows, COMPOSED_STRATEGY_MANIFEST_FIELDS)
+    return {
+        "strategy": STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_STOICH_TOKEN_SAFE,
+        "input_json": str(input_json),
+        "output_json": str(output_json),
+        "manifest": str(manifest_path),
+        "targets": str(targets_path),
+        "official_sequences": str(official_sequences_path),
+        "official_targets": str(official_targets_path),
+        "input_sha256": file_sha256(input_json),
+        "output_sha256": file_sha256(output_json),
+        "jobs": stoich_summary["jobs"],
+        "changed_targets": len(changed_targets),
+        "sequence_recovery_changed_targets": sequence_summary["changed_targets"],
+        "oligo_stoich_changed_targets": stoich_summary["changed_targets"],
+        "skipped_oversize_after_recovery": stoich_summary["skipped_oversize_after_recovery"],
     }
 
 

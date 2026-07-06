@@ -601,6 +601,34 @@ compatibility, not only structure quality. Inference produced 98/106 CIFs; the
 large-target split/fallback recipe a priority after the currently running
 construct ablations.
 
+### 2026-07-06 Protein-Oligo Sequence Recovery
+
+Decision: generate two v2 alias-fixed protein-oligo input-repair artifacts:
+`yang_protein_oligo_sequence_recovery_v1` and
+`yang_protein_oligo_sequence_stoich_token_safe_v1`.
+
+Rationale: the QSglob probe made `H0220` look like a pure scorer mapping
+false-zero, but the v2 server inputs also exposed a more basic prediction
+problem: several `H*220` protein-oligo rows were represented by short
+RNA-like records, while the official sequence archive contains protein-like
+records through the target aliases. This is not a score-driven rescue; it is a
+target-agnostic alias/sequence-family recovery step using official sequence
+metadata that is allowed at prediction time.
+
+Artifact summary: protein-oligo sequence recovery changes 5 targets
+(`H0220`, `H1213`, `H1220`, `H2213`, `H2220`) and increases the generated
+v2 job count from 163 to 165. The composed sequence + token-safe stoichiometry
+artifact changes 15 targets total, restores `H1220/H2220` as recovered protein
+assemblies with `A1B4` stoichiometry, and skips 8 recovered exact-stoichiometry
+cases that would exceed Protenix's 2560-token limit.
+
+Interpretation: this should be queued only as a full-benchmark strategy, or
+composed with the no-over-token fallback stack, after the active v2 baseline
+finishes. It is not itself a no-over-token artifact because unrelated existing
+v2 jobs such as `H0272` still exceed the Protenix token limit. It is also not
+winner-comparable on a single seed; any serious claim still needs a separate
+predeclared multi-candidate attack budget.
+
 ### 2026-07-06 Protenix CUDA Bootstrap Fix
 
 Decision: harden generated `run.sh` files to load or infer CUDA before importing

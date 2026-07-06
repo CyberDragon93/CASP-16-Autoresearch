@@ -780,6 +780,165 @@ def test_sequence_recovery_restores_protein_domain_inputs(tmp_path) -> None:
     assert rows[3]["source_target_id"] == "T1280"
 
 
+def test_protein_oligo_sequence_recovery_restores_alias_protein_inputs(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "oligo_sequence_recovery" / "inputs.json"
+    manifest = tmp_path / "oligo_sequence_recovery" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    sequences = tmp_path / "sequences.tsv"
+    protein_a = "MSFHASLLREEETPRPVAGINRTDQSLKNPLLGTEVSFCLKSSSLPHHVRALGQIKARNL"
+    protein_b = "MATRPSSLVDSLEDEEDPQTLRRERPGSPRPRKVPRNALTQPVDQLLKDLRKNPSMISD"
+
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "H0220",
+                    "sequences": [
+                        {"rnaSequence": {"sequence": "AUAGCUGAUGCUAUGCUAUGCUAUGC", "count": 1, "id": ["A"]}},
+                        {"rnaSequence": {"sequence": "AUGCUAUGCUAUGCUAUGC", "count": 1, "id": ["B"]}},
+                    ],
+                    "covalent_bonds": [],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "track", "oligo_state"]),
+                "\t".join(["H0220", "protein_oligo", "UNK"]),
+                "\t".join(["H2220", "protein_oligo", "A1B4"]),
+                "\t".join(["T1220", "protein_domain", "A1"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    sequences.write_text(
+        "\n".join(
+            [
+                "\t".join(["record_id", "target_ids", "sequence_family", "sequence_kind", "length", "sequence", "header", "source_file"]),
+                "\t".join(["H1220_A", "H1220", "H", "rnaSequence", str(len(protein_a)), protein_a, "H1220 protein subunit 1", "seq"]),
+                "\t".join(["H1220_B", "H1220", "H", "rnaSequence", str(len(protein_b)), protein_b, "H1220 protein subunit 2", "seq"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_protein_oligo_sequence_recovery_v1",
+        targets_path=targets,
+        official_sequences_path=sequences,
+    )
+
+    assert summary["changed_targets"] == 2
+    optimized = {job["name"]: job for job in json.loads(output_json.read_text(encoding="utf-8"))}
+    h0220 = optimized["H0220"]["sequences"]
+    h2220 = optimized["H2220"]["sequences"]
+    assert h0220[0]["proteinChain"]["sequence"] == protein_a
+    assert h0220[1]["proteinChain"]["sequence"] == protein_b
+    assert [entity["proteinChain"]["count"] for entity in h2220] == [1, 4]
+    assert "T1220" not in optimized
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert [row["target_id"] for row in rows] == ["H0220", "H2220"]
+    assert rows[0]["source_target_id"] == "H1220"
+    assert rows[1]["optimized_total_len"] == str(len(protein_a) + 4 * len(protein_b))
+    assert rows[1]["rules"] == "protein_sequence_recovery"
+
+
+def test_protein_oligo_sequence_stoich_token_safe_composes_recovery_and_counts(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "oligo_sequence_stoich" / "inputs.json"
+    manifest = tmp_path / "oligo_sequence_stoich" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    sequences = tmp_path / "sequences.tsv"
+    official_targets = tmp_path / "official_targets.tsv"
+    protein_a = "MSFHASLLREEETPRPVAGINRTDQSLKNPLLGTEVSFCLKSSSLPHHVRALGQIKARNL"
+    protein_b = "MATRPSSLVDSLEDEEDPQTLRRERPGSPRPRKVPRNALTQPVDQLLKDLRKNPSMISD"
+
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "H2220",
+                    "sequences": [
+                        {"rnaSequence": {"sequence": "AUAGCUGAUGCUAUGCUAUGCUAUGC", "count": 1, "id": ["A"]}},
+                        {"rnaSequence": {"sequence": "AUGCUAUGCUAUGCUAUGC", "count": 1, "id": ["B"]}},
+                    ],
+                    "covalent_bonds": [],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "track", "oligo_state"]),
+                "\t".join(["H2220", "protein_oligo", "UNK"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    sequences.write_text(
+        "\n".join(
+            [
+                "\t".join(["record_id", "target_ids", "sequence_family", "sequence_kind", "length", "sequence", "header", "source_file"]),
+                "\t".join(["H1220_A", "H1220", "H", "rnaSequence", str(len(protein_a)), protein_a, "H1220 protein subunit 1", "seq"]),
+                "\t".join(["H1220_B", "H1220", "H", "rnaSequence", str(len(protein_b)), protein_b, "H1220 protein subunit 2", "seq"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    official_targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "Oligo.State"]),
+                "\t".join(["H2220", "A1B4"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_protein_oligo_sequence_stoich_token_safe_v1",
+        targets_path=targets,
+        official_sequences_path=sequences,
+        official_targets_path=official_targets,
+    )
+
+    assert summary["changed_targets"] == 1
+    assert summary["sequence_recovery_changed_targets"] == 1
+    assert summary["oligo_stoich_changed_targets"] == 1
+    optimized = {job["name"]: job for job in json.loads(output_json.read_text(encoding="utf-8"))}
+    proteins = [entity["proteinChain"] for entity in optimized["H2220"]["sequences"]]
+    assert [protein["sequence"] for protein in proteins] == [protein_a, protein_b]
+    assert [protein["count"] for protein in proteins] == [1, 4]
+    assert proteins[1]["id"] == ["B", "C", "D", "E"]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    changed = [(row["phase"], row["target_id"], row["status"], row["rules"]) for row in rows if row["status"] == "changed"]
+    assert changed == [
+        ("protein_oligo_sequence_recovery", "H2220", "changed", "protein_sequence_recovery"),
+        ("oligo_stoich_token_safe", "H2220", "changed", "recover_official_oligo_state,benchmark_state_was_unknown"),
+    ]
+
+
 def test_sequence_recovery_large_target_fallback_composes_recovery_and_token_budget(tmp_path) -> None:
     input_json = tmp_path / "inputs.json"
     output_json = tmp_path / "combo" / "inputs.json"

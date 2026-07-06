@@ -1,0 +1,12 @@
+target_id	track	status	skip_reason	source_target_id	source_record_ids	original_entity_count	optimized_entity_count	original_total_len	optimized_total_len	rules
+H0220	protein_oligo	changed	none	H1220	H1220,H1220	2	2	434	1912	protein_sequence_recovery
+H1213	protein_oligo	changed	none	H0213	H0213,H0213,H0213,H0213,H0213	0	5	0	1373	protein_sequence_recovery
+H1220	protein_oligo	changed	none	H1220	H1220,H1220	2	2	434	1912	protein_sequence_recovery
+H1265_V1	protein_oligo	unchanged	no_recoverable_protein_sequence	none	none	0	0	0	0	none
+H1265_V2	protein_oligo	unchanged	no_recoverable_protein_sequence	none	none	0	0	0	0	none
+H1265_V3	protein_oligo	unchanged	no_recoverable_protein_sequence	none	none	0	0	0	0	none
+H2213	protein_oligo	changed	none	H0213	H0213,H0213,H0213,H0213,H0213	0	5	0	1373	protein_sequence_recovery
+H2220	protein_oligo	changed	none	H1220	H1220,H1220	2	2	434	1912	protein_sequence_recovery
+T1249V2O	protein_oligo	unchanged	no_recoverable_protein_sequence	none	none	0	0	0	0	none
+T1269V1O	protein_oligo	unchanged	no_recoverable_protein_sequence	none	none	0	0	0	0	none
+T2249V2O	protein_oligo	unchanged	no_recoverable_protein_sequence	none	none	0	0	0	0	none
