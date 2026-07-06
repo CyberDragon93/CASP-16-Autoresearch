@@ -580,9 +580,18 @@ def _with_run_dir(project_root: Path, spec: Mapping[str, Any]) -> dict[str, Any]
 
 
 def run_next(project_root: Path, *, benchmark: str | None = None, dry_run: bool = False) -> dict[str, object]:
-    rows = [row for row in list_run_rows(project_root, benchmark=benchmark) if row["status"] in {"pending", "failed"}]
+    all_rows = list_run_rows(project_root, benchmark=benchmark)
+    rows = [row for row in all_rows if row["status"] in {"pending", "failed"}]
     if not rows:
         return {"selected": "", "status": "no_pending_runs"}
+    running_rows = [row for row in all_rows if row["status"] == "running"]
+    if running_rows:
+        return {
+            "selected": "",
+            "status": "blocked_by_running_run",
+            "running_run_id": str(running_rows[0]["run_id"]),
+            "pending_run_id": str(rows[0]["run_id"]),
+        }
     row = rows[0]
     run_id = str(row["run_id"])
     run_dir = Path(str(row["run_dir"]))

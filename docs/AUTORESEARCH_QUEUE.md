@@ -9,13 +9,18 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | --- | --- | --- | --- | --- | --- |
 | P0 | `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | running | First full server-target Protenix baseline with real MSA/templates, seed `101`, sample `1` | Score domains as soon as CIFs finish; oligos need QSglob scorer |
 
-## Prepared Next
+## Queued Next
 
-| Priority | Strategy | Artifact | Benchmark | Rank Mode | Hypothesis | Launch After |
+| Priority | Run | Strategy | Artifact | Benchmark | Status | Hypothesis |
 | --- | --- | --- | --- | --- | --- | --- |
-| P1 | `yang_terminal_tag_cleanup_v1` | `strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | full fixed-budget rerun | Obvious terminal expression tags can distract AF3-like predictors; target-agnostic cleanup may improve domain/complex placement without using references | Current full Protenix baseline finishes or frees the GH200 |
+| P1 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `yang_terminal_tag_cleanup_v1` | `strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | pending, blocked while baseline is running | Obvious terminal expression tags can distract AF3-like predictors; target-agnostic cleanup may improve domain/complex placement without using references |
 
-Launch command, after the current run is no longer using the node:
+The run spec already exists. `./casp16 run-next --benchmark
+casp16_server_protein_v1 --dry-run` will intentionally report
+`blocked_by_running_run` until `server_protenix_full_msa_template_seed101`
+finishes. After that, the same command should select the queued cleanup run.
+
+Generation commands used:
 
 ```bash
 ./casp16 strategy-inputs --benchmark casp16_server_protein_v1 --strategy yang_terminal_tag_cleanup_v1
@@ -26,7 +31,6 @@ Launch command, after the current run is no longer using the node:
   --input-manifest strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/manifest.tsv \
   --strategy yang_terminal_tag_cleanup_v1 \
   --use-msa --use-template --use-default-params
-./casp16 run-next --benchmark casp16_server_protein_v1
 ```
 
 ## Backlog

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, register_existing_run, register_run_spec, run_next, write_run_script, write_runs_manifest
+from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, register_existing_run, register_run_spec, run_next, write_run_script, write_runs_manifest
 
 
 def test_build_protenix_command_contains_strategy_knobs() -> None:
@@ -179,3 +179,31 @@ def test_create_benchmark_run_spec_uses_run_local_input_copy(tmp_path) -> None:
     assert runtime_input.exists()
     assert spec["input_json"] == str(runtime_input)
     assert str(input_json) not in (tmp_path / "runs" / "server_full" / "run.sh").read_text(encoding="utf-8")
+
+
+def test_run_next_blocks_pending_when_benchmark_run_is_running(tmp_path) -> None:
+    running_spec = {
+        "run_id": "server_full",
+        "benchmark_name": "casp16_server_protein_v1",
+        "backend": "protenix",
+        "strategy": "baseline",
+        "model_name": "protenix-v2",
+        "seeds": "101",
+        "sample": 1,
+        "rank_eligible": True,
+    }
+    pending_spec = {**running_spec, "run_id": "server_cleanup", "strategy": "yang_terminal_tag_cleanup_v1"}
+    for spec in (running_spec, pending_spec):
+        run_dir = tmp_path / "runs" / str(spec["run_id"])
+        run_dir.mkdir(parents=True)
+        (run_dir / "run_spec.json").write_text(json.dumps(spec), encoding="utf-8")
+        (run_dir / "run.sh").write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
+        register_run_spec(tmp_path, spec)
+
+    append_status(tmp_path, run_id="server_full", benchmark="casp16_server_protein_v1", status="running", message="started")
+    append_status(tmp_path, run_id="server_cleanup", benchmark="casp16_server_protein_v1", status="pending", message="queued")
+
+    result = run_next(tmp_path, benchmark="casp16_server_protein_v1", dry_run=True)
+    assert result["status"] == "blocked_by_running_run"
+    assert result["running_run_id"] == "server_full"
+    assert result["pending_run_id"] == "server_cleanup"

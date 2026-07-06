@@ -10,6 +10,7 @@ leaderboard progress.
 | --- | --- | --- | --- | --- |
 | `server_eval_opendde_v1_full_msa_template_bf16_h1220_t1220s1` | `casp16_server_protein_v1` | scored diagnostic | reuse 35 existing OpenDDE local-v1 predictions to expose server coverage gap | no |
 | `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | running | full server-target Protenix baseline with real MSA/template settings | yes, once predictions and required scorers exist |
+| `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | pending, blocked while baseline runs | target-agnostic Yang-style terminal tag cleanup rerun | yes, after baseline frees the GH200 |
 
 ## Current Score Truth
 
@@ -35,12 +36,16 @@ leaderboard progress.
 2. Score the domain track immediately after predictions finish; oligo rows will
    stay `metric_unavailable` until an OpenStructure `ost` or equivalent QSglob
    scorer is installed.
-3. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
+3. Run queued `server_protenix_yang_terminal_tag_cleanup_seed101` as the first
+   full optimized-input reproduction attempt. It trims only obvious terminal
+   His/expression tags and keeps seed `101`, sample `1`, MSA/templates, and
+   `first_output_only`.
+4. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
    the oligo track.
-4. Start target_lab loops on H1258 and H1232 only as diagnostics for
+5. Start target_lab loops on H1258 and H1232 only as diagnostics for
    stoichiometry/construct tricks; promotion requires a target-agnostic full
    benchmark rerun.
-5. Add domain cropping and chain/residue mapping before drawing conclusions
+6. Add domain cropping and chain/residue mapping before drawing conclusions
    from hard multi-domain domain targets.
 
 ## Promotion Rules
