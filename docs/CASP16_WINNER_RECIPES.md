@@ -181,6 +181,11 @@ Useful strategy hypotheses:
     It keeps protein-oligo sequence recovery, token-safe stoichiometry,
     low-complexity cleanup, and large-target fallback together; 165 jobs, max
     2535 tokens, 0 jobs above the Protenix limit.
+    The hydrophobic-leader derivative
+    `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101`
+    is queued as a narrow D1d ablation on top of this stack: 8 changed
+    T0240/T1210/T1240 alias sequences, 0 over-token jobs, and 260/268 MSA paths
+    reused.
 15. `target_lab/h1258_interaction_window_v1`: generated a target-lab-only
     public interaction-window input with LRRK2 residues 861-1014 and 14-3-3
     A1B2 stoichiometry. Total length is 648 tokens.
@@ -192,8 +197,8 @@ Useful strategy hypotheses:
 18. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
     is the first queued 5-candidate terminal-tag attack run; use only for a
     separate multi-candidate comparison. It is currently incomplete: latest
-    output is still `seed_101` only, so it must not be scored as a complete
-    5-candidate row.
+    output has complete `seed_101` and partial `seed_102`, so it must not be
+    scored as a complete 5-candidate row.
 19. `server_attack_protenix_coverage_stoich_seed101_105`: generated as the
     second queued 5-candidate attack run, using stacked sequence recovery,
     token-budget fallback, and token-safe stoichiometry inputs. It is not

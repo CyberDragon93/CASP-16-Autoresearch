@@ -25,6 +25,7 @@ leaderboard progress.
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 stack plus large-target fallback for the 11 remaining over-token jobs | keep only as ablation |
 | `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` running | current strongest v2 no-over-token `dev_fixed` input stack with protein-oligo sequence recovery | yes for domain track; oligo after QSglob mapping validation |
 | `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending, not submitted | five-seed attack on the current strongest v2 no-over-token stack with exact-sequence MSA reuse and confidence-only model selection | attack tier only |
+| `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | pending, not submitted | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | yes for domain track; oligo after QSglob mapping validation |
 | `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:msa_reuse_attack | non-reuse predecessor of the current five-seed v2 no-over-token attack | attack tier only; run only as ablation |
 | `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending; superseded candidate | older five-seed no-over-token attack that lacks protein-oligo sequence recovery | attack tier only; run only as ablation |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
@@ -251,7 +252,7 @@ leaderboard progress.
     targets, so the live output can remain partial for a long time while each
     seed pass finishes.
     - Live observation: Slurm job `810719` is running on `c639-072`; the latest
-      count had 98 `seed_101` CIFs and 63 `seed_102` CIFs.
+      count had 98 `seed_101` CIFs and 79 `seed_102` CIFs.
     - Guard: do not score `server_attack_protenix_terminal_tag_seed101_105` as
       a complete attack row until candidates for all declared seeds are present,
       or explicitly mark the row partial/unranked.
@@ -373,8 +374,43 @@ leaderboard progress.
     - Planned `casp16_server_attack_protenix25_nofail` shard rows now point to
       the MSA-reuse input so future seed shards do not each repeat the same MSA
       search.
+34. Generated and queued the v2 nofail hydrophobic-leader derivative
+    `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101`.
+    - Strategy artifact:
+      `strategies/yang_oligo_sequence_stoich_low_complexity_hydrophobic_leader_large_fallback_v1/casp16_server_protein_v2_aliasfix/`.
+    - It changes exactly 8 protein sequences in 8 jobs:
+      `T0240`, `T1210`, `T1240`, `T2210`, `T2240`, `T0240O`, `T1240O`, and
+      `T2240O`.
+    - Rules are only `trim_n_hydrophobic_leader:29` for the T0240/T1240/T2240
+      family and `trim_n_hydrophobic_leader:15` for the T1210/T2210 family.
+    - The 165-job input remains nofail under Protenix's token guard: max total
+      length 2535, 0 jobs above 2560.
+    - MSA reuse report: 260/268 protein chains reused; the 8 changed sequences
+      intentionally miss and will run fresh MSA search.
+    - This is a queued `dev_fixed` ablation, not an attack-budget result.
 
 ## Strategy Decision Log
+
+### 2026-07-06 Hydrophobic Leader Nofail Derivative
+
+Decision: create a narrow signal/hydrophobic-leader cleanup branch on top of
+the current v2 nofail stack, but keep it behind the active nofail run and the
+main MSA-reuse attack decision.
+
+Rationale: CASP16 winner recipes emphasize construct refinement. The current
+sequence-only detector finds only T0240/T1210/T1240-style N-terminal leaders
+and phase/oligo aliases, so the blast radius is small enough for a full-set
+ablation. It does not use references, score tables, or target-score feedback.
+
+Artifact: `inputs.json` hash
+`eb7a88498fbf856120b01aaf39d7b8f7f7264d26e31606dff50472f350dc93ee`;
+MSA-reuse input hash
+`85b452c36b454846c94f781fac43f036aef2484b4699adfff468e27b344500f8`.
+
+Interpretation: this is a real recipe iteration, but it is risky because
+leader/signal removal can hurt if CASP's scored construct includes the segment.
+Score only by fixed-set means after the full run finishes; do not promote from
+a single target.
 
 ### 2026-07-06 Attack Budget Execution Audit
 
@@ -383,9 +419,9 @@ treat its current outputs as partial until all declared seeds are present.
 
 Evidence: `run_spec.json` passes `-s 101,102,103,104,105`; Protenix CLI accepts
 comma-separated seeds; `runner/inference.py` loops over `for seed in seeds`
-outside the target loop. Current output contains `seed_101` directories only,
-which is expected for the first pass and not evidence that the attack budget
-failed.
+outside the target loop. Current output contains complete `seed_101` and
+partial `seed_102` directories, which is expected for the serial seed pass and
+not evidence that the attack budget failed.
 
 Next action: monitor completion. If wall-time risk becomes real, use an
 explicit seed-sharded continuation so the `protenix5` budget remains honest and

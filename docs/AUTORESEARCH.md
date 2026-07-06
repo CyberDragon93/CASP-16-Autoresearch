@@ -78,7 +78,7 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
-  is running; the latest recorded check found 98 `seed_101` CIFs and 63
+  is running; the latest recorded check found 98 `seed_101` CIFs and 79
   `seed_102` CIFs, so it is still incomplete and must not be scored as a
   five-candidate result.
 - Queued second attack run spec:
@@ -102,6 +102,15 @@ where methods should change.
   current v2 dev row's `inputs-update-msa.json`. The reuse report has 268
   protein chains reused, 0 missing sources, and 0 kept-existing rows. This
   supersedes the non-reuse attack row for the next v2 `protenix5` launch.
+- New v2 hydrophobic-leader nofail derivative:
+  `yang_oligo_sequence_stoich_low_complexity_hydrophobic_leader_large_fallback_v1`
+  starts from the strongest v2 nofail stack and applies the existing
+  sequence-only hydrophobic leader rule. It changes 8 sequences in 8 targets
+  (`T0240/T1210/T1240` plus phase/oligo aliases), keeps 165 jobs, max length
+  2535, and 0 over-token jobs. Its MSA-reuse input reuses 260/268 protein-chain
+  MSA paths and intentionally misses the 8 changed sequences. It is registered
+  as
+  `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101`.
 - New coverage-recovery strategy:
   `yang_large_target_split_or_fallback_v1`, which predeclares a token-budget
   fallback for the eight known Protenix `n_token > 2560` failures.
@@ -347,6 +356,10 @@ competitive result.
     over both older v2 nofail attack rows for the first v2 five-candidate
     no-over-token attack, unless an explicit ablation requires running a
     non-reuse stack.
+26. Run the hydrophobic-leader nofail `dev_fixed` derivative only after the
+    active v2 nofail row and queued MSA-reuse attack path are handled. It is a
+    narrow construct-cleanup ablation, not a replacement for the current main
+    queue.
 
 ## Run Discipline
 
