@@ -71,6 +71,21 @@ the ranked benchmark:
 CASP domain-summary hand crops stay target_lab-only unless a new benchmark
 version is created.
 
+## Antibody Fv
+
+Fv-only antibody target-lab runs test whether trimming antibody constant
+regions improves antigen-antibody assembly. Promotion requires a
+target-agnostic antibody rule that can be generated before prediction from
+sequence/metadata alone, and a full benchmark run whose oligo score is judged
+with QSglob or another locked server-compatible metric.
+
+Current evidence: `targetlab_protenix_yang_antibody_fv_seed101` completed 8/8
+jobs. Diagnostic DockQ succeeded for all 8 jobs, with strong positives on
+`H0233__fv` (`0.916`) and `H1233__fv` (`0.891`), moderate signal on
+`H1225__fv` (`0.538`) and `H0222__fv` (`0.431`), and weaker mixed signal for
+the H0223/H1223/H0225 family. This supports continued O5 strategy work, but it
+does not justify direct leaderboard promotion or best-of-target selection.
+
 ## Required Post-Run Commands
 
 After target-lab completion:

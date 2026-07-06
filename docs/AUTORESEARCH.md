@@ -76,7 +76,8 @@ where methods should change.
   set through the benchmark `input_manifest.tsv` and requires complete
   exact-sequence MSA reuse from `data/msa_cache/index.tsv`. It is not queued
   yet; use it only if the running scoreable `protenix5` row is worth scaling.
-- MSA cache infra now has a read-only `check-msa-cache` preflight plus
+- MSA cache infra now has a read-only `check-msa-cache` preflight,
+  materialized local A3M storage under ignored `data/msa_cache/store/`, and
   `run-next` stale-path auditing. The scoreable v2 attack input checks at
   141/141 reusable protein chains, 0 missing sources, and 0 stale cached paths
   against `data/msa_cache/index.tsv`; future MSA-heavy shards should pass this
@@ -95,8 +96,8 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
-  is running. The `2026-07-06 18:08 CDT` check found seed CIF counts
-  `98/98/57/0/0`; the log still hits the known `n_token > 2560` classes, so it
+  is running. The `2026-07-06 18:25 CDT` check found seed CIF counts
+  `98/98/67/0/0`; the log still hits the known `n_token > 2560` classes, so it
   is incomplete and must not be scored as a five-candidate result.
 - Superseded second attack run spec:
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
@@ -135,8 +136,8 @@ where methods should change.
   changed: skipped no-reference targets still score 0 locally. `run-next
   --dry-run` selected this row. Slurm job `811751` is now running on
   `c636-072`; the Protenix log confirms `inputs.msa-reuse.json` and skips MSA
-  update. The `2026-07-06 17:56 CDT` check found 9/74 seed-101 CIFs after the
-  long `T1210` target completed.
+  update. The `2026-07-06 18:25 CDT` check found 20/74 seed-101 CIFs; no
+  later seeds have started, so it remains incomplete and unranked.
 - Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   produced 39/165 CIFs and then spent extended GPU time on `T1295`, which is
@@ -263,8 +264,11 @@ where methods should change.
   `budget_tier=diagnostic`, and `rank_eligible=false`; Slurm job `811918`
   completed on `c620-142` with 8/8 CIFs. The confidence-only diagnostic signal
   is strongest on `H0233__fv` and `H1233__fv`, where antigen-to-antibody pair
-  ipTM is about `0.91-0.94`; this supports more O5 assembly/scoring work, not
-  direct leaderboard promotion.
+  ipTM is about `0.91-0.94`. A DockQ diagnostic also succeeded for 8/8 jobs:
+  `H0233__fv=0.916`, `H1233__fv=0.891`, `H1225__fv=0.538`,
+  `H0222__fv=0.431`, `H1222__fv=0.383`, and weaker mixed cases for
+  `H0223/H1223/H0225`. This supports more O5 assembly/scoring work, not direct
+  leaderboard promotion.
 - New domain-fragment target-lab batch:
   `target_lab/domain_fragment_batch_v1/` turns the domain-decomposition recipe
   into 12 runnable Protenix fragment jobs. Slurm job `810862` completed on
@@ -400,7 +404,9 @@ competitive result.
     eligibility. It produced 8/8 CIFs; `H0233__fv` and `H1233__fv` have the
     strongest antigen-antibody pair-confidence signal. Across the batch,
     pLDDT is `85.872..94.151`, pTM is `0.865..0.954`, and ipTM is
-    `0.777..0.942`.
+    `0.777..0.942`. DockQ succeeded for 8/8 jobs and found strong positives on
+    `H0233__fv=0.916` and `H1233__fv=0.891`, so O5 is now a real target-lab
+    signal rather than confidence-only optimism.
 19. Do not launch the non-reuse
     `server_attack_protenix_coverage_stoich_seed101_105` row. Its MSA-reuse
     successor

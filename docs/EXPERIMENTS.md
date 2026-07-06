@@ -13,7 +13,7 @@ leaderboard progress.
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | scored | target-agnostic Yang-style terminal tag cleanup rerun | yes for domain track |
 | `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | scored | single-entity oversize domain fallback recovered `T1295` inference but not score, because `T1295` lacks local reference mapping | yes for domain track |
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | scored negative | full-set antibody Fv constant-region cleanup rerun | yes for domain track |
-| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` running; 98/98/57/0/0 CIFs by seed at `2026-07-06 18:08 CDT`; still hitting the known `n_token > 2560` jobs | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
+| `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` running; 98/98/67/0/0 CIFs by seed at `2026-07-06 18:25 CDT`; still hitting the known `n_token > 2560` jobs | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | recover missing/misparsed protein-domain sequences on top of terminal-tag cleanup | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
@@ -25,14 +25,14 @@ leaderboard progress.
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | keep only as ablation |
 | `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 stack plus large-target fallback for the 11 remaining over-token jobs | keep only as ablation |
 | `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | cancelled:scoreable_subset_attack; 39/165 CIFs, stopped on no-reference `T1295` | current strongest v2 no-over-token input stack with protein-oligo sequence recovery; keep partial artifacts/MSA cache only | not a complete dev row |
-| `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | Slurm job `811751` running on `c636-072`; MSA update skipped, and 13/74 seed-101 CIFs exist at `2026-07-06 18:08 CDT` | five-seed attack on the current strongest v2 nofail stack, filtered to 74 locally scoreable jobs with 141/141 exact-sequence MSA paths reused | attack tier only; skipped no-reference targets still score 0 locally |
+| `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | Slurm job `811751` running on `c636-072`; MSA update skipped, and 20/74 seed-101 CIFs exist at `2026-07-06 18:25 CDT` | five-seed attack on the current strongest v2 nofail stack, filtered to 74 locally scoreable jobs with 141/141 exact-sequence MSA paths reused | attack tier only; skipped no-reference targets still score 0 locally |
 | `server_v2_attack_oligo_recovery_nofail_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:scoreable_subset_attack; former wrapper job `811751` is now running the scoreable-subset run selected by `run-next` | full 165-job MSA-reuse predecessor that repeats no-reference heavy jobs before reference recovery | attack tier only; run only as ablation |
 | `server_v2_protenix_yang_oligo_sequence_stoich_hydrophobic_leader_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | deferred:slurm_wrapper_cancelled; Slurm job `811754` is `CANCELLED+` and no longer queued | narrow hydrophobic-leader construct cleanup on top of the v2 nofail stack, with MSA reuse | re-enable only after scoreable attack/full v2 score |
 | `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | superseded:msa_reuse_attack | non-reuse predecessor of the current five-seed v2 no-over-token attack | attack tier only; run only as ablation |
 | `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending; superseded candidate | older five-seed no-over-token attack that lacks protein-oligo sequence recovery | attack tier only; run only as ablation |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated; standalone run skipped because the same H1258 window job completed inside `small_complex_stoich_batch_v1` | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
 | `target_lab/small_complex_stoich_batch_v1` | target_lab only | complete; 6/6 structures, diagnostic DockQ regenerated | compact exact-stoich and H1258-window learning batch | not rank eligible |
-| `targetlab_protenix_yang_antibody_fv_seed101` | target_lab only | complete; Slurm job `811918` produced 8/8 CIFs and confidence summaries | eight Fv-only antibody-antigen target-lab jobs from `yang_antibody_fv_fragment_inputs_v1`; H0233/H1233 strongest antigen-antibody pair-confidence signal | not rank eligible |
+| `targetlab_protenix_yang_antibody_fv_seed101` | target_lab only | complete; Slurm job `811918` produced 8/8 CIFs, confidence summaries, and DockQ diagnostics | eight Fv-only antibody-antigen target-lab jobs from `yang_antibody_fv_fragment_inputs_v1`; H0233/H1233 strongest DockQ positives | not rank eligible |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob mapping or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -278,11 +278,11 @@ leaderboard progress.
       selected the scoreable attack. The Protenix log confirms
       `inputs.msa-reuse.json`, reports that MSA results do not need updating,
       and starts inference at `T0206` as job `1/74`.
-    - `2026-07-06 17:56 CDT` live check: terminal-tag attack seed counts are
-      `98/98/47/0/0`; scoreable v2 attack has 9/74 seed-101 CIFs and has
-      completed long target `T1210`. The hydrophobic-leader wrapper job
-      `811754` was cancelled before launch because v2 `run-next --dry-run`
-      now returns `no_pending_runs`.
+    - `2026-07-06 18:25 CDT` live check: terminal-tag attack seed counts are
+      `98/98/67/0/0`; scoreable v2 attack has 20/74 seed-101 CIFs and no later
+      seeds have started. The hydrophobic-leader wrapper job `811754` was
+      cancelled before launch because v2 `run-next --dry-run` now returns
+      `no_pending_runs`.
 22. Installed OpenStructure 2.11.1 in the isolated conda env
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob` and configured
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` as the
@@ -700,6 +700,14 @@ quality score, but it gives useful triage: `H0233__fv` and `H1233__fv` show the
 clearest antigen-to-antibody pair ipTM signal, while the H0222/H0223/H0225
 family mostly has strong heavy-light confidence and weaker antigen-antibody
 pair confidence. Keep this as O5 target-lab evidence only.
+
+Diagnostic DockQ then succeeded for all 8 Fv jobs. Total DockQ mean was
+`0.497250`, with strong positives on `H0233__fv=0.916000` and
+`H1233__fv=0.891000`, a moderate `H1225__fv=0.538000`, and mixed weaker cases
+on the H0222/H0223/H0225 families. This upgrades O5 from confidence-only
+evidence to real target-lab interface evidence, but it still cannot be used as
+a server leaderboard score because official oligo ranking requires QSglob and a
+target-agnostic full-benchmark rule.
 
 ### 2026-07-05 Antibody Fv Full-Set Candidate
 
