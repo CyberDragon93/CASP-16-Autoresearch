@@ -102,6 +102,10 @@ where methods should change.
   current v2 dev row's `inputs-update-msa.json`. The reuse report has 268
   protein chains reused, 0 missing sources, and 0 kept-existing rows. This
   supersedes the non-reuse attack row for the next v2 `protenix5` launch.
+  Slurm job `811751` is submitted with dependency `afterany:810938`; when the
+  active v2 dev row clears, it will call
+  `./casp16 run-next --benchmark casp16_server_protein_v2_aliasfix` and should
+  select this MSA-reuse attack if queue state remains unchanged.
 - Active v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   is running as Slurm job `810938`. The `2026-07-06 16:32 CDT` check found
