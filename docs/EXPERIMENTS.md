@@ -15,6 +15,7 @@ leaderboard progress.
 | `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | scored negative | full-set antibody Fv constant-region cleanup rerun | yes for domain track |
 | `server_attack_protenix_terminal_tag_seed101_105` | `casp16_server_protein_v1` | Slurm job `810719` pending | five-seed terminal-tag cleanup attack run with predeclared confidence-only model selection | attack tier only |
 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | yes for domain track, coverage-recovery caveat |
+| `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | strategy artifacts generated | recover missing/misparsed protein-domain sequences on top of terminal-tag cleanup | not queued while attack/fallback jobs are pending |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -120,6 +121,9 @@ leaderboard progress.
     `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`, `H1272`, and
     `T1295O`, reducing each optimized job below 2560 tokens by epitope cleanup
     and original-order chain/copy budget fallback.
+12. Generated `yang_sequence_recovery_v1` on top of terminal-tag cleanup. It
+    repairs 32 protein-domain inputs, including high-value local failures
+    `T1212`, `T1239V1`, `T1239V2`, and `T2280`.
 
 ## Strategy Decision Log
 

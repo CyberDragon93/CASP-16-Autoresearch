@@ -10,6 +10,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | P0 | Install OpenStructure `ost` / QSglob scorer | `casp16_server_protein_v1` | not started | Required to compare the 104 official server oligo targets and judge antibody-complex strategies | Install or register a QSglob-compatible scorer, then rerun `./casp16 score` and `./casp16 leaderboard` |
 | P1 | Run `server_attack_protenix_terminal_tag_seed101_105` | separate from `dev_fixed` | Slurm job `810719` pending | Winner-level server comparison should not pretend one seed/sample is enough | Monitor GH200 job, then score with `protenix_confidence_v1` while keeping attack rows out of `dev_fixed` ranks |
 | P2 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | Extra seeds cannot fix `n_token > 2560` hard failures | Submit after attack job `810719` completes if coverage recovery remains highest leverage |
+| P3 | `yang_sequence_recovery_v1` | `casp16_server_protein_v1` | strategy artifacts generated | Several domain hard zeros are local sequence parsing/alias failures, not model failures | Queue after active pending jobs; expect more jobs but better domain coverage |
 
 ## Latest Baseline Result
 
@@ -30,6 +31,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | deferred | `server_protenix_yang_epitope_tag_cleanup_seed101` | `yang_epitope_tag_cleanup_v1` | `strategies/yang_epitope_tag_cleanup_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | deferred | Token-limit hard failures need a predeclared split/fallback policy before another construct-cleanup full run |
 | P1 | `server_attack_protenix_terminal_tag_seed101_105` | `yang_terminal_tag_cleanup_v1_server_attack` | `runs/server_attack_protenix_terminal_tag_seed101_105/` | `casp16_server_protein_v1` | Slurm job `810719` pending | Five fixed seeds on the current best terminal-tag cleanup strategy, selected by predeclared confidence-only policy |
 | P2 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `yang_large_target_split_or_fallback_v1` | `runs/server_protenix_yang_large_target_split_or_fallback_seed101/` | `casp16_server_protein_v1` | pending behind attack job | Convert the eight `n_token > 2560` failures into under-budget jobs by predeclared chain/copy fallback |
+| P3 | `server_protenix_yang_sequence_recovery_seed101` | `yang_sequence_recovery_v1` | `strategies/yang_sequence_recovery_v1/casp16_server_protein_v1/` | `casp16_server_protein_v1` | strategy artifacts generated, not queued | Recover protein-domain inputs that were missing or misparsed as nucleic-acid records |
 
 The terminal-tag, oversize-domain fallback, and antibody-Fv runs are complete
 and scored. The next valuable work is scorer/benchmark capability, not another

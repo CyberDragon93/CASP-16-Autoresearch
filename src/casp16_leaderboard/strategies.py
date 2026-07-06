@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import json
 import math
+import re
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Any, Mapping, Sequence
 
 from .official import ensure_dir
 from .runs import file_sha256
+from .inputs import PROTEIN_ALPHABET, target_lookup_aliases
 
 
 STRATEGY_YANG_TERMINAL_TAG_CLEANUP = "yang_terminal_tag_cleanup_v1"
@@ -22,6 +24,7 @@ STRATEGY_YANG_ANTIBODY_FV_CLEANUP = "yang_antibody_fv_cleanup_v1"
 STRATEGY_YANG_TERMINAL_TAG_ANTIBODY_FV_CLEANUP = "yang_terminal_tag_antibody_fv_cleanup_v1"
 STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK = "yang_oversize_domain_monomer_fallback_v1"
 STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK = "yang_large_target_split_or_fallback_v1"
+STRATEGY_YANG_SEQUENCE_RECOVERY = "yang_sequence_recovery_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
@@ -33,6 +36,7 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_ANTIBODY_FV_CLEANUP,
     STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK,
     STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK,
+    STRATEGY_YANG_SEQUENCE_RECOVERY,
 )
 PROTENIX_TOKEN_LIMIT = 2560
 MIN_REMAINING_PROTEIN_LENGTH = 30
@@ -124,6 +128,19 @@ LARGE_TARGET_FALLBACK_MANIFEST_FIELDS = [
     "original_chain_ids",
     "optimized_chain_ids",
     "dropped_chain_ids",
+    "rules",
+]
+SEQUENCE_RECOVERY_MANIFEST_FIELDS = [
+    "target_id",
+    "track",
+    "status",
+    "skip_reason",
+    "source_target_id",
+    "source_record_ids",
+    "original_entity_count",
+    "optimized_entity_count",
+    "original_total_len",
+    "optimized_total_len",
     "rules",
 ]
 ANTIBODY_HEAVY_PREFIXES = ("QVQL", "EVQL", "QLQL", "QVHL", "QVQLK")
@@ -319,6 +336,7 @@ def derive_strategy_inputs(
     strategy: str = STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     domain_definitions_path: Path | None = None,
     targets_path: Path | None = None,
+    official_sequences_path: Path | None = None,
 ) -> dict[str, object]:
     if strategy not in SUPPORTED_STRATEGIES:
         raise ValueError(f"unsupported strategy: {strategy}")
@@ -355,6 +373,18 @@ def derive_strategy_inputs(
             output_json=output_json,
             manifest_path=manifest_path,
             targets_path=targets_path,
+        )
+    if strategy == STRATEGY_YANG_SEQUENCE_RECOVERY:
+        if targets_path is None:
+            raise ValueError("targets_path is required for sequence recovery strategy")
+        if official_sequences_path is None:
+            raise ValueError("official_sequences_path is required for sequence recovery strategy")
+        return derive_sequence_recovery_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
+            targets_path=targets_path,
+            official_sequences_path=official_sequences_path,
         )
 
     with input_json.open(encoding="utf-8") as handle:
@@ -873,6 +903,236 @@ def derive_large_target_split_or_fallback_inputs(
         "changed_targets": len(changed_targets),
         "token_limit": token_limit,
     }
+
+
+def derive_sequence_recovery_inputs(
+    *,
+    input_json: Path,
+    output_json: Path,
+    manifest_path: Path,
+    targets_path: Path,
+    official_sequences_path: Path,
+) -> dict[str, object]:
+    with input_json.open(encoding="utf-8") as handle:
+        jobs = json.load(handle)
+
+    jobs_by_name = {str(job.get("name", "")): _copy_json_dict(job) for job in jobs}
+    targets = load_target_rows(targets_path)
+    sequence_rows = load_sequence_rows(official_sequences_path)
+    sequence_index = sequence_rows_by_alias(sequence_rows)
+
+    recovered_jobs: list[dict[str, Any]] = []
+    manifest_rows: list[dict[str, str]] = []
+    changed_targets: set[str] = set()
+
+    for target in targets:
+        target_id = str(target.get("target_id", "")).upper()
+        if not target_id:
+            continue
+        existing_job = jobs_by_name.get(target_id)
+        if target.get("track") != "protein_domain":
+            continue
+        original_entity_count, original_total_len = job_entity_count_and_len(existing_job)
+        needs_recovery = existing_job is None or job_has_nonprotein_sequences(existing_job)
+        if not needs_recovery:
+            continue
+
+        candidates = recover_protein_sequence_records(target, sequence_index)
+        if not candidates:
+            manifest_rows.append(
+                {
+                    "target_id": target_id,
+                    "track": str(target.get("track", "")),
+                    "status": "unchanged",
+                    "skip_reason": "no_recoverable_protein_sequence",
+                    "source_target_id": "none",
+                    "source_record_ids": "none",
+                    "original_entity_count": str(original_entity_count),
+                    "optimized_entity_count": str(original_entity_count),
+                    "original_total_len": str(original_total_len),
+                    "optimized_total_len": str(original_total_len),
+                    "rules": "none",
+                }
+            )
+            continue
+
+        recovered_job = build_recovered_protein_job(target_id, candidates, oligo_state=str(target.get("oligo_state", "")))
+        optimized_entity_count, optimized_total_len = job_entity_count_and_len(recovered_job)
+        jobs_by_name[target_id] = recovered_job
+        changed_targets.add(target_id)
+        manifest_rows.append(
+            {
+                "target_id": target_id,
+                "track": str(target.get("track", "")),
+                "status": "changed",
+                "skip_reason": "none",
+                "source_target_id": ",".join(sorted({str(row.get("_source_alias", "")) for row in candidates if row.get("_source_alias")})) or "none",
+                "source_record_ids": ",".join(str(row.get("record_id", "")) for row in candidates),
+                "original_entity_count": str(original_entity_count),
+                "optimized_entity_count": str(optimized_entity_count),
+                "original_total_len": str(original_total_len),
+                "optimized_total_len": str(optimized_total_len),
+                "rules": "protein_sequence_recovery",
+            }
+        )
+
+    for job in jobs:
+        target_id = str(job.get("name", ""))
+        recovered_jobs.append(jobs_by_name.get(target_id, job))
+    existing_names = {str(job.get("name", "")) for job in jobs}
+    for target in targets:
+        target_id = str(target.get("target_id", "")).upper()
+        if target_id in jobs_by_name and target_id not in existing_names:
+            recovered_jobs.append(jobs_by_name[target_id])
+
+    ensure_dir(output_json.parent)
+    output_json.write_text(json.dumps(recovered_jobs, indent=2) + "\n", encoding="utf-8")
+    write_manifest(manifest_path, manifest_rows, SEQUENCE_RECOVERY_MANIFEST_FIELDS)
+    return {
+        "strategy": STRATEGY_YANG_SEQUENCE_RECOVERY,
+        "input_json": str(input_json),
+        "output_json": str(output_json),
+        "manifest": str(manifest_path),
+        "targets": str(targets_path),
+        "official_sequences": str(official_sequences_path),
+        "input_sha256": file_sha256(input_json),
+        "output_sha256": file_sha256(output_json),
+        "jobs": len(recovered_jobs),
+        "changed_targets": len(changed_targets),
+    }
+
+
+def load_target_rows(path: Path) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle, delimiter="\t"))
+
+
+def load_sequence_rows(path: Path) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle, delimiter="\t"))
+
+
+def sequence_rows_by_alias(rows: Sequence[Mapping[str, str]]) -> dict[str, list[dict[str, str]]]:
+    by_alias: dict[str, list[dict[str, str]]] = {}
+    for row in rows:
+        aliases = {str(row.get("record_id", "")).upper()}
+        aliases.update(str(item).strip().upper() for item in str(row.get("target_ids", "")).split(",") if item.strip())
+        for alias in aliases:
+            by_alias.setdefault(alias, []).append(dict(row))
+    return by_alias
+
+
+def recovery_aliases(target_id: str) -> list[str]:
+    target_id = target_id.upper()
+    aliases = [target_id]
+    for alias in sorted(target_lookup_aliases(target_id)):
+        if alias not in aliases:
+            aliases.append(alias)
+    version_match = re.match(r"^(.*)V(\d+)$", target_id)
+    if version_match:
+        base, version = version_match.groups()
+        if version != "1":
+            aliases.append(f"{base}V1")
+    phase_match = re.match(r"^([TH])2(\d{3})(.*)$", target_id)
+    if phase_match:
+        prefix, rest, suffix = phase_match.groups()
+        aliases.extend([f"{prefix}1{rest}{suffix}", f"{prefix}0{rest}{suffix}"])
+    return list(dict.fromkeys(aliases))
+
+
+def recover_protein_sequence_records(target: Mapping[str, str], sequence_index: Mapping[str, Sequence[Mapping[str, str]]]) -> list[dict[str, str]]:
+    target_id = str(target.get("target_id", "")).upper()
+    seen_sequences: set[str] = set()
+    recovered: list[dict[str, str]] = []
+    for alias in recovery_aliases(target_id):
+        for row in sequence_index.get(alias, ()):
+            sequence = str(row.get("sequence", "")).upper()
+            if not is_protein_recovery_sequence(row):
+                continue
+            if sequence in seen_sequences:
+                continue
+            seen_sequences.add(sequence)
+            recovered_row = dict(row)
+            recovered_row["sequence_kind"] = "proteinChain"
+            recovered_row["_source_alias"] = alias
+            recovered.append(recovered_row)
+    return recovered
+
+
+def is_protein_recovery_sequence(row: Mapping[str, str]) -> bool:
+    sequence = re.sub(r"\s+", "", str(row.get("sequence", "")).upper())
+    if len(sequence) < 30:
+        return False
+    if any(char not in PROTEIN_ALPHABET for char in sequence):
+        return False
+    if row.get("sequence_kind") == "proteinChain":
+        return True
+    non_dna = sum(1 for char in sequence if char not in {"A", "C", "G", "T", "U", "N"})
+    header = str(row.get("header", "")).lower()
+    return (non_dna / len(sequence)) >= 0.10 or "protein" in header or "prot " in header or "subunit" in header
+
+
+def build_recovered_protein_job(target_id: str, rows: Sequence[Mapping[str, str]], *, oligo_state: str) -> dict[str, Any]:
+    counts = recovered_oligo_state_counts(oligo_state, len(rows))
+    sequences: list[dict[str, Any]] = []
+    chain_index = 0
+    for index, row in enumerate(rows):
+        count = counts[index]
+        chain_ids = [chain_id_for_strategy(chain_index + offset) for offset in range(count)]
+        chain_index += count
+        sequences.append(
+            {
+                "proteinChain": {
+                    "sequence": re.sub(r"\s+", "", str(row.get("sequence", "")).upper()),
+                    "count": count,
+                    "id": chain_ids,
+                }
+            }
+        )
+    return {"name": target_id, "sequences": sequences, "covalent_bonds": []}
+
+
+def recovered_oligo_state_counts(oligo_state: str, record_count: int) -> list[int]:
+    if record_count <= 0:
+        return []
+    entries = re.findall(r"[A-Z]+(\d+)", (oligo_state or "").upper())
+    if len(entries) == record_count:
+        return [int(value) for value in entries]
+    if record_count == 1 and entries:
+        return [int(entries[0])]
+    return [1] * record_count
+
+
+def chain_id_for_strategy(index: int) -> str:
+    letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    if index < len(letters):
+        return letters[index]
+    index -= len(letters)
+    return letters[index // len(letters)] + letters[index % len(letters)]
+
+
+def job_has_nonprotein_sequences(job: Mapping[str, Any] | None) -> bool:
+    if not job:
+        return False
+    for entity in job.get("sequences", []):
+        if isinstance(entity, dict) and "proteinChain" not in entity:
+            return True
+    return False
+
+
+def job_entity_count_and_len(job: Mapping[str, Any] | None) -> tuple[int, int]:
+    if not job:
+        return 0, 0
+    count_entities = 0
+    total_len = 0
+    for entity in job.get("sequences", []):
+        if not isinstance(entity, dict):
+            continue
+        for payload in entity.values():
+            if isinstance(payload, dict):
+                count_entities += 1
+                total_len += len(str(payload.get("sequence", ""))) * _positive_count(payload.get("count", 1))
+    return count_entities, total_len
 
 
 def load_target_tracks(path: Path) -> dict[str, str]:

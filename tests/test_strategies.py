@@ -703,3 +703,78 @@ def test_derive_terminal_tag_antibody_fv_cleanup_combines_full_set_changes(tmp_p
     assert [row["changed"] for row in rows] == ["false", "true", "true"]
     assert rows[1]["rules"] == f"trim_c_antibody_constant:{len(heavy_variable)}"
     assert rows[2]["rules"] == "trim_c:HHHHHH"
+
+
+def test_sequence_recovery_restores_protein_domain_inputs(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "sequence_recovery" / "inputs.json"
+    manifest = tmp_path / "sequence_recovery" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    sequences = tmp_path / "sequences.tsv"
+    protein_1212 = "PKSIYVPNKDLKISKWIPTPKKEFTEIETNSWYEHRKFENPNKSPVQTYNKIVPVVPPESIKQQNLANKRKKTN"
+    protein_1239 = "MELKNIVNSYNITNILGYLRRSRQDMEREKRTGEDTLTEQKELMNKILTAIEIPYELKMEIGSGESIDGRPVFKEC"
+    protein_1280 = "KDFMLIGHRGATGYTDEHTIKGYQMALDKGADYIELDLQLTKDNKLLCMHDSTIDRTTTGTGKVGDMTLSYIQT"
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1239V1",
+                    "sequences": [
+                        {"dnaSequence": {"sequence": "NNNTNGTGTTNTAGGGCGAATGAGNTNATTGATAAGGAGNTANNG", "count": 1, "id": ["A"]}}
+                    ],
+                    "covalent_bonds": [],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "track", "oligo_state"]),
+                "\t".join(["T1212", "protein_domain", "A1"]),
+                "\t".join(["T1239V1", "protein_domain", "A1"]),
+                "\t".join(["T1239V2", "protein_domain", "A1"]),
+                "\t".join(["T2280", "protein_domain", "A1"]),
+                "\t".join(["H1212", "protein_oligo", "A1"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    sequences.write_text(
+        "\n".join(
+            [
+                "\t".join(["record_id", "target_ids", "sequence_family", "sequence_kind", "length", "sequence", "header", "source_file"]),
+                "\t".join(["T1212", "T1212", "T", "rnaSequence", str(len(protein_1212)), protein_1212, "T1212 protein-looking mislabeled", "seq"]),
+                "\t".join(["T1212s1", "M1212,T1212,T1212S1", "RDM", "proteinChain", str(len(protein_1212)), protein_1212, "T1212s1 prot subunit", "seq"]),
+                "\t".join(["T1239v1", "T1239V1", "T", "dnaSequence", str(len(protein_1239)), protein_1239, "T1239v1 protein subunit", "seq"]),
+                "\t".join(["T1280", "T1280", "T", "proteinChain", str(len(protein_1280)), protein_1280, "T1280 protein domain", "seq"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_sequence_recovery_v1",
+        targets_path=targets,
+        official_sequences_path=sequences,
+    )
+
+    assert summary["changed_targets"] == 4
+    optimized = {job["name"]: job for job in json.loads(output_json.read_text(encoding="utf-8"))}
+    assert optimized["T1212"]["sequences"][0]["proteinChain"]["sequence"] == protein_1212
+    assert optimized["T1239V1"]["sequences"][0]["proteinChain"]["sequence"] == protein_1239
+    assert optimized["T1239V2"]["sequences"][0]["proteinChain"]["sequence"] == protein_1239
+    assert optimized["T2280"]["sequences"][0]["proteinChain"]["sequence"] == protein_1280
+    assert "H1212" not in optimized
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert [row["target_id"] for row in rows] == ["T1212", "T1239V1", "T1239V2", "T2280"]
+    assert rows[2]["source_target_id"] == "T1239V1"
+    assert rows[3]["source_target_id"] == "T1280"
