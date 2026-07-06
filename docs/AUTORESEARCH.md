@@ -51,6 +51,13 @@ where methods should change.
 - `server_protenix_yang_antibody_fv_cleanup_seed101` is a negative
   `dev_fixed` result on domains (`0.060677`) and remains unranked on oligos
   in the checked-in artifacts generated before QSglob scorer installation.
+- Current v2 diagnostic floor is still coverage-limited, not winner-close:
+  `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
+  has domain mean `0.049685` with only 13/71 OK domain targets, and oligo mean
+  `0.000923` with only 8/104 OK oligo targets. The only nonzero v2 oligo
+  diagnostic is `T1249V1O` at QSglob `0.096`. Reference recovery,
+  missing-prediction coverage, and target-agnostic QSglob assembly mapping
+  should happen before spending 25-seed shards.
 - Multi-candidate work now has a separate policy:
   `docs/SERVER_ATTACK_POLICY.md` and
   `attack_budgets/casp16_server_attack_protenix5.json`.

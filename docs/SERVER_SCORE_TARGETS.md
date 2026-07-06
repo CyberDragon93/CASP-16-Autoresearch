@@ -36,6 +36,26 @@ server leaders. The immediate useful signals are coverage recovery, correct
 metric mapping, and full-set mean increases. A few impressive target-lab or
 partial-run examples do not count as server progress.
 
+## Current V2 Diagnostic Floor
+
+Source: `leaderboards/casp16_server_protein_v2_aliasfix/target_scores.csv`,
+generated from the current alias-fixed diagnostics.
+
+The best v2 diagnostic row,
+`server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`,
+is still dominated by coverage and mapping failures:
+
+| Track | Mean | OK | Missing prediction | Missing reference | Nonzero targets |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| protein domains | `0.049685` | 13/71 | 32/71 | 26/71 | 9 |
+| protein oligos | `0.000923` | 8/104 | 82/104 | 14/104 | 1 |
+
+The only nonzero v2 oligo diagnostic is `T1249V1O` with QSglob `0.096`.
+Before spending another winner-scale budget, the high-leverage work is still
+reference recovery, prediction coverage, and QSglob assembly mapping. More
+seeds cannot rescue targets that are missing predictions, missing references,
+or mapped to QSglob false zeros.
+
 ## Active Score Gates
 
 1. Score the running v2 nofail `dev_fixed` row:
