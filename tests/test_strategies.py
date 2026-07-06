@@ -856,3 +856,82 @@ def test_sequence_recovery_large_target_fallback_composes_recovery_and_token_bud
     assert rows_by_phase_target[("sequence_recovery", "T1239V1")]["status"] == "changed"
     assert rows_by_phase_target[("large_target_fallback", "H1258")]["status"] == "changed"
     assert rows_by_phase_target[("large_target_fallback", "H1258")]["dropped_chain_ids"] == "B"
+
+
+def test_oligo_stoichiometry_recovery_restores_official_counts(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "stoich" / "inputs.json"
+    manifest = tmp_path / "stoich" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    official_targets = tmp_path / "official_targets.tsv"
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "H1258",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "A" * 2000, "count": 1, "id": ["A"]}},
+                        {"proteinChain": {"sequence": "C" * 300, "count": 1, "id": ["B"]}},
+                    ],
+                    "covalent_bonds": [],
+                },
+                {
+                    "name": "T1201",
+                    "sequences": [{"proteinChain": {"sequence": "D" * 50, "count": 1, "id": ["A"]}}],
+                },
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "track", "oligo_state"]),
+                "\t".join(["H1258", "protein_oligo", "UNK"]),
+                "\t".join(["T1201", "protein_domain", "A1"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    official_targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "Oligo.State"]),
+                "\t".join(["H1258", "A1B2"]),
+                "\t".join(["T1201", "A1"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_oligo_stoichiometry_recovery_v1",
+        targets_path=targets,
+        official_targets_path=official_targets,
+    )
+
+    assert summary["changed_targets"] == 1
+    assert summary["oversize_after_recovery"] == 1
+    optimized = {job["name"]: job for job in json.loads(output_json.read_text(encoding="utf-8"))}
+    h1258_entities = optimized["H1258"]["sequences"]
+    assert h1258_entities[0]["proteinChain"]["count"] == 1
+    assert h1258_entities[0]["proteinChain"]["id"] == ["A"]
+    assert h1258_entities[1]["proteinChain"]["count"] == 2
+    assert h1258_entities[1]["proteinChain"]["id"] == ["B", "C"]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    h1258 = next(row for row in rows if row["target_id"] == "H1258")
+    assert h1258["status"] == "changed"
+    assert h1258["official_oligo_state"] == "A1B2"
+    assert h1258["optimized_counts"] == "1,2"
+    assert h1258["optimized_total_len"] == "2600"
+    assert h1258["rules"] == "recover_official_oligo_state,benchmark_state_was_unknown,oversize_after_recovery:2560"
+    t1201 = next(row for row in rows if row["target_id"] == "T1201")
+    assert t1201["status"] == "unchanged"
+    assert t1201["skip_reason"] == "not_protein_oligo"

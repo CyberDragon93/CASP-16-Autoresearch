@@ -45,6 +45,11 @@ where methods should change.
   `server_protenix_yang_sequence_recovery_large_target_fallback_seed101`,
   changes 40 unique targets, and keeps every optimized job under the 2560
   Protenix token limit.
+- New exact-stoichiometry artifact:
+  `yang_oligo_stoichiometry_recovery_v1` restores official parsed
+  `Oligo.State` for protein-only oligo jobs where server inputs collapsed to
+  one copy per entity. It changes 9 existing jobs; 5 stay under the Protenix
+  limit and 4 require construct/domain-window handling.
 
 ## Main Objective
 
@@ -123,7 +128,10 @@ competitive result.
     `server_protenix_yang_sequence_recovery_large_target_fallback_seed101`
     candidate after the active pending jobs if the component coverage fixes
     still look complementary.
-11. Implement strategy experiments inspired by CASP16 winners: disorder
+11. Build a token-safe derivative of `yang_oligo_stoichiometry_recovery_v1`:
+    exact stoichiometry for under-budget targets, plus public/domain-window
+    experiments for oversize systems such as H1258.
+12. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.
 

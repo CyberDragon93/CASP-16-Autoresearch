@@ -80,7 +80,7 @@ Validated locally:
 - official scored records parsed: 95,268 raw / 95,236 usable scored rows
 - benchmark Protenix jobs generated: 128
 - benchmark rank-eligible targets: 39
-- tests: `75 passed` with
+- tests: `76 passed` with
   `/scratch/10992/liaorunlong93/conda/envs/protein/bin/python -m pytest`
 
 ## CASP16 Server-Track Comparison

@@ -43,6 +43,13 @@ Top recommendations
 
    Good first experiments:
    - Verify H1258-only input generation and H1258-only output scoring.
+   - Recover official A1B2 stoichiometry before interpreting any complex score;
+     older server-benchmark inputs collapsed this target to A1B1 when
+     `Oligo.State` was `UNK`.
+   - Test a target_lab LRRK2 interaction-domain window before trying to force
+     the full A1B2 assembly through Protenix. CASP16 complex assessment notes
+     that top Yang models used the interacting LRRK2 region rather than the
+     full-length chain.
    - Compare full A1B2 prediction against smaller subcomplex jobs such as A1B1
      or B2, but keep these as target_lab diagnostics.
    - Try stricter MSA/template cache reuse and record exact MSA parameters.
@@ -52,6 +59,11 @@ Top recommendations
    - Short-term: DockQ > 0.40.
    - Strong result: DockQ > 0.55.
    - CASP-top-like target: DockQ around 0.70+.
+
+   Source note:
+   - CASP16 protein-complex assessment preprint discusses the H1258 LRRK2
+     interaction-domain modeling clue. Keep this as target_lab evidence, not a
+     ranked per-target oracle.
 
 
 2. H1232 - fastest failure-case recommendation
@@ -205,4 +217,3 @@ Recommended code changes before running agent loops
 4. Add promotion rules.
    A target-specific trick can be promoted only after it becomes a target-
    agnostic strategy and is rerun over the full eligible benchmark set.
-

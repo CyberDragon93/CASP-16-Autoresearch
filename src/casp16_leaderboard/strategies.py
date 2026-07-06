@@ -27,6 +27,7 @@ STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK = "yang_oversize_domain_monomer_f
 STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK = "yang_large_target_split_or_fallback_v1"
 STRATEGY_YANG_SEQUENCE_RECOVERY = "yang_sequence_recovery_v1"
 STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK = "yang_sequence_recovery_large_target_fallback_v1"
+STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY = "yang_oligo_stoichiometry_recovery_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
@@ -40,6 +41,7 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK,
     STRATEGY_YANG_SEQUENCE_RECOVERY,
     STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK,
+    STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY,
 )
 PROTENIX_TOKEN_LIMIT = 2560
 MIN_REMAINING_PROTEIN_LENGTH = 30
@@ -159,6 +161,21 @@ COMPOSED_STRATEGY_MANIFEST_FIELDS = [
     "original_total_len",
     "optimized_total_len",
     "dropped_chain_ids",
+    "rules",
+]
+OLIGO_STOICHIOMETRY_RECOVERY_MANIFEST_FIELDS = [
+    "target_id",
+    "track",
+    "status",
+    "skip_reason",
+    "benchmark_oligo_state",
+    "official_oligo_state",
+    "original_counts",
+    "optimized_counts",
+    "original_chain_ids",
+    "optimized_chain_ids",
+    "original_total_len",
+    "optimized_total_len",
     "rules",
 ]
 ANTIBODY_HEAVY_PREFIXES = ("QVQL", "EVQL", "QLQL", "QVHL", "QVQLK")
@@ -355,6 +372,7 @@ def derive_strategy_inputs(
     domain_definitions_path: Path | None = None,
     targets_path: Path | None = None,
     official_sequences_path: Path | None = None,
+    official_targets_path: Path | None = None,
 ) -> dict[str, object]:
     if strategy not in SUPPORTED_STRATEGIES:
         raise ValueError(f"unsupported strategy: {strategy}")
@@ -415,6 +433,18 @@ def derive_strategy_inputs(
             manifest_path=manifest_path,
             targets_path=targets_path,
             official_sequences_path=official_sequences_path,
+        )
+    if strategy == STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY:
+        if targets_path is None:
+            raise ValueError("targets_path is required for oligo stoichiometry recovery strategy")
+        if official_targets_path is None:
+            raise ValueError("official_targets_path is required for oligo stoichiometry recovery strategy")
+        return derive_oligo_stoichiometry_recovery_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
+            targets_path=targets_path,
+            official_targets_path=official_targets_path,
         )
 
     with input_json.open(encoding="utf-8") as handle:
@@ -1086,6 +1116,161 @@ def derive_sequence_recovery_large_target_fallback_inputs(
         "sequence_recovery_changed_targets": sequence_summary["changed_targets"],
         "large_target_fallback_changed_targets": fallback_summary["changed_targets"],
     }
+
+
+def derive_oligo_stoichiometry_recovery_inputs(
+    *,
+    input_json: Path,
+    output_json: Path,
+    manifest_path: Path,
+    targets_path: Path,
+    official_targets_path: Path,
+    token_limit: int = PROTENIX_TOKEN_LIMIT,
+) -> dict[str, object]:
+    with input_json.open(encoding="utf-8") as handle:
+        jobs = json.load(handle)
+
+    target_rows = {row.get("target_id", ""): row for row in load_target_rows(targets_path)}
+    official_states = load_official_oligo_states(official_targets_path)
+    optimized_jobs: list[dict[str, Any]] = []
+    manifest_rows: list[dict[str, str]] = []
+    changed_targets: set[str] = set()
+    oversize_after_recovery = 0
+
+    for job in jobs:
+        optimized_job = _copy_json_dict(job)
+        target_id = str(optimized_job.get("name", ""))
+        target = target_rows.get(target_id, {})
+        track = str(target.get("track", ""))
+        benchmark_state = str(target.get("oligo_state", ""))
+        official_state = official_states.get(target_id, "")
+        sequences = optimized_job.get("sequences", [])
+        proteins = protein_entities(sequences)
+        original_counts = [count for _, _, _, count, _ in proteins]
+        original_chain_ids = [chain_id for _, _, _, count, chain_ids in proteins for chain_id in chain_ids[:count]]
+        original_total_len = sum(len(sequence) * count for _, _, sequence, count, _ in proteins)
+        optimized_counts = list(original_counts)
+        optimized_chain_ids = list(original_chain_ids)
+        optimized_total_len = original_total_len
+        status = "unchanged"
+        skip_reason = "none"
+        rules: list[str] = []
+
+        if track != "protein_oligo":
+            skip_reason = "not_protein_oligo"
+        elif not isinstance(sequences, list) or len(sequences) != len(proteins):
+            skip_reason = "requires_protein_only_job"
+        elif not official_state or official_state in {"UNK", "-"}:
+            skip_reason = "official_oligo_state_unavailable"
+        else:
+            desired_counts = parse_oligo_state_counts(official_state, len(proteins))
+            if desired_counts is None:
+                skip_reason = "ambiguous_official_oligo_state"
+            elif desired_counts == original_counts and protein_chain_ids_match_counts(proteins):
+                skip_reason = "already_matches_official_oligo_state"
+                optimized_counts = desired_counts
+            else:
+                chain_index = 0
+                optimized_chain_ids = []
+                for protein_index, protein, sequence, _count, _chain_ids in proteins:
+                    count = desired_counts[protein_index]
+                    chain_ids = [chain_id_for_strategy(chain_index + offset) for offset in range(count)]
+                    chain_index += count
+                    protein["count"] = count
+                    protein["id"] = chain_ids
+                    optimized_chain_ids.extend(chain_ids)
+                optimized_counts = desired_counts
+                optimized_total_len = sum(len(sequence) * count for (_, _, sequence, _old_count, _), count in zip(proteins, desired_counts, strict=True))
+                status = "changed"
+                skip_reason = "none"
+                rules.append("recover_official_oligo_state")
+                if benchmark_state in {"UNK", "", "-"}:
+                    rules.append("benchmark_state_was_unknown")
+                if optimized_total_len > token_limit:
+                    rules.append(f"oversize_after_recovery:{token_limit}")
+                    oversize_after_recovery += 1
+                changed_targets.add(target_id)
+
+        manifest_rows.append(
+            {
+                "target_id": target_id,
+                "track": track or "unknown",
+                "status": status,
+                "skip_reason": skip_reason,
+                "benchmark_oligo_state": benchmark_state or "none",
+                "official_oligo_state": official_state or "none",
+                "original_counts": ",".join(str(count) for count in original_counts) or "none",
+                "optimized_counts": ",".join(str(count) for count in optimized_counts) or "none",
+                "original_chain_ids": ",".join(original_chain_ids) or "none",
+                "optimized_chain_ids": ",".join(optimized_chain_ids) or "none",
+                "original_total_len": str(original_total_len),
+                "optimized_total_len": str(optimized_total_len),
+                "rules": ",".join(rules) if rules else "none",
+            }
+        )
+        optimized_jobs.append(optimized_job)
+
+    ensure_dir(output_json.parent)
+    output_json.write_text(json.dumps(optimized_jobs, indent=2) + "\n", encoding="utf-8")
+    write_manifest(manifest_path, manifest_rows, OLIGO_STOICHIOMETRY_RECOVERY_MANIFEST_FIELDS)
+    return {
+        "strategy": STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY,
+        "input_json": str(input_json),
+        "output_json": str(output_json),
+        "manifest": str(manifest_path),
+        "targets": str(targets_path),
+        "official_targets": str(official_targets_path),
+        "input_sha256": file_sha256(input_json),
+        "output_sha256": file_sha256(output_json),
+        "jobs": len(optimized_jobs),
+        "changed_targets": len(changed_targets),
+        "oversize_after_recovery": oversize_after_recovery,
+        "token_limit": token_limit,
+    }
+
+
+def protein_entities(sequences: object) -> list[tuple[int, dict[str, Any], str, int, list[str]]]:
+    proteins: list[tuple[int, dict[str, Any], str, int, list[str]]] = []
+    if not isinstance(sequences, list):
+        return proteins
+    for sequence_index, entity in enumerate(sequences):
+        protein = entity.get("proteinChain") if isinstance(entity, dict) else None
+        if not isinstance(protein, dict):
+            continue
+        sequence = str(protein.get("sequence", ""))
+        count = _positive_count(protein.get("count", 1))
+        chain_ids = [str(item) for item in _as_sequence(protein.get("id", []))]
+        if not chain_ids:
+            chain_ids = [chain_id_for_strategy(sequence_index)]
+        proteins.append((sequence_index, protein, sequence, count, chain_ids))
+    return proteins
+
+
+def protein_chain_ids_match_counts(proteins: Sequence[tuple[int, dict[str, Any], str, int, list[str]]]) -> bool:
+    return all(len(chain_ids) == count for _, _, _, count, chain_ids in proteins)
+
+
+def parse_oligo_state_counts(oligo_state: str, entity_count: int) -> list[int] | None:
+    if entity_count <= 0:
+        return []
+    entries = re.findall(r"[A-Z]+(\d+)", (oligo_state or "").upper())
+    if len(entries) != entity_count:
+        return None
+    counts = [int(value) for value in entries]
+    if any(count < 1 for count in counts):
+        return None
+    return counts
+
+
+def load_official_oligo_states(path: Path) -> dict[str, str]:
+    states: dict[str, str] = {}
+    with path.open(encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle, delimiter="\t"):
+            target_id = row.get("target_id", "")
+            state = row.get("Oligo.State", "")
+            if target_id:
+                states[target_id] = state
+    return states
 
 
 def load_tsv_rows(path: Path) -> list[dict[str, str]]:

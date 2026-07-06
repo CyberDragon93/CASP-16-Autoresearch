@@ -195,6 +195,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             domain_definitions_path=benchmark_dir / "domain_definitions.tsv",
             targets_path=benchmark_dir / "targets.tsv",
             official_sequences_path=root / "data" / "official" / "parsed" / "sequences.tsv",
+            official_targets_path=root / "data" / "official" / "parsed" / "targets.tsv",
         )
         print_json(summary)
         return 0

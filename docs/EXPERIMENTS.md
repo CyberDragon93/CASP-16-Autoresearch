@@ -17,6 +17,7 @@ leaderboard progress.
 | `server_protenix_yang_large_target_split_or_fallback_seed101` | `casp16_server_protein_v1` | pending behind attack job | predeclared token-budget fallback for all eight Protenix `n_token > 2560` failures | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_seed101` | `casp16_server_protein_v1` | pending behind active jobs | recover missing/misparsed protein-domain sequences on top of terminal-tag cleanup | yes for domain track, coverage-recovery caveat |
 | `server_protenix_yang_sequence_recovery_large_target_fallback_seed101` | `casp16_server_protein_v1` | pending behind active jobs | stack sequence recovery with token-budget fallback before larger attack budgets | yes for domain track, coverage-recovery caveat |
+| `yang_oligo_stoichiometry_recovery_v1` | `casp16_server_protein_v1` | artifacts generated, not queued | restore official oligo copy counts that collapsed to one copy per entity | not queued until token-safe/windowed derivative exists |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -131,6 +132,12 @@ leaderboard progress.
     sequence coverage failures, then applies large-target fallback. The
     combined artifacts change 40 unique targets and keep the largest optimized
     job at 2535 tokens, below the Protenix 2560-token limit.
+14. Generated `yang_oligo_stoichiometry_recovery_v1` on top of terminal-tag
+    cleanup. It restores official parsed `Oligo.State` counts for 9 existing
+    protein-oligo jobs. `H1232`, `H1233`, `H1236`, `H1244`, and `H1267` remain
+    under the 2560-token limit; `H1217`, `H1227`, `H1258`, and `H1265` become
+    realistic but oversized assemblies, so they need construct/domain-window
+    handling before a ranked full run.
 
 ## Strategy Decision Log
 
