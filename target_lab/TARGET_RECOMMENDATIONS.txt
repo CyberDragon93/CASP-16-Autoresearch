@@ -9,6 +9,14 @@ found here must not be promoted to the ranked casp16_protein_v1 leaderboard
 until it is converted into a target-agnostic protocol and rerun over the full
 eligible benchmark set.
 
+Current compact batch
+---------------------
+
+`target_lab/small_complex_stoich_batch_v1/` collects H1232, H1233, H1236,
+H1244, H1267, and the H1258 interaction-window artifact into one Protenix input
+for faster complex-learning loops. It is target_lab-only and must not be
+registered as a ranked server run.
+
 Current score source
 --------------------
 Current local scores are from the diagnostic OpenDDE run:

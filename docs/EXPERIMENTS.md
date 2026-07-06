@@ -20,6 +20,7 @@ leaderboard progress.
 | `yang_oligo_stoichiometry_recovery_v1` | `casp16_server_protein_v1` | artifacts generated, not queued | restore official oligo copy counts that collapsed to one copy per entity | not queued until token-safe/windowed derivative exists |
 | `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes for domain track; oligo diagnostic until QSglob exists |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
+| `target_lab/small_complex_stoich_batch_v1` | target_lab only | artifact generated, not submitted | compact exact-stoich and H1258-window learning batch | not rank eligible |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -151,6 +152,10 @@ leaderboard progress.
     interacting region. The artifact uses LRRK2 residues 861-1014 after tag
     cleanup plus 14-3-3 A1B2, total length 648. It is target_lab-only and not
     a ranked run.
+17. Generated `target_lab/small_complex_stoich_batch_v1`, a six-job target-lab
+    batch with `H1232`, `H1233`, `H1236`, `H1244`, `H1267`, and the H1258
+    interaction-window job. The max job is 1929 tokens, so this should be a
+    much faster complex-learning loop than a full benchmark rerun.
 
 ## Strategy Decision Log
 

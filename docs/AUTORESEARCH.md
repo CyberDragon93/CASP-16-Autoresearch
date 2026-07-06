@@ -60,6 +60,10 @@ where methods should change.
   `target_lab/h1258_interaction_window_v1/` builds the public
   LRRK2-interaction-window clue as LRRK2 residues 861-1014 plus 14-3-3 A1B2.
   It is 648 tokens and must stay out of ranked workflows until generalized.
+- New small-complex target-lab batch:
+  `target_lab/small_complex_stoich_batch_v1/` combines 5 under-budget exact
+  stoichiometry complexes with the H1258 interaction-window job for faster
+  learning before full-benchmark promotion.
 
 ## Main Objective
 
@@ -147,7 +151,10 @@ competitive result.
 13. Run the H1258 target-lab interaction-window job when a small GH200 slot is
     available, then decide whether a target-agnostic window rule is worth a
     full benchmark candidate.
-14. Implement strategy experiments inspired by CASP16 winners: disorder
+14. Run `target_lab/small_complex_stoich_batch_v1` as a compact complex batch
+    to test exact stoichiometry and H1258 window behavior before spending full
+    benchmark compute.
+15. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.
 
