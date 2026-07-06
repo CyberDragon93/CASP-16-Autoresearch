@@ -16,3 +16,9 @@ Monitor:
 ```bash
 ssh login1 'squeue -j 810824 -o "%i %T %M %D %R %j"'
 ```
+
+After completion:
+
+```bash
+python target_lab/small_complex_stoich_batch_v1/summarize_outputs.py
+```

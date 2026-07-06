@@ -64,7 +64,7 @@ where methods should change.
   `target_lab/small_complex_stoich_batch_v1/` combines 5 under-budget exact
   stoichiometry complexes with the H1258 interaction-window job for faster
   learning before full-benchmark promotion. It has been submitted as Slurm job
-  `810824`.
+  `810824` and now has `summarize_outputs.py` for post-run diagnostics.
 
 ## Main Objective
 
@@ -155,7 +155,8 @@ competitive result.
 14. Monitor target_lab job `810824` for
     `target_lab/small_complex_stoich_batch_v1`, then inspect predictions for
     exact-stoichiometry and H1258-window behavior before spending full
-    benchmark compute.
+    benchmark compute. Regenerate `SUMMARY.md` with
+    `python target_lab/small_complex_stoich_batch_v1/summarize_outputs.py`.
 15. Implement strategy experiments inspired by CASP16 winners: disorder
    trimming, domain decomposition, MSA/template optimization, assembly-aware
    multimer handling, and model ranking.

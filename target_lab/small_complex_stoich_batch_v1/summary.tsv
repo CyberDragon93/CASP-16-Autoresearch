@@ -1,0 +1,7 @@
+job_name	target_id	status	total_len	structure_files	confidence_files	first_structure	first_confidence	plddt	ptm	iptm	ranking_score
+H1232	H1232	missing_prediction	924	0	0						
+H1233	H1233	missing_prediction	1316	0	0						
+H1236	H1236	missing_prediction	1929	0	0						
+H1244	H1244	missing_prediction	850	0	0						
+H1267	H1267	missing_prediction	1852	0	0						
+H1258_target_lab_lrrk2_861_1014_A1B2	H1258	missing_prediction	648	0	0						

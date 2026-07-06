@@ -38,3 +38,19 @@ target_lab/small_complex_stoich_batch_v1/predictions/protenix-v2/
 Do not register this as a ranked run. Any promotion must become a predeclared
 full-benchmark strategy and must not use target_lab scores as per-target
 oracles.
+
+## Summarize
+
+After the job finishes, regenerate the diagnostic summary:
+
+```bash
+python target_lab/small_complex_stoich_batch_v1/summarize_outputs.py
+```
+
+This writes:
+
+- `summary.tsv`
+- `SUMMARY.md`
+
+The summary reports prediction/confidence file coverage and confidence
+diagnostics only. It is not a structure-quality score.
