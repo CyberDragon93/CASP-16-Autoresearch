@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Sequence
 
-from .benchmark import BENCHMARK_NAME, build_casp16_protein_benchmark, default_benchmark_dir, load_benchmark
+from .benchmark import BENCHMARK_NAME, SERVER_BENCHMARK_NAME, build_casp16_protein_benchmark, build_casp16_server_protein_benchmark, default_benchmark_dir, load_benchmark
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
 from .official import ingest_official_data
@@ -34,6 +34,12 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark.add_argument("--benchmark-dir", type=Path, default=None, help=f"Defaults to <root>/benchmarks/{BENCHMARK_NAME}.")
     benchmark.add_argument("--download-references", action="store_true", help="Download/cache RCSB mmCIF references where possible.")
     benchmark.add_argument("--force-references", action="store_true", help="Re-download cached references.")
+
+    server_benchmark = subparsers.add_parser("server-benchmark", help="Build CASP16 protein server-track comparison benchmark artifacts.")
+    server_benchmark.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
+    server_benchmark.add_argument("--benchmark-dir", type=Path, default=None, help=f"Defaults to <root>/benchmarks/{SERVER_BENCHMARK_NAME}.")
+    server_benchmark.add_argument("--download-references", action="store_true", help="Download/cache RCSB mmCIF references where possible.")
+    server_benchmark.add_argument("--force-references", action="store_true", help="Re-download cached references.")
 
     make_inputs = subparsers.add_parser("make-inputs", help="Generate Protenix input JSON from CASP16 sequence records.")
     make_inputs.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
@@ -112,6 +118,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             project_root=root,
             official_root=(args.official_dir or (root / "data" / "official")).resolve(),
             benchmark_dir=(args.benchmark_dir or default_benchmark_dir(root)).resolve(),
+            download_references=args.download_references,
+            force_references=args.force_references,
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "server-benchmark":
+        summary = build_casp16_server_protein_benchmark(
+            project_root=root,
+            official_root=(args.official_dir or (root / "data" / "official")).resolve(),
+            benchmark_dir=(args.benchmark_dir or default_benchmark_dir(root, SERVER_BENCHMARK_NAME)).resolve(),
             download_references=args.download_references,
             force_references=args.force_references,
         )

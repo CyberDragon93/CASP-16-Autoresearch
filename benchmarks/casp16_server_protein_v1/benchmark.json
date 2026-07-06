@@ -1,0 +1,69 @@
+{
+  "budget": {
+    "backend": "protenix",
+    "sample": 1,
+    "seed": "101",
+    "selected_model_policy": "first_output_only"
+  },
+  "description": "CASP16 protein server-track comparison benchmark derived from official score tables.",
+  "files": {
+    "domain_definitions": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/domain_definitions.tsv",
+      "sha256": "ef404b6d98b50cfe79358c444fb45c638b8ec5b7142652d002d93f9f94156cb9"
+    },
+    "input_manifest": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/input_manifest.tsv",
+      "sha256": "d13a0fd157b901710b265cbbfea51721c39f80e97de0a73056749884673737c0"
+    },
+    "inputs": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json",
+      "sha256": "4eb05829b8af4602877dd2af1416a6efcaa59c97b31f33784c3566d1a91a255e"
+    },
+    "official_all_groups": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/official_all_groups.tsv",
+      "sha256": "a9563e70517d4cdf12d3004b339ec13379052dbed9f9d073a8677737d3c12428"
+    },
+    "official_server_groups": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/official_server_groups.tsv",
+      "sha256": "4b82a34b81684ec206c401bd2e9ede69b16110669821eeef2ed796767a03927d"
+    },
+    "references": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/references.tsv",
+      "sha256": "7aba2ce993bbcf685ea7965c4eff44d61e45b65cdfe32a9ab493394da4f30956"
+    },
+    "scoring_policy": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/scoring_policy.md",
+      "sha256": "5437cd59a8203decac19b2843749164c377121f1343c63a4c1ff78d960664847"
+    },
+    "targets": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/targets.tsv",
+      "sha256": "cef18d4d2c307410a453f3976d8fb5977e8a5d4858caea49f5bbc5988d0a73b6"
+    },
+    "unresolved_official_targets": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/unresolved_official_targets.tsv",
+      "sha256": "e3767184635eddca6baa8f24576ef959c69e294923dc15a8b90a23c80238c04d"
+    }
+  },
+  "missing_target_score": 0.0,
+  "name": "casp16_server_protein_v1",
+  "official_metrics": {
+    "prot_domains": "GDT_TS",
+    "prot_oligo": "QSglob"
+  },
+  "official_target_sets": {
+    "prot_domains": 71,
+    "prot_oligo": 104
+  },
+  "ranked_tracks": [
+    "protein_domain",
+    "protein_oligo"
+  ],
+  "server_group_rule": "group id ends with 's'",
+  "source_urls": {
+    "domain_summary": "https://predictioncenter.org/casp16/domains_summary.cgi",
+    "download_area": "https://predictioncenter.org/download_area/CASP16",
+    "score_tables": "https://predictioncenter.org/download_area/CASP16/results/tables/",
+    "target_list": "https://predictioncenter.org/casp16/targetlist.cgi?type=csv"
+  },
+  "version": "1"
+}

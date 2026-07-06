@@ -245,29 +245,52 @@ def generate_benchmark_leaderboard(
             "artifact_path",
         ],
     )
-    write_results_markdown(output_dir / "RESULTS.md", run_rows, top_n=top_n)
-    write_benchmark_coverage(output_dir / "coverage.md", targets, score_rows)
+    write_results_markdown(output_dir / "RESULTS.md", run_rows, top_n=top_n, benchmark=benchmark)
+    write_benchmark_coverage(output_dir / "coverage.md", targets, score_rows, benchmark=benchmark)
+    artifact_names = ["RESULTS.md", "runs.csv", "target_scores.csv", "coverage.md"]
     if official_root is not None:
-        official_rows = summarize_official_groups(normalize_official_records(read_tsv(OfficialPaths(official_root).scores_tsv)))
-        official_rows = [row for row in official_rows if row["category"] in {"prot_domains", "prot_oligo"}]
-        write_csv(
-            output_dir / "official_groups.csv",
-            official_rows,
-            [
+        if benchmark == "casp16_server_protein_v1" and (benchmark_dir / "official_server_groups.tsv").exists():
+            official_group_fields = [
                 "category",
                 "rank",
                 "group",
+                "group_type",
                 "eligible_target_count",
                 "submitted_target_count",
                 "missing_target_count",
                 "mean_fixed_score",
                 "mean_submitted_score",
-                "median_submitted_score",
                 "best_score",
                 "primary_metric",
-            ],
-        )
-    artifacts = write_artifacts_manifest(output_dir, ["RESULTS.md", "runs.csv", "target_scores.csv", "coverage.md", "official_groups.csv"])
+            ]
+            server_rows = read_tsv(benchmark_dir / "official_server_groups.tsv")
+            all_rows = read_tsv(benchmark_dir / "official_all_groups.tsv")
+            write_csv(output_dir / "official_server_groups.csv", server_rows, official_group_fields)
+            write_csv(output_dir / "official_all_groups.csv", all_rows, official_group_fields)
+            write_csv(output_dir / "official_groups.csv", server_rows, official_group_fields)
+            artifact_names.extend(["official_groups.csv", "official_server_groups.csv", "official_all_groups.csv"])
+        else:
+            official_rows = summarize_official_groups(normalize_official_records(read_tsv(OfficialPaths(official_root).scores_tsv)))
+            official_rows = [row for row in official_rows if row["category"] in {"prot_domains", "prot_oligo"}]
+            write_csv(
+                output_dir / "official_groups.csv",
+                official_rows,
+                [
+                    "category",
+                    "rank",
+                    "group",
+                    "eligible_target_count",
+                    "submitted_target_count",
+                    "missing_target_count",
+                    "mean_fixed_score",
+                    "mean_submitted_score",
+                    "median_submitted_score",
+                    "best_score",
+                    "primary_metric",
+                ],
+            )
+            artifact_names.append("official_groups.csv")
+    artifacts = write_artifacts_manifest(output_dir, artifact_names)
     return {
         "benchmark": benchmark,
         "runs": len(run_rows),
@@ -348,8 +371,9 @@ def _artifact_path_for_run(rows: Sequence[Mapping[str, str]]) -> str:
     return ""
 
 
-def write_results_markdown(path: Path, rows: Sequence[Mapping[str, Any]], *, top_n: int) -> None:
-    lines = ["# CASP16 Protein V1 Results", ""]
+def write_results_markdown(path: Path, rows: Sequence[Mapping[str, Any]], *, top_n: int, benchmark: str = "") -> None:
+    title = "CASP16 Server Protein V1 Results" if benchmark == "casp16_server_protein_v1" else "CASP16 Protein V1 Results"
+    lines = [f"# {title}", ""]
     lines.append("Runs are ranked over fixed eligible target sets. Missing predictions, failed metrics, and unavailable metrics score 0.")
     for track in sorted({str(row["track"]) for row in rows}):
         track_rows = [row for row in rows if row["track"] == track][:top_n]
@@ -378,7 +402,7 @@ def write_results_markdown(path: Path, rows: Sequence[Mapping[str, Any]], *, top
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def write_benchmark_coverage(path: Path, targets: Sequence[Mapping[str, str]], score_rows: Sequence[Mapping[str, str]]) -> None:
+def write_benchmark_coverage(path: Path, targets: Sequence[Mapping[str, str]], score_rows: Sequence[Mapping[str, str]], *, benchmark: str = "") -> None:
     coverage_rows: list[dict[str, Any]] = []
     for track in sorted({str(row.get("track", "")) for row in targets}):
         track_targets = [row for row in targets if row.get("track") == track]
@@ -394,8 +418,9 @@ def write_benchmark_coverage(path: Path, targets: Sequence[Mapping[str, str]], s
     score_status_rows: list[dict[str, Any]] = []
     for status in sorted({str(row.get("status", "")) for row in score_rows if row.get("status")}):
         score_status_rows.append({"status": status, "target_scores": sum(1 for row in score_rows if row.get("status") == status)})
+    title = "CASP16 Server Protein V1 Coverage" if benchmark == "casp16_server_protein_v1" else "CASP16 Protein V1 Coverage"
     lines = [
-        "# CASP16 Protein V1 Coverage",
+        f"# {title}",
         "",
         "## Benchmark Targets",
         "",

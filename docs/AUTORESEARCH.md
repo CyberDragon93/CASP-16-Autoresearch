@@ -12,8 +12,13 @@ where methods should change.
   and 23 protein-oligo targets.
 - Current official score-table target sets: 71 protein-domain targets and 104
   protein-oligo targets.
-- To compare against CASP16 server groups, build
+- To compare against CASP16 server groups, use
   `casp16_server_protein_v1` instead of rewriting `casp16_protein_v1`.
+- `casp16_server_protein_v1` now has a generated skeleton: 175 fixed official
+  targets, 106 Protenix jobs, 54 cached references, and 45 unresolved parsed
+  domain-subtarget diagnostics.
+- `leaderboards/casp16_server_protein_v1/official_groups.csv` is server-only;
+  `official_all_groups.csv` is diagnostic.
 
 ## Main Objective
 
@@ -42,9 +47,10 @@ strategy iteration, not as an official-server result.
 
 ## Work Queue
 
-1. Build `casp16_server_protein_v1` from official protein score-table target
-   sets.
-2. Add official-compatible domain `GDT_TS` scoring.
+1. Add official-compatible domain `GDT_TS` scoring for
+   `casp16_server_protein_v1`.
+2. Improve the reference/domain registry for the 121 server-benchmark targets
+   that currently lack a cached reference mapping.
 3. Add official-compatible oligo `QSglob` scoring and assembly mapping.
 4. Re-score current OpenDDE and Protenix-style baselines on the server
    benchmark.
@@ -60,4 +66,3 @@ strategy iteration, not as an official-server result.
 - Never use official scores or references to tune target-specific prediction
   behavior.
 - Prefer full-benchmark effects over one-off rescue scores.
-

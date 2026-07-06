@@ -1,0 +1,176 @@
+target_id	target_prefix	track	description	oligo_state	status	skip_reason	sequence_records	entity_count	chain_count	total_len	output_json
+T0206	T	protein_domain	Porcine astrovirus 4 capsid spike	UNK	ok		1	1	1	237	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0218	T	protein_domain	Cry26Aa	UNK	ok		1	1	1	1164	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0234	T	protein_domain	YP_010355913.1	UNK	ok		1	1	1	413	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0235	T	protein_domain	A0A410N6V5.2	UNK	ok		1	1	1	115	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0237	T	protein_domain	Bd3071	UNK	ok		1	1	1	488	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0240	T	protein_domain	Bd3442	UNK	ok		1	1	1	653	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0246	T	protein_domain	DcmC	UNK	ok		1	1	1	168	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0257	T	protein_domain	P13390	UNK	ok		1	1	1	1263	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0259	T	protein_domain	AZI86_00190	UNK	ok		1	1	1	243	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0270	T	protein_domain	HtrA	UNK	ok		1	1	1	437	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1201	T	protein_domain	Q9GZX9 8bwd	A2	ok		1	1	2	420	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1206	T	protein_domain	Porcine astrovirus 4 capsid spike	UNK	ok		1	1	1	237	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1207	T	protein_domain	Q9YLS4, 2A protein part of viral polyprotein	A1	ok		1	1	1	144	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1210	T	protein_domain	Q868N5 9enr	A1	ok		1	1	1	1770	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1212	T	protein_domain	Fanzor2 ternary structure 9b0l  protein subunit of M1212	A1	skipped	ambiguous_oligo_state:A1:records=2	2	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1218	T	protein_domain	Cry26Aa	UNK	ok		1	1	1	1164	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1226	T	protein_domain	TuAsV-2A3 (part of polyprotein)	A1	ok		1	1	1	123	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1228V1	T	protein_domain	SPbeta_int_DNA   protein subunit of M1228v1	A1	ok		1	1	1	121	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1228V2	T	protein_domain	SPbeta_int_DNA   protein subunit of M1228v2	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1231	T	protein_domain	A0A0E4G3H6	A1	ok		1	1	1	142	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1234	T	protein_domain	YP_010355913.1	UNK	ok		1	1	1	413	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1235	T	protein_domain	A0A410N6V5.2	UNK	ok		1	1	1	115	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1237	T	protein_domain	Bd3071	UNK	ok		1	1	1	488	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1239V1	T	protein_domain	SPbeta_intRDF_DNA 9dxd  protein subunit of M1239v1	A1	ok		1	1	1	141	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1239V2	T	protein_domain	SPbeta_intRDF_DNA 9dxd  protein subunit of M1239v2	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1240	T	protein_domain	Bd3442	UNK	ok		1	1	1	653	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1243	T	protein_domain	MTMA3 (UNIPROT ID: P0CH91)	A1	ok		1	1	1	293	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1246	T	protein_domain	DcmC	UNK	ok		1	1	1	168	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1249V1	T	protein_domain	Arenaviral spike complex 9fya	A3	ok		1	1	3	1464	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1257	T	protein_domain	P13390	UNK	ok		1	1	1	1263	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1259	T	protein_domain	AZI86_00190	UNK	ok		1	1	1	243	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1266	T	protein_domain	Q99549  8qfb	A1	ok		1	1	1	336	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1269	T	protein_domain	MUC5AC uniprot P98088 9gvq	A1	ok		1	1	1	1410	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1270	T	protein_domain	HtrA	UNK	ok		1	1	1	437	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1274	T	protein_domain	CAB14884.3	A1	ok		1	1	1	167	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1276	T	protein_domain	One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	A1	ok		1	1	1	40	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1278	T	protein_domain	Dehydrogenase	A1	ok		1	1	1	380	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1279	T	protein_domain	Bd1369	An	ok		1	1	1	428	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1280	T	protein_domain	C-terminal domain of bacteriophage K gp155 9f5m	A1	ok		1	1	1	237	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1284	T	protein_domain	gp62	A1	ok		1	1	1	120	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1292	T	protein_domain	isocyanide hydratase-like iron binding protein	A2	ok		1	1	2	392	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1294V1	T	protein_domain	Isocyanide hydratase	A2	ok		1	1	2	428	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1294V2	T	protein_domain	Isocyanide hydratase	A2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1295	T	protein_domain	TM_Ag	A8	ok		1	1	8	3752	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1298	T	protein_domain	Cyclic nucleotide-binding protein  9sfa	A2	ok		1	1	2	684	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1299	T	protein_domain	9FJL 9fjl	A1	ok		1	1	1	168	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2201	T	protein_domain	Q9GZX9	A2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2206	T	protein_domain	Porcine astrovirus 4 capsid spike	A2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2207	T	protein_domain	Q9YLS4, 2A protein part of viral polyprotein	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2210	T	protein_domain	Q868N5	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2218	T	protein_domain	Cry26Aa	A2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2226	T	protein_domain	TuAsV-2A3 (part of polyprotein)	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2231	T	protein_domain	A0A0E4G3H6	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2234	T	protein_domain	YP_010355913.1	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2235	T	protein_domain	A0A410N6V5.2	A6	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2237	T	protein_domain	Bd3071	A4	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2240	T	protein_domain	Bd3442	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2243	T	protein_domain	MTMA3 (UNIPROT ID: P0CH91)	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2246	T	protein_domain	DcmC		skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2249V1	T	protein_domain	Arenaviral spike complex	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2257	T	protein_domain	P13390	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2259	T	protein_domain	AZI86_00190	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2266	T	protein_domain	Q99549	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2269	T	protein_domain	MUC5AC uniprot P98088	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2270	T	protein_domain	HtrA	A6	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2274	T	protein_domain	CAB14884.3	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2276	T	protein_domain	One domain of  A0A026WM60_OOCBI in complex with 33mer ssDNA	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2278	T	protein_domain	Dehydrogenase	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2279	T	protein_domain	Bd1369	An	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2280	T	protein_domain	C-terminal domain of bacteriophage K gp155 9f5m	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2284	T	protein_domain	gp62	A1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0208	H	protein_oligo	dahAB	UNK	ok		2	2	2	646	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0215	H	protein_oligo	mNeonGreen with bound nanobody	UNK	ok		2	2	2	369	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0217	H	protein_oligo	AcP10_eIF2B_complex	UNK	ok		6	6	6	2939	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0220	H	protein_oligo	BoDV-1 Replication complex	UNK	ok		2	2	2	434	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0222	H	protein_oligo	RSV G - Fab 2B11 complex	UNK	ok		3	3	3	485	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0223	H	protein_oligo	RSV G - Fab 1G8 complex	UNK	ok		3	3	3	486	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0225	H	protein_oligo	RSV G - Fab 1G1 complex	UNK	ok		3	3	3	483	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0227	H	protein_oligo	LetA (P0AD03) and LetB (P76272)	UNK	ok		2	2	2	1304	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0229	H	protein_oligo	ORF61/A3A	UNK	ok		2	2	2	987	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0230	H	protein_oligo	ORF61/A3B	UNK	ok		2	2	2	984	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0232	H	protein_oligo	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex	UNK	ok		2	2	2	462	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0233	H	protein_oligo	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex	UNK	ok		3	3	3	658	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0236	H	protein_oligo	Haloferax tailed virus 1	UNK	ok		2	2	2	528	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0244	H	protein_oligo	BJCNb48	UNK	ok		3	3	3	425	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0245	H	protein_oligo	FUNcomplex	UNK	ok		2	2	2	317	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0258	H	protein_oligo	LRRK2/14-3-3 complex	UNK	ok		2	2	2	2827	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0265	H	protein_oligo	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	UNK	ok		2	2	2	293	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0267	H	protein_oligo	XauSPARDA	UNK	ok		2	2	2	926	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H0272	H	protein_oligo	dystrophin-glycoprotein complex (DGC) 9c3c	UNK	ok		9	9	9	6879	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1202	H	protein_oligo	Q9GZX9_plus_P43026 8bwl	A2B2	ok		2	2	4	380	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1204	H	protein_oligo	Human hemoglobin in complex with nanobody 8vyl	A2B2C2	ok		3	3	6	858	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1208	H	protein_oligo	dahAB	UNK	ok		2	2	2	646	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1213	H	protein_oligo	DP71_eIF2_PP1_complex   <em><font color=red>Canceled - released with wrong sequence.</font></em>	UNK	skipped	cancelled_target	5	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1215	H	protein_oligo	mNeonGreen with bound nanobody	UNK	ok		2	2	2	369	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1217	H	protein_oligo	AcP10_eIF2B_complex	UNK	ok		6	6	6	2939	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1220	H	protein_oligo	BoDV-1 Replication complex	UNK	ok		2	2	2	434	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1222	H	protein_oligo	RSV G - Fab 2B11 complex	UNK	ok		3	3	3	485	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1223	H	protein_oligo	RSV G - Fab 1G8 complex	UNK	ok		3	3	3	486	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1225	H	protein_oligo	RSV G - Fab 1G1 complex	UNK	ok		3	3	3	483	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1227	H	protein_oligo	LetA (P0AD03) and LetB (P76272)	UNK	ok		2	2	2	1304	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1229	H	protein_oligo	ORF61/A3A	UNK	ok		2	2	2	987	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1230	H	protein_oligo	ORF61/A3B	UNK	ok		2	2	2	984	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1232	H	protein_oligo	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex	UNK	ok		2	2	2	462	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1233	H	protein_oligo	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex	UNK	ok		3	3	3	658	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1236	H	protein_oligo	Haloferax tailed virus 1	UNK	ok		2	2	2	528	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1244	H	protein_oligo	BJCNb48	UNK	ok		3	3	3	425	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1245	H	protein_oligo	FUNcomplex	UNK	ok		2	2	2	317	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1258	H	protein_oligo	LRRK2/14-3-3 complex	UNK	ok		2	2	2	2827	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1265	H	protein_oligo	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	UNK	ok		2	2	2	293	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1265_V1	H	protein_oligo			skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1265_V2	H	protein_oligo			skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1265_V3	H	protein_oligo			skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1267	H	protein_oligo	XauSPARDA	UNK	ok		2	2	2	926	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H1272	H	protein_oligo	dystrophin-glycoprotein complex (DGC) 9c3c	UNK	ok		9	9	9	6879	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2202	H	protein_oligo	Q9GZX9_plus_P43026	A2B2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2204	H	protein_oligo	Human hemoglobin in complex with nanobody	A2B2C2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2208	H	protein_oligo	dahAB	A1B1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2213	H	protein_oligo	DP71_eIF2_PP1_complex	A1B1C1D1E1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2215	H	protein_oligo	mNeonGreen with bound nanobody	A1B1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2217	H	protein_oligo	AcP10_eIF2B_complex	A2B2C2D2E2F2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2220	H	protein_oligo	BoDV-1 Replication complex	A1B4	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2222	H	protein_oligo	RSV G - Fab 2B11 complex	A1B1C1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2223	H	protein_oligo	RSV G - Fab 1G8 complex	A1B1C1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2225	H	protein_oligo	RSV G - Fab 1G1 complex	A1B1C1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2227	H	protein_oligo	LetA (P0AD03) and LetB (P76272)	A1B6	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2229	H	protein_oligo	ORF61/A3A	A1B1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2230	H	protein_oligo	ORF61/A3B	A1B1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2232	H	protein_oligo	Human astrovirus 2 capsid spike - antibody scFv 4B6 complex	A2B2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2233	H	protein_oligo	Human astrovirus 1 capsid spike - antibody Fab 3H4 complex	A2B2C2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2236	H	protein_oligo	Haloferax tailed virus 1	A3B6	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2244	H	protein_oligo	BJCNb48	A2B2C2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2245	H	protein_oligo	FUNcomplex	A1B1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2258	H	protein_oligo	LRRK2/14-3-3 complex	A1B2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2265	H	protein_oligo	TLR4 TIR domain (O00206) : MAL TIR domain (P58753) complex	A9B18	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2267	H	protein_oligo	XauSPARDA	A2B2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+H2272	H	protein_oligo	dystrophin-glycoprotein complex (DGC) 9c3c	A1B1C1D1E1F1G1H1I1	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0206O	T	protein_oligo	Porcine astrovirus 4 capsid spike	UNK	ok		1	1	1	237	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0218O	T	protein_oligo	Cry26Aa	UNK	ok		1	1	1	1164	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0234O	T	protein_oligo	YP_010355913.1	UNK	ok		1	1	1	413	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0235O	T	protein_oligo	A0A410N6V5.2	UNK	ok		1	1	1	115	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0237O	T	protein_oligo	Bd3071	UNK	ok		1	1	1	488	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0240O	T	protein_oligo	Bd3442	UNK	ok		1	1	1	653	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0257O	T	protein_oligo	P13390	UNK	ok		1	1	1	1263	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0259O	T	protein_oligo	AZI86_00190	UNK	ok		1	1	1	243	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T0270O	T	protein_oligo	HtrA	UNK	ok		1	1	1	437	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1201O	T	protein_oligo	Q9GZX9 8bwd	A2	ok		1	1	2	420	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1206O	T	protein_oligo	Porcine astrovirus 4 capsid spike	UNK	ok		1	1	1	237	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1218O	T	protein_oligo	Cry26Aa	UNK	ok		1	1	1	1164	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1234O	T	protein_oligo	YP_010355913.1	UNK	ok		1	1	1	413	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1235O	T	protein_oligo	A0A410N6V5.2	UNK	ok		1	1	1	115	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1237O	T	protein_oligo	Bd3071	UNK	ok		1	1	1	488	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1240O	T	protein_oligo	Bd3442	UNK	ok		1	1	1	653	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1249V1O	T	protein_oligo	Arenaviral spike complex 9fya	A3	ok		1	1	3	1464	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1249V2O	T	protein_oligo	Arenaviral spike complex 9fyg	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1257O	T	protein_oligo	P13390	UNK	ok		1	1	1	1263	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1259O	T	protein_oligo	AZI86_00190	UNK	ok		1	1	1	243	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1269V1O	T	protein_oligo	MUC5AC uniprot P98088 9gvq	An	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1270O	T	protein_oligo	HtrA	UNK	ok		1	1	1	437	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1292O	T	protein_oligo	isocyanide hydratase-like iron binding protein	A2	ok		1	1	2	392	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1294V1O	T	protein_oligo	Isocyanide hydratase	A2	ok		1	1	2	428	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1295O	T	protein_oligo	TM_Ag	A8	ok		1	1	8	3752	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T1298O	T	protein_oligo	Cyclic nucleotide-binding protein  9sfa	A2	ok		1	1	2	684	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2201O	T	protein_oligo	Q9GZX9	A2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2206O	T	protein_oligo	Porcine astrovirus 4 capsid spike	A2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2218O	T	protein_oligo	Cry26Aa	A2	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2234O	T	protein_oligo	YP_010355913.1	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2235O	T	protein_oligo	A0A410N6V5.2	A6	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2237O	T	protein_oligo	Bd3071	A4	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2240O	T	protein_oligo	Bd3442	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2249V1O	T	protein_oligo	Arenaviral spike complex	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2249V2O	T	protein_oligo	Arenaviral spike complex	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2257O	T	protein_oligo	P13390	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2259O	T	protein_oligo	AZI86_00190	A3	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json
+T2270O	T	protein_oligo	HtrA	A6	skipped	no_sequence_record	0	0	0	0	/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v1/inputs.json

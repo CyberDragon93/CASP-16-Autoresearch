@@ -1,8 +1,8 @@
 # CASP16 Server Benchmark Plan
 
-This document defines the direction for a CASP16 benchmark whose purpose is to
-compare local methods against the CASP16 server-track protein results. It is a
-new benchmark version, not a mutation of `casp16_protein_v1`.
+This document defines the CASP16 benchmark whose purpose is to compare local
+methods against the CASP16 server-track protein results. It is a new benchmark
+version, not a mutation of `casp16_protein_v1`.
 
 ## Why A New Benchmark
 
@@ -32,6 +32,26 @@ the official score tables:
 - Ranked comparison set: local runs plus server groups only
 - Reference policy: every rank-eligible local target needs explicit reference,
   chain, residue, domain, and assembly mapping
+
+Generated skeleton command:
+
+```bash
+./casp16 server-benchmark
+./casp16 leaderboard --benchmark casp16_server_protein_v1
+```
+
+Current generated artifacts live under
+`benchmarks/casp16_server_protein_v1/`. The first skeleton has 175 fixed
+official targets, 106 generated Protenix jobs, 54 currently cached references,
+and 45 unresolved parsed domain-subtarget diagnostics. Missing references or
+unresolved mappings remain in the fixed denominator and score `0` for local
+runs until the reference registry is improved.
+
+Static leaderboard artifacts live under
+`leaderboards/casp16_server_protein_v1/`. In that directory,
+`official_groups.csv` and `official_server_groups.csv` are server-only
+baselines; `official_all_groups.csv` is retained as a diagnostic all-group
+comparison.
 
 The target counts above come from the local parse of the official CASP16 score
 tables under `leaderboards/*/official_groups.csv`; the official score-table
@@ -124,21 +144,21 @@ whole target set.
 
 ## Build Phases
 
-1. Add benchmark skeleton:
+1. Done: add benchmark skeleton:
    `benchmarks/casp16_server_protein_v1/benchmark.json`,
    `targets.tsv`, `references.tsv`, `domain_definitions.tsv`,
    `inputs.json`, `input_manifest.tsv`, and `scoring_policy.md`.
-2. Derive ranked target sets directly from the official `prot_domains` and
+2. Done: derive ranked target sets directly from the official `prot_domains` and
    `prot_oligo` score tables instead of the current local eligibility filter.
-3. Implement official-compatible domain scoring first, because `GDT_TS` is
+3. Next: implement official-compatible domain scoring first, because `GDT_TS` is
    cleaner to validate than assembly-level `QSglob`.
-4. Add oligo assembly mapping and `QSglob` scoring. Keep DockQ as a diagnostic
+4. Next: add oligo assembly mapping and `QSglob` scoring. Keep DockQ as a diagnostic
    column.
-5. Add `leaderboards/casp16_server_protein_v1/` artifacts:
+5. Done: add `leaderboards/casp16_server_protein_v1/` artifacts:
    `RESULTS.md`, `runs.csv`, `target_scores.csv`, `coverage.md`,
    `official_server_groups.csv`, `official_all_groups.csv`, and
    `artifacts_manifest.json`.
-6. Validate with an end-to-end fixture proving that missing coverage cannot
+6. Done: validate with a fixture proving that server-only missing coverage cannot
    outrank broad coverage.
 
 ## First Experiments After The Benchmark Exists
@@ -150,4 +170,3 @@ whole target set.
   model ranking.
 - For oligos, prioritize stoichiometry/assembly correctness before interface
   polishing.
-

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import csv
 import json
 
-from casp16_leaderboard.benchmark import build_casp16_protein_benchmark
+from casp16_leaderboard.benchmark import build_casp16_protein_benchmark, build_casp16_server_protein_benchmark
 from casp16_leaderboard.official import OfficialPaths, read_tsv, write_tsv
 
 
@@ -110,6 +111,96 @@ def write_fixture_official(root) -> None:
         [{"target_id": "H1222", "pdb_ids": "9cqd", "source": "targetlist.cgi"}],
         ["target_id", "pdb_ids", "source"],
     )
+    write_tsv(
+        paths.scores_tsv,
+        [
+            {
+                "category": "prot_domains",
+                "table": "domains.csv",
+                "target_id": "T1201",
+                "model": "T1201TS022_1-D1",
+                "group": "022",
+                "submitted_model_rank": "1",
+                "primary_metric": "GDT_TS",
+                "primary_score": "95.000000",
+                "metric_json": "{}",
+                "source_path": "domains.csv",
+            },
+            {
+                "category": "prot_domains",
+                "table": "domains.csv",
+                "target_id": "T1201",
+                "model": "T1201TS110_1-D1",
+                "group": "110s",
+                "submitted_model_rank": "2",
+                "primary_metric": "GDT_TS",
+                "primary_score": "90.000000",
+                "metric_json": "{}",
+                "source_path": "domains.csv",
+            },
+            {
+                "category": "prot_domains",
+                "table": "domains.csv",
+                "target_id": "",
+                "model": "T0208s1TS147_4-D1",
+                "group": "147s",
+                "submitted_model_rank": "3",
+                "primary_metric": "GDT_TS",
+                "primary_score": "96.000000",
+                "metric_json": "{}",
+                "source_path": "domains.csv",
+            },
+            {
+                "category": "prot_oligo",
+                "table": "oligo.csv",
+                "target_id": "H1202",
+                "model": "H1202TS051_1",
+                "group": "051",
+                "submitted_model_rank": "1",
+                "primary_metric": "QSglob",
+                "primary_score": "0.700000",
+                "metric_json": "{}",
+                "source_path": "oligo.csv",
+            },
+            {
+                "category": "prot_oligo",
+                "table": "oligo.csv",
+                "target_id": "H1202",
+                "model": "H1202TS456_1",
+                "group": "456s",
+                "submitted_model_rank": "2",
+                "primary_metric": "QSglob",
+                "primary_score": "0.500000",
+                "metric_json": "{}",
+                "source_path": "oligo.csv",
+            },
+            {
+                "category": "prot_oligo",
+                "table": "oligo.csv",
+                "target_id": "T1201o",
+                "model": "T1201TS456_1o",
+                "group": "456s",
+                "submitted_model_rank": "1",
+                "primary_metric": "QSglob",
+                "primary_score": "0.600000",
+                "metric_json": "{}",
+                "source_path": "oligo.csv",
+            },
+            {
+                "category": "prot_oligo",
+                "table": "oligo.csv",
+                "target_id": "H1222",
+                "model": "H1222TS051_1",
+                "group": "051",
+                "submitted_model_rank": "1",
+                "primary_metric": "QSglob",
+                "primary_score": "0.800000",
+                "metric_json": "{}",
+                "source_path": "oligo.csv",
+            },
+        ],
+        ["category", "table", "target_id", "model", "group", "submitted_model_rank", "primary_metric", "primary_score", "metric_json", "source_path"],
+    )
 
 
 def test_build_benchmark_protein_first(tmp_path) -> None:
@@ -135,3 +226,41 @@ def test_build_benchmark_protein_first(tmp_path) -> None:
     h_job = next(job for job in inputs if job["name"] == "H1202")
     assert h_job["sequences"][0]["proteinChain"]["count"] == 2
     assert h_job["sequences"][1]["proteinChain"]["id"] == ["C", "D"]
+
+
+def read_csv(path):
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle, delimiter="\t"))
+
+
+def test_build_server_benchmark_from_official_scores(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+
+    summary = build_casp16_server_protein_benchmark(project_root=project_root, official_root=official_root)
+    assert summary["benchmark"] == "casp16_server_protein_v1"
+    assert summary["target_sets"] == {"prot_domains": 1, "prot_oligo": 3}
+    assert summary["input_jobs"] == 4
+    assert summary["unresolved_official_targets"] == 1
+
+    benchmark_dir = project_root / "benchmarks" / "casp16_server_protein_v1"
+    payload = json.loads((benchmark_dir / "benchmark.json").read_text(encoding="utf-8"))
+    assert payload["official_target_sets"] == {"prot_domains": 1, "prot_oligo": 3}
+    assert payload["official_metrics"] == {"prot_domains": "GDT_TS", "prot_oligo": "QSglob"}
+
+    targets = {row["target_id"]: row for row in read_tsv(benchmark_dir / "targets.tsv")}
+    assert set(targets) == {"T1201", "H1202", "H1222", "T1201O"}
+    assert targets["T1201O"]["track"] == "protein_oligo"
+    assert targets["T1201O"]["sequence_lookup_id"] == "T1201"
+    assert targets["T1201O"]["rank_eligible"] == "true"
+
+    server_groups = read_csv(benchmark_dir / "official_server_groups.tsv")
+    domain_top = next(row for row in server_groups if row["category"] == "prot_domains" and row["rank"] == "1")
+    oligo_top = next(row for row in server_groups if row["category"] == "prot_oligo" and row["rank"] == "1")
+    assert domain_top["group"] == "110s"
+    assert domain_top["mean_fixed_score"] == "0.900000"
+    assert oligo_top["group"] == "456s"
+    assert oligo_top["eligible_target_count"] == "3"
+    assert oligo_top["missing_target_count"] == "1"
+    assert oligo_top["mean_fixed_score"] == "0.366667"
