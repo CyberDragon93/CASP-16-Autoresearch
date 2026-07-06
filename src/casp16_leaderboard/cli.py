@@ -19,7 +19,7 @@ from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, gen
 from .msa_cache import build_msa_cache_index, reuse_msa_paths
 from .official import ingest_official_data
 from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, run_next
-from .scoring import score_benchmark_runs
+from .scoring import probe_qsglob_targets, score_benchmark_runs
 from .strategies import STRATEGY_YANG_TERMINAL_TAG_CLEANUP, derive_strategy_inputs
 
 
@@ -29,6 +29,16 @@ def default_project_root() -> Path:
 
 def print_json(payload: object) -> None:
     print(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def split_csv_args(values: Sequence[str] | None) -> list[str]:
+    out: list[str] = []
+    for value in values or []:
+        for item in str(value).split(","):
+            item = item.strip()
+            if item:
+                out.append(item)
+    return out
 
 
 def resolve_msa_source_jsons(root: Path, explicit_paths: Sequence[Path] | None, source_run_ids: Sequence[str] | None) -> list[Path]:
@@ -253,6 +263,14 @@ def build_parser() -> argparse.ArgumentParser:
     score.add_argument("--tmscore-bin", type=Path, default=None)
     score.add_argument("--dockq-bin", type=Path, default=None)
     score.add_argument("--qsglob-bin", type=Path, default=None)
+
+    qsglob_probe = subparsers.add_parser("qsglob-probe", help="Run targeted QSglob diagnostics without writing leaderboard artifacts.")
+    qsglob_probe.add_argument("--benchmark", default=SERVER_ALIASFIX_BENCHMARK_NAME)
+    qsglob_probe.add_argument("--run-id", action="append", required=True, help="Run id(s) to probe; repeat or comma-separate.")
+    qsglob_probe.add_argument("--target", action="append", required=True, help="Protein-oligo target id(s) to probe; repeat or comma-separate.")
+    qsglob_probe.add_argument("--output-csv", type=Path, default=None, help="Defaults to <root>/diagnostics/qsglob_probes/<benchmark>.csv.")
+    qsglob_probe.add_argument("--output-tsv", type=Path, default=None, help=argparse.SUPPRESS)
+    qsglob_probe.add_argument("--qsglob-bin", type=Path, default=None)
 
     leaderboard = subparsers.add_parser("leaderboard", help="Generate official-compatible and local leaderboard files.")
     leaderboard.add_argument("--benchmark", default="", help=f"Generate benchmark leaderboard, e.g. {BENCHMARK_NAME}.")
@@ -496,6 +514,25 @@ def main(argv: Sequence[str] | None = None) -> int:
             output_dir=(args.output_dir or (root / "leaderboards" / args.benchmark)).resolve(),
             tmscore_bin=args.tmscore_bin,
             dockq_bin=args.dockq_bin or None,
+            qsglob_bin=args.qsglob_bin,
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "qsglob-probe":
+        run_ids = split_csv_args(args.run_id)
+        target_ids = split_csv_args(args.target)
+        output_csv = (
+            args.output_csv
+            or args.output_tsv
+            or (root / "diagnostics" / "qsglob_probes" / f"{args.benchmark}.csv")
+        ).resolve()
+        summary = probe_qsglob_targets(
+            project_root=root,
+            benchmark=args.benchmark,
+            run_ids=run_ids,
+            target_ids=target_ids,
+            output_csv=output_csv,
             qsglob_bin=args.qsglob_bin,
         )
         print_json(summary)

@@ -378,6 +378,82 @@ def score_benchmark_runs(
     }
 
 
+def probe_qsglob_targets(
+    *,
+    project_root: Path,
+    benchmark: str,
+    run_ids: Sequence[str] | None,
+    target_ids: Sequence[str] | None,
+    output_csv: Path,
+    qsglob_bin: Path | None = None,
+) -> dict[str, object]:
+    targets = read_benchmark_targets(project_root, benchmark)
+    target_by_id = {target["target_id"]: target for target in targets}
+    requested_targets = list(target_ids or [])
+    if requested_targets:
+        missing_targets = [target_id for target_id in requested_targets if target_id not in target_by_id]
+        if missing_targets:
+            raise ValueError(f"target(s) not found in benchmark {benchmark}: {', '.join(missing_targets)}")
+        probe_targets = [target_by_id[target_id] for target_id in requested_targets]
+    else:
+        probe_targets = [target for target in targets if target.get("track") == "protein_oligo"]
+    non_oligo = [target["target_id"] for target in probe_targets if target.get("track") != "protein_oligo"]
+    if non_oligo:
+        raise ValueError(f"qsglob-probe only supports protein_oligo targets: {', '.join(non_oligo)}")
+
+    requested_runs = {run_id for run_id in run_ids or [] if run_id}
+    specs = [
+        spec
+        for spec in load_run_specs(project_root / "runs", registered_only=True)
+        if spec.get("benchmark_name", benchmark) == benchmark
+    ]
+    if requested_runs:
+        specs = [spec for spec in specs if str(spec.get("run_id", "")) in requested_runs]
+        found_runs = {str(spec.get("run_id", "")) for spec in specs}
+        missing_runs = requested_runs - found_runs
+        if missing_runs:
+            raise FileNotFoundError(f"run(s) not found for benchmark {benchmark}: {', '.join(sorted(missing_runs))}")
+
+    qsglob_tool = resolve_tool(qsglob_bin or DEFAULT_QSGLOB_BIN, ["qsscore", "qs-score", "QSscore", "qs_score", "ost"])
+    references = {row["target_id"]: row for row in read_benchmark_references(project_root, benchmark)}
+    rows: list[dict[str, Any]] = []
+    target_ids_for_index = [target["target_id"] for target in probe_targets]
+    for spec in specs:
+        output_path = Path(str(spec.get("output_dir", "")))
+        candidates_by_target = prediction_candidate_index(output_path, target_ids_for_index)
+        for target in probe_targets:
+            rows.append(
+                score_target(
+                    spec,
+                    target,
+                    references.get(target["target_id"], {}),
+                    benchmark=benchmark,
+                    tm_tool="",
+                    dockq_tool="",
+                    qsglob_tool=qsglob_tool,
+                    prediction_candidates=candidates_by_target.get(target["target_id"], []),
+                )
+            )
+
+    ensure_dir(output_csv.parent)
+    write_csv(output_csv, rows, TARGET_SCORE_FIELDS)
+    ok_rows = sum(1 for row in rows if row.get("status") == "ok")
+    qsglob_values = [parse_float(row.get("qsglob", "")) for row in rows]
+    nonzero_rows = sum(1 for value in qsglob_values if value is not None and value > 0.0)
+    diagnostic_rows = sum(1 for row in rows if str(row.get("message", "")).strip())
+    return {
+        "benchmark": benchmark,
+        "runs": len(specs),
+        "targets": len(probe_targets),
+        "rows": len(rows),
+        "ok_rows": ok_rows,
+        "nonzero_qsglob_rows": nonzero_rows,
+        "diagnostic_rows": diagnostic_rows,
+        "qsglob_tool": qsglob_tool,
+        "output_csv": str(output_csv),
+    }
+
+
 def score_target(
     spec: Mapping[str, Any],
     target: Mapping[str, str],

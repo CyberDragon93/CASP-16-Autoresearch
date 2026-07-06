@@ -237,6 +237,8 @@ then improve methods against that harder target set.
 - `docs/MSA_CACHE_PLAN.md`: exact-sequence MSA reuse workflow and guardrails
 - `docs/QSGLOB_SCORER.md`: installed OpenStructure QSglob scorer, mapping
   diagnostics, and validation notes
+- `./casp16 qsglob-probe`: targeted QSglob diagnostic command that writes
+  `diagnostics/qsglob_probes/*.csv` without touching `leaderboards/*`
 - `docs/REFERENCE_GAP_AUDIT.md`: server benchmark reference/input coverage gaps
 - `attack_budgets/`: JSON attack-budget definitions
 - `./casp16 merge-shards`: registers completed seed-sharded attack predictions

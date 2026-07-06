@@ -69,8 +69,24 @@ stack.
 
 Do not run a full `./casp16 score` while a large run is still producing partial
 predictions; it will mix incomplete attack rows into the temporary score table.
-Instead, the first QSglob signal probe sampled six oligo targets from the four
-completed `casp16_server_protein_v1` Protenix dev runs.
+Use targeted probes instead:
+
+```bash
+./casp16 qsglob-probe \
+  --benchmark casp16_server_protein_v1 \
+  --run-id server_protenix_full_msa_template_seed101 \
+  --target H0220,H0222,H1232,T1249V1O \
+  --output-csv diagnostics/qsglob_probes/server_v1_baseline_probe.csv
+```
+
+`qsglob-probe` writes a diagnostic CSV only. It does not update
+`leaderboards/*`, does not change benchmark rules, and keeps the same
+fail-closed scoring behavior as the full scorer. It is for isolating
+OpenStructure chain/chem mapping classes while long prediction jobs are still
+running.
+
+The first QSglob signal probe sampled six oligo targets from the four completed
+`casp16_server_protein_v1` Protenix dev runs.
 
 | run | H0220 | H0222 | H1232 | T0206O | T0234O | T1249V1O |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -90,6 +106,13 @@ Interpretation:
 - The signal supports continuing token-safe stoichiometry/coverage runs before
   spending a larger attack budget; more seeds will not fix wrong assembly
   mapping.
+
+The checked diagnostic CSV at
+`diagnostics/qsglob_probes/server_v1_baseline_probe.csv` confirms the probe
+workflow on four representative baseline targets: `H0222=0.075`,
+`T1249V1O=0.090`, `H0220=0` with
+`ost_unmapped_model_chains:A,B;ost_empty_chain_mapping;ost_empty_chem_mapping;ost_no_mapped_interfaces`,
+and `H1232=0` without the H0220-style unmapped-chain diagnostic.
 
 ## Next Work
 

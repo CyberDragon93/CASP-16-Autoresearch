@@ -7,6 +7,7 @@ from casp16_leaderboard.scoring import (
     parse_qsglob_output,
     parse_tmscore_output,
     prediction_candidate_index,
+    probe_qsglob_targets,
     score_target,
     select_prediction_for_target,
 )
@@ -281,6 +282,51 @@ def test_server_oligo_openstructure_zero_keeps_mapping_diagnostic(tmp_path) -> N
     assert row["metric"] == "QSglob"
     assert row["status"] == "ok"
     assert row["message"] == "ost_unmapped_model_chains:A,B;ost_empty_chain_mapping;ost_empty_chem_mapping;ost_no_mapped_interfaces"
+
+
+def test_qsglob_probe_scores_selected_run_targets_without_leaderboard(tmp_path) -> None:
+    benchmark_dir = tmp_path / "benchmarks" / "bench_qs"
+    benchmark_dir.mkdir(parents=True)
+    (benchmark_dir / "targets.tsv").write_text(
+        "target_id\ttrack\trank_eligible\tofficial_metric\n"
+        "H1202\tprotein_oligo\ttrue\tQSglob\n"
+        "T1201\tprotein_domain\ttrue\tGDT_TS\n",
+        encoding="utf-8",
+    )
+    reference = tmp_path / "ref.cif"
+    reference.write_text("data_ref\n", encoding="utf-8")
+    (benchmark_dir / "references.tsv").write_text(
+        "target_id\ttrack\treference_path\treference_status\n"
+        f"H1202\tprotein_oligo\t{reference}\tavailable\n",
+        encoding="utf-8",
+    )
+    pred_dir = tmp_path / "runs" / "probe_run" / "predictions" / "protenix-v2" / "H1202" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    (pred_dir / "H1202_sample_0.cif").write_text("data_pred\n", encoding="utf-8")
+    run_dir = tmp_path / "runs" / "probe_run"
+    (run_dir / "run_spec.json").write_text(
+        f'{{"run_id":"probe_run","benchmark_name":"bench_qs","output_dir":"{tmp_path / "runs" / "probe_run" / "predictions" / "protenix-v2"}"}}\n',
+        encoding="utf-8",
+    )
+    ost = _write_fake_ost(tmp_path / "ost", 0.456)
+    output_csv = tmp_path / "diagnostics" / "probe.csv"
+
+    summary = probe_qsglob_targets(
+        project_root=tmp_path,
+        benchmark="bench_qs",
+        run_ids=["probe_run"],
+        target_ids=["H1202"],
+        output_csv=output_csv,
+        qsglob_bin=tmp_path / "ost",
+    )
+
+    assert summary["rows"] == 1
+    assert summary["nonzero_qsglob_rows"] == 1
+    assert summary["qsglob_tool"] == ost
+    rows = output_csv.read_text(encoding="utf-8").splitlines()
+    assert rows[0].startswith("run_id,benchmark,track,target_id")
+    assert "probe_run,bench_qs,protein_oligo,H1202" in rows[1]
+    assert "0.456000" in rows[1]
 
 
 def test_prediction_lookup_does_not_fallback_to_other_target(tmp_path) -> None:
