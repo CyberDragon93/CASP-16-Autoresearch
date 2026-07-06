@@ -11,8 +11,8 @@ leaderboard progress.
 | `server_eval_opendde_v1_full_msa_template_bf16_h1220_t1220s1` | `casp16_server_protein_v1` | scored diagnostic | reuse 35 existing OpenDDE local-v1 predictions to expose server coverage gap | no |
 | `server_protenix_full_msa_template_seed101` | `casp16_server_protein_v1` | scored | full server-target Protenix baseline with real MSA/template settings | yes for domain track |
 | `server_protenix_yang_terminal_tag_cleanup_seed101` | `casp16_server_protein_v1` | scored | target-agnostic Yang-style terminal tag cleanup rerun | yes for domain track |
-| `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | single-entity oversize domain fallback to recover the known `T1295` token-limit zero | yes, after predictions and scoring |
-| `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind terminal-tag cleanup | full-set antibody Fv constant-region cleanup rerun | yes, after lower-risk cleanup ablation |
+| `server_protenix_yang_oversize_domain_monomer_fallback_seed101` | `casp16_server_protein_v1` | scored | single-entity oversize domain fallback recovered `T1295` inference but not score, because `T1295` lacks local reference mapping | yes for domain track |
+| `server_protenix_yang_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending next | full-set antibody Fv constant-region cleanup rerun | yes, after lower-risk cleanup ablation |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | pending behind individual ablations | combined terminal-tag plus antibody-Fv cleanup rerun | yes, after individual ablations |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | pending behind combined cleanup | broader epitope/His/TEV tag cleanup rerun | yes, after lower-risk construct ablations |
 
@@ -32,9 +32,14 @@ leaderboard progress.
   with 15 ok, 30 missing predictions, and 26 missing references over the fixed
   71-domain target set. This is a small improvement over baseline, not a
   winner-level result.
-- Baseline inference generated 98/106 CIFs. The 8 failed Protenix jobs were
-  all `n_token > 2560`: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`,
-  `H1258`, `H1272`, and `T1295O`.
+- The oversize-domain fallback produced 99/106 CIFs and rescued `T1295`
+  inference, but its ranked domain mean is `0.065114`; `T1295` still scores
+  `0` as `missing_reference`. It is a coverage fix, not the current best
+  score.
+- Baseline inference generated 98/106 CIFs. The 8 failed Protenix jobs were all
+  `n_token > 2560`: `T1295`, `H0217`, `H0258`, `H0272`, `H1217`, `H1258`,
+  `H1272`, and `T1295O`. The fallback fixed only the `T1295` inference
+  failure; `T1295O` and the six `H*` complex failures remain.
 
 ## Next Experiment Queue
 
@@ -60,12 +65,16 @@ leaderboard progress.
    - The domain mean improved from `0.063962` to `0.066908`. Main positive
      deltas were `T1234` `+0.1122`, `T1298` `+0.0863`, and `T1210`
      `+0.0519`; the main regressions were `T0234`, `T1249V1`, and `T1299`.
-3. Run queued `server_protenix_yang_oversize_domain_monomer_fallback_seed101`
-   to recover the known `T1295` server-domain token-limit failure. The strategy
-   preserves all 106 server jobs, changes only `T1295` from `A8` to one
-   representative chain, and keeps MSA/templates/default params/seed/sample
-   fixed. This is the first coverage-recovery run after terminal-tag cleanup
-   because missing predictions score as zero.
+3. Completed and scored
+   `server_protenix_yang_oversize_domain_monomer_fallback_seed101` to recover
+   the known `T1295` server-domain token-limit failure. The strategy preserved
+   all 106 server jobs, changed only `T1295` from `A8` to one representative
+   chain, and kept MSA/templates/default params/seed/sample fixed.
+   - It produced 99/106 CIFs, one more than baseline and terminal-tag cleanup.
+   - `T1295` reached inference successfully as a 469-token job.
+   - Domain mean was `0.065114`, above baseline but below terminal-tag cleanup.
+   - The result did not improve the current best because `T1295` still lacks a
+     local reference mapping and scores `0`.
 4. Run queued `server_protenix_yang_antibody_fv_cleanup_seed101` as the first
    full-set antibody construct attempt after the lower-risk terminal cleanup.
    It preserves all 106 server jobs while trimming 16 antibody constant-region
@@ -151,7 +160,20 @@ changes that one domain job to a single representative chain, reducing it to
 official score tables, or previous target scores.
 
 Launch gate: queue with the same Protenix/MSA/template/cache/fusion/seed/sample
-budget after the individual terminal-tag and antibody-Fv ablations.
+budget after the terminal-tag ablation, before broader construct cleanup runs.
+
+Result: the run finished the full 106-job server Protenix benchmark with 99 CIF
+files. `T1295` was rescued at inference time, but it remains `missing_reference`
+in the local server benchmark and therefore contributes `0` to the fixed
+71-target domain mean. The scored domain mean was `0.065114`, better than the
+baseline `0.063962` but below the terminal-tag cleanup `0.066908`. `T1295O` and
+the six large `H*` complex failures still hit the `n_token > 2560` guard.
+
+Interpretation: this is a useful coverage repair and a guardrail for future
+large-target handling, but not enough to promote to a realistic server-attack
+budget. Before spending multi-seed compute, fix the pieces that more seeds
+cannot solve: reference/domain mapping, QSglob availability, and a predeclared
+split policy for oversize complexes.
 
 ### 2026-07-05 Epitope/TEV Tag Full-Set Candidate
 

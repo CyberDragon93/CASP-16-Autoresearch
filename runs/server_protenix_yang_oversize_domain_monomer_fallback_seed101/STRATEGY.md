@@ -47,21 +47,35 @@ forced zero into a scorable model without changing references or score rules.
 
 ## Result Summary
 
-- Rank status: pending, queued behind `server_protenix_yang_terminal_tag_cleanup_seed101`.
-- Mean score: unavailable.
+- Rank status: ranked on the protein-domain track; unranked on protein-oligo
+  until a `QSglob` scorer exists.
+- Mean score: protein-domain `0.065114`, rank 2 among current local ranked
+  runs. This is above the full Protenix baseline `0.063962` but below
+  `server_protenix_yang_terminal_tag_cleanup_seed101` at `0.066908`.
 - Eligible targets: fixed `casp16_server_protein_v1` target set.
-- OK targets: unavailable.
-- Missing targets: unavailable.
-- Failed targets: unavailable.
+- OK targets: 15/71 protein-domain targets.
+- Missing targets: 29/71 protein-domain targets.
+- Failed or missing-reference targets: 27/71 protein-domain targets.
 - Metric unavailable targets: expected for oligo QSglob until scorer exists.
 - Artifact path: `runs/server_protenix_yang_oversize_domain_monomer_fallback_seed101/`.
 
 ## Failure Notes
 
-No prediction has been launched yet. The generated manifest changes only
-`T1295`, reducing total protein length from 3752 to 469 residues. Multi-entity
-oversize jobs and all protein-oligo jobs remain unchanged because they need a
-separate predeclared split policy.
+The full run produced 99/106 CIF files, one more than the baseline and
+terminal-tag cleanup runs. `T1295` was rescued at inference time: it ran as one
+representative 469-residue chain instead of the original `A8` 3752-token job.
+
+The rescued `T1295` prediction did not improve the current ranked score because
+the local server benchmark still lacks a reference mapping for that target, so
+it remains `missing_reference` and scores `0`. `T1295O` and the six large
+`H*` complex targets still failed the Protenix `n_token > 2560` guard, as
+expected, because this strategy intentionally touched only the safe
+single-entity protein-domain case.
+
+This is a useful coverage fix but not a winner-level score improvement. It
+argues for better reference/domain mapping and a separate predeclared
+large-complex split policy before spending a realistic multi-seed attack
+budget.
 
 ## No-Oracle Checklist
 
@@ -70,10 +84,12 @@ separate predeclared split policy.
 - [x] Did not use previous target scores for target-specific parameter choices.
 - [x] Did not replace structure metrics with confidence diagnostics.
 - [x] Regenerated inputs only through `./casp16 strategy-inputs`; results are
-      not yet scored.
+      scored only through `./casp16 score` and `./casp16 leaderboard`.
 
 ## Next Action
 
-After the active terminal-tag full run is scored, launch this pending fallback
-through `./casp16 run-next --benchmark casp16_server_protein_v1` and compare
-the fixed-set server-domain mean against the baseline.
+Do not promote this strategy by itself to the realistic attack-budget tier.
+Use it as evidence that token-limit coverage fixes are necessary, then either
+improve reference/domain mapping for rescued targets or design a broader
+predeclared large-target fallback that can handle the remaining complex
+failures without per-target oracle choices.
