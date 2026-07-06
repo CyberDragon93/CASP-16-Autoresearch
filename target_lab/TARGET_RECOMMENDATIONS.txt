@@ -17,6 +17,16 @@ H1244, H1267, and the H1258 interaction-window artifact into one Protenix input
 for faster complex-learning loops. It is target_lab-only and must not be
 registered as a ranked server run.
 
+Completed result, 2026-07-06:
+
+- 6/6 jobs produced structures and confidence files.
+- Diagnostic DockQ: H1233 = 0.850, H1236 = 0.206, H1232 = 0.023.
+- H1244 and H1267 need cached references before DockQ can judge them.
+- H1258 interaction-window produced a high-confidence structure but DockQ chain
+  mapping failed, so it is not a positive scoring result.
+- Promotion implication: exact stoichiometry remains worth full-benchmark
+  target-agnostic testing; do not promote the hard-coded H1258 window.
+
 Current score source
 --------------------
 Current local scores are from the diagnostic OpenDDE run:
@@ -95,6 +105,25 @@ Top recommendations
    Success bar:
    - Short-term: DockQ > 0.20.
    - Strong result: DockQ > 0.45.
+
+   Latest target_lab note:
+   - Exact-stoich Protenix produced high confidence but DockQ 0.023, so H1232
+     is now a useful negative control for confidence-only selection.
+
+
+2b. H1233 - exact-stoichiometry positive control
+
+   Track: protein_oligo
+   System: compact antibody/complex target, reference 9cbn
+   Latest target_lab DockQ: 0.850
+
+   Why keep it:
+   - The exact-stoich target_lab run produced a strong DockQ signal under the
+     same seed-101 Protenix settings.
+   - It is a useful positive control for checking that future QSglob/chain
+     mapping changes do not break a target that can already assemble well.
+   - It supports promoting exact stoichiometry only as a full-benchmark
+     target-agnostic rule, not as a per-target rescue.
 
 
 3. H1236 - medium-hard stoichiometry/symmetry target

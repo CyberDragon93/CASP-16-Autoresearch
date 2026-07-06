@@ -20,12 +20,14 @@ leaderboard progress.
 | `yang_oligo_stoichiometry_recovery_v1` | `casp16_server_protein_v1` | artifacts generated, not queued | restore official oligo copy counts that collapsed to one copy per entity | not queued until token-safe/windowed derivative exists |
 | `server_protenix_yang_oligo_stoichiometry_token_safe_seed101` | `casp16_server_protein_v1` | pending behind active jobs | exact stoichiometry for under-budget oligo jobs on top of stacked coverage recovery | yes for domain track; oligo diagnostic until QSglob mapping is validated |
 | `server_attack_protenix_coverage_stoich_seed101_105` | `casp16_server_protein_v1` | queued, not submitted | five-seed attack run on stacked sequence-recovery, token-fallback, token-safe stoichiometry inputs | attack tier only |
-| `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | Slurm job `810938` pending on dependency `810719` | first alias-fixed v2 `dev_fixed` baseline using stacked coverage + token-safe stoichiometry inputs | yes for domain track; oligo after QSglob mapping validation |
-| `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | pending behind v2 baseline | v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | yes for domain track; oligo after QSglob mapping validation |
-| `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | pending behind v2 low-complexity | v2 stack plus large-target fallback for the 11 remaining over-token jobs | yes for domain track; oligo is coverage-recovery diagnostic |
-| `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending behind three v2 dev rows | five-seed attack on the no-over-token v2 stack with confidence-only model selection | attack tier only |
+| `server_v2_protenix_yang_coverage_stoich_seed101` | `casp16_server_protein_v2_aliasfix` | superseded; Slurm wrapper job `810938` still pending on dependency `810719` | older alias-fixed v2 baseline using coverage + token-safe stoichiometry inputs | keep only as ablation |
+| `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 coverage/stoich input plus Yang-style terminal low-complexity cleanup | keep only as ablation |
+| `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | superseded | older v2 stack plus large-target fallback for the 11 remaining over-token jobs | keep only as ablation |
+| `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101` | `casp16_server_protein_v2_aliasfix` | pending | current strongest v2 no-over-token `dev_fixed` input stack with protein-oligo sequence recovery | yes for domain track; oligo after QSglob mapping validation |
+| `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending, not submitted | five-seed attack on the current strongest v2 no-over-token stack with confidence-only model selection | attack tier only |
+| `server_v2_attack_nofail_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | pending; superseded candidate | older five-seed no-over-token attack that lacks protein-oligo sequence recovery | attack tier only; run only as ablation |
 | `target_lab/h1258_interaction_window_v1` | target_lab only | artifact generated, not submitted | public LRRK2 interaction-window reproduction for H1258 | not rank eligible |
-| `target_lab/small_complex_stoich_batch_v1` | target_lab only | Slurm job `811114` running on `c639-081`; CIF output has started | compact exact-stoich and H1258-window learning batch | not rank eligible |
+| `target_lab/small_complex_stoich_batch_v1` | target_lab only | complete; 6/6 structures, diagnostic DockQ regenerated | compact exact-stoich and H1258-window learning batch | not rank eligible |
 | `server_protenix_yang_terminal_tag_antibody_fv_cleanup_seed101` | `casp16_server_protein_v1` | deferred | combined terminal-tag plus antibody-Fv cleanup rerun | do not launch before QSglob mapping or a positive antibody signal |
 | `server_protenix_yang_epitope_tag_cleanup_seed101` | `casp16_server_protein_v1` | deferred | broader epitope/His/TEV tag cleanup rerun | do not launch before a predeclared large-target split policy |
 
@@ -212,6 +214,10 @@ leaderboard progress.
     all recovered jobs under 2560 tokens, and is pending as the first
     alias-fixed `dev_fixed` baseline.
     - Submitted as Slurm job `810938` with dependency `afterany:810719`.
+    - Later superseded by
+      `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`;
+      the wrapper job still calls `run-next`, so current queue state should run
+      the newer oligo-recovery nofail dev row when the dependency releases.
 22. Installed OpenStructure 2.11.1 in the isolated conda env
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob` and configured
     `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` as the
@@ -281,7 +287,7 @@ leaderboard progress.
       be accidentally selected by `run-next` or scored as missing predictions.
     - When the launch gate opens, create run specs from the shard TSV rather
       than inventing seeds or input artifacts on the fly.
-28. Generated and queued
+28. Generated, then later superseded,
     `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` as the
     next v2 `dev_fixed` construct-cleanup ablation. It starts from
     `yang_oligo_stoichiometry_token_safe_v1` v2 inputs and applies the existing
@@ -292,9 +298,8 @@ leaderboard progress.
       phase aliases, low-complexity complex segments on
       `H0217/H0272/H1217/H1272` phase aliases, and H1258/H0258/H2258 tag
       cleanup.
-    - Queue check: `run-next --benchmark casp16_server_protein_v2_aliasfix
-      --dry-run` still selects `server_v2_protenix_yang_coverage_stoich_seed101`
-      first. This new run waits behind the v2 baseline.
+    - Supersession: the current queue should prefer the oligo-recovery nofail
+      stack because this older row lacks protein-oligo sequence recovery.
 29. Hardened target_lab Protenix launch scripts for
     `small_complex_stoich_batch_v1`, `domain_fragment_batch_v1`, and
     `h1258_interaction_window_v1` after the small-complex job exposed an
@@ -311,7 +316,7 @@ leaderboard progress.
       started on `c622-022`, imported
       `/scratch/10992/liaorunlong93/Protenix-Insta/runner/batch_inference.py`,
       loaded the Protenix v2 checkpoint, and entered MSA search.
-30. Generated and queued
+30. Generated, then later superseded,
     `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`
     as the next v2 coverage-recovery ablation. It starts from the v2
     coverage/stoich/low-complexity input and applies the existing
@@ -321,10 +326,8 @@ leaderboard progress.
       `H1272`, `H2217`, `H2258`, `H2272`, and `T1295O`.
     - After fallback, all 163 generated jobs are at or below 2560 tokens.
     - Changed targets: the 11 over-token jobs above.
-    - Queue check: `run-next --benchmark casp16_server_protein_v2_aliasfix
-      --dry-run` still selects `server_v2_protenix_yang_coverage_stoich_seed101`
-      first. This fallback run waits behind the v2 baseline and v2
-      low-complexity ablation.
+    - Supersession: keep this older no-over-token row only as an ablation; the
+      current queue should spend compute on the oligo-recovery nofail stack.
     - Interpretation: this is a coverage-recovery candidate, not a claim that
       cropped assemblies preserve official oligo fidelity.
 31. Added the planned `casp16_server_attack_protenix25_nofail` budget as a
@@ -334,19 +337,21 @@ leaderboard progress.
     - Shards are locked in
       `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
     - This does not queue or submit any run specs.
-    - Launch gate: score the active `protenix5` attack, the v2 baseline, and
-      the v2 no-over-token fallback ablation first, unless a recorded
-      supersession decision says otherwise.
-32. Generated `server_v2_attack_nofail_protenix5_seed101_105`, the first
+    - Launch gate: score the active `protenix5` attack and the current
+      oligo-recovery nofail v2 dev row first, unless a recorded supersession
+      decision says otherwise. Regenerate/version the shard manifest against
+      the oligo-recovery nofail artifact before launch.
+32. Generated, then later superseded,
+    `server_v2_attack_nofail_protenix5_seed101_105`, the first
     five-candidate attack run spec for the v2 no-over-token stack. It uses
     seeds `101,102,103,104,105`, one sample each, and
     `protenix_confidence_v1` selection.
     - Input: `yang_coverage_stoich_low_complexity_large_fallback_v1`, 163 jobs
       and 0 jobs above the Protenix 2560-token limit.
-    - Queue check: `run-next --benchmark casp16_server_protein_v2_aliasfix
-      --dry-run` still selects `server_v2_protenix_yang_coverage_stoich_seed101`
-      first. The attack waits behind the three v2 `dev_fixed` rows.
-    - This is queued but not submitted and must remain attack-tier only.
+    - Supersession: this older attack input lacks protein-oligo sequence
+      recovery. Prefer
+      `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` unless an
+      explicit ablation requires the older row.
 
 ## Strategy Decision Log
 
@@ -453,9 +458,12 @@ Update: `casp16_server_protein_v2_aliasfix` has been generated under
 `benchmarks/` and `leaderboards/`. Future winner-comparison runs should target
 v2 or a newer explicit server benchmark; in-flight v1 runs remain on v1.
 
-Next v2 run: `server_v2_protenix_yang_coverage_stoich_seed101`, using the
-v2-regenerated token-safe stoichiometry strategy, is Slurm job `810938` and
-should run after the active v1 attack job `810719`.
+Historical next v2 run:
+`server_v2_protenix_yang_coverage_stoich_seed101`, using the v2-regenerated
+token-safe stoichiometry strategy, was submitted as Slurm job `810938`.
+Current queue state supersedes that run row with the oligo-recovery nofail dev
+row, so the `run-next` wrapper should select the newer input when job `810938`
+starts after the active v1 attack job `810719`.
 
 ### 2026-07-06 Coverage + Stoichiometry Attack Candidate
 
@@ -622,12 +630,69 @@ artifact changes 15 targets total, restores `H1220/H2220` as recovered protein
 assemblies with `A1B4` stoichiometry, and skips 8 recovered exact-stoichiometry
 cases that would exceed Protenix's 2560-token limit.
 
-Interpretation: this should be queued only as a full-benchmark strategy, or
-composed with the no-over-token fallback stack, after the active v2 baseline
-finishes. It is not itself a no-over-token artifact because unrelated existing
-v2 jobs such as `H0272` still exceed the Protenix token limit. It is also not
-winner-comparable on a single seed; any serious claim still needs a separate
-predeclared multi-candidate attack budget.
+Interpretation: this should be queued only as a full-benchmark strategy or
+composed with the no-over-token fallback stack. It is not itself a
+no-over-token artifact because unrelated existing v2 jobs such as `H0272` still
+exceed the Protenix token limit. It is also not winner-comparable on a single
+seed; any serious claim still needs a separate predeclared multi-candidate
+attack budget.
+
+### 2026-07-06 Oligo-Recovery Nofail V2 Stack
+
+Decision: compose the protein-oligo sequence/stoichiometry fix with
+low-complexity cleanup and large-target fallback, then register both a
+single-seed `dev_fixed` run and a five-candidate `server_attack` run.
+
+Rationale: the previous no-over-token v2 stack fixed hard Protenix failures
+but still used the older input modality for `H0220/H1220/H2220`-style targets.
+Spending multi-candidate attack budget on that older stack would answer the
+wrong question. The new artifact keeps recovered protein oligo inputs, keeps
+token-safe exact stoichiometry, and still avoids every `n_token > 2560` hard
+failure.
+
+Artifact summary:
+
+- Intermediate low-complexity artifact:
+  `yang_oligo_sequence_stoich_low_complexity_v1`, 165 jobs, 27 changed
+  sequences across 21 targets, output SHA256
+  `a9c6ab39024c483ec760122e47386f061503d4142320b0e0fa0f9df427d3f74b`.
+- Final no-over-token artifact:
+  `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, 165 jobs,
+  11 fallback-changed targets, max job 2535 tokens, 0 jobs above 2560, output
+  SHA256 `9ea5de4ffa1f7693de8f7e61374c0e51d0c54760f8efeea9839de9005a21f54e`.
+- New `dev_fixed` run spec:
+  `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`.
+- New `server_attack` run spec:
+  `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105`, seeds
+  `101..105`, candidate_count `5`, selector `protenix_confidence_v1`.
+
+Interpretation: this is the current best v2 input stack to spend future attack
+compute on. The older `server_v2_attack_nofail_protenix5_seed101_105` should
+be treated as superseded unless an explicit ablation is needed.
+
+### 2026-07-06 Small Complex Target-Lab Result
+
+Decision: keep exact-stoichiometry promotion alive, but do not promote the
+hard-coded H1258 interaction window.
+
+Result: `target_lab/small_complex_stoich_batch_v1` completed 6/6 Protenix jobs
+with structure and confidence files. Diagnostic DockQ succeeded for three
+cached-reference targets:
+
+- `H1233`: DockQ `0.850`, pLDDT `91.317`, pTM `0.824`, ipTM `0.792`.
+- `H1236`: DockQ `0.206`, pLDDT `73.302`, pTM `0.369`, ipTM `0.318`.
+- `H1232`: DockQ `0.023`, pLDDT `87.842`, pTM `0.653`, ipTM `0.553`.
+
+`H1244` and `H1267` produced confident structures but lack cached target-lab
+references. The H1258 LRRK2-window job produced a structure with high
+confidence (pTM `0.781`, ipTM `0.682`) but DockQ failed chain mapping against
+the native reference, so it is not a positive scoring result.
+
+Interpretation: exact stoichiometry can produce real complex signal on at
+least one compact antibody/complex case (`H1233`), but confidence alone is not
+reliable (`H1232` is high-confidence and poor DockQ). The next full-benchmark
+move should remain target-agnostic exact-stoich plus QSglob/chain-mapping work,
+not a hard-coded H1258 residue window.
 
 ### 2026-07-06 Protenix CUDA Bootstrap Fix
 

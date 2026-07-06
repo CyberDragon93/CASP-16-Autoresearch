@@ -86,6 +86,13 @@ where methods should change.
   coverage/stoich/low-complexity/large-fallback input with 0 over-token jobs
   and the same five-candidate `protenix5` budget. It is not submitted yet and
   waits behind the three v2 `dev_fixed` rows.
+- Stronger queued v2 no-over-token attack run spec:
+  `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105`, using the
+  new protein-oligo sequence recovery + token-safe stoichiometry +
+  low-complexity cleanup + large-target fallback input. It has 165 jobs, 0 jobs
+  above the Protenix token limit, candidate_count `5`, and supersedes the older
+  v2 nofail attack input for future winner-chasing launches unless the older
+  ablation is intentionally needed.
 - New coverage-recovery strategy:
   `yang_large_target_split_or_fallback_v1`, which predeclares a token-budget
   fallback for the eight known Protenix `n_token > 2560` failures.
@@ -111,23 +118,26 @@ where methods should change.
   copy counts for 5 under-budget oligo jobs while keeping the largest
   optimized job at 2535 tokens.
 - New v2 baseline candidate:
-  `server_v2_protenix_yang_coverage_stoich_seed101` is submitted as Slurm job
-  `810938` with dependency on v1 attack job `810719`. It targets
-  `casp16_server_protein_v2_aliasfix` and uses the same
-  `yang_oligo_stoichiometry_token_safe_v1` transform regenerated on v2,
-  producing 163 jobs with 10 changed targets and no recovered job above the
-  2560-token limit.
-- New v2 construct-cleanup candidate:
+  `server_v2_protenix_yang_coverage_stoich_seed101` was submitted as Slurm job
+  `810938` with dependency on v1 attack job `810719`, but it is now
+  append-only superseded in `runs/status.tsv` by the stronger
+  oligo-recovery nofail stack. Because the Slurm wrapper calls
+  `./casp16 run-next --benchmark casp16_server_protein_v2_aliasfix`, dry-run
+  now selects
+  `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
+  when that dependency releases.
+- Superseded v2 construct-cleanup candidate:
   `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` is queued
-  behind the v2 baseline. It starts from the v2 coverage/stoich input and adds
+  only as an ablation. It starts from the v2 coverage/stoich input and adds
   sequence-only low-complexity terminal cleanup, changing 27 sequences across
-  21 targets under the same seed-101 `dev_fixed` budget.
-- New v2 coverage-recovery candidate:
+  21 targets under the same seed-101 `dev_fixed` budget, but lacks the
+  protein-oligo sequence recovery now used by the main queue.
+- Superseded v2 coverage-recovery candidate:
   `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`
-  is queued behind the v2 low-complexity ablation. It starts from that input
+  is queued only as an ablation. It starts from that input
   and applies the target-agnostic large-target fallback to the 11 jobs still
   above Protenix's 2560-token limit, leaving 0 oversize jobs under the same
-  seed-101 `dev_fixed` budget.
+  seed-101 `dev_fixed` budget, but also lacks protein-oligo sequence recovery.
 - New v2 protein-oligo sequence recovery artifact:
   `yang_protein_oligo_sequence_recovery_v1` repairs protein-oligo rows whose
   local server inputs were missing or parsed as nucleic-acid records even
@@ -143,6 +153,15 @@ where methods should change.
   full-stack artifact: existing v2 jobs such as `H0272` still exceed the
   Protenix token limit, so promotion needs either a fallback stack or a
   deliberate budget decision.
+- New strongest v2 no-over-token input stack:
+  `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1` composes
+  protein-oligo sequence recovery, token-safe official stoichiometry,
+  low-complexity cleanup, and large-target fallback. It has 165 jobs, max
+  optimized length 2535, and 0 jobs above 2560 tokens. It is registered as
+  `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
+  for `dev_fixed` comparison and
+  `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105` for the
+  five-candidate `server_attack` tier.
 - New H1258 target-lab artifact:
   `target_lab/h1258_interaction_window_v1/` builds the public
   LRRK2-interaction-window clue as LRRK2 residues 861-1014 plus 14-3-3 A1B2.
@@ -153,9 +172,12 @@ where methods should change.
   learning before full-benchmark promotion. It has been submitted as Slurm job
   `810824`, failed quickly due an OpenDDE/Protenix import-path collision, and
   was resubmitted as job `811114` after the target_lab Protenix environment was
-  aligned with the full benchmark run scripts. Job `811114` is now running on
-  `c639-081` and has started producing CIF files. It has `summarize_outputs.py`
-  plus `score_dockq.py` for post-run diagnostics.
+  aligned with the full benchmark run scripts. Job `811114` produced 6/6
+  structures and confidence files. Diagnostic DockQ results: `H1233=0.850`
+  strong positive, `H1236=0.206` moderate, `H1232=0.023` weak; `H1244/H1267`
+  lack cached references and the H1258 window failed DockQ chain mapping
+  despite high confidence. This supports exact-stoichiometry as target-lab
+  evidence for some complexes, but not H1258 hard-window promotion.
 - New domain-fragment target-lab batch:
   `target_lab/domain_fragment_batch_v1/` turns the domain-decomposition recipe
   into 12 runnable Protenix fragment jobs. It has been submitted as Slurm job
@@ -231,10 +253,10 @@ competitive result.
 3. Improve the reference/domain registry for the remaining 96 alias-fixed
    server-benchmark targets that currently lack a cached reference mapping.
 4. Add oligo assembly mapping.
-5. Decide whether to supersede the current v2 coverage/stoich baseline with
-   the new protein-oligo sequence recovery artifact after the active runs
-   report, especially if `H0220/H1220/H2220` remain zero because the old input
-   used RNA-like records instead of official protein records.
+5. Decide whether to supersede older v2 nofail queued runs with
+   `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105`; it is the
+   current best runnable input stack because it fixes protein-oligo sequence
+   modality and keeps 0 over-token jobs.
 6. Queue and score the generated large-target split/fallback policy for the
    eight `n_token > 2560` failures after the active attack job.
 7. Re-score current OpenDDE and Protenix-style baselines on the server
@@ -284,27 +306,30 @@ competitive result.
 19. Done: created `casp16_server_protein_v2_aliasfix`; future serious
     winner-comparison runs should target it or a newer explicit server
     benchmark version.
-20. Monitor and score Slurm job `810938`
-    (`server_v2_protenix_yang_coverage_stoich_seed101`) after the active v1
-    attack job finishes. This is the first v2 `dev_fixed` baseline and should
-    be scored before launching larger v2 attack budgets.
+20. Monitor Slurm job `810938` after the active v1 attack job finishes. Its
+    wrapper was created for the older v2 coverage/stoich run, but current
+    `run-next --dry-run` selects
+    `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
+    because the older v2 rows were superseded.
 21. Keep `casp16_server_attack_protenix25` as the planned winner-scale upgrade
     path: execute only after `protenix5` and the v2 dev baseline are scored,
     and only as predeclared seed shards.
-22. After `server_v2_protenix_yang_coverage_stoich_seed101` is scored, run
-    `server_v2_protenix_yang_coverage_stoich_low_complexity_seed101` as the
-    next v2 `dev_fixed` construct-cleanup ablation if queue state permits.
-23. After the v2 low-complexity ablation is scored, run
-    `server_v2_protenix_yang_coverage_stoich_low_complexity_large_fallback_seed101`
-    to test whether removing the remaining 11 token-limit hard failures is
-    worth the assembly simplification.
-24. Keep `casp16_server_attack_protenix25_nofail` as the stronger planned
+22. The older v2 coverage/stoich, low-complexity, and no-over-token rows are
+    now superseded by the oligo-recovery nofail stack. Run them only as
+    explicit ablations.
+23. Keep `casp16_server_attack_protenix25_nofail` as the stronger planned
     winner-scale budget if the no-over-token v2 stack scores well enough to
-    justify 25-seed compute. Do not launch it before the active `protenix5`
-    and v2 dev rows give evidence, unless a supersession decision is recorded.
-25. Keep `server_v2_attack_nofail_protenix5_seed101_105` queued behind the
-    three v2 `dev_fixed` rows as the first five-candidate no-over-token attack
-    check.
+    justify 25-seed compute, but regenerate/version the shard manifest against
+    `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1` before
+    launch.
+24. Score
+    `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
+    before deciding whether to launch the corresponding five-candidate attack
+    or jump directly to a larger predeclared budget.
+25. Prefer `server_v2_attack_oligo_recovery_nofail_protenix5_seed101_105`
+    over the older `server_v2_attack_nofail_protenix5_seed101_105` for the
+    first v2 five-candidate no-over-token attack, unless an explicit ablation
+    requires running the older stack.
 
 ## Run Discipline
 

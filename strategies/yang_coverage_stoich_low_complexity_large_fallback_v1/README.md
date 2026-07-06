@@ -41,7 +41,8 @@ Changed target classes:
   `H1258`, `H1272`, `H2217`, `H2258`, `H2272`
 - `T1295O`
 
-Launch gate: run only after the v2 baseline and v2 low-complexity ablation
-are scored. Treat this as a coverage-recovery `dev_fixed` ablation; it is not
-an attack-budget row and does not claim full-assembly fidelity for cropped
-oligo targets.
+Launch gate: this row is now superseded by
+`yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, which keeps the
+same no-over-token property while adding protein-oligo sequence recovery. Treat
+this older row as a coverage-recovery ablation; it is not an attack-budget row
+and does not claim full-assembly fidelity for cropped oligo targets.

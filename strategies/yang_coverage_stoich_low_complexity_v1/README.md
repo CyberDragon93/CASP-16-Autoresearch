@@ -40,6 +40,7 @@ Notable changed target classes:
 - H1258/H0258/H2258 tag cleanup on the large LRRK2-like chain and partner
   chain
 
-Launch gate: score `server_v2_protenix_yang_coverage_stoich_seed101` first.
-Then run this candidate only as the next v2 `dev_fixed` ablation, not as an
-attack-budget row.
+Launch gate: this row is now superseded by
+`yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, which adds
+protein-oligo sequence recovery and keeps 0 over-token jobs. Run this older
+candidate only as an explicit ablation, not as the main attack path.

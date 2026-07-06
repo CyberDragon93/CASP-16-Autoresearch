@@ -31,6 +31,12 @@ Do not promote an exact full assembly if it exceeds the Protenix token limit.
 Use the existing token-safe derivative or a separately declared window/fallback
 policy.
 
+Current evidence: `target_lab/small_complex_stoich_batch_v1` completed 6/6
+jobs. DockQ was strong for `H1233` (`0.850`), moderate for `H1236` (`0.206`),
+and weak for `H1232` (`0.023`) despite high confidence. This supports
+full-benchmark exact-stoichiometry testing, but it also shows confidence alone
+is not a safe promotion signal.
+
 ## H1258-Style Windows
 
 The H1258 interaction window is a public-clue reproduction, not a ranked
@@ -45,6 +51,11 @@ target-agnostic rule, for example:
 
 Do not promote a hard-coded residue window for a single CASP target into a
 server leaderboard run.
+
+Current evidence: the H1258 target-lab window produced a high-confidence
+structure but DockQ failed chain mapping against the native reference. Keep it
+as a diagnostic until a target-agnostic window rule and reliable chain mapping
+exist.
 
 ## Domain Fragments
 

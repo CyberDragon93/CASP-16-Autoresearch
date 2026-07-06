@@ -83,6 +83,14 @@ selector, but points every shard at
 has 163 jobs and 0 jobs above Protenix's 2560-token limit. Its shard manifest
 is `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`.
 
+Important update: the stronger current no-over-token v2 input is now
+`yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`, with 165 jobs,
+protein-oligo sequence recovery, token-safe stoichiometry, and 0 jobs above
+2560 tokens. Before launching any 25-candidate nofail tier, regenerate or
+version the shard manifest to point at that oligo-recovery artifact. Do not
+spend winner-scale compute on the older nofail artifact unless the run is
+explicitly an ablation.
+
 Because Protenix loops serially over seeds, this budget must be executed as
 five predeclared five-seed shards and merged only after all shards finish. A
 partial 25-seed attempt is unranked unless it is explicitly reported as
