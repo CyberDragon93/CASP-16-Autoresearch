@@ -114,6 +114,14 @@ workflow on four representative baseline targets: `H0222=0.075`,
 `ost_unmapped_model_chains:A,B;ost_empty_chain_mapping;ost_empty_chem_mapping;ost_no_mapped_interfaces`,
 and `H1232=0` without the H0220-style unmapped-chain diagnostic.
 
+A second checked diagnostic CSV at
+`diagnostics/qsglob_probes/server_v2_partial_alias_probe.csv` confirms the
+alias-fixed scorer path on the active v2 nofail run. Official oligo rows such
+as `T0206O`, `T0234O`, and `T1249V1O` use `sequence_lookup_id` prediction
+artifacts named `T0206`, `T0234`, and `T1249V1`; the scorer now resolves those
+aliases instead of marking them as missing predictions. This is required before
+any v2 server oligo leaderboard can be trusted.
+
 ## Next Work
 
 - Score server oligo targets with `ost` once the active run is complete, so

@@ -138,6 +138,34 @@ def prediction_candidates_for_target(output_dir: Path, target_id: str) -> list[P
     return filter_prediction_candidates(candidates, output_dir, target_id)
 
 
+def prediction_aliases_for_target(target: Mapping[str, str]) -> list[str]:
+    aliases: list[str] = []
+    for key in ("target_id", "sequence_lookup_id", "official_target_id"):
+        value = str(target.get(key, "") or "").strip()
+        if value and value not in aliases:
+            aliases.append(value)
+    return aliases
+
+
+def prediction_candidates_for_aliases(output_dir: Path, aliases: Sequence[str]) -> list[Path]:
+    if not output_dir.exists():
+        return []
+    candidates = sorted(output_dir.glob("**/*.cif")) + sorted(output_dir.glob("**/*.pdb"))
+    return filter_prediction_candidates_for_aliases(candidates, output_dir, aliases)
+
+
+def filter_prediction_candidates_for_aliases(candidates: Sequence[Path], output_dir: Path, aliases: Sequence[str]) -> list[Path]:
+    selected: list[Path] = []
+    seen: set[str] = set()
+    for alias in aliases:
+        for path in filter_prediction_candidates(candidates, output_dir, alias):
+            key = str(path)
+            if key not in seen:
+                selected.append(path)
+                seen.add(key)
+    return selected
+
+
 def filter_prediction_candidates(candidates: Sequence[Path], output_dir: Path, target_id: str) -> list[Path]:
     target_low = target_id.lower()
     exact_matched = []
@@ -159,6 +187,20 @@ def prediction_candidate_index(output_dir: Path, target_ids: Sequence[str]) -> d
     return {
         target_id: filter_prediction_candidates(candidates, output_dir, target_id)
         for target_id in target_ids
+    }
+
+
+def prediction_candidate_index_for_targets(output_dir: Path, targets: Sequence[Mapping[str, str]]) -> dict[str, list[Path]]:
+    if not output_dir.exists():
+        return {str(target.get("target_id", "")): [] for target in targets}
+    candidates = sorted(output_dir.glob("**/*.cif")) + sorted(output_dir.glob("**/*.pdb"))
+    return {
+        str(target.get("target_id", "")): filter_prediction_candidates_for_aliases(
+            candidates,
+            output_dir,
+            prediction_aliases_for_target(target),
+        )
+        for target in targets
     }
 
 
@@ -351,10 +393,9 @@ def score_benchmark_runs(
 
     rows: list[dict[str, Any]] = []
     scored_targets = [target for target in targets if target.get("track") in {"protein_domain", "protein_oligo"}]
-    target_ids = [target["target_id"] for target in scored_targets]
     for spec in specs:
         output_path = Path(str(spec.get("output_dir", "")))
-        candidates_by_target = prediction_candidate_index(output_path, target_ids)
+        candidates_by_target = prediction_candidate_index_for_targets(output_path, scored_targets)
         for target in scored_targets:
             rows.append(
                 score_target(
@@ -417,10 +458,9 @@ def probe_qsglob_targets(
     qsglob_tool = resolve_tool(qsglob_bin or DEFAULT_QSGLOB_BIN, ["qsscore", "qs-score", "QSscore", "qs_score", "ost"])
     references = {row["target_id"]: row for row in read_benchmark_references(project_root, benchmark)}
     rows: list[dict[str, Any]] = []
-    target_ids_for_index = [target["target_id"] for target in probe_targets]
     for spec in specs:
         output_path = Path(str(spec.get("output_dir", "")))
-        candidates_by_target = prediction_candidate_index(output_path, target_ids_for_index)
+        candidates_by_target = prediction_candidate_index_for_targets(output_path, probe_targets)
         for target in probe_targets:
             rows.append(
                 score_target(
@@ -513,7 +553,7 @@ def score_target(
     candidates = (
         list(prediction_candidates)
         if prediction_candidates is not None
-        else prediction_candidates_for_target(output_dir, target.get("target_id", ""))
+        else prediction_candidates_for_aliases(output_dir, prediction_aliases_for_target(target))
     )
     base["observed_candidate_count"] = len(candidates)
     if budget_tier == "server_attack" and 0 < len(candidates) < expected_candidates:

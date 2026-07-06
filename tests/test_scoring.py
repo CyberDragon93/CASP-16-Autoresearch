@@ -7,6 +7,7 @@ from casp16_leaderboard.scoring import (
     parse_qsglob_output,
     parse_tmscore_output,
     prediction_candidate_index,
+    prediction_candidate_index_for_targets,
     probe_qsglob_targets,
     score_target,
     select_prediction_for_target,
@@ -255,6 +256,56 @@ def test_server_oligo_scores_openstructure_qsglob(tmp_path) -> None:
     assert row["qsglob"] == "0.777000"
     assert row["metric"] == "QSglob"
     assert row["status"] == "ok"
+
+
+def test_server_oligo_uses_sequence_lookup_prediction_alias(tmp_path) -> None:
+    output_dir = tmp_path / "predictions"
+    pred_dir = output_dir / "T0206" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    prediction = pred_dir / "T0206_sample_0.cif"
+    prediction.write_text("data_pred\n", encoding="utf-8")
+    reference = tmp_path / "ref.cif"
+    reference.write_text("data_ref\n", encoding="utf-8")
+    ost = _write_fake_ost(tmp_path / "ost", 0.321)
+
+    row = score_target(
+        {"run_id": "r1", "output_dir": str(output_dir)},
+        {
+            "target_id": "T0206O",
+            "sequence_lookup_id": "T0206",
+            "track": "protein_oligo",
+            "rank_eligible": "true",
+            "official_metric": "QSglob",
+        },
+        {"reference_path": str(reference)},
+        benchmark="casp16_server_protein_v2_aliasfix",
+        tm_tool="",
+        dockq_tool="",
+        qsglob_tool=ost,
+    )
+
+    assert row["status"] == "ok"
+    assert row["prediction_path"] == str(prediction)
+    assert row["qsglob"] == "0.321000"
+
+
+def test_prediction_candidate_index_for_targets_prefers_exact_alias(tmp_path) -> None:
+    output_dir = tmp_path / "predictions"
+    exact_dir = output_dir / "T0206O" / "seed_101" / "predictions"
+    lookup_dir = output_dir / "T0206" / "seed_101" / "predictions"
+    exact_dir.mkdir(parents=True)
+    lookup_dir.mkdir(parents=True)
+    exact = exact_dir / "T0206O_sample_0.cif"
+    lookup = lookup_dir / "T0206_sample_0.cif"
+    exact.write_text("data_exact\n", encoding="utf-8")
+    lookup.write_text("data_lookup\n", encoding="utf-8")
+
+    indexed = prediction_candidate_index_for_targets(
+        output_dir,
+        [{"target_id": "T0206O", "sequence_lookup_id": "T0206", "track": "protein_oligo"}],
+    )
+
+    assert indexed["T0206O"] == [exact, lookup]
 
 
 def test_server_oligo_openstructure_zero_keeps_mapping_diagnostic(tmp_path) -> None:

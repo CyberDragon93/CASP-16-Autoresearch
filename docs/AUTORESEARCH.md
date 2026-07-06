@@ -22,6 +22,11 @@ where methods should change.
   targets, 163 Protenix jobs, 79 cached references, 67/71 domain inputs ok,
   and 96/104 oligo inputs ok. It is the default benchmark for future
   winner-comparison claims.
+- v2 alias-fixed scoring now resolves prediction artifacts through
+  `sequence_lookup_id` as well as `target_id`. This matters for official oligo
+  rows such as `T0206O` and `T1249V1O`, whose Protenix jobs are named `T0206`
+  and `T1249V1`. Without this alias path, valid oligo predictions are falsely
+  counted as missing.
 - `leaderboards/casp16_server_protein_v1/official_groups.csv` is server-only;
   `leaderboards/casp16_server_protein_v2_aliasfix/official_groups.csv` is the
   alias-fixed server-only baseline; each version keeps `official_all_groups.csv`
