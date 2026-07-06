@@ -40,11 +40,13 @@ leaderboard progress.
 3. Run queued `server_protenix_yang_terminal_tag_cleanup_seed101` as the first
    full optimized-input reproduction attempt. It trims only obvious terminal
    His/expression tags and keeps seed `101`, sample `1`, MSA/templates, and
-   `first_output_only`.
+   `first_output_only`. Cache, fusion, and TF32 are enabled to match the
+   baseline engine flags.
 4. Run queued `server_protenix_yang_antibody_fv_cleanup_seed101` as the first
    full-set antibody construct attempt after the lower-risk terminal cleanup.
    It preserves all 106 server jobs while trimming 16 antibody constant-region
-   chains across 8 antibody-antigen targets.
+   chains across 8 antibody-antigen targets. Cache, fusion, and TF32 are
+   enabled to match the baseline engine flags.
 5. Install OpenStructure `ost` or an equivalent `QSglob` scorer, then rescore
    the oligo track.
 6. Start target_lab loops on H1258 and H1232 only as diagnostics for

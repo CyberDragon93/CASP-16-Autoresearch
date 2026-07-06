@@ -26,7 +26,8 @@ domain/oligo benchmark relative to the unmodified full Protenix baseline.
   - seed: `101`
   - sample count: `1`
   - selected model policy: `first_output_only`
-  - MSA/templates/default Protenix params: enabled, matching parent baseline
+  - MSA/templates/default Protenix params/cache/fusion/TF32: enabled, matching
+    parent baseline
 
 ## Commands Used
 
@@ -38,7 +39,8 @@ domain/oligo benchmark relative to the unmodified full Protenix baseline.
   --input-json strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/inputs.json \
   --input-manifest strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/manifest.tsv \
   --strategy yang_terminal_tag_cleanup_v1 \
-  --use-msa --use-template --use-default-params
+  --use-msa --use-template --use-default-params \
+  --enable-cache --enable-fusion
 ```
 
 ## Result Summary

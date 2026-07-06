@@ -63,9 +63,10 @@ Full-run spec command used:
   --input-json strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/inputs.json \
   --input-manifest strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/manifest.tsv \
   --strategy yang_antibody_fv_cleanup_v1 \
-  --use-msa --use-template --use-default-params
+  --use-msa --use-template --use-default-params \
+  --enable-cache --enable-fusion
 ```
 
 Use the fixed server benchmark budget: backend `protenix`, seed `101`, sample
 `1`, selected model policy `first_output_only`, MSA enabled, and templates
-enabled.
+enabled. Cache, fusion, and TF32 should match the baseline.

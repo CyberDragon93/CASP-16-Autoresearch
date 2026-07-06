@@ -32,7 +32,8 @@ Generation commands used:
   --input-json strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/inputs.json \
   --input-manifest strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/manifest.tsv \
   --strategy yang_terminal_tag_cleanup_v1 \
-  --use-msa --use-template --use-default-params
+  --use-msa --use-template --use-default-params \
+  --enable-cache --enable-fusion
 ./casp16 strategy-inputs --benchmark casp16_server_protein_v1 --strategy yang_antibody_fv_cleanup_v1
 ./casp16 run-spec \
   --run-id server_protenix_yang_antibody_fv_cleanup_seed101 \
@@ -40,8 +41,12 @@ Generation commands used:
   --input-json strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/inputs.json \
   --input-manifest strategies/yang_antibody_fv_cleanup_v1/casp16_server_protein_v1/manifest.tsv \
   --strategy yang_antibody_fv_cleanup_v1 \
-  --use-msa --use-template --use-default-params
+  --use-msa --use-template --use-default-params \
+  --enable-cache --enable-fusion
 ```
+
+Both queued Protenix reruns intentionally match the baseline engine flags:
+MSA, templates, default params, cache, fusion, and TF32 are enabled.
 
 ## Backlog
 

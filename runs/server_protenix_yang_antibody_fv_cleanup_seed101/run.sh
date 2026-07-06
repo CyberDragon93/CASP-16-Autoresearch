@@ -18,4 +18,4 @@ if [[ -n "${CUDA_HOME:-}" ]]; then
 fi
 mkdir -p logs
 exec > >(tee logs/stdout.log) 2> >(tee logs/stderr.log >&2)
-/scratch/10992/liaorunlong93/conda/envs/protein/bin/protenix pred -i /scratch/10992/liaorunlong93/casp16-leaderboard/runs/server_protenix_yang_antibody_fv_cleanup_seed101/inputs/inputs.json -o /scratch/10992/liaorunlong93/casp16-leaderboard/runs/server_protenix_yang_antibody_fv_cleanup_seed101/predictions/protenix-v2 -s 101 -e 1 -d bf16 -n protenix-v2 --use_msa true --use_template true --use_default_params true --trimul_kernel torch --triatt_kernel torch --enable_cache false --enable_fusion false --enable_tf32 true
+/scratch/10992/liaorunlong93/conda/envs/protein/bin/protenix pred -i /scratch/10992/liaorunlong93/casp16-leaderboard/runs/server_protenix_yang_antibody_fv_cleanup_seed101/inputs/inputs.json -o /scratch/10992/liaorunlong93/casp16-leaderboard/runs/server_protenix_yang_antibody_fv_cleanup_seed101/predictions/protenix-v2 -s 101 -e 1 -d bf16 -n protenix-v2 --use_msa true --use_template true --use_default_params true --trimul_kernel torch --triatt_kernel torch --enable_cache true --enable_fusion true --enable_tf32 true

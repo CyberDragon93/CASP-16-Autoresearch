@@ -49,9 +49,11 @@ After the baseline finishes, create a full fixed-budget run spec with:
   --input-json strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/inputs.json \
   --input-manifest strategies/yang_terminal_tag_cleanup_v1/casp16_server_protein_v1/manifest.tsv \
   --strategy yang_terminal_tag_cleanup_v1 \
-  --use-msa --use-template --use-default-params
+  --use-msa --use-template --use-default-params \
+  --enable-cache --enable-fusion
 ```
 
 Rank eligibility should use the same fixed budget as the baseline: backend
 `protenix`, seed `101`, sample `1`, and selected model policy
-`first_output_only`.
+`first_output_only`. MSA, templates, default params, cache, fusion, and TF32
+should match the baseline.
