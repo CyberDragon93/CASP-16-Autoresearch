@@ -251,7 +251,7 @@ Prepared branch readiness to revisit after P17:
 | P25 repaired 79-target scoreable grid | seed106-125 jobs `812935..812958` submitted after `24/24 ok`, complete MSA reuse, 0 stale; readiness remains false until all submitted jobs finish and merge with the seed101-105 overlay | `diagnostics/msa_cache/protenix25_scoreable_input_repair_target_seed_run_preflight.tsv`, `diagnostics/score_probes/protenix25_scoreable_input_repair_target_seed_readiness.tsv` |
 | P27a default-params model/config variant | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_defaultparams_model_variant_preflight.tsv` |
 | P27b repaired-input default-params variant | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_input_repair_defaultparams_model_variant_preflight.tsv` |
-| D6a domain sequence recovery | `1/1 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/domain_sequence_recovery_after_warmup_preflight.tsv` |
+| D6a domain sequence recovery | warmup produced repaired `T1228V1/T1239V1/T1276` predictions and MSA cache; follow-up full run is `1/1 ok`, complete MSA reuse (`276/276`), 0 stale, no predictions yet | `diagnostics/msa_cache/domain_sequence_recovery_after_warmup_preflight.tsv`, `runs/server_v2_domain_sequence_recovery_msa_warmup_seed101/` |
 | O5 antibody-Fv target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_antibody_fv_target_run_preflight.tsv` |
 | O5b repaired-input antibody-Fv target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_input_repair_antibody_fv_preflight.tsv` |
 

@@ -1379,6 +1379,17 @@ competitive result.
     returned no RCSB hits. Template-like public hits such as `6N63` for T1292
     remain non-promotable without native/provider provenance and construct
     mapping.
+88. `2026-07-07 11:54 CDT` P25 live gate: still `ready=false` and
+    `compatible=true`, now with `828` observed candidates, `1222` shard-level
+    candidates missing, and `1147` full 25-candidate slots missing. Slurm state
+    is unchanged at 19 P25 jobs running plus 5 pending behind
+    `QOSMaxJobsPerUserLimit`, so no merge/score or O5b/P27b launch is allowed.
+    While waiting, D6 domain sequence recovery was rechecked: the warmup run has
+    real full-MSA/template predictions for repaired `T1228V1`, `T1239V1`, and
+    `T1276`; the follow-up full benchmark run has complete exact-sequence MSA
+    reuse (`276/276` protein chains, 0 stale) but no predictions yet. Keep D6
+    as a post-P25 branch if the complete P25 score still shows domain zeros
+    from input-kind or alias repair classes.
 
 ## Run Discipline
 
