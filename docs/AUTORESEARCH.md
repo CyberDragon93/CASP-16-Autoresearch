@@ -231,6 +231,15 @@ where methods should change.
   improve the fixed-set oligo mean. Domain mean remains `0.099576`; oligo mean
   remains `0.011346`; nonzero exact H-oligo targets remain `H0223`, `H0225`,
   `H0233`, `H0222`, and `H0227`.
+- `2026-07-06 20:27 CDT` partial diagnostic refresh:
+  `server_v2_scoreable_attack_seed101_partial_diagnostic_20260706_2027cdt`
+  registers the 36 seed-101 CIF snapshot from P13 as a rank-ineligible
+  diagnostic. Domain mean is unchanged at `0.099576`, but oligo fixed mean
+  jumps to `0.028394` with 12 scorer-ok rows and 8 nonzero rows. New high-signal
+  rows are `H1202 QSglob=0.924`, `H0272 QSglob=0.428`, and
+  `H1204 QSglob=0.421`. This validates the v2 scoreable-oligo attack direction;
+  keep P13 running while productive, and use P14 mainly to get the same exact
+  oligo signal with less early large-target latency.
 - Superseded oligo-first scoreable-subset successor:
   `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`
   uses the same 74 scoreable jobs, fixed five-candidate budget, confidence-only
