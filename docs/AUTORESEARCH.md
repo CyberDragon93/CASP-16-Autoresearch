@@ -90,8 +90,9 @@ where methods should change.
   writes the current score-cap and refmap-priority diagnostic to
   `diagnostics/reference_gap/casp16_server_protein_v4_refmap_reference_gap_report.md`
   and `.tsv`. Current v4 cap is still severe: domain `28/71` references
-  available, oligo `53/104` references available, and only 7 missing-reference
-  targets have candidate rows from the latest all-gap review.
+  available, oligo `53/104` references available, and 18 missing-reference
+  targets have visible candidate or deferred-review rows from the latest
+  all-gap review.
 - Missing-reference repair is necessary for a full CASP16 server comparison,
   but it must stay versioned and non-oracular. The next accepted reference
   expansion should become a new benchmark such as `casp16_server_protein_v5_refmap`;
@@ -119,12 +120,14 @@ where methods should change.
 - `2026-07-07 12:35 CDT` v5 reference-recovery queue:
   `diagnostics/reference_gap/casp16_server_protein_v5_refmap_recovery_queue.tsv`
   groups the 94 current v4 missing-reference rows into 42 target-family tasks.
-  The first lane is `T1228V1` provenance/mapping; the highest-gain manual
-  domain families are `T0240/T1240/T2240`, `T0259/T1259/T2259`,
-  `T0246/T1246/T2246`, `T0218/T1218/T2218`, and
-  `T0270/T1270/T2270`. Treat the queue as scoring-infrastructure triage only:
-  it must not be joined with local prediction `target_scores.csv` to tune
-  target-specific prediction behavior.
+  The first lane is `T1228V1` provenance/mapping; a new deferred-hit review
+  lane makes non-promotable sequence hits such as `T0270/T1270/T2270 -> 10br`
+  visible without accepting them as references. The highest-gain zero-candidate
+  manual domain families are now `T0240/T1240/T2240`,
+  `T0259/T1259/T2259`, `T0246/T1246/T2246`,
+  `T0218/T1218/T2218`, and `T0237/T1237/T2237`. Treat the queue as
+  scoring-infrastructure triage only: it must not be joined with local
+  prediction `target_scores.csv` to tune target-specific prediction behavior.
 - `2026-07-07` latest all-gap chain audit:
   `diagnostics/reference_gap/casp16_server_protein_latest_all_chain_audit.tsv`
   audits 81 candidate structures and 1021 chain rows. It confirms that
@@ -1470,6 +1473,17 @@ competitive result.
     `9dxh/9dxj` remain blocked by both native-state ambiguity and two missing
     N-terminal positions. Do not promote `T1228V1` into v5 until native-state
     provenance plus explicit chain/domain crop mapping are available.
+96. `2026-07-07 12:35 CDT` P25 gate and reference queue refresh: P25 remains
+    incomplete (`ready=false`, `compatible=true`) with `858` observed
+    candidates, `1192` shard-level missing candidates, and `1117` full
+    25-candidate slots missing. Slurm still shows 19 P25 jobs running and 5
+    P25 jobs pending, so no partial scoring or new branch launch is allowed.
+    The v4 reference-gap report now exposes deferred sequence hits instead of
+    hiding them; the v5 queue still has 42 target-family tasks, now split into
+    1 near-term candidate, 5 deferred-hit review rows, 16 domain manual-search
+    rows, 2 oligo assembly-mapping rows, 5 input/alias repair rows, and 13
+    oligo manual-search rows. Deferred hits are review work only and remain
+    non-promotable until provenance and mapping are explicit.
 
 ## Run Discipline
 

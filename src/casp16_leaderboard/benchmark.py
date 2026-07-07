@@ -1296,11 +1296,12 @@ def generate_reference_gap_report(
     if reference_map_path.exists():
         accepted_refmap_rows = sum(1 for row in read_tsv(reference_map_path) if row.get("status", "").strip().lower() == "accepted")
 
+    visible_refmap_statuses = {"accepted", "candidate", "deferred"}
     candidates_by_target: dict[str, list[dict[str, str]]] = defaultdict(list)
     if review_tsv and review_tsv.exists():
         for row in read_tsv(review_tsv):
             status = row.get("status", "").strip().lower()
-            if status in {"candidate", "accepted"}:
+            if status in visible_refmap_statuses:
                 candidates_by_target[row.get("target_id", "").strip().upper()].append(row)
 
     oligo_audit_by_target: dict[str, list[dict[str, str]]] = defaultdict(list)
@@ -1414,6 +1415,8 @@ def _reference_gap_next_action(
         return "repair_input_or_sequence_alias_before_reference"
     if not candidates:
         return "probe_or_manual_native_reference_search"
+    if all(row.get("status", "").strip().lower() == "deferred" for row in candidates):
+        return "review_deferred_sequence_hits_or_continue_native_search"
     track = target.get("track", "")
     mappings = " ".join(row.get("scoring_mapping", "") for row in candidates)
     if track == "protein_oligo":

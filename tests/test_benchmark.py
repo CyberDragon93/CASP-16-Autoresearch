@@ -1146,6 +1146,19 @@ def test_generate_reference_gap_report(tmp_path) -> None:
                 "oligo_state": "A1B1",
                 "server_best_score": "0.700000",
             },
+            {
+                "target_id": "T1204",
+                "track": "protein_domain",
+                "reference_status": "no_reference_pdb",
+                "rank_eligible": "true",
+                "input_status": "ok",
+                "skip_reason": "no_reference_pdb",
+                "total_len": "204",
+                "domain_count": "1",
+                "domain_ids": "T1204-D1",
+                "oligo_state": "A1",
+                "server_best_score": "0.800000",
+            },
         ],
         ["target_id", "track", "reference_status", "rank_eligible", "input_status", "skip_reason", "total_len", "domain_count", "domain_ids", "oligo_state", "server_best_score"],
     )
@@ -1178,6 +1191,12 @@ def test_generate_reference_gap_report(tmp_path) -> None:
                 "status": "candidate",
                 "scoring_mapping": "protein_oligo; requires_qsglob_interface_mapping",
             },
+            {
+                "target_id": "T1204",
+                "pdb_ids": "10br",
+                "status": "deferred",
+                "scoring_mapping": "",
+            },
         ],
         ["target_id", "pdb_ids", "status", "scoring_mapping"],
     )
@@ -1201,10 +1220,13 @@ def test_generate_reference_gap_report(tmp_path) -> None:
 
     rows = {row["target_id"]: row for row in read_tsv(output_tsv)}
     text = output_md.read_text(encoding="utf-8")
-    assert summary["missing_references"] == 2
+    assert summary["missing_references"] == 3
     assert summary["available_references"] == 1
-    assert summary["targets_with_candidates"] == 2
-    assert "1/2" in text
+    assert summary["targets_with_candidates"] == 3
+    assert "1/3" in text
     assert "`110s`" in text
     assert rows["T1202"]["next_action"] == "verify_native_provenance_plus_explicit_domain_crop_mapping"
     assert rows["H1203"]["next_action"] == "resolve_biological_assembly_stoichiometry_before_accepting"
+    assert rows["T1204"]["candidate_rows"] == "1"
+    assert rows["T1204"]["candidate_statuses"] == "deferred"
+    assert rows["T1204"]["next_action"] == "review_deferred_sequence_hits_or_continue_native_search"

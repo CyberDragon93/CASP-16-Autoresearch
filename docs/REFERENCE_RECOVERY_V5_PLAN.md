@@ -35,16 +35,17 @@ from the v4 report into 42 target-family tasks:
 | Lane | Meaning | Groups |
 | --- | --- | ---: |
 | `A_near_term_domain_candidate` | candidate exists, but provenance/mapping is not accepted | 1 |
-| `D_domain_manual_native_search` | domain target family needs native/reference search | 18 |
-| `B_oligo_assembly_mapping` | oligo candidate exists, but assembly/QSglob mapping is unresolved | 2 |
+| `B_deferred_sequence_hit_review` | sequence-search hit exists, but it is deferred until alignment/provenance review | 5 |
+| `D_oligo_assembly_mapping` | oligo candidate exists, but assembly/QSglob mapping is unresolved | 2 |
 | `C_input_or_alias_repair_first` | input or alias must be repaired before reference promotion | 5 |
-| `E_oligo_manual_native_search` | oligo target family needs native/reference search | 16 |
+| `E_domain_manual_native_search` | domain target family needs native/reference search | 16 |
+| `F_oligo_manual_native_search` | oligo target family needs native/reference search | 13 |
 
 The queue uses official target metadata and reference status only. It must not
 be joined with local prediction `target_scores.csv` to choose per-target
 prediction behavior. A row marked `audit_first_not_accepted`,
-`search_first_not_accepted`, or `not_reference_ready` is deliberately not an
-accepted benchmark reference.
+`deferred_hit_not_accepted`, `search_first_not_accepted`, or
+`not_reference_ready` is deliberately not an accepted benchmark reference.
 
 ## V5 Rule
 
@@ -112,7 +113,18 @@ domain coverage, while `9dxh/9dxj` remain additionally blocked by the two
 missing N-terminal domain positions. The next proof is native-state provenance
 plus explicit chain/domain crop mapping, not another sequence-search hit.
 
-### Lane B: Oligo Candidates Blocked By Assembly
+### Lane B: Deferred Sequence Hits
+
+These rows now stay visible in the queue because they are useful review work,
+but they are not accepted references. A deferred sequence hit must either be
+rejected or promoted only after native/reference provenance, alignment review,
+and explicit chain/domain or assembly mapping.
+
+Examples include `T0270/T1270/T2270` and `T0270O/T1270O/T2270O` with `10br`,
+plus `T1295/T1295O` and `H0215/H1215/H2215`. The first action is review, not
+score-table mutation and not prediction tuning.
+
+### Lane D: Oligo Candidates Blocked By Assembly
 
 The all-gap sequence probe found full-construct candidates for these oligo
 families, but `refmap-oligo-audit` found zero biological assemblies matching
@@ -143,7 +155,7 @@ Fix sequence/alias representation first. Reference promotion before input
 repair would make the benchmark look more complete without making the
 prediction pipeline more real.
 
-### Lane D: Manual Native Search Targets
+### Lane E: Manual Native Search Targets
 
 Most missing-reference rows still have zero usable sequence-search candidates.
 Start with high-value domain rows because they affect the domain score cap and
@@ -177,7 +189,7 @@ really match.
 
 ## Execution Order
 
-1. Do not interrupt P14/P16 closeout for this.
+1. Do not interrupt P25 closeout or launch extra GPU branches for this.
 2. While GPU runs continue, keep `T1228V1` as an audit target, but do not
    accept it until the 545-residue protein input and native-state mapping are
    both fixed.
@@ -186,7 +198,7 @@ really match.
    by copying the v4 accepted rows and adding only the audited row.
 4. Generate `casp16_server_protein_v5_refmap` with `server-benchmark`.
 5. Run `reference-gap-report` on v5 and compare caps.
-6. Keep oligo families in Lane B as audit work until biological assembly and
+6. Keep oligo families in Lane D as audit work until biological assembly and
    QSglob mapping are explicit.
 
 This plan raises evaluation coverage without changing the prediction strategy

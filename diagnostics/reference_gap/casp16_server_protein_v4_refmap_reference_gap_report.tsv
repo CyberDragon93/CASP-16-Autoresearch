@@ -19,14 +19,14 @@ protein_domain	T0246	no_reference_pdb	ok	no_reference_pdb	168	1	T1246-D1	A1	0.97
 protein_domain	T1228V2	no_reference_pdb	skipped	no_sequence_record	0	4	T1228V2-D1,T1228V2-D2,T1228V2-D3,T1228V2-D4	A1	0.975900	0			0	0	repair_input_or_sequence_alias_before_reference
 protein_domain	T0218	no_reference_pdb	ok	no_reference_pdb	2328	3	T1218-D1,T1218-D2,T1218-D3	A2	0.975800	0			0	0	probe_or_manual_native_reference_search
 protein_domain	T2276	no_reference_pdb	ok	no_reference_pdb	40	1	T1276-D1	A1	0.971700	0			0	0	probe_or_manual_native_reference_search
-protein_domain	T1295	no_reference_pdb	ok	no_reference_pdb	3752	3	T1295-D1,T1295-D2,T1295-D3	A8	0.967400	0			0	0	probe_or_manual_native_reference_search
+protein_domain	T1295	no_reference_pdb	ok	no_reference_pdb	3752	3	T1295-D1,T1295-D2,T1295-D3	A8	0.967400	17	3bve,3bvf,3bvi,3bvk,3bvl,3egm,3mcy,4css,5mts,6e14,6e15,6yhw,9me4,9me5,9me6,9me7,9ptm	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
 protein_domain	T1246	no_reference_pdb	ok	no_reference_pdb	168	1	T1246-D1	A1	0.965800	0			0	0	probe_or_manual_native_reference_search
 protein_domain	T2246	no_reference_pdb	ok	no_reference_pdb	168	1	T1246-D1	A1	0.965800	0			0	0	probe_or_manual_native_reference_search
 protein_domain	T1228V1	no_reference_pdb	ok	no_reference_pdb	121	4	T1228V1-D1,T1228V1-D2,T1228V1-D3,T1228V1-D4	A1	0.964800	4	9dxh,9dxj,9dxk,9y66	candidate	0	0	verify_native_provenance_plus_explicit_domain_crop_mapping
-protein_domain	T0270	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.961900	0			0	0	probe_or_manual_native_reference_search
-protein_domain	T1270	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.961900	0			0	0	probe_or_manual_native_reference_search
+protein_domain	T0270	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.961900	1	10br	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
+protein_domain	T1270	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.961900	1	10br	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
 protein_domain	T2218	no_reference_pdb	ok	no_reference_pdb	2328	3	T1218-D1,T1218-D2,T1218-D3	A2	0.960800	0			0	0	probe_or_manual_native_reference_search
-protein_domain	T2270	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.960700	0			0	0	probe_or_manual_native_reference_search
+protein_domain	T2270	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.960700	1	10br	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
 protein_domain	T1218	no_reference_pdb	ok	no_reference_pdb	2328	3	T1218-D1,T1218-D2,T1218-D3	A2	0.959000	0			0	0	probe_or_manual_native_reference_search
 protein_domain	T0237	no_reference_pdb	ok	no_reference_pdb	1952	1	T1237-D1	A4	0.944500	0			0	0	probe_or_manual_native_reference_search
 protein_domain	T1237	no_reference_pdb	ok	no_reference_pdb	1952	1	T1237-D1	A4	0.932000	0			0	0	probe_or_manual_native_reference_search
@@ -46,10 +46,10 @@ protein_oligo	T1292O	no_reference_pdb	ok	no_reference_pdb	392	1	T1292-D1	A2	0.97
 protein_oligo	T1294V1O	no_reference_pdb	ok	no_reference_pdb	428	1	T1294V1-D1	A2	0.957000	0			0	0	probe_or_manual_native_reference_search
 protein_oligo	H1245	no_reference_pdb	ok	no_reference_pdb	317	0		A1B1	0.946000	0			0	0	probe_or_manual_native_reference_search
 protein_oligo	H2245	no_reference_pdb	ok	no_reference_pdb	317	0		A1B1	0.946000	0			0	0	probe_or_manual_native_reference_search
-protein_oligo	H0215	no_reference_pdb	ok	no_reference_pdb	369	0		A1B1	0.946000	0			0	0	probe_or_manual_native_reference_search
-protein_oligo	H1215	no_reference_pdb	ok	no_reference_pdb	369	0		A1B1	0.946000	0			0	0	probe_or_manual_native_reference_search
+protein_oligo	H0215	no_reference_pdb	ok	no_reference_pdb	369	0		A1B1	0.946000	4	5ltr,8y6h,8y6i,9fem	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
+protein_oligo	H1215	no_reference_pdb	ok	no_reference_pdb	369	0		A1B1	0.946000	4	5ltr,8y6h,8y6i,9fem	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
 protein_oligo	H0245	no_reference_pdb	ok	no_reference_pdb	317	0		A1B1	0.940000	0			0	0	probe_or_manual_native_reference_search
-protein_oligo	H2215	no_reference_pdb	ok	no_reference_pdb	369	0		A1B1	0.939000	0			0	0	probe_or_manual_native_reference_search
+protein_oligo	H2215	no_reference_pdb	ok	no_reference_pdb	369	0		A1B1	0.939000	4	5ltr,8y6h,8y6i,9fem	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
 protein_oligo	T0257O	no_reference_pdb	ok	no_reference_pdb	3789	1	T1257-D1	A3	0.937000	0			0	0	probe_or_manual_native_reference_search
 protein_oligo	T1257O	no_reference_pdb	ok	no_reference_pdb	3789	1	T1257-D1	A3	0.937000	0			0	0	probe_or_manual_native_reference_search
 protein_oligo	T2257O	no_reference_pdb	ok	no_reference_pdb	3789	1	T1257-D1	A3	0.937000	0			0	0	probe_or_manual_native_reference_search
@@ -75,10 +75,10 @@ protein_oligo	H2244	no_reference_pdb	ok	no_reference_pdb	850	0		A2B2C2	0.745000	
 protein_oligo	H0229	no_reference_pdb	ok	no_reference_pdb	987	0		A1B1	0.739000	0			0	0	probe_or_manual_native_reference_search
 protein_oligo	T1218O	no_reference_pdb	ok	no_reference_pdb	2328	3	T1218-D1,T1218-D2,T1218-D3	A2	0.714000	0			0	0	probe_or_manual_native_reference_search
 protein_oligo	T2218O	no_reference_pdb	ok	no_reference_pdb	2328	3	T1218-D1,T1218-D2,T1218-D3	A2	0.707000	0			0	0	probe_or_manual_native_reference_search
-protein_oligo	T1295O	no_reference_pdb	ok	no_reference_pdb	3752	3	T1295-D1,T1295-D2,T1295-D3	A8	0.691000	0			0	0	probe_or_manual_native_reference_search
-protein_oligo	T1270O	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.641000	0			0	0	probe_or_manual_native_reference_search
-protein_oligo	T2270O	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.635000	0			0	0	probe_or_manual_native_reference_search
-protein_oligo	T0270O	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.621000	0			0	0	probe_or_manual_native_reference_search
+protein_oligo	T1295O	no_reference_pdb	ok	no_reference_pdb	3752	3	T1295-D1,T1295-D2,T1295-D3	A8	0.691000	17	3bve,3bvf,3bvi,3bvk,3bvl,3egm,3mcy,4css,5mts,6e14,6e15,6yhw,9me4,9me5,9me6,9me7,9ptm	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
+protein_oligo	T1270O	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.641000	1	10br	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
+protein_oligo	T2270O	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.635000	1	10br	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
+protein_oligo	T0270O	no_reference_pdb	ok	no_reference_pdb	2622	2	T1270-D1,T1270-D2	A6	0.621000	1	10br	deferred	0	0	review_deferred_sequence_hits_or_continue_native_search
 protein_oligo	H0267	no_reference_pdb	ok	no_reference_pdb	1852	0		A2B2	0.613000	3	9qbl,9qbq,9qcc	candidate	3	0	resolve_biological_assembly_stoichiometry_before_accepting
 protein_oligo	T0218O	no_reference_pdb	ok	no_reference_pdb	2328	3	T1218-D1,T1218-D2,T1218-D3	A2	0.570000	0			0	0	probe_or_manual_native_reference_search
 protein_oligo	H1265_V2	no_reference_pdb	skipped	no_sequence_record	0	0			0.562000	0			0	0	repair_input_or_sequence_alias_before_reference
