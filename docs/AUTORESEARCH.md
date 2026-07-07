@@ -1673,6 +1673,15 @@ competitive result.
      `diagnostics/score_probes/` after the leaderboard refresh, so the selected
      next branch is captured at closeout time. This tests QA/model selection
      before spending another GPU branch.
+113. `2026-07-07 14:37 CDT` P25 gate and MSA/model diversity design refresh:
+     P25 remains incomplete but moving (`ready=false`, `compatible=true`,
+     `1188` observed candidates, `866` shard-level missing candidates, and
+     `796` full 25-candidate slots missing). Updated
+     `attack_budgets/casp16_server_attack_msa_model_diversity_v1.json` from
+     the stale P14-era design to the P17/P25 repaired-input base, recorded the
+     configured no-GPU P25 consensus replay, and named P27b as the prepared
+     model/config child. True MSA-variant generation stays gated behind
+     complete P25 plus P27b evidence, not partial target scores.
 
 ## Run Discipline
 
