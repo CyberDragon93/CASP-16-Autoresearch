@@ -4,7 +4,7 @@ import csv
 import json
 
 from casp16_leaderboard.cli import main
-from casp16_leaderboard.decisions import post_p14_readout
+from casp16_leaderboard.decisions import post_p14_readout, post_p25_readout
 
 
 def write_csv(path, rows, fields):
@@ -192,4 +192,163 @@ def test_post_p14_readout_cli_writes_json(tmp_path, capsys) -> None:
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["next_branch"] == "launch_p18_p25_scoreable_25_candidate_grid"
+    assert output_json.exists()
+
+
+def write_p25_readout_fixture(
+    tmp_path,
+    *,
+    include_p25=True,
+    p25_partial=False,
+    p25_domain_mean="0.080000",
+    p25_oligo_mean="0.050000",
+    baseline_domain_mean="0.050000",
+    baseline_oligo_mean="0.050000",
+):
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    baseline_id = "p17"
+    p25_id = "p25"
+    leaderboard_dir = tmp_path / "leaderboards" / benchmark
+    benchmark_dir = tmp_path / "benchmarks" / benchmark
+    write_tsv(
+        benchmark_dir / "targets.tsv",
+        [
+            {"target_id": "T1", "track": "protein_domain", "rank_eligible": "true", "reference_status": "available"},
+            {"target_id": "T2", "track": "protein_domain", "rank_eligible": "true", "reference_status": "available"},
+            {"target_id": "H1", "track": "protein_oligo", "rank_eligible": "true", "reference_status": "available"},
+            {"target_id": "H2", "track": "protein_oligo", "rank_eligible": "true", "reference_status": "available"},
+            {"target_id": "T3", "track": "protein_domain", "rank_eligible": "true", "reference_status": "no_reference_pdb"},
+        ],
+        ["target_id", "track", "rank_eligible", "reference_status"],
+    )
+    run_rows = [
+        {
+            "run_id": baseline_id,
+            "track": "protein_domain",
+            "mean_score": baseline_domain_mean,
+            "eligible_targets": "3",
+            "ok_targets": "2",
+            "partial_candidate_targets": "0",
+            "metric_unavailable_targets": "0",
+        },
+        {
+            "run_id": baseline_id,
+            "track": "protein_oligo",
+            "mean_score": baseline_oligo_mean,
+            "eligible_targets": "2",
+            "ok_targets": "2",
+            "partial_candidate_targets": "0",
+            "metric_unavailable_targets": "0",
+        },
+    ]
+    if include_p25:
+        run_rows.extend(
+            [
+                {
+                    "run_id": p25_id,
+                    "track": "protein_domain",
+                    "mean_score": p25_domain_mean,
+                    "eligible_targets": "3",
+                    "ok_targets": "2",
+                    "partial_candidate_targets": "1" if p25_partial else "0",
+                    "metric_unavailable_targets": "0",
+                },
+                {
+                    "run_id": p25_id,
+                    "track": "protein_oligo",
+                    "mean_score": p25_oligo_mean,
+                    "eligible_targets": "2",
+                    "ok_targets": "2",
+                    "partial_candidate_targets": "0",
+                    "metric_unavailable_targets": "0",
+                },
+            ]
+        )
+    write_csv(
+        leaderboard_dir / "runs.csv",
+        run_rows,
+        [
+            "run_id",
+            "track",
+            "mean_score",
+            "eligible_targets",
+            "ok_targets",
+            "partial_candidate_targets",
+            "metric_unavailable_targets",
+        ],
+    )
+
+    score_rows = [
+        {"run_id": baseline_id, "track": "protein_domain", "target_id": "T1", "status": "ok", "score": baseline_domain_mean},
+        {"run_id": baseline_id, "track": "protein_domain", "target_id": "T2", "status": "ok", "score": baseline_domain_mean},
+        {"run_id": baseline_id, "track": "protein_oligo", "target_id": "H1", "status": "ok", "score": baseline_oligo_mean},
+        {"run_id": baseline_id, "track": "protein_oligo", "target_id": "H2", "status": "ok", "score": baseline_oligo_mean},
+        {"run_id": baseline_id, "track": "protein_domain", "target_id": "T3", "status": "missing_reference", "score": "0.000000"},
+    ]
+    if include_p25:
+        p25_status = "partial_candidates" if p25_partial else "ok"
+        p25_score = "0.000000" if p25_partial else p25_domain_mean
+        score_rows.extend(
+            [
+                {"run_id": p25_id, "track": "protein_domain", "target_id": "T1", "status": p25_status, "score": p25_score},
+                {"run_id": p25_id, "track": "protein_domain", "target_id": "T2", "status": "ok", "score": p25_domain_mean},
+                {"run_id": p25_id, "track": "protein_oligo", "target_id": "H1", "status": "ok", "score": p25_oligo_mean},
+                {"run_id": p25_id, "track": "protein_oligo", "target_id": "H2", "status": "ok", "score": p25_oligo_mean},
+                {"run_id": p25_id, "track": "protein_domain", "target_id": "T3", "status": "missing_reference", "score": "0.000000"},
+            ]
+        )
+    write_csv(leaderboard_dir / "target_scores.csv", score_rows, ["run_id", "track", "target_id", "status", "score"])
+    return benchmark, p25_id, baseline_id
+
+
+def test_post_p25_readout_requires_scored_p25(tmp_path) -> None:
+    benchmark, p25_id, baseline_id = write_p25_readout_fixture(tmp_path, include_p25=False)
+
+    summary = post_p25_readout(project_root=tmp_path, benchmark=benchmark, run_id=p25_id, baseline_run_id=baseline_id)
+
+    assert summary["decision_status"] == "not_scored"
+    assert summary["next_branch"] == "finish_or_score_p25"
+
+
+def test_post_p25_readout_blocks_partial_grid(tmp_path) -> None:
+    benchmark, p25_id, baseline_id = write_p25_readout_fixture(tmp_path, p25_partial=True)
+
+    summary = post_p25_readout(project_root=tmp_path, benchmark=benchmark, run_id=p25_id, baseline_run_id=baseline_id)
+
+    assert summary["decision_status"] == "not_complete"
+    assert summary["next_branch"] == "finish_or_repair_p25_candidate_grid"
+
+
+def test_post_p25_readout_selects_seed_scaling_signal(tmp_path) -> None:
+    benchmark, p25_id, baseline_id = write_p25_readout_fixture(tmp_path)
+
+    summary = post_p25_readout(project_root=tmp_path, benchmark=benchmark, run_id=p25_id, baseline_run_id=baseline_id)
+
+    assert summary["decision_status"] == "seed_scaling_signal"
+    assert summary["comparison"]["fixed_set_delta"] > 0.01
+
+
+def test_post_p25_readout_cli_writes_json(tmp_path, capsys) -> None:
+    benchmark, p25_id, baseline_id = write_p25_readout_fixture(tmp_path)
+    output_json = tmp_path / "diagnostics" / "post_p25.json"
+
+    rc = main(
+        [
+            "--root",
+            str(tmp_path),
+            "post-p25-readout",
+            "--benchmark",
+            benchmark,
+            "--run-id",
+            p25_id,
+            "--baseline-run-id",
+            baseline_id,
+            "--output-json",
+            str(output_json),
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["next_branch"] == "analyze_p25_aggregate_deltas_then_pick_model_variant"
     assert output_json.exists()

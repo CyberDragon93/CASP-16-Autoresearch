@@ -25,7 +25,14 @@ from .benchmark import (
     load_benchmark,
     materialize_reference_map_candidates,
 )
-from .decisions import DEFAULT_P14_RUN_ID, DEFAULT_P16_REPLAY_RUN_ID, post_p14_readout
+from .decisions import (
+    DEFAULT_P14_RUN_ID,
+    DEFAULT_P16_REPLAY_RUN_ID,
+    DEFAULT_P17_RUN_ID,
+    DEFAULT_P25_RUN_ID,
+    post_p14_readout,
+    post_p25_readout,
+)
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
 from .msa_cache import audit_msa_reuse_report, build_msa_cache_index, file_sha256, plan_msa_reuse, reuse_msa_paths, summarize_msa_cache_indexes
@@ -999,6 +1006,16 @@ def build_parser() -> argparse.ArgumentParser:
     post_p14.add_argument("--exact-domain-probe-floor", type=float, default=0.099576)
     post_p14.add_argument("--min-exact-oligo-nonzero", type=int, default=2)
 
+    post_p25 = subparsers.add_parser("post-p25-readout", help="Read leaderboard CSVs and recommend the next gated post-P25 branch.")
+    post_p25.add_argument("--benchmark", default=SERVER_ALIASFIX_BENCHMARK_NAME)
+    post_p25.add_argument("--run-id", default=DEFAULT_P25_RUN_ID)
+    post_p25.add_argument("--baseline-run-id", default=DEFAULT_P17_RUN_ID)
+    post_p25.add_argument("--leaderboard-dir", type=Path, default=None, help="Defaults to <root>/leaderboards/<benchmark>.")
+    post_p25.add_argument("--output-json", type=Path, default=None, help="Optional JSON copy of the readout.")
+    post_p25.add_argument("--min-mean-delta", type=float, default=0.01)
+    post_p25.add_argument("--min-track-delta", type=float, default=0.02)
+    post_p25.add_argument("--strong-scoreable-nonzero-fraction", type=float, default=0.40)
+
     run_next_parser = subparsers.add_parser("run-next", help="Run the next pending run spec.")
     run_next_parser.add_argument("--benchmark", default=None)
     run_next_parser.add_argument("--dry-run", action="store_true")
@@ -1661,6 +1678,24 @@ def main(argv: Sequence[str] | None = None) -> int:
             leaderboard_dir=args.leaderboard_dir.resolve() if args.leaderboard_dir else None,
             exact_domain_probe_floor=args.exact_domain_probe_floor,
             min_exact_oligo_nonzero=args.min_exact_oligo_nonzero,
+        )
+        if args.output_json:
+            ensure_dir(args.output_json.resolve().parent)
+            args.output_json.resolve().write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            summary["output_json"] = str(args.output_json.resolve())
+        print_json(summary)
+        return 0
+
+    if args.command == "post-p25-readout":
+        summary = post_p25_readout(
+            project_root=root,
+            benchmark=args.benchmark,
+            run_id=args.run_id,
+            baseline_run_id=args.baseline_run_id,
+            leaderboard_dir=args.leaderboard_dir.resolve() if args.leaderboard_dir else None,
+            min_mean_delta=args.min_mean_delta,
+            min_track_delta=args.min_track_delta,
+            strong_scoreable_nonzero_fraction=args.strong_scoreable_nonzero_fraction,
         )
         if args.output_json:
             ensure_dir(args.output_json.resolve().parent)

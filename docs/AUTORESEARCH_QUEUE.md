@@ -5,9 +5,9 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 ## Post-P25 Fast Decision Queue
 
-Current live P25 gate, checked `2026-07-07 12:52 CDT`: `ready=false`,
-`compatible=true`, `890` observed candidates, `1160` shard-level candidates
-missing, and `1085` full 25-candidate slots missing. Slurm has 19 P25 jobs
+Current live P25 gate, checked `2026-07-07 12:57 CDT`: `ready=false`,
+`compatible=true`, `897` observed candidates, `1153` shard-level candidates
+missing, and `1078` full 25-candidate slots missing. Slurm has 19 P25 jobs
 running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`. Do not submit
 any branch in this section until the complete P25 row is merged and scored.
 Current running shards show normal large-complex inference and queue waiting,
@@ -27,6 +27,19 @@ submitted seed106-125 target-shard run id, `--candidate-count 5`,
 `--merged-candidate-count 25`, `--allow-target-shards`, the scoreable repaired
 input JSON, and the TMscore binary. It writes the readiness TSV and returns
 `finish_status=not_ready` while any declared candidate is still missing.
+
+After the wrapper succeeds and the leaderboard is regenerated, run the
+aggregate branch gate before selecting any deferred branch:
+
+```bash
+./casp16 post-p25-readout
+```
+
+On current artifacts this command returns `decision_status=not_scored` and
+`next_branch=finish_or_score_p25`, which is expected because the merged P25 row
+does not exist yet. The current P17 repaired-input baseline is score-path clean
+(`79/79` scoreable targets `ok`) with fixed-set mean `0.114371554` and 96
+no-reference zero rows.
 
 Use this queue immediately after the complete P25 score exists:
 

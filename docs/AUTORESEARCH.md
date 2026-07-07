@@ -1503,6 +1503,17 @@ competitive result.
     Protenix forward on large scoreable targets, and `run-next --dry-run`
     reports `no_pending_runs`. This is wait-for-completion time, not a branch
     selection point.
+99. `2026-07-07 12:57 CDT` P25 gate: still `ready=false` and
+    `compatible=true`, now with `897` observed candidates, `1153` shard-level
+    missing candidates, and `1078` full 25-candidate slots missing. Slurm still
+    has 19 P25 jobs running and 5 P25 jobs pending behind
+    `QOSMaxJobsPerUserLimit`. Added `./casp16 post-p25-readout`, a read-only
+    aggregate decision gate that compares the eventual P25 row against the P17
+    repaired-input baseline without reading native references or official
+    per-target score tables. On current artifacts it correctly returns
+    `decision_status=not_scored` and `next_branch=finish_or_score_p25`;
+    baseline P17 is `79/79` scoreable `ok` with fixed-set mean `0.114371554`
+    and 96 no-reference zero rows.
 
 ## Run Discipline
 
