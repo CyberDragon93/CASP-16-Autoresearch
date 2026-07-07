@@ -200,21 +200,22 @@ Useful strategy hypotheses:
     no-reference jobs, preserves the fixed 175-target scoring set, and reuses
     141/141 exact-sequence MSA paths in the running
     `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
-16. `scoreable_target_subset_oligo_size_first_phase_alias_v1`: pending
-    successor to the running scoreable `protenix5` row. It keeps the same
-    74-job set, moves all 50 exact `protein_oligo` jobs before domains, sorts
-    exact oligo jobs by token count, restores `H0220/H1220/H2220` to recovered
-    protein `A1B4`, and preflights at 141/141 exact-sequence MSA paths. The
-    older `scoreable_target_subset_oligo_first_v1` run spec is superseded
-    because it kept stale `H0220` `A1B1`; the first phase-alias successor is
-    also superseded because it started with a 2515-token `H0220` blocker. Use
-    the size-first phase-alias row as the clean retry or replacement if faster
-    exact-oligo feedback is needed. The running P13 row has already reached
-    exact H oligos; seed101 diagnostic QSglob now has H1202 `0.924`, H0223
-    `0.591`, H0272 `0.428`, H1204 `0.421`, H0225 `0.270`, and H0233 `0.221`,
-    so keep P13 running unless it fails. The size-first successor remains useful
-    because it reaches these exact-oligo rows with less early large-target
-    latency.
+16. `scoreable_target_subset_oligo_size_first_phase_alias_v1`: promoted from a
+    monolithic retry into the active target-sharded scoreable attack. It keeps
+    the same 74-job set, moves all 50 exact `protein_oligo` jobs before
+    domains, sorts exact oligo jobs by token count, restores
+    `H0220/H1220/H2220` to recovered protein `A1B4`, and preflights at 141/141
+    exact-sequence MSA paths. The older `scoreable_target_subset_oligo_first_v1`
+    run spec is superseded because it kept stale `H0220` `A1B1`; the first
+    phase-alias successor is also superseded because it started with a
+    2515-token `H0220` blocker. The original monolithic P13 row reached exact H
+    oligos and produced useful seed101 QSglob signal (`H1202=0.924`,
+    `H0223=0.591`, `H0272=0.428`, `H1204=0.421`, `H0225=0.270`,
+    `H0233=0.221`), then was cancelled while stuck on `H1220`. The active path
+    is now the six-run
+    `server_v2_attack_scoreable_size_balanced_shard01..06_msa_reuse_protenix5_seed101_105`
+    target-sharded execution, which uses the same five-candidate budget and
+    will be rank-eligible only after explicit target-shard merge.
     Related D6a artifact:
     `yang_domain_sequence_recovery_oligo_nofail_v1` was generated after
     reference-gap triage exposed protein-domain input-kind bugs. It changes 8
@@ -246,9 +247,9 @@ Useful strategy hypotheses:
 21. QSglob scorer installation/integration: without this, oligo server runs
     remain diagnostic no matter how good the structures look.
 22. `server_attack` budget: `server_attack_protenix_terminal_tag_seed101_105`
-    is the first queued 5-candidate terminal-tag attack run; use only for a
-    separate multi-candidate comparison. It is currently incomplete: latest
-    output has complete `seed_101`/`seed_102` and partial `seed_103`, so it
+    was the first queued 5-candidate terminal-tag attack run, but it has been
+    cancelled after a weak partial diagnostic and latest seed counts
+    `98/98/98/81/0`. Keep it only as a partial multi-candidate comparison; it
     must not be scored as a complete 5-candidate row.
 23. `server_attack_protenix_coverage_stoich_seed101_105`: generated as the
     second queued 5-candidate attack run, using stacked sequence recovery,
