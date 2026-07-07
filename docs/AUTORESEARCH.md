@@ -2140,6 +2140,19 @@ competitive result.
      reached 17:35 CDT, and the P25 error-keyword scan remains clean. Decision
      is unchanged: do not score partial P25 and do not launch P27b/O5b/D6a/P15;
      wait for the declared candidates, then run the closeout wrapper.
+148. `2026-07-07 17:51 CDT` P25 reached an important execution milestone:
+     every declared shard has started and `zero_output_shard_count=0`, but the
+     merged row is still not ready for closeout. Latest dry-run reports
+     `ready=false`, `1718` observed candidates, `352` shard-level missing
+     candidates, `319` full 25-candidate slots missing, `49/79`
+     full-budget tasks complete, and `13` complete seed-shards. The largest
+     remaining tails are the four shard06 seed blocks (`64..66` missing
+     candidates each) and shard05 seed121-125 (`59` missing). Slurm shows
+     `p25_06_121_125` running on `c640-011`, so the previous pending blocker
+     has cleared; latest prediction artifacts reached 17:50 CDT. The P25
+     error-keyword scan is still clean. Continue waiting for declared
+     candidates; do not partial-score or launch P27b/O5b/D6a/P15 before the
+     closeout wrapper reports ready.
 
 ## Run Discipline
 
