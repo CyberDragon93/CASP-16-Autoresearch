@@ -136,10 +136,10 @@ scoreable input. It is prepared and preflight-clean, but remains deferred until
 P25 finishes and shows that model/config diversity is a better next spend than
 more seed scaling or reference recovery.
 
-Current live gate, `2026-07-07 14:37 CDT`: P25 is healthy but incomplete.
+Current live gate, `2026-07-07 14:40 CDT`: P25 is healthy but incomplete.
 `scripts/finish_p25_scoreable_input_repair.sh --dry-run` reports
-`ready=false`, `compatible=true`, `1188` observed candidates, `866`
-shard-level candidates missing, and `796` full 25-candidate slots missing.
+`ready=false`, `compatible=true`, `1204` observed candidates, `852`
+shard-level candidates missing, and `782` full 25-candidate slots missing.
 Slurm has 19 P25 jobs running and 5 P25 jobs pending behind
 `QOSMaxJobsPerUserLimit`. P25 MSA preflight is still clean (`24/24 ok`,
 `584/584` protein chains covered, `0` stale), so the current wait is queue plus
@@ -216,7 +216,7 @@ by how interesting the trick is.
 | Gate | Winner clue | Local reproduction | Current status | Next decision |
 | --- | --- | --- | --- | --- |
 | G1 | Strong CASP16 systems did careful input preparation before spending sampling budget | v2 nofail scoreable stack plus P17 input repair: protein-oligo sequence recovery, phase-alias stoichiometry, low-complexity cleanup, token fallback, full MSA reuse, and target-agnostic `O`/`Vn`/phase alias repair | P17 overlay completed and scored on 79/79 scoreable targets, improving P14 to domain `0.107690` and oligo `0.118933` | Keep the P17 overlay as seeds101-105 for P25; input coverage is no longer the immediate scoreable-target blocker |
-| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight; latest live gate at `2026-07-07 14:37 CDT` is healthy but incomplete at `1188` observed candidates, 19 running jobs, and 5 pending jobs; active runtime is large-complex inference rather than MSA | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row; keep O5b/P27b/D6a gated until this score exists |
+| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight; latest live gate at `2026-07-07 14:40 CDT` is healthy but incomplete at `1204` observed candidates, 19 running jobs, and 5 pending jobs; active runtime is large-complex inference rather than MSA | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row; keep O5b/P27b/D6a gated until this score exists |
 | G3 | First-model QA/ranking can change apparent method quality without more GPU | P16 consensus replay used the same P14 five-candidate pool with `selection-qa` and `diversity_confidence_consensus_v1` | scored but slightly below P14 (`0.102218` domain, `0.115250` oligo) | Do not tune selectors again until P17 removes scoreable missing predictions and shows candidate selection is the limiting factor |
 | G4 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a full input is now exact-sequence MSA-cache complete (`276/276`, 0 stale) but deferred behind P25 | If complete P25 still shows domain zeros from input-kind or alias repair classes, run D6a before another seed-scaling spend |
 | G5 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache, P25 no-GPU consensus replay configured at closeout, and P27b for the repaired 79-job scoreable input as the concrete Protenix model/config variant; true MSA-variant or multi-engine generation is still design-only | P27b prepared/deferred behind P25; broader variants not queued | Launch P27b first if P25 is flat but valid; add broader MSA/model-variant budgets only after P25/P27b show model/config diversity is worth the next compute |
