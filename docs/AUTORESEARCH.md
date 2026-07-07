@@ -653,6 +653,13 @@ competitive result.
     the stale serial auto-advance job `812202`; this keeps the main path on the
     same scoreable attack budget while avoiding another monolithic H1220/H0258
     block.
+32. `2026-07-06 21:02 CDT` GPU reallocation: cancelled monolithic P13 Slurm job
+    `811751` after it stayed at 36/74 seed101 CIFs on `H1220`, and cancelled
+    old v1 terminal-tag attack job `810719` after a weak partial diagnostic
+    (`domain=0.044437`, `oligo=0.000000`, latest seed counts
+    `98/98/98/81/0`). Both partial artifacts remain useful diagnostics, but
+    neither should occupy GH200 time ahead of the six v2 target-sharded
+    scoreable jobs `812239..812244`.
 
 ## Run Discipline
 

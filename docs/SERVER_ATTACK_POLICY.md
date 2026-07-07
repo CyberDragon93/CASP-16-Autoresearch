@@ -19,13 +19,13 @@ The first locked attack budget is
 - MSA/templates/default params/cache/fusion/TF32: enabled
 
 The first run spec using this budget is
-`server_attack_protenix_terminal_tag_seed101_105`. It has been submitted as
-Slurm job `810719` and remains an attack row, not a `dev_fixed` row. Live
-output shows Protenix running the declared seeds as a serial outer loop: all
-targets for `seed_101` are produced before `seed_102` begins.
-At the latest recorded check, the run had 98/98/57/0/0 CIFs for seeds
-`101..105`; it is therefore still incomplete and must not be scored as a full
-five-candidate attack row until all declared seeds are present.
+`server_attack_protenix_terminal_tag_seed101_105`. It was submitted as Slurm
+job `810719` and later cancelled after a weak partial diagnostic so GPU time
+could move to the v2 target-sharded scoreable attack. The partial row remains
+an incomplete attack-budget diagnostic, not a `dev_fixed` row. Protenix ran the
+declared seeds as a serial outer loop: all targets for `seed_101` were produced
+before `seed_102` began. The last recorded CIF counts were `98/98/98/81/0` for
+seeds `101..105`; it must not be scored as a full five-candidate attack row.
 
 The second queued run spec using the same budget is
 `server_attack_protenix_coverage_stoich_msa_reuse_seed101_105`. It uses the
