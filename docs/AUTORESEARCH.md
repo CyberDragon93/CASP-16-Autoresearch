@@ -108,10 +108,13 @@ where methods should change.
 - A scoreable-target no-over-token larger planned attack tier now exists as
   `attack_budgets/casp16_server_attack_protenix25_scoreable_nofail.json`: same
   25 seeds and selector, but only the 74 jobs that currently have at least one
-  locally available reference alias. It preserves the fixed 175-target scoring
-  set through the benchmark `input_manifest.tsv` and requires complete
-  exact-sequence MSA reuse from `data/msa_cache/index.tsv`. It is not queued
-  yet; use it only if the running scoreable `protenix5` row is worth scaling.
+  locally available reference alias. It now points at the size-first
+  phase-alias artifact
+  `strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json`,
+  preserves the fixed 175-target scoring set through the benchmark
+  `input_manifest.tsv`, and requires complete exact-sequence MSA reuse from
+  `data/msa_cache/index.tsv`. It is not queued yet; use it only if the running
+  scoreable `protenix5` row is worth scaling.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and
@@ -137,12 +140,18 @@ where methods should change.
 - Superseded stale scoreable oligo-first successor:
   `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`.
   Its source input kept `H0220` as `A1B1`, so it should not be launched.
-- Pending phase-alias scoreable oligo-first successor:
+- Superseded phase-alias scoreable oligo-first successor:
   `server_v2_attack_scoreable_oligo_first_phase_alias_msa_reuse_protenix5_seed101_105`.
+  It fixed `H0220/H1220/H2220` to `A1B4`, but still started with 2515-token
+  `H0220` and hit 2535-token `H0258` early.
+- Pending size-first phase-alias scoreable successor:
+  `server_v2_attack_scoreable_oligo_size_first_phase_alias_msa_reuse_protenix5_seed101_105`.
   It keeps the same five-candidate server-attack budget and confidence-only
-  selector, moves the exact oligo jobs to the front, requires complete MSA
-  reuse, and has run-local `H0220` as `A1B4`. `run-next --dry-run` correctly
-  blocks it behind the running scoreable `protenix5` row.
+  selector, exact oligo jobs first, but sorts those exact oligo jobs by total
+  protein tokens. This moves 2515-2535 token blockers (`H0220/H1220/H2220`,
+  `H0258/H1258/H2258`) behind 44 smaller exact-oligo jobs while preserving
+  run-local `A1B4` stoichiometry and 141/141 complete MSA reuse. `run-next
+  --dry-run` correctly blocks it behind the running scoreable `protenix5` row.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
   about chasing CASP16 server winners must report the attack budget, candidates
   per target, selector, and GPU cost. Run specs and manifests expose
@@ -204,6 +213,11 @@ where methods should change.
   H0223 `0.591`, H0225 `0.270`, H0233 `0.221`, H0222 `0.074`, and H0227
   `0.024`. The full five-candidate attack remains incomplete and unranked, but
   the running job is now producing useful exact oligo signal.
+- `2026-07-06 19:44 CDT` status check: P13 is still alive on Slurm job
+  `811751`, with 32 seed-101 CIFs. The log shows it is on `H0258`
+  (`N_token=2535`) as item 33/74. This is a slow large-target blocker rather
+  than an MSA-cache miss; the size-first successor exists to avoid repeating
+  this early-blocker schedule on the retry.
 - Superseded oligo-first scoreable-subset successor:
   `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`
   uses the same 74 scoreable jobs, fixed five-candidate budget, confidence-only
@@ -212,10 +226,17 @@ where methods should change.
   first. This is a scheduling/signal-latency optimization only; it does not
   change the 175-target scoring denominator or rank rules. It is now
   superseded because the source input kept stale `H0220` `A1B1` stoichiometry.
-- Queued phase-alias oligo-first scoreable-subset successor:
+- Superseded phase-alias oligo-first scoreable-subset successor:
   `server_v2_attack_scoreable_oligo_first_phase_alias_msa_reuse_protenix5_seed101_105`
-  is the corrected replacement. It uses
+  uses
   `strategies/scoreable_target_subset_oligo_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json`,
+  keeps 74 scoreable jobs, restores `H0220/H1220/H2220` to `A1B4`, and
+  preflights at 141/141 MSA reuse. It is now superseded by size-first
+  scheduling because it starts on 2515-token `H0220`.
+- Queued size-first phase-alias scoreable-subset successor:
+  `server_v2_attack_scoreable_oligo_size_first_phase_alias_msa_reuse_protenix5_seed101_105`
+  uses
+  `strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json`,
   keeps 74 scoreable jobs, restores `H0220/H1220/H2220` to `A1B4`, preflights
   at 141/141 MSA reuse, and is now the next v2 `run-next` candidate after P13
   finishes.

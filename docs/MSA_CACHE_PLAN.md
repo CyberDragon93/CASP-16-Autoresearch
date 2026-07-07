@@ -159,10 +159,12 @@ moving or deleting source run directories.
    `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
 2. If the current scoreable `protenix5` row is superseded or needs a faster
    oligo signal, use
-   `scoreable_target_subset_oligo_first_v1` as the successor input. It is
-   derived from the same 74-job scoreable artifact, moves all 50 exact
-   `protein_oligo` jobs to the front, and still preflights at 141/141
-   exact-sequence protein-chain MSA paths with 0 fresh-MSA chains.
+   `scoreable_target_subset_oligo_size_first_phase_alias_v1` as the successor
+   input. It keeps the 74-job scoreable artifact, restores phase-alias A1B4
+   stoichiometry for `H0220/H1220/H2220`, moves all 50 exact `protein_oligo`
+   jobs to the front, sorts that exact-oligo block by token count, and still
+   preflights at 141/141 exact-sequence protein-chain MSA paths with 0
+   fresh-MSA chains.
 3. The domain-sequence-recovery nofail ablation,
    `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101`, is the
    exception that intentionally allows fresh MSA. It reuses 269/276 chains from

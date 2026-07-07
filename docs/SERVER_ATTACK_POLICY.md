@@ -92,11 +92,14 @@ explicitly labeled as an ablation.
 `attack_budgets/casp16_server_attack_protenix25_scoreable_nofail.json` is the
 current scoreable-target winner-scale plan. It keeps the same 25-seed
 candidate budget and selector, but predicts only the 74 jobs that currently
-have at least one locally available reference alias. The fixed benchmark
-scoring set remains 175 targets; skipped no-reference targets stay local zeros.
-Each shard must inject `data/msa_cache/index.tsv` with
-`--msa-reuse-require-complete`. Launch it only after the running scoreable
-`protenix5` attack is scored or explicitly superseded.
+have at least one locally available reference alias. It points at the
+size-first phase-alias scoreable artifact, so `H0220/H1220/H2220` use recovered
+protein `A1B4` and the exact-oligo block is ordered from small to large before
+the 2515-2535 token jobs. The fixed benchmark scoring set remains 175 targets;
+skipped no-reference targets stay local zeros. Each shard must inject
+`data/msa_cache/index.tsv` with `--msa-reuse-require-complete`. Launch it only
+after the running scoreable `protenix5` attack is scored or explicitly
+superseded.
 
 Because Protenix loops serially over seeds, this budget must be executed as
 five predeclared five-seed shards and merged only after all shards finish. A

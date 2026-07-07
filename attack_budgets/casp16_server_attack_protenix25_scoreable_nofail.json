@@ -6,15 +6,15 @@
   "active_run_id": "",
   "backend": "protenix",
   "model_name": "protenix-v2",
-  "strategy": "scoreable_target_subset_v1_oligo_recovery_nofail_server_attack_protenix25",
-  "input_json": "strategies/scoreable_target_subset_v1/casp16_server_protein_v2_aliasfix/inputs.json",
+  "strategy": "scoreable_target_subset_oligo_size_first_phase_alias_v1_nofail_server_attack_protenix25",
+  "input_json": "strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json",
   "input_manifest": "benchmarks/casp16_server_protein_v2_aliasfix/input_manifest.tsv",
-  "strategy_manifest": "strategies/scoreable_target_subset_v1/casp16_server_protein_v2_aliasfix/manifest.tsv",
-  "input_sha256": "efdda151e28cb6193683c2c635662402d293ade518d1d923f8eafb8260d40720",
+  "strategy_manifest": "strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/manifest.tsv",
+  "input_sha256": "8e501031ba57191c52cafbee689907e786f1f7a5d98d4b6023d369a1ee671ae1",
   "input_manifest_sha256": "6d8db0d069bc4f0c94daa5b7db090894202e771baa1ab8e59a04b4c16eac02d5",
-  "strategy_manifest_sha256": "400053bfd093e5729c9f9806fc2ce6d21ebe95a1ab7f327782b0d6b79e24c0e4",
+  "strategy_manifest_sha256": "a406211b0f11cdbae7569a9f6488cdcc6b9f465dce339748fafb5411597a3879",
   "msa_cache_index": "data/msa_cache/index.tsv",
-  "msa_cache_index_sha256": "98ed47556fb7a9f01e9d73b20a5a98402c1ca08476b2e81c681d98a8c1c90ba7",
+  "msa_cache_index_sha256": "79515231e670f086af2f3145fe93bd5e3cf8415f419f69ccf33e5a24135a785e",
   "msa_reuse_require_complete": true,
   "expected_msa_reuse_summary": {
     "tasks": 74,
@@ -99,11 +99,11 @@
   },
   "launch_gate": [
     "score server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105 first, or explicitly supersede it with a recorded reason",
-    "use the same 74-job scoreable input artifact for every shard",
+    "use the same 74-job size-first phase-alias scoreable input artifact for every shard",
     "rebuild data/msa_cache/index.tsv if source runs moved, then require complete MSA reuse before launching each shard",
     "do not score a complete row until all 25 declared candidates are present or the row is explicitly partial/unranked",
     "record expected GPU-hours and actual wall time per shard",
     "do not compare this 25-candidate row directly against dev_fixed rows"
   ],
-  "budget_note": "This is the winner-scale successor to the running scoreable protenix5 attack. It keeps the fixed 175-target benchmark scoring set, but predicts only the 74 jobs that currently have a locally available reference alias; skipped no-reference targets remain fixed-set zeros locally. If missing references are recovered, create a new budget version rather than mutating this one."
+  "budget_note": "This is the winner-scale successor to the running scoreable protenix5 attack. It keeps the fixed 175-target benchmark scoring set, predicts only the 74 jobs that currently have a locally available reference alias, restores phase-alias A1B4 stoichiometry for H0220/H1220/H2220, and schedules exact oligo jobs by token count to avoid early 2515-2535 token blockers. Skipped no-reference targets remain fixed-set zeros locally. If missing references are recovered, create a new budget version rather than mutating this one."
 }

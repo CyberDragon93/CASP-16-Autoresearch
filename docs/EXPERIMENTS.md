@@ -1175,6 +1175,41 @@ Interpretation: this is a real input-realism correction, not a benchmark-rule
 change and not an oracle fix. It should improve or at least honestly test the
 `H0220/H1220/H2220` complex class before spending any larger 25-seed budget.
 
+### 2026-07-06 Size-First Exact-Oligo Scheduling
+
+Decision: replace the pending phase-alias oligo-first retry with a size-first
+phase-alias retry.
+
+Evidence: the running P13 scoreable attack is alive but still on `H0258` as
+item 33/74 with `N_token=2535` and only 32 seed-101 CIFs. The first
+phase-alias oligo-first retry fixed `H0220/H1220/H2220` to `A1B4`, but its
+first 50 exact-oligo jobs started with 2515-token `H0220` and reached
+2535-token `H0258` at item 9. That ordering would likely recreate the same
+slow-feedback wall-time problem.
+
+Artifact: `scoreable_target_subset_oligo_size_first_phase_alias_v1` keeps the
+same 74 scoreable jobs, prioritizes all 50 exact oligo jobs, but sorts those
+exact oligo jobs by total protein tokens. The first 44 exact-oligo jobs are
+now below 2515 tokens; `H0220/H1220/H2220` remain recovered protein `A1B4` but
+move to items 45-47, and `H0258/H1258/H2258` move to items 48-50. Output hash:
+`8e501031ba57191c52cafbee689907e786f1f7a5d98d4b6023d369a1ee671ae1`.
+
+Queue action: registered
+`server_v2_attack_scoreable_oligo_size_first_phase_alias_msa_reuse_protenix5_seed101_105`
+with five fixed seeds, candidate_count `5`, selector
+`protenix_confidence_v1`, complete exact-sequence MSA reuse `141/141`, and
+git commit `b5c5abe36356bf952bd2c024cb8abbe2cd1577d0` in its run spec.
+Append-only superseded
+`server_v2_attack_scoreable_oligo_first_phase_alias_msa_reuse_protenix5_seed101_105`.
+Retargeted the planned
+`attack_budgets/casp16_server_attack_protenix25_scoreable_nofail.*` shard
+budget to the same size-first phase-alias artifact.
+
+Interpretation: this is a scheduling improvement, not a new score rule. If all
+jobs complete, the fixed-set score is unchanged versus phase-alias oligo-first;
+the benefit is faster exact-oligo signal and lower risk that 48-hour jobs spend
+their early wall time on the largest local blockers.
+
 ### 2026-07-06 Terminal Tag Cleanup Result
 
 Decision: keep `yang_terminal_tag_cleanup_v1` as a weak positive construct

@@ -200,17 +200,18 @@ Useful strategy hypotheses:
     no-reference jobs, preserves the fixed 175-target scoring set, and reuses
     141/141 exact-sequence MSA paths in the running
     `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
-16. `scoreable_target_subset_oligo_first_phase_alias_v1`: pending successor to
-    the running scoreable `protenix5` row. It keeps the same 74-job set, moves
-    all 50 exact `protein_oligo` jobs to the front, restores
-    `H0220/H1220/H2220` to recovered protein `A1B4`, and preflights at
-    141/141 exact-sequence MSA paths. The older
-    `scoreable_target_subset_oligo_first_v1` run spec is superseded because it
-    kept stale `H0220` `A1B1`. Use the phase-alias row as the clean retry or
-    replacement if faster exact-oligo feedback is needed. The running P13 row
-    has already reached exact H oligos; seed101 diagnostic QSglob has H0223
-    `0.591`, H0225 `0.270`, and H0233 `0.221`, so keep P13 running unless it
-    fails.
+16. `scoreable_target_subset_oligo_size_first_phase_alias_v1`: pending
+    successor to the running scoreable `protenix5` row. It keeps the same
+    74-job set, moves all 50 exact `protein_oligo` jobs before domains, sorts
+    exact oligo jobs by token count, restores `H0220/H1220/H2220` to recovered
+    protein `A1B4`, and preflights at 141/141 exact-sequence MSA paths. The
+    older `scoreable_target_subset_oligo_first_v1` run spec is superseded
+    because it kept stale `H0220` `A1B1`; the first phase-alias successor is
+    also superseded because it started with a 2515-token `H0220` blocker. Use
+    the size-first phase-alias row as the clean retry or replacement if faster
+    exact-oligo feedback is needed. The running P13 row has already reached
+    exact H oligos; seed101 diagnostic QSglob has H0223 `0.591`, H0225
+    `0.270`, and H0233 `0.221`, so keep P13 running unless it fails.
     Related D6a artifact:
     `yang_domain_sequence_recovery_oligo_nofail_v1` was generated after
     reference-gap triage exposed protein-domain input-kind bugs. It changes 8
@@ -219,10 +220,11 @@ Useful strategy hypotheses:
     multi-seed promotion.
 17. `casp16_server_attack_protenix25_scoreable_nofail`: planned but not queued.
     It is the winner-scale 25-seed successor to the scoreable `protenix5`
-    attack. Before launch, retarget or version this budget to the
-    phase-alias-corrected scoreable input; do not spend 25 seeds on a stale
-    `H0220` `A1B1` artifact. Launch only if the 5-seed scoreable row gives a
-    reason to spend the GPU-hours; keep the older 165-job
+    attack. The shard manifest now points at the size-first phase-alias
+    scoreable input, so it will not spend 25 seeds on stale `H0220` `A1B1` or
+    start every shard with the largest exact-oligo blockers. Launch only if the
+    5-seed scoreable row gives a reason to spend the GPU-hours; keep the older
+    165-job
     `protenix25_nofail` plan as a full-input ablation until reference
     recovery.
 18. `target_lab/h1258_interaction_window_v1`: generated a target-lab-only
