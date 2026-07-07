@@ -10,6 +10,7 @@ data/official/parsed/official_scores.tsv
 data/official/references/mmcif/
 data/msa_cache/
 diagnostics/msa_cache/report_inputs/
+diagnostics/reference_gap/refmap_candidate_mmcif/
 
 # Large derived table; regenerate with `./casp16 leaderboard`.
 leaderboards/official_records.csv

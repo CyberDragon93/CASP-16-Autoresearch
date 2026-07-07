@@ -152,6 +152,17 @@ This writes
 The generated rows remain `candidate` or `rejected`; no row becomes accepted
 until provenance and mapping are supplied.
 
+Candidate structures can be cached for mapping review with:
+
+```bash
+./casp16 refmap-materialize
+```
+
+This writes
+`diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_structures.tsv`
+and stores ignored mmCIF files under
+`diagnostics/reference_gap/refmap_candidate_mmcif/`.
+
 `docs/REFERENCE_GAP_AUDIT.md` records a high-impact alias issue: CASP phase
 ids such as `T2201` and `H2202` should be allowed to inherit metadata and PDB
 references from matching `T1201`/`H1202` rows. A temporary rebuild with

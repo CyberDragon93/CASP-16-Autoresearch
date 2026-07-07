@@ -18,6 +18,7 @@ from .benchmark import (
     default_benchmark_dir,
     generate_reference_map_review,
     load_benchmark,
+    materialize_reference_map_candidates,
 )
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
@@ -362,6 +363,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Defaults to diagnostics/reference_gap/casp16_server_protein_v3_refmap_review.tsv.",
     )
 
+    refmap_materialize = subparsers.add_parser("refmap-materialize", help="Download/cache mmCIF files for reference-map review rows and write a hash manifest.")
+    refmap_materialize.add_argument(
+        "--reference-map-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_v3_refmap_review.tsv.",
+    )
+    refmap_materialize.add_argument("--status", action="append", default=None, help="Reference-map status to materialize. Defaults to candidate. Repeat or comma-separate.")
+    refmap_materialize.add_argument("--output-dir", type=Path, default=None, help="Defaults to diagnostics/reference_gap/refmap_candidate_mmcif.")
+    refmap_materialize.add_argument(
+        "--manifest-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_structures.tsv.",
+    )
+    refmap_materialize.add_argument("--force", action="store_true", help="Re-download existing candidate mmCIF files.")
+
     make_inputs = subparsers.add_parser("make-inputs", help="Generate Protenix input JSON from CASP16 sequence records.")
     make_inputs.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
     make_inputs.add_argument("--output-json", type=Path, default=None, help="Defaults to <root>/data/inputs/casp16_all.json.")
@@ -616,6 +634,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             benchmark=args.benchmark,
             candidate_tsv=(args.candidate_tsv or (root / "diagnostics" / "reference_gap" / "rcsb_exact_sequence_probe_v2_candidates.tsv")).resolve(),
             output_tsv=(args.output_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_review.tsv")).resolve(),
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "refmap-materialize":
+        summary = materialize_reference_map_candidates(
+            reference_map_tsv=(args.reference_map_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_review.tsv")).resolve(),
+            output_dir=(args.output_dir or (root / "diagnostics" / "reference_gap" / "refmap_candidate_mmcif")).resolve(),
+            manifest_tsv=(args.manifest_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_candidate_structures.tsv")).resolve(),
+            statuses=split_csv_args(args.status) or ["candidate"],
+            force=args.force,
         )
         print_json(summary)
         return 0

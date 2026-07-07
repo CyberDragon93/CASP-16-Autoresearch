@@ -192,6 +192,19 @@ native provenance plus chain/domain mapping before changing `status` to
 `accepted`; rejected rows are carried only to document why they should not be
 promoted.
 
+Use `refmap-materialize` to cache candidate structures for offline chain/domain
+mapping review without installing them as official benchmark references:
+
+```bash
+./casp16 refmap-materialize
+```
+
+The current manifest is
+`diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_structures.tsv`.
+It records 8 downloaded candidate mmCIF files, their byte sizes, and sha256
+hashes. The mmCIF payloads live under the ignored cache directory
+`diagnostics/reference_gap/refmap_candidate_mmcif/`.
+
 ## RCSB Exact-Sequence Probe
 
 A follow-up probe on the 40 `prediction_waiting_on_reference` rows queried the

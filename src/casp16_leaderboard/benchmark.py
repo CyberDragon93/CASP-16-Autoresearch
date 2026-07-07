@@ -118,6 +118,18 @@ REFERENCE_MAP_FIELDS = [
     "source_path",
 ]
 
+REFERENCE_CANDIDATE_MANIFEST_FIELDS = [
+    "target_id",
+    "pdb_id",
+    "status",
+    "source",
+    "reference_path",
+    "download_status",
+    "sha256",
+    "bytes",
+    "notes",
+]
+
 
 def default_benchmark_dir(project_root: Path, benchmark: str = BENCHMARK_NAME) -> Path:
     return project_root / "benchmarks" / benchmark
@@ -256,6 +268,68 @@ def generate_reference_map_review(
         "rejected": sum(1 for row in rows if row["status"] == "rejected"),
         "deferred": sum(1 for row in rows if row["status"] == "deferred"),
     }
+
+
+def materialize_reference_map_candidates(
+    *,
+    reference_map_tsv: Path,
+    output_dir: Path,
+    manifest_tsv: Path,
+    statuses: Sequence[str] = ("candidate",),
+    force: bool = False,
+) -> dict[str, object]:
+    wanted_statuses = {status.strip().lower() for status in statuses if status.strip()}
+    if not wanted_statuses:
+        raise ValueError("provide at least one reference-map status to materialize")
+    rows: list[dict[str, object]] = []
+    for refmap_row in read_tsv(reference_map_tsv):
+        row_status = refmap_row.get("status", "").strip().lower()
+        if row_status not in wanted_statuses:
+            continue
+        target_id = refmap_row.get("target_id", "").strip().upper()
+        for pdb_id in _split_pdb_ids(refmap_row.get("pdb_ids", "")):
+            reference_path = output_dir / f"{pdb_id}.cif"
+            download_status = _download_mmcif(pdb_id, reference_path, force=force)
+            rows.append(
+                {
+                    "target_id": target_id,
+                    "pdb_id": pdb_id,
+                    "status": row_status,
+                    "source": refmap_row.get("source", ""),
+                    "reference_path": str(reference_path),
+                    "download_status": download_status,
+                    "sha256": sha256_file(reference_path) if reference_path.exists() else "",
+                    "bytes": reference_path.stat().st_size if reference_path.exists() else "",
+                    "notes": refmap_row.get("notes", ""),
+                }
+            )
+
+    write_tsv(manifest_tsv, rows, REFERENCE_CANDIDATE_MANIFEST_FIELDS)
+    return {
+        "reference_map_tsv": str(reference_map_tsv),
+        "output_dir": str(output_dir),
+        "manifest_tsv": str(manifest_tsv),
+        "statuses": sorted(wanted_statuses),
+        "rows": len(rows),
+        "downloaded": sum(1 for row in rows if row["download_status"] == "downloaded"),
+        "cached": sum(1 for row in rows if row["download_status"] == "cached"),
+        "failed": sum(1 for row in rows if str(row["download_status"]).startswith("download_failed")),
+    }
+
+
+def _download_mmcif(pdb_id: str, path: Path, *, force: bool = False) -> str:
+    if path.exists() and not force:
+        return "cached"
+    ensure_dir(path.parent)
+    url = RCSB_MMCIF_URL.format(pdb_id=pdb_id.upper())
+    request = urllib.request.Request(url, headers={"User-Agent": "casp16-leaderboard/0.1"})
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            data = response.read()
+    except Exception as exc:
+        return f"download_failed:{type(exc).__name__}"
+    path.write_bytes(data)
+    return "downloaded"
 
 
 def _candidate_construct_coverage(row: Mapping[str, str]) -> str:

@@ -13,6 +13,7 @@ from casp16_leaderboard.benchmark import (
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
     generate_reference_map_review,
+    materialize_reference_map_candidates,
 )
 from casp16_leaderboard.leaderboard import generate_benchmark_leaderboard
 from casp16_leaderboard.official import OfficialPaths, read_tsv, write_tsv
@@ -616,3 +617,52 @@ def test_generate_reference_map_review_from_rcsb_candidates(tmp_path) -> None:
     assert "candidate_domain=T1201-D1" in rows[0]["scoring_mapping"]
     assert rows[0]["native_provenance"] == ""
     assert rows[1]["status"] == "rejected"
+
+
+def test_materialize_reference_map_candidates_uses_cached_files(tmp_path) -> None:
+    reference_map = tmp_path / "review.tsv"
+    output_dir = tmp_path / "mmcif"
+    output_dir.mkdir()
+    (output_dir / "9abc.cif").write_text("data_9abc\n", encoding="utf-8")
+    write_tsv(
+        reference_map,
+        [
+            {
+                "target_id": "T1201",
+                "pdb_ids": "9abc",
+                "status": "candidate",
+                "source": "rcsb_exact_sequence_probe",
+                "native_provenance": "",
+                "construct_coverage": "full_construct_exact_sequence",
+                "chain_mapping": "",
+                "scoring_mapping": "",
+                "notes": "candidate row",
+                "source_path": "",
+            },
+            {
+                "target_id": "T1202",
+                "pdb_ids": "9def",
+                "status": "rejected",
+                "source": "rcsb_exact_sequence_probe",
+                "native_provenance": "",
+                "construct_coverage": "partial",
+                "chain_mapping": "",
+                "scoring_mapping": "",
+                "notes": "rejected row",
+                "source_path": "",
+            },
+        ],
+        ["target_id", "pdb_ids", "status", "source", "native_provenance", "construct_coverage", "chain_mapping", "scoring_mapping", "notes", "source_path"],
+    )
+    manifest = tmp_path / "manifest.tsv"
+
+    summary = materialize_reference_map_candidates(reference_map_tsv=reference_map, output_dir=output_dir, manifest_tsv=manifest)
+
+    assert summary["rows"] == 1
+    assert summary["cached"] == 1
+    rows = read_tsv(manifest)
+    assert rows[0]["target_id"] == "T1201"
+    assert rows[0]["pdb_id"] == "9abc"
+    assert rows[0]["download_status"] == "cached"
+    assert rows[0]["sha256"]
+    assert rows[0]["bytes"] == str(len("data_9abc\n"))

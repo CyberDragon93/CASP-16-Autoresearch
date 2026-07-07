@@ -750,6 +750,13 @@ competitive result.
     reference recovery moving without falsely accepting native structures; the
     next real v3 score unlock is to fill provenance plus mapping for one or
     more candidate rows, then generate `casp16_server_protein_v3_refmap`.
+43. `2026-07-06 22:48 CDT` added `./casp16 refmap-materialize` and generated
+    `diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_structures.tsv`.
+    It downloaded the 8 candidate mmCIF files from the review artifact, wrote
+    sha256/byte-size manifest rows, and keeps the 74 MB payload cache ignored
+    under `diagnostics/reference_gap/refmap_candidate_mmcif/`. This prepares
+    offline native-provenance and chain/domain mapping review without changing
+    the locked v2 benchmark or accepting any reference automatically.
 
 ## Run Discipline
 
