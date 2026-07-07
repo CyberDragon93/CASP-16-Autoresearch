@@ -183,6 +183,10 @@ where methods should change.
   settings instead of disabling MSA or blindly scaling one Protenix input. Its
   non-executable budget design is recorded in
   `attack_budgets/casp16_server_attack_msa_model_diversity_v1.json`.
+- `diversity_confidence_consensus_v1` is now wired as a prediction-only
+  selector for future diversity budgets. It extends `protenix_confidence_v1`
+  with optional consensus/cluster-support fields from run-local confidence or
+  QA JSON and still fails closed without confidence data.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and

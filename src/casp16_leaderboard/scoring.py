@@ -274,7 +274,7 @@ def select_prediction_for_target(
             "selected_model_policy": policy,
         }
 
-    if policy != "protenix_confidence_v1":
+    if policy not in {"protenix_confidence_v1", "diversity_confidence_consensus_v1"}:
         return {
             "status": "selection_failed",
             "selected_model_policy": policy,
@@ -287,7 +287,10 @@ def select_prediction_for_target(
         if confidence_path is None:
             continue
         confidence = read_confidence_json(confidence_path)
-        score = protenix_confidence_v1_score(confidence)
+        if policy == "diversity_confidence_consensus_v1":
+            score = diversity_confidence_consensus_v1_score(confidence)
+        else:
+            score = protenix_confidence_v1_score(confidence)
         if score is None or not math.isfinite(score):
             continue
         scored.append((score, str(prediction_path), prediction_path, confidence_path))
@@ -296,7 +299,7 @@ def select_prediction_for_target(
         return {
             "status": "selection_failed",
             "selected_model_policy": policy,
-            "message": "confidence_unavailable_for_policy:protenix_confidence_v1",
+            "message": f"confidence_unavailable_for_policy:{policy}",
         }
 
     score, _sort_key, prediction_path, confidence_path = sorted(
@@ -354,6 +357,39 @@ def protenix_confidence_v1_score(confidence: Mapping[str, Any]) -> float | None:
     if plddt is None and ptm == 0.0 and iptm == 0.0:
         return None
     return (0.20 * (plddt or 0.0)) + (0.50 * ptm) + (0.30 * iptm) - (0.10 * disorder) - (0.20 * clash_penalty)
+
+
+def diversity_confidence_consensus_v1_score(confidence: Mapping[str, Any]) -> float | None:
+    base = protenix_confidence_v1_score(confidence)
+    if base is None:
+        return None
+    consensus = _first_confidence_float(
+        confidence,
+        (
+            "consensus_score",
+            "consensus",
+            "mean_pairwise_tm",
+            "mean_pairwise_tmscore",
+            "cluster_score",
+        ),
+    )
+    cluster_support = _first_confidence_float(
+        confidence,
+        (
+            "cluster_support",
+            "cluster_fraction",
+            "cluster_size_fraction",
+        ),
+    )
+    return (0.70 * base) + (0.20 * (consensus or 0.0)) + (0.10 * (cluster_support or 0.0))
+
+
+def _first_confidence_float(confidence: Mapping[str, Any], keys: Sequence[str]) -> float | None:
+    for key in keys:
+        value = _confidence_float(confidence.get(key))
+        if value is not None:
+            return value
+    return None
 
 
 def _confidence_float(value: Any) -> float | None:

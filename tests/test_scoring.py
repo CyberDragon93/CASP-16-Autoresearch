@@ -800,6 +800,38 @@ def test_protenix_confidence_policy_uses_indexed_multiseed_layout(tmp_path) -> N
     assert selected["selection_score"] == "0.610000"
 
 
+def test_diversity_confidence_consensus_policy_uses_prediction_only_qa(tmp_path) -> None:
+    output_dir = tmp_path / "predictions" / "protenix-v2"
+    high_conf_dir = output_dir / "T1234" / "seed_101" / "predictions"
+    consensus_dir = output_dir / "T1234" / "seed_102" / "predictions"
+    high_conf_dir.mkdir(parents=True)
+    consensus_dir.mkdir(parents=True)
+    high_conf = high_conf_dir / "T1234_sample_0.cif"
+    consensus = consensus_dir / "T1234_sample_0.cif"
+    high_conf.write_text("data_high_conf\n", encoding="utf-8")
+    consensus.write_text("data_consensus\n", encoding="utf-8")
+    (high_conf_dir / "T1234_summary_confidence_sample_0.json").write_text(
+        '{"plddt": 90.0, "ptm": 0.80, "iptm": 0.10, "consensus_score": 0.0, "cluster_support": 0.0}\n',
+        encoding="utf-8",
+    )
+    confidence = consensus_dir / "T1234_summary_confidence_sample_0.json"
+    confidence.write_text(
+        '{"plddt": 80.0, "ptm": 0.55, "iptm": 0.20, "consensus_score": 1.0, "cluster_support": 1.0}\n',
+        encoding="utf-8",
+    )
+
+    selected = select_prediction_for_target(
+        output_dir,
+        "T1234",
+        selected_model_policy="diversity_confidence_consensus_v1",
+    )
+
+    assert selected["status"] == "ok"
+    assert selected["prediction_path"] == str(consensus)
+    assert selected["confidence_path"] == str(confidence)
+    assert selected["selection_score"] == "0.646500"
+
+
 def test_confidence_policy_fails_closed_without_confidence(tmp_path) -> None:
     pred_dir = tmp_path / "predictions" / "T1234" / "seed_101" / "predictions"
     pred_dir.mkdir(parents=True)
