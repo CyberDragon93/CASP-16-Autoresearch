@@ -1634,6 +1634,18 @@ competitive result.
      row selects D6a/O5b/P27b/P15, the JSON will show whether the selected run
      specs exist, their latest lifecycle status, budget tier, candidate count,
      and whether the prepared MSA preflight artifact is all `ok`.
+110. `2026-07-07 14:20 CDT` post-P25 delta digest:
+     `./casp16 post-p25-readout` now also emits `target_delta_summary`, a
+     scoreable-target-only comparison of the complete P25 row against the P17
+     repaired baseline. It reports improved/regressed/unchanged counts,
+     nonzero gained/lost counts, status-transition counts, per-track summaries,
+     and the largest score deltas for diagnosis. This is intentionally
+     post-score analysis only: it returns `status: incomplete` and
+     `valid_for_analysis: false` until P25 and the baseline both have complete
+     scoreable `target_scores.csv` rows. Use the `status: ok` digest to explain
+     why the aggregate branch chooser selected analysis, D6a, O5b, P27b, or
+     refmap work, but do not use target deltas for per-target prediction
+     tuning.
 
 ## Run Discipline
 

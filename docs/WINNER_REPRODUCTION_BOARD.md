@@ -26,16 +26,16 @@ per-target scores during prediction.
 
 ## Active Gate
 
-Checked `2026-07-07 14:11 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 14:23 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1106` |
-| shard-level missing candidates | `944` |
-| full 25-candidate slots still missing | `874` |
+| observed candidates | `1137` |
+| shard-level missing candidates | `913` |
+| full 25-candidate slots still missing | `843` |
 | complete full-budget tasks | `1 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit` |
 | health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes still advancing |
@@ -84,6 +84,11 @@ P25 finishes.
 Those summaries are generated from local `run_spec.json`, `runs/status.tsv`,
 and existing preflight TSVs only; they are safe to read before launch and do
 not run GPU work.
+The same readout includes `target_delta_summary`; it reports `status:
+incomplete` until both the baseline and P25 have complete scoreable
+`target_scores.csv` rows. After P25 is scored, use the `status: ok` summary to
+explain aggregate gains/losses and selector behavior; do not use those target
+deltas to tune prediction inputs target by target.
 
 | Branch | Trigger | Budget or manifest | Preflight | Launch shape |
 | --- | --- | --- | --- | --- |

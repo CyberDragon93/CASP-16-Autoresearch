@@ -397,6 +397,125 @@ def run_readout_summary(
     }
 
 
+def target_delta_summary(
+    *,
+    run_id: str,
+    baseline_run_id: str,
+    score_rows: Sequence[Mapping[str, str]],
+    scoreable_target_ids: set[str],
+    top_n: int = 10,
+) -> dict[str, Any]:
+    """Summarize scoreable-target deltas between two complete scored runs."""
+
+    baseline_rows: dict[tuple[str, str], Mapping[str, str]] = {}
+    run_rows: dict[tuple[str, str], Mapping[str, str]] = {}
+    for row in score_rows:
+        target_id = row.get("target_id", "")
+        if target_id not in scoreable_target_ids:
+            continue
+        key = (row.get("track", ""), target_id)
+        if row.get("run_id") == baseline_run_id:
+            baseline_rows[key] = row
+        elif row.get("run_id") == run_id:
+            run_rows[key] = row
+
+    baseline_target_ids = {target_id for _, target_id in baseline_rows}
+    run_target_ids = {target_id for _, target_id in run_rows}
+    missing_baseline_targets = sorted(scoreable_target_ids - baseline_target_ids)
+    missing_run_targets = sorted(scoreable_target_ids - run_target_ids)
+    if missing_baseline_targets or missing_run_targets:
+        return {
+            "status": "incomplete",
+            "valid_for_analysis": False,
+            "run_id": run_id,
+            "baseline_run_id": baseline_run_id,
+            "scoreable_targets": len(scoreable_target_ids),
+            "baseline_score_rows": len(baseline_target_ids),
+            "run_score_rows": len(run_target_ids),
+            "missing_baseline_score_rows": len(missing_baseline_targets),
+            "missing_run_score_rows": len(missing_run_targets),
+            "missing_baseline_targets": missing_baseline_targets[:top_n],
+            "missing_run_targets": missing_run_targets[:top_n],
+            "biggest_gains": [],
+            "biggest_losses": [],
+            "reason": "target score rows are incomplete; finish scoring before reading target deltas",
+            "note": "For post-score diagnosis only; do not use target deltas for per-target prediction tuning.",
+        }
+
+    delta_rows: list[dict[str, Any]] = []
+    for track, target_id in sorted(set(baseline_rows) | set(run_rows)):
+        baseline_row = baseline_rows.get((track, target_id), {})
+        run_row = run_rows.get((track, target_id), {})
+        baseline_score = as_float(baseline_row.get("score"))
+        run_score = as_float(run_row.get("score"))
+        delta = run_score - baseline_score
+        baseline_status = baseline_row.get("status") or "missing_score_row"
+        run_status = run_row.get("status") or "missing_score_row"
+        delta_rows.append(
+            {
+                "target_id": target_id,
+                "track": track,
+                "baseline_status": baseline_status,
+                "run_status": run_status,
+                "baseline_score": baseline_score,
+                "run_score": run_score,
+                "delta": delta,
+            }
+        )
+
+    def summarize(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+        transition_counts = Counter(
+            f"{row.get('baseline_status', 'missing_score_row')}->{row.get('run_status', 'missing_score_row')}"
+            for row in rows
+        )
+        total_delta = sum(float(row.get("delta", 0.0) or 0.0) for row in rows)
+        comparable = sum(
+            1
+            for row in rows
+            if row.get("baseline_status") != "missing_score_row" and row.get("run_status") != "missing_score_row"
+        )
+        return {
+            "targets": len(rows),
+            "comparable_targets": comparable,
+            "mean_delta": total_delta / len(rows) if rows else 0.0,
+            "improved_targets": sum(1 for row in rows if float(row.get("delta", 0.0) or 0.0) > 0.0),
+            "regressed_targets": sum(1 for row in rows if float(row.get("delta", 0.0) or 0.0) < 0.0),
+            "unchanged_targets": sum(1 for row in rows if float(row.get("delta", 0.0) or 0.0) == 0.0),
+            "nonzero_gained_targets": sum(
+                1
+                for row in rows
+                if float(row.get("baseline_score", 0.0) or 0.0) <= 0.0
+                and float(row.get("run_score", 0.0) or 0.0) > 0.0
+            ),
+            "nonzero_lost_targets": sum(
+                1
+                for row in rows
+                if float(row.get("baseline_score", 0.0) or 0.0) > 0.0
+                and float(row.get("run_score", 0.0) or 0.0) <= 0.0
+            ),
+            "status_transition_counts": dict(sorted(transition_counts.items())),
+        }
+
+    biggest_gains = sorted(delta_rows, key=lambda row: float(row["delta"]), reverse=True)[:top_n]
+    biggest_losses = sorted(delta_rows, key=lambda row: float(row["delta"]))[:top_n]
+    by_track = {
+        track: summarize([row for row in delta_rows if row.get("track") == track])
+        for track in ("protein_domain", "protein_oligo")
+    }
+    return {
+        "status": "ok",
+        "valid_for_analysis": True,
+        "run_id": run_id,
+        "baseline_run_id": baseline_run_id,
+        "scoreable_targets": len(scoreable_target_ids),
+        "overall": summarize(delta_rows),
+        "by_track": by_track,
+        "biggest_gains": biggest_gains,
+        "biggest_losses": biggest_losses,
+        "note": "For post-score diagnosis only; do not use target deltas for per-target prediction tuning.",
+    }
+
+
 def post_p14_readout(
     *,
     project_root: Path,
@@ -670,6 +789,19 @@ def post_p25_readout(
         next_branch = "launch_p27b_model_config_diversity_after_p25"
         reason = "P25 is complete but flat; candidate count alone is not the next best lever"
 
+    delta_summary = target_delta_summary(
+        run_id=run_id,
+        baseline_run_id=baseline_run_id,
+        score_rows=score_rows,
+        scoreable_target_ids=scoreable_target_ids,
+    )
+    if decision_status in {"not_scored", "not_complete", "baseline_missing"}:
+        delta_summary = dict(delta_summary)
+        delta_summary["valid_for_analysis"] = False
+        delta_summary["reason"] = (
+            f"target deltas are diagnostic only after a complete scored P25 row; current status is {decision_status}."
+        )
+
     return {
         "benchmark": benchmark,
         "run_id": run_id,
@@ -688,6 +820,7 @@ def post_p25_readout(
             "oligo_delta": oligo_delta,
             "scoreable_nonzero_fraction": scoreable_nonzero_fraction,
         },
+        "target_delta_summary": delta_summary,
         "launch_plan": enrich_launch_plan(root, post_p25_launch_plan(next_branch, decision_status)),
         "p25": p25,
         "baseline": baseline,

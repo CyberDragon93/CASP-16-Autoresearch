@@ -515,6 +515,11 @@ def test_post_p25_readout_requires_scored_p25(tmp_path) -> None:
     assert summary["next_branch"] == "finish_or_score_p25"
     assert summary["launch_plan"]["action"] == "wait_for_p25_closeout"
     assert "finish_p25_scoreable_input_repair.sh" in summary["launch_plan"]["command_templates"][0]
+    assert summary["target_delta_summary"]["status"] == "incomplete"
+    assert summary["target_delta_summary"]["valid_for_analysis"] is False
+    assert summary["target_delta_summary"]["run_score_rows"] == 0
+    assert summary["target_delta_summary"]["missing_run_score_rows"] == 4
+    assert summary["target_delta_summary"]["biggest_losses"] == []
 
 
 def test_post_p25_readout_blocks_partial_grid(tmp_path) -> None:
@@ -524,6 +529,7 @@ def test_post_p25_readout_blocks_partial_grid(tmp_path) -> None:
 
     assert summary["decision_status"] == "not_complete"
     assert summary["next_branch"] == "finish_or_repair_p25_candidate_grid"
+    assert summary["target_delta_summary"]["valid_for_analysis"] is False
 
 
 def test_post_p25_readout_selects_seed_scaling_signal(tmp_path) -> None:
@@ -534,6 +540,16 @@ def test_post_p25_readout_selects_seed_scaling_signal(tmp_path) -> None:
     assert summary["decision_status"] == "seed_scaling_signal"
     assert summary["comparison"]["fixed_set_delta"] > 0.01
     assert summary["launch_plan"]["action"] == "analyze_complete_p25"
+    assert summary["target_delta_summary"]["status"] == "ok"
+    assert summary["target_delta_summary"]["valid_for_analysis"] is True
+    assert summary["target_delta_summary"]["scoreable_targets"] == 4
+    assert summary["target_delta_summary"]["overall"]["targets"] == 4
+    assert summary["target_delta_summary"]["overall"]["improved_targets"] == 2
+    assert summary["target_delta_summary"]["overall"]["unchanged_targets"] == 2
+    assert summary["target_delta_summary"]["by_track"]["protein_domain"]["improved_targets"] == 2
+    assert summary["target_delta_summary"]["by_track"]["protein_oligo"]["improved_targets"] == 0
+    assert {row["target_id"] for row in summary["target_delta_summary"]["biggest_gains"]} >= {"T1", "T2"}
+    assert "per-target prediction tuning" in summary["target_delta_summary"]["note"]
 
 
 def test_post_p25_readout_requires_p17_baseline_before_branching(tmp_path) -> None:

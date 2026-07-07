@@ -76,6 +76,12 @@ targets, antibody/Fv oligo rows, exact non-antibody oligo signal, and
 reference-limited scoreable coverage. Use those aggregate diagnostics after
 the complete P25 score exists instead of manually mining `target_scores.csv` to
 pick a target-specific next move.
+It also emits `target_delta_summary`, which compares only locally scoreable
+targets between P25 and P17 and summarizes improved/regressed/nonzero-gained
+counts plus status transitions. It reports `status: incomplete` and
+`valid_for_analysis: false` until both compared rows have complete scoreable
+target scores. Treat the `status: ok` digest as a post-score explanation
+layer, not a permission slip for per-target tuning.
 
 Use this queue immediately after the complete P25 score exists:
 
