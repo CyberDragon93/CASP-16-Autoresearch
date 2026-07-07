@@ -166,9 +166,9 @@ where methods should change.
   `protenix_confidence_v1`. All six run specs preflight clean with complete
   MSA reuse. They must remain `deferred:await_p14_score` until the live v2 P14
   row has been merged/scored.
-- `2026-07-07 01:53 CDT` P14 gate: the live v2 target-sharded scoreable
+- `2026-07-07 01:57 CDT` P14 gate: the live v2 target-sharded scoreable
   Protenix5 attack remains healthy but not merge-ready. `check-shards` sees
-  187/370 expected candidate CIFs, all six Slurm jobs `812239..812244` are
+  189/370 expected candidate CIFs, all six Slurm jobs `812239..812244` are
   still running, and shard plus Slurm log error scans found no
   traceback/OOM/CUDA/killed signatures. Do not launch P15/P25/O5 before P14 is
   merged/scored or explicitly abandoned.
@@ -902,13 +902,19 @@ competitive result.
     full-construct exact entity candidates: the same `T1228V1` and `T1278`
     classes as before. The extra new `T1278` hits are alignment-unverified
     local/partial sequence hits, not immediate refmap promotions.
-55. `2026-07-07 01:53 CDT` P14 readiness check: all six shard jobs are still
-    RUNNING on GH200 nodes. `check-shards` sees 187/370 candidates, 183 missing
+55. `2026-07-07 01:57 CDT` P14 readiness check: all six shard jobs are still
+    RUNNING on GH200 nodes. `check-shards` sees 189/370 candidates, 181 missing
     candidates, 0/6 complete shards, and 74 incomplete target tasks. Error
     scans across shard and Slurm logs remain clean. Keep waiting for full
     readiness before merge/score; do not launch P15/P25/O5 while P14 is still
     unscored.
-56. `2026-07-07 00:23 CDT` live `refmap-probe` was expanded from the 40
+56. `2026-07-07 01:57 CDT` post-P14 launch hygiene was refreshed without
+    opening any GPU branch: P15 v4 target shards preflight `6/6 ok`, P18/P25
+    scoreable 25-seed target+seed grid preflights `30/30 ok`, and the D6a
+    domain-sequence-recovery ablation preflights `1/1 ok` with 276/276 MSA
+    chains reusable and 0 stale paths. The refreshed D6a report is
+    `diagnostics/msa_cache/domain_sequence_recovery_after_warmup_preflight.tsv`.
+57. `2026-07-07 00:23 CDT` live `refmap-probe` was expanded from the 40
     `prediction_waiting_on_reference` rows to all 96 v2 missing-reference rows.
     It wrote
     `diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_all_missing_references.tsv`

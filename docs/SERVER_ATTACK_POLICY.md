@@ -142,8 +142,8 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 `rank_eligible=false` until merged. They were submitted as Slurm jobs
 `812239..812244` with `./casp16 run-one --allow-parallel`.
 
-Current launch gate as of `2026-07-07 01:53 CDT`: those six P14 shards are
-still running and not merge-ready. `check-shards` observes 187/370 expected
+Current launch gate as of `2026-07-07 01:57 CDT`: those six P14 shards are
+still running and not merge-ready. `check-shards` observes 189/370 expected
 candidate CIFs and reports `ready=false`. The run is live rather than stalled:
 all shards are progressing through seed 103, including the same class of
 1929-2535 token complex targets that previously blocked the serial attack. Do

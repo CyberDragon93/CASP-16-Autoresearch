@@ -374,14 +374,16 @@ Useful strategy hypotheses:
 34. Model-selection research: collect confidence/consensus after predictions,
     but keep ranked `first_output_only` unless a new benchmark version is
     created.
-35. P14 live scoreable target-sharded attack: as of `2026-07-07 01:53 CDT`,
-    all six v2 shards are still running, with 187/370 expected candidate CIFs
-    observed and 183 missing. Do not score or compare it yet. The next valid
+35. P14 live scoreable target-sharded attack: as of `2026-07-07 01:57 CDT`,
+    all six v2 shards are still running, with 189/370 expected candidate CIFs
+    observed and 181 missing. Do not score or compare it yet. The next valid
     action is `check-shards`; only when it reports `ready=true` should the run
     be merged, scored, and added to the v2 server leaderboard.
 36. P15/P25 launch gate: the v4 scoreable target shards and the v2 25-seed
     scoreable target-seed grid are preparation, not permission to spend more
-    GPU. If P14 shows broad fixed-set signal, prefer the v4 P15 row when the
-    extra `T1278/T2278` reference coverage matters, or the 25-seed row when
+    GPU. Refreshed preflights are clean: P15 `6/6 ok`, P25 `30/30 ok`, and
+    D6a `1/1 ok` with complete MSA reuse. If P14 shows broad fixed-set signal,
+    prefer the v4 P15 row when the extra `T1278/T2278` reference coverage
+    matters, or the 25-seed row when
     candidate selection is the bottleneck. If P14 is weak, shift to input
     repair or a smaller target-lab-derived branch before scaling.
