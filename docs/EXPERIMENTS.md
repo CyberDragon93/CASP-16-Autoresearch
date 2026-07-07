@@ -1118,6 +1118,27 @@ Interpretation: this makes the gap explicit and keeps future agent iterations
 from treating target-lab wins, partial multi-seed outputs, confidence-only
 selection, or DockQ-only oligo diagnostics as server-leaderboard progress.
 
+### 2026-07-06 Exact H-Oligo Scoreable Signal
+
+Decision: keep the running scoreable `protenix5` v2 attack alive, and do not
+replace it with the oligo-first successor while it is still producing exact
+oligo artifacts.
+
+Evidence: registered
+`server_v2_scoreable_attack_seed101_partial_diagnostic_20260707` as a
+rank-ineligible one-candidate diagnostic pointing at the current partial output
+of `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
+It has 32 prediction files: 24 domain targets and 8 exact H-oligo targets. The
+domain fixed-set mean remains `0.099576`. The oligo fixed-set mean is now
+`0.011346`, with nonzero QSglob on `H0223=0.591`, `H0225=0.270`,
+`H0233=0.221`, `H0222=0.074`, and `H0227=0.024`.
+
+Interpretation: exact QSglob scoring is not globally broken for H complexes,
+and the current v2 scoreable stack has real oligo signal before multi-candidate
+selection. Wait for the full five declared seeds before making an attack-tier
+claim; use `scoreable_target_subset_oligo_first_v1` only as a retry/successor
+if the current run fails or stalls.
+
 ### 2026-07-06 Terminal Tag Cleanup Result
 
 Decision: keep `yang_terminal_tag_cleanup_v1` as a weak positive construct
