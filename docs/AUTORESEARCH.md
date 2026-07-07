@@ -1757,6 +1757,26 @@ competitive result.
      The probe found `0` hits and `0` candidate rows, so these families should
      move to manual native/provenance search plus biological assembly/QSglob
      mapping instead of another search-depth-only RCSB loop.
+120. `2026-07-07 15:05 CDT` P25 live gate refresh: still not merge-ready.
+     `finish_status=not_ready`, `action=wait_for_declared_candidates`,
+     `ready=false`, `compatible=true`, `1269` observed candidates, `789`
+     shard-level missing candidates, and `719` full 25-candidate slots
+     missing. Complete full-budget tasks remain `1/79`, and the same five
+     zero-output rows are pending behind the `gh` `MaxJobsPU=20` limit.
+     Error-keyword scanning is clean; recent CIF/log writes reached 15:05 CDT
+     on shard01 `H0236`. Continue waiting for declared candidates.
+121. `2026-07-07 15:08 CDT` Lane F final oligo reference probe:
+     corrected the final worklist to use the detailed
+     `casp16_server_protein_v2_aliasfix_missing_references.tsv` rows, then ran
+     `./casp16 refmap-probe` at identity `0.90` over the remaining Lane F
+     targets `T1292O`, `T1294V1O`, and `T0240O/T1240O/T2240O`. Outputs are
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_final_oligo_targets.tsv`
+     and
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_final_oligo_candidates.tsv`.
+     The corrected probe found `0` hits and `0` candidate rows, completing
+     relaxed RCSB sequence-probe coverage for all 13 Lane F families and all
+     35 target rows. Lane F should now move to manual native/provenance plus
+     QSglob assembly mapping only; do not run another search-depth-only loop.
 
 ## Run Discipline
 

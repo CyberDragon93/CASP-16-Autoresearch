@@ -179,6 +179,23 @@ Do not spend another pass on RCSB sequence depth alone; the next useful work is
 manual native/provenance search and, for any candidate that appears, explicit
 biological assembly plus QSglob chain/interface mapping.
 
+2026-07-07 15:08 CDT follow-up: the final relaxed RCSB probe covered the last
+three Lane F oligo families:
+`T1292O`, `T1294V1O`, and `T0240O/T1240O/T2240O`. It used the same
+`identity_cutoff=0.90` and `max_hits=25`, checked 5 rows, found 0 hits, and
+wrote:
+
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_final_oligo_worklist.tsv`
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_final_oligo_targets.tsv`
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_final_oligo_candidates.tsv`
+
+Lane F relaxed RCSB sequence probing is now exhausted across all 13 families
+and 35 target rows. The only candidate rows from the whole Lane F sweep are the
+unverified short `T0257O/T1257O/T2257O` tail-fiber domain/template hits above.
+Do not run another search-depth-only Lane F loop; the next useful step is
+manual native/provenance search and explicit biological assembly/QSglob
+mapping if a true native candidate appears.
+
 ### Lane C: Input Or Alias Repair Before Reference
 
 These rows are not primarily reference-map work yet:

@@ -1,0 +1,6 @@
+priority	target_id	track	blocker_class	sequence_lookup_id	source_alias	sequence_kind	length	hit_count	hits
+29	T1292O	protein_oligo	prediction_waiting_on_reference	T1292	T1292	proteinChain	196	0	no_hits
+30	T1294V1O	protein_oligo	prediction_waiting_on_reference	T1294V1	T1294V1	proteinChain	214	0	no_hits
+35	T1240O	protein_oligo	prediction_waiting_on_reference	T1240	T1240	proteinChain	653	0	no_hits
+36	T0240O	protein_oligo	prediction_waiting_on_reference	T0240	T0240	proteinChain	653	0	no_hits
+76	T2240O	protein_oligo	reference_registry_gap	T2240	T2240	proteinChain	653	0	no_hits
