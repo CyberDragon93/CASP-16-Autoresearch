@@ -180,7 +180,9 @@ where methods should change.
   is now documented as a design gate in `docs/CASP16_WINNER_RECIPES.md`. It
   captures the MULTICOM4/QA4-style lesson: if P14 is complete and valid but
   weak, build target-agnostic MSA/model-diversity plus QA with real MSA/template
-  settings instead of disabling MSA or blindly scaling one Protenix input.
+  settings instead of disabling MSA or blindly scaling one Protenix input. Its
+  non-executable budget design is recorded in
+  `attack_budgets/casp16_server_attack_msa_model_diversity_v1.json`.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and

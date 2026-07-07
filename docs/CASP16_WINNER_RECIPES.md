@@ -66,9 +66,11 @@ Predeclared branch name:
 casp16_server_attack_msa_model_diversity_v1
 ```
 
-This is a design gate, not a queued run. It should become an attack-budget JSON
-only after P14 is scored and after the actual variant inputs can be generated
-without target-specific tuning.
+This is a design gate, not a queued run. It should become an executable
+attack-budget/run-spec set only after P14 is scored and after the actual
+variant inputs can be generated without target-specific tuning.
+The non-executable budget design lives at
+`attack_budgets/casp16_server_attack_msa_model_diversity_v1.json`.
 
 Candidate budget sketch:
 
