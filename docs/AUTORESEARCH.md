@@ -1813,10 +1813,10 @@ competitive result.
      tetrameric or 34-meric assemblies versus 2-chain target rows. No current
      Lane D assembly is accepted for refmap promotion; future progress needs
      native assembly provenance plus explicit QSglob chain/interface mapping.
-125. `2026-07-07 15:22 CDT` P25 live gate plus Lane E domain search review:
+125. `2026-07-07 15:23 CDT` P25 live gate plus Lane E domain search review:
      P25 is still not merge-ready but continues to advance: `ready=false`,
-     `compatible=true`, `1341` observed candidates, `717` shard-level missing
-     candidates, and `647` full 25-candidate slots missing. While waiting,
+     `compatible=true`, `1348` observed candidates, `710` shard-level missing
+     candidates, and `640` full 25-candidate slots missing. While waiting,
      built
      `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_e_remaining_domain_worklist.tsv`
      from all Lane E domain families and ran `./casp16 refmap-probe` at

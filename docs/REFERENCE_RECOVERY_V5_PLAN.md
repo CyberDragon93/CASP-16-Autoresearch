@@ -15,6 +15,7 @@ Source artifacts:
 - `diagnostics/reference_gap/casp16_server_protein_latest_oligo_assembly_audit.tsv`
 - `diagnostics/reference_gap/casp16_server_protein_v5_refmap_recovery_queue.tsv`
 - `diagnostics/reference_gap/casp16_server_protein_v5_input_alias_repair_candidates.tsv`
+- `diagnostics/reference_gap/casp16_server_protein_v5_lane_e_domain_search_review.tsv`
 
 `casp16_server_protein_v4_refmap` has severe reference-limited score caps:
 
@@ -289,7 +290,7 @@ and the header-only candidate TSV beside it. These rows should now be treated
 as native/provenance manual-search work, not as candidates for another
 search-depth-only RCSB loop.
 
-2026-07-07 15:22 CDT follow-up: a unified Lane E relaxed RCSB sweep covered
+2026-07-07 15:23 CDT follow-up: a unified Lane E relaxed RCSB sweep covered
 all 16 queued domain families and all 36 target rows at `identity_cutoff=0.90`
 with `max_hits=25`. Outputs are:
 
@@ -309,10 +310,10 @@ native/provenance search plus explicit domain crop mapping.
 
 | Priority | Target | Server best score | Next action |
 | ---: | --- | ---: | --- |
-| 1 | `T1292` | 1.000000 | manual native/reference search |
+| 1 | `T1292` | 1.000000 | manual native/reference search; relaxed RCSB probe exhausted |
 | 2 | `T0240/T1240/T2240` | 0.997600 | manual native/reference search; relaxed RCSB probe exhausted |
 | 3 | `T1274/T2274` | 0.997200 | manual native/reference search; relaxed RCSB probe exhausted |
-| 4 | `T1294V1` | 0.994000 | manual native/reference search |
+| 4 | `T1294V1` | 0.994000 | manual native/reference search; relaxed RCSB probe exhausted |
 | 5 | `T1279/T2279` | 0.991700 | manual native/reference search; relaxed RCSB probe exhausted |
 | 6 | `T1231/T2231` | 0.982400 | manual native/reference search; relaxed RCSB probe exhausted |
 | 7 | `T1276/T2276` | 0.982000 | verify input repair state, then manual native/reference search |
