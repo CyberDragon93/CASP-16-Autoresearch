@@ -21,6 +21,33 @@ per-target oracles.
 - AlphaFold3 CASP16 preprint:
   https://www.biorxiv.org/content/10.1101/2025.04.10.648174v1.full-text
 
+## Source-To-Experiment Map
+
+The public recipes converge on a few concrete actions we can reproduce without
+using references or official scores as prediction oracles:
+
+- Yang-Server/Yang-Multimer: optimize inputs before prediction. Their public
+  CASP16 report emphasizes removing predicted disordered regions from both
+  query sequences and MSAs, using multiple strong engines, and treating model
+  selection as an unresolved weakness. Local reproductions are D1/D6/D6a input
+  cleanup, domain-aware target-lab work, and a separate predeclared selection
+  policy for attack budgets.
+- MULTICOM4: make the candidate pool more diverse, not just larger. The paper
+  highlights diverse MSA generation, domain-based alignments, extensive
+  sampling, complementary QA, and clustering. Local reproduction should be a
+  new MSA/model-variant budget only after P14 clarifies whether current
+  failures are still simpler input/coverage problems.
+- CASP16 complex assessment: multimer progress came from AF3 and extensive
+  sampling, but model ranking stayed weak. Antibody-antigen targets remain a
+  separate frontier where Kozakov/Vajda-style docking performed unusually
+  well, and high-order stoichiometry remains hard. Local reproductions are O1
+  stoichiometry repair, O5 Fv/docking-inspired branches, and O6 selection
+  research after exact QSglob rows exist.
+- AF3-style systems: useful as a strong engine family, but manual large-target
+  intervention is not a server-like automatic rule unless it is predeclared as
+  a target-agnostic transformation. Local reproductions must stay split between
+  `dev_fixed`, `server_attack`, and target-lab/manual diagnostics.
+
 ## Current Recipe Ladder
 
 This is the active decision ladder for turning winner clues into local
