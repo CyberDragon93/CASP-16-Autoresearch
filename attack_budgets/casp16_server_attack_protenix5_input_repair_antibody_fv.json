@@ -1,0 +1,74 @@
+{
+  "name": "casp16_server_attack_protenix5_input_repair_antibody_fv",
+  "tier": "server_attack",
+  "status": "prepared_deferred_await_p25_score",
+  "parent_benchmark": "casp16_server_protein_v2_aliasfix",
+  "source_recipe": "O5 antibody/Fv constant-region cleanup with real MSA/template settings",
+  "strategy": "target_shards_scoreable_input_repair_antibody_fv_size_balanced_v1_server_attack_protenix5",
+  "base_strategy": "target_shards_scoreable_input_repair_size_balanced_v1_server_attack_protenix5",
+  "fixed_scoring_targets": 175,
+  "scoreable_jobs_kept": 79,
+  "target_shard_count": 6,
+  "seeds": ["101", "102", "103", "104", "105"],
+  "sample_per_seed": 1,
+  "candidate_count": 5,
+  "selected_model_policy": "protenix_confidence_v1",
+  "model_name": "protenix-v2",
+  "input_json": "strategies/scoreable_input_repair_antibody_fv_cleanup_v1/casp16_server_protein_v2_aliasfix/inputs.json",
+  "input_manifest": "strategies/scoreable_input_repair_antibody_fv_cleanup_v1/casp16_server_protein_v2_aliasfix/manifest.tsv",
+  "input_sha256": "46c92bfafd22e1a4ccb6e74c88c40dbb871e8e91b5c863201a43e9daa2b321c3",
+  "input_manifest_sha256": "145cd06bd8bb5d46449bd960089aba44a80ab495104569615e0e8e273ab52f71",
+  "shard_manifest": "attack_budgets/casp16_server_attack_protenix5_input_repair_antibody_fv_shards.tsv",
+  "target_shard_preflight_tsv": "diagnostics/msa_cache/protenix5_input_repair_antibody_fv_preflight.tsv",
+  "target_shard_preflight_sha256": "2952dfd87ba0066215b32e845457a491d8d81150eab84c13430956d6448c60a1",
+  "input_transform": {
+    "jobs": 79,
+    "protein_sequences": 146,
+    "changed_sequences": 24,
+    "changed_targets": 12,
+    "rule": "target-agnostic antibody variable-domain end motif trimming; no target score or reference access"
+  },
+  "preflight": {
+    "rows": 6,
+    "ok": 6,
+    "blocked": 0,
+    "missing": 0,
+    "msa_protein_chains": 146,
+    "msa_usable_covered": 146,
+    "msa_stale_covered": 0,
+    "msa_coverage_fraction": 1.0
+  },
+  "prediction_policy": {
+    "use_msa": true,
+    "use_template": true,
+    "use_default_params": false,
+    "enable_cache": true,
+    "enable_fusion": true,
+    "enable_tf32": true,
+    "msa_reuse": "global exact-sequence cache with require_complete"
+  },
+  "variant_from_p25_input_repair": {
+    "changed_knob": "trim antibody-like constant regions on sequence-detected Fv chains",
+    "unchanged": [
+      "benchmark",
+      "repaired scoreable target subset",
+      "seeds",
+      "sample count",
+      "MSA/template enabled",
+      "candidate selection policy",
+      "non-antibody target sequences"
+    ]
+  },
+  "forbidden_selection_signals": [
+    "native or reference structures",
+    "official CASP score tables",
+    "previous target_scores.csv values",
+    "leaderboard rows used as a per-target oracle",
+    "manual per-target intervention after seeing scores"
+  ],
+  "launch_gate": [
+    "Do not submit while P25 is running or unscored.",
+    "Use only if P25 shows oligo/Fv rows remain a recoverable weakness and the post-P25 decision selects O5 antibody/Fv input handling.",
+    "Keep this as a separate server_attack row; do not merge it into P17, P25, or P27b."
+  ]
+}

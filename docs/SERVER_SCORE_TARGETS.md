@@ -189,12 +189,14 @@ This helper reads only `runs.csv`, `target_scores.csv`, and benchmark target
 metadata. It does not read native structures, official per-target score tables,
 or prediction outputs, and it does not submit jobs.
 
-Current live P25 status, checked `2026-07-07 09:55 CDT`: P17 overlay is merged
+Current live P25 status, checked `2026-07-07 10:45 CDT`: P17 overlay is merged
 and scored. The 24 seed106-125 GH200 target-seed jobs `812935..812958` are
 submitted after `24/24 ok` preflight with complete MSA reuse and 0 stale paths.
-Do not score the 25-candidate row, launch a competing branch, or make a
-winner-comparison claim before those jobs finish and are merged with the
-seed101-105 overlay.
+The latest readiness check is `ready=false` with 604 observed candidates and
+1371 full merged candidate slots still missing. Use `--candidate-count 5
+--merged-candidate-count 25` for target+seed readiness. Do not score the
+25-candidate row, launch a competing branch, or make a winner-comparison claim
+before those jobs finish and are merged with the seed101-105 overlay.
 
 ## Post-P17 Decision Matrix
 
@@ -215,7 +217,7 @@ Readout order:
    shard snapshot: domain fixed mean `0.049685`, exact-domain partial probe
    mean `0.099576`, P14 domain mean `0.102777`, and P14 oligo mean
    `0.116923`.
-4. Pick one next GPU branch. Do not launch P15, P18/P25, P27a, D6a, and O5 in
+4. Pick one next GPU branch. Do not launch P15, P18/P25, P27b, D6a, and O5b in
    parallel unless a later score readout records why the extra spend is worth
    it.
 
@@ -225,8 +227,8 @@ Readout order:
 | P17 has good scoreable-target signal but most full-set zeros are still no-reference rows | Reference recovery can unlock more local measurement without changing the prediction recipe | Launch/refresh P15 on a versioned refmap benchmark, and keep broader refmap work versioned |
 | Scoreable rows are still `missing_prediction`, `metric_failed`, or exact oligo rows are not found | This is a pipeline/input/scorer failure, not a sampling failure | Fix the failure class before launching P25 |
 | Domain zeros concentrate on known input-kind or sequence-alias repair classes such as `T1276/T1228V1/T1239V1/T2276` | More seeds will repeat bad inputs | Run D6a single-seed domain sequence recovery after MSA warmup |
-| Exact QSglob remains weak mainly on antibody/Fv rows after phase-alias stoichiometry is fixed, while non-antibody exact oligos are no longer all zero | Oligo branch may need Fv/docking-inspired input handling | Launch the prepared O5 antibody-Fv target shards |
-| Predictions and metrics are valid, but P17 remains near P14 and exact oligo QSglob is mostly zero | Current Protenix recipe is not enough; scaling seeds alone is low leverage | Retarget P27a/default-params or build the broader MSA/model-variant budget before spending winner-scale compute |
+| Exact QSglob remains weak mainly on antibody/Fv rows after phase-alias stoichiometry is fixed, while non-antibody exact oligos are no longer all zero | Oligo branch may need Fv/docking-inspired input handling | Launch the repaired-input O5b antibody-Fv target shards |
+| Predictions and metrics are valid, but P25 remains near P17 and exact oligo QSglob is mostly zero | Current Protenix recipe is not enough; scaling seeds alone is low leverage | Launch P27b/default-params or build the broader MSA/model-variant budget before spending another winner-scale grid |
 
 Prepared branch readiness to revisit after P17:
 
@@ -236,8 +238,10 @@ Prepared branch readiness to revisit after P17:
 | superseded P18 74-target scoreable grid | `30/30 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix25_scoreable_target_seed_run_preflight.tsv` |
 | P25 repaired 79-target scoreable grid | seed106-125 jobs `812935..812958` submitted after `24/24 ok`, complete MSA reuse, 0 stale; readiness remains false until all submitted jobs finish and merge with the seed101-105 overlay | `diagnostics/msa_cache/protenix25_scoreable_input_repair_target_seed_run_preflight.tsv`, `diagnostics/score_probes/protenix25_scoreable_input_repair_target_seed_readiness.tsv` |
 | P27a default-params model/config variant | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_defaultparams_model_variant_preflight.tsv` |
+| P27b repaired-input default-params variant | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_input_repair_defaultparams_model_variant_preflight.tsv` |
 | D6a domain sequence recovery | `1/1 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/domain_sequence_recovery_after_warmup_preflight.tsv` |
 | O5 antibody-Fv target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_antibody_fv_target_run_preflight.tsv` |
+| O5b repaired-input antibody-Fv target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_input_repair_antibody_fv_preflight.tsv` |
 
 ## What Counts As Progress
 

@@ -125,6 +125,18 @@ specs are `deferred:await_p25_score` and rank-ineligible until merged through a
 future explicit decision. Do not submit this branch while P25 is running or
 unscored.
 
+The repaired-input antibody/Fv branch is also prepared but gated behind P25.
+Its machine-readable budget is
+`attack_budgets/casp16_server_attack_protenix5_input_repair_antibody_fv.json`,
+with shard rows in
+`attack_budgets/casp16_server_attack_protenix5_input_repair_antibody_fv_shards.tsv`.
+It uses the same repaired 79-job scoreable input, seeds `101..105`, real
+MSA/template settings, and `protenix_confidence_v1` selector as the starter
+attack tier, while applying target-agnostic antibody constant-region trimming
+to 24 protein sequences across 12 targets. All six run specs are
+`deferred:await_p25_score` and rank-ineligible until a future explicit
+decision. Do not submit this branch while P25 is running or unscored.
+
 For very large scoreable inputs, target-size sharding is allowed as an
 execution-only optimization when every shard uses the same declared budget and
 strategy. A target-sharded merge must be explicit:

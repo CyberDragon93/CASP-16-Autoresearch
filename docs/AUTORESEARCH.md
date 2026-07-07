@@ -313,6 +313,16 @@ where methods should change.
   `use_default_params:false -> true`. Batch preflight is `6/6 ok` with
   `146/146` reusable protein chains and 0 stale paths. It is explicitly
   `deferred:await_p25_score`; do not submit it while P25 is running or unscored.
+- The repaired-input O5b antibody/Fv successor is now prepared as
+  `attack_budgets/casp16_server_attack_protenix5_input_repair_antibody_fv.json`
+  plus six deferred target shards
+  `server_v2_attack_scoreable_input_repair_antibody_fv_shard01..06_msa_reuse_protenix5_seed101_105`.
+  It retargets the sequence-only antibody constant-region cleanup onto the
+  P17/P25 79-job repaired scoreable input, changing 24 protein sequences across
+  12 antibody-like targets while preserving all 79 job names. Batch preflight is
+  `6/6 ok` with `146/146` reusable protein chains and 0 stale paths. It is
+  explicitly `deferred:await_p25_score`; launch only if the complete P25 readout
+  shows antibody/Fv oligos remain the next recoverable weakness.
 - `diversity_confidence_consensus_v1` is now wired as a prediction-only
   selector for future diversity budgets. It extends `protenix_confidence_v1`
   with optional consensus/cluster-support fields from run-local confidence or
@@ -1237,12 +1247,15 @@ competitive result.
     this wait is inference/shard completion, not repeated MSA work. The
     readiness TSV is now generated with `missing_tasks=none` for complete
     shards, so polling no longer needs hand cleanup.
-75. `2026-07-07` P25/P27b checkpoint: live Slurm status still shows the
+75. `2026-07-07 10:45 CDT` P25/P27b checkpoint: live Slurm status still shows the
     repaired P25 seed106-125 grid incomplete, with 19 GH jobs running and 5
     pending behind `QOSMaxJobsPerUserLimit`; do not merge or score it yet. A
     refreshed `check-shards` pass reports `ready=false`, `compatible=true`,
-    `600` observed candidates, `1450` shard-level candidates still missing,
-    and `1375` full 25-candidate slots still missing. A repaired-input
+    `604` observed candidates, `1446` shard-level candidates still missing,
+    and `1371` full 25-candidate slots still missing. This readiness check must
+    keep the execution shard budget at `--candidate-count 5` and the merged row
+    budget at `--merged-candidate-count 25`; otherwise target+seed shards are
+    falsely treated as incomplete 25-candidate execution shards. A repaired-input
     default-params model/config branch, P27b, is now fully documented but still
     deferred:
     `attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant.json`
@@ -1251,6 +1264,16 @@ competitive result.
     and all rows remain `deferred:await_p25_score`. Use P27b only if the
     complete P25 score shows that extra seed scaling is weak and
     target-agnostic model/config diversity is the next best compute spend.
+76. `2026-07-07` O5b repaired-input branch: the old 74-job antibody/Fv scoreable
+    branch is now superseded for future launch decisions by
+    `casp16_server_attack_protenix5_input_repair_antibody_fv`. The new O5b
+    artifact applies the same sequence-only Fv constant-region trimming to the
+    P17/P25 79-job repaired input, preserves the repaired five added jobs
+    (`T1212/T1239V2/T1249V2O/T1269V1O/T2249V2O`), changes 24 sequences across
+    12 antibody-like targets, and shards into six target-balanced run specs.
+    Preflight is `6/6 ok` with complete MSA reuse (`146/146`, 0 stale), and all
+    six rows are `deferred:await_p25_score`. Do not submit O5b before P25 is
+    complete and scored.
 
 ## Run Discipline
 
