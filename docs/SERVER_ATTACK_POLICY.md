@@ -170,25 +170,27 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 
 P14 is now historical: it completed, merged, and scored as the five-candidate
 scoreable baseline, then P17 added the five repaired scoreable targets through
-an overlay. The current live launch gate is P25, checked `2026-07-07 13:37
+an overlay. The current live launch gate is P25, checked `2026-07-07 14:52
 CDT`: seed106-125 target-seed shards `812935..812958` are submitted, with 19
 P25 jobs running and 5 pending behind `QOSMaxJobsPerUserLimit`. `check-shards`
-reports `ready=false`, `compatible=true`, `1091` observed candidates, `959`
-shard-level candidates missing, and `889` full 25-candidate slots missing.
+reports `ready=false`, `compatible=true`, `1258` observed candidates, `800`
+shard-level candidates missing, and `730` full 25-candidate slots missing.
 Shard05 seed121-125 and all shard06 seed blocks are still zero-output. Error
 scanning remains clean, `run-next --dry-run` reports `no_pending_runs`, and the
 bottleneck is still Protenix forward plus queue limits rather than repeated MSA
 search. Do not merge, score, submit O5b/P27b, D6a, or make winner-comparison
 claims until P25 is complete and merged with the P17 seed101-105 overlay.
 
-The first prepared model/config-diversity successor is
-`attack_budgets/casp16_server_attack_protenix5_defaultparams_model_variant.json`.
-It uses the same v2 scoreable target shards, seeds `101..105`, sample count,
-real MSA/template settings, and `protenix_confidence_v1` selector as P14, but
-flips only `use_default_params:false -> true`. Its six shard specs are
-`deferred:await_p14_score`, rank-ineligible, and batch preflight clean with
-complete MSA reuse. Treat it as P27a: launch only if the post-P14 decision
-matrix selects model/config diversity, and keep it as a separate attack row.
+The old P27a model/config-diversity successor targeted the pre-P17 74-job
+scoreable input and remains provenance only. The executable current successor
+is P27b:
+`attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant.json`.
+It uses the repaired 79-job v2 scoreable target shards, seeds `101..105`,
+sample count, real MSA/template settings, and `protenix_confidence_v1`
+selector, flipping only `use_default_params:false -> true`. Its six shard specs
+are `deferred:await_p25_score`, rank-ineligible, and batch preflight clean with
+complete MSA reuse. Launch only if the complete P25 readout selects
+model/config diversity, and keep it as a separate attack row.
 
 The prepared v4 successor uses
 `casp16_server_protein_v4_refmap` and 76 scoreable jobs because audited

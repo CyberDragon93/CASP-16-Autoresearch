@@ -26,16 +26,16 @@ per-target scores during prediction.
 
 ## Active Gate
 
-Checked `2026-07-07 14:41 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 14:52 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1206` |
-| shard-level missing candidates | `850` |
-| full 25-candidate slots still missing | `780` |
+| observed candidates | `1258` |
+| shard-level missing candidates | `800` |
+| full 25-candidate slots still missing | `730` |
 | complete full-budget tasks | `1 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; `gh` `MaxJobsPU=20` and one `tacc-vscode` job is also running |
 | health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes still advancing |
@@ -104,10 +104,9 @@ explain aggregate gains/losses and selector behavior; do not use those target
 deltas to tune prediction inputs target by target.
 Use `./casp16 post-p25-branch-readiness` while P25 is still running to verify
 that all deferred branch artifacts remain launch-clean. Latest read-only audit:
-P27b, D6a, O5b, and P15/v4 are all launch-ready after P25 selection; P27b and
-O5b lifecycle rows already say `deferred:await_p25_score`, while D6a and P15/v4
-still carry older `deferred:await_p14_score` status text but have complete
-run specs and `ok` preflights.
+P27b, D6a, O5b, and P15/v4 are all launch-ready after P25 selection, and all
+four branch families now have `deferred:await_p25_score` lifecycle rows plus
+complete run specs and `ok` preflights.
 
 | Branch | Trigger | Budget or manifest | Preflight | Launch shape |
 | --- | --- | --- | --- | --- |

@@ -1692,6 +1692,18 @@ competitive result.
      over P25 stdout/stderr found no traceback/OOM/killed signatures, and
      `post-p25-branch-readiness` still reports all four deferred branches
      launch-ready. No new GPU branch should be submitted from this state.
+115. `2026-07-07 14:52 CDT` P25 live gate refresh and branch-label cleanup:
+     P25 is still incomplete but moving (`ready=false`, `compatible=true`,
+     `1258` observed candidates, `800` shard-level missing candidates, and
+     `730` full 25-candidate slots missing). Slurm still has 19 P25 jobs
+     running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; the same
+     zero-output rows are shard05 seed121-125 and all shard06 seed blocks, so
+     this remains a queue/forward-time wait rather than an MSA-cache failure.
+     Error-keyword scans over the P25 logs are clean. The read-only
+     `post-p25-branch-readiness` audit now shows P27b, D6a, O5b, and P15/v4
+     all launch-ready with `deferred:await_p25_score` lifecycle rows and `ok`
+     preflights. Updated the live control docs to prevent later agents from
+     reading stale `await_p14` labels as current launch instructions.
 
 ## Run Discipline
 
