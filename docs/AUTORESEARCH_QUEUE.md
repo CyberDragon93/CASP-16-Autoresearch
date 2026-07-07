@@ -35,7 +35,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | done | `target_lab/small_complex_stoich_batch_v1` | target_lab only | job `811114` complete; 6/6 structures and confidence files | Compact batch for exact stoichiometry plus H1258 window learning | DockQ diagnostic: H1233 strong positive `0.850`, H1236 moderate `0.206`, H1232 weak `0.023`, H1258 window chain mapping failed; promote only target-agnostic exact-stoich/QSglob work |
 | done | `target_lab/domain_fragment_batch_v1` | target_lab only | job `810862` complete; 12/12 structures and confidence files | Compact domain-decomposition reproduction for D2 winner recipe | Diagnostic confidence is high on most fragments; promote only target-agnostic segmentation, not CASP-domain hand crops |
 | target_lab | `811918` | `targetlab_protenix_yang_antibody_fv_seed101` | target_lab only | complete on `c620-142`; 8/8 CIFs, confidence summaries, and DockQ diagnostics | Eight full-MSA/template Fv-only antibody-antigen jobs from `yang_antibody_fv_fragment_inputs_v1`; DockQ strong positives `H0233__fv=0.916` and `H1233__fv=0.891`; never ranked |
-| P18 | `casp16_server_attack_protenix25_scoreable_nofail` | `casp16_server_protein_v2_aliasfix` | planned, not queued; shard manifest now points at the 74-job size-first phase-alias scoreable input and requires complete MSA reuse; merge path now also supports explicit target-size shards with `--allow-target-shards --merged-input-json` | Winner-like compute is likely more than five candidates; this is the scoreable-target 25-seed successor to the running `protenix5` attack without repeating stale H0220 A1B1 or early large-target blockers | Launch only after the running scoreable `protenix5` attack is scored or explicitly superseded; prefer target-size shards if large assemblies keep blocking early readout |
+| P18 | `casp16_server_attack_protenix25_scoreable_nofail` | `casp16_server_protein_v2_aliasfix` | prepared, not queued; target+seed shard manifest has 30 rows, reusing the six P14 seed101-105 target shards and adding 24 deferred seed106-125 specs with complete MSA reuse | Winner-like compute is likely more than five candidates; this is the scoreable-target 25-seed successor to the running `protenix5` attack without repeating stale H0220 A1B1, early large-target blockers, or the already submitted first seed block | Launch only after P14 is merged/scored or explicitly superseded; use `check-shards --candidate-count 5 --merged-candidate-count 25` and score only the merged 25-candidate row |
 | P19 | `casp16_server_attack_protenix25_nofail` | `casp16_server_protein_v2_aliasfix` | planned, not queued; keep as full-input ablation while references are incomplete | Same 25-seed budget on the 165-job oligo-recovery nofail stack, with exact-sequence MSA paths reused across shards | Do not launch before reference recovery or a recorded decision to spend compute on full-input ablation |
 | deferred | `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101` | `casp16_server_protein_v2_aliasfix` | deferred:behind_phase_alias_attack; 169 jobs, 0 over-token, 269/276 protein chains have cached MSA; min cache reuse floor is 0.97 | Reference-gap triage found protein-domain targets misparsed as DNA or empty jobs (`T1276/T1228V1/T1239V1/T2276` class), but it requires 7 fresh-MSA chains and is a single-seed ablation | Re-enable after the phase-alias scoreable attack or after fresh MSA is intentionally materialized |
 
@@ -196,10 +196,13 @@ silently changing this one.
 
 The scoreable nofail 25-candidate tier now exists as
 `attack_budgets/casp16_server_attack_protenix25_scoreable_nofail.json`.
-It uses the same 25 seeds, but predicts the 74 locally scoreable jobs and keeps
+It uses the same 25 seeds, predicts the 74 locally scoreable jobs, and keeps
 the locked 175-target scoring set through the benchmark `input_manifest.tsv`.
-This is the preferred winner-scale plan if the running scoreable `protenix5`
-row is positive.
+The launch manifest
+`attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv`
+is prepared as a six target-shard by five seed-block grid. The first seed block
+reuses the active P14 `protenix5` target shards; the remaining 24 seed106-125
+run specs are deferred until P14 justifies the GPU-hours.
 
 The oversize-domain fallback result is a reminder to spend realistic attack
 compute carefully: extra seeds will not fix hard Protenix token-limit failures,
@@ -239,7 +242,7 @@ internal candidate.
 | done | `yang_protein_oligo_sequence_stoich_token_safe_v1` | composed into no-over-token stack | H0220/H1220/H2220-style false zeros may be bad input modality/sequence recovery problems before they are scorer problems | Next comparison should use the oligo-recovery nofail stack |
 | cancelled | `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1` | full-input `dev_fixed` job `810938` cancelled at no-reference `T1295`; partial artifacts kept | Current strongest runnable v2 input stack became the parent for scoreable-subset attack | Do not resume full-input dev before reference recovery |
 | P23 | `protenix25` attack tier | budget JSON and shard TSV created, not queued; merge path implemented | Winner-scale comparison needs more than the starter five candidates | Keep as broader full-input ablation; use scoreable 25-seed first while references are incomplete |
-| P24 | `protenix25_scoreable_nofail` attack tier | budget JSON and shard TSV retargeted to size-first phase-alias input, not queued; merge path already available; active P13/P14 attack specs already have 141/141 protein-chain MSA reuse | If the scoreable no-over-token v2 stack wins, spend 25 seeds on locally scoreable jobs without repeating MSA search in every shard or starting each shard on large blockers | Launch only after the running scoreable `protenix5` evidence justifies the GPU-hours; score only via merged run |
+| P24 | `protenix25_scoreable_nofail` attack tier | budget JSON, target+seed shard TSV, readiness TSV, and 24 deferred seed106-125 run specs prepared; active P14 supplies the reusable seed101-105 block | If the scoreable no-over-token v2 stack wins, spend 25 seeds on locally scoreable jobs without repeating MSA search in every shard or starting each shard on large blockers | Launch only after P14 evidence justifies the GPU-hours; score only via merged run with `--merged-candidate-count 25` readiness |
 | P25 | `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101` | deferred dev-fixed run spec | Repairs domain inputs that reference-gap triage exposed as protein-vs-DNA/empty parsing failures while keeping the strongest v2 nofail stack under the token limit | Do not queue multi-seed until the phase-alias attack is handled and the 7 fresh-MSA chains are materialized or deliberately accepted as fresh work |
 
 ## Evidence Links

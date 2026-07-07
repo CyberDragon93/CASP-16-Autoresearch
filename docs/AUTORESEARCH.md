@@ -621,10 +621,11 @@ competitive result.
     active v2 nofail row and scoreable-subset MSA attack are handled. It is a
     narrow construct-cleanup ablation, not a replacement for the current main
     queue.
-28. Use `casp16_server_attack_protenix25_scoreable_nofail` as the planned
+28. Use `casp16_server_attack_protenix25_scoreable_nofail` as the prepared
     winner-scale successor if the running scoreable `protenix5` row is
-    positive. Keep the older 165-job `protenix25_nofail` as a full-input
-    ablation until references are recovered.
+    positive. It now reuses the P14 seed101-105 target shards and has 24
+    deferred seed106-125 specs ready. Keep the older 165-job `protenix25_nofail`
+    as a full-input ablation until references are recovered.
 29. `2026-07-06 20:36 CDT` MSA cache audit: both active scoreable attack specs,
     `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`
     and
@@ -679,6 +680,18 @@ competitive result.
     are append-only marked `deferred:base_target_shards_first`. This keeps the
     O5 winner-recipe branch executable while preserving queue priority for the
     base target-sharded scoreable attack.
+35. `2026-07-06 21:47 CDT` prepared the P18 scoreable `protenix25` attack as
+    an executable target-shard x seed-block grid without submitting more GPU
+    work. The manifest
+    `attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv`
+    has 30 execution rows: six existing P14 seed101-105 target shards to reuse
+    and 24 new deferred seed106-125 run specs. Every new spec has complete MSA
+    reuse (`coverage_fraction=1.0`, `missing_source=0`), is
+    `rank_eligible=false`, and is append-only marked
+    `deferred:await_protenix5_score`. The readiness artifact
+    `diagnostics/score_probes/protenix25_scoreable_target_seed_readiness.tsv`
+    verifies compatibility and records the full merged budget gate:
+    `--candidate-count 5 --merged-candidate-count 25`.
 
 ## Run Discipline
 

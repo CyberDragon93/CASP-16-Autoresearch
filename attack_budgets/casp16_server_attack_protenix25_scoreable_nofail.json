@@ -2,7 +2,7 @@
   "name": "casp16_server_attack_protenix25_scoreable_nofail",
   "parent_benchmark": "casp16_server_protein_v2_aliasfix",
   "tier": "server_attack",
-  "status": "planned_not_queued",
+  "status": "prepared_not_queued",
   "active_run_id": "",
   "backend": "protenix",
   "model_name": "protenix-v2",
@@ -64,6 +64,10 @@
   "sample_per_seed": 1,
   "total_candidates_per_target": 25,
   "shard_manifest": "attack_budgets/casp16_server_attack_protenix25_scoreable_nofail_shards.tsv",
+  "target_seed_shard_manifest": "attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv",
+  "target_seed_readiness_tsv": "diagnostics/score_probes/protenix25_scoreable_target_seed_readiness.tsv",
+  "reuse_existing_protenix5_shards": 6,
+  "prepared_additional_seed_shard_specs": 24,
   "selected_model_policy": "protenix_confidence_v1",
   "selection_formula": "0.20*plddt_norm + 0.50*ptm + 0.30*iptm - 0.10*disorder - 0.20*has_clash",
   "allowed_selection_signals": [
@@ -83,7 +87,7 @@
   "prediction_policy": {
     "use_msa": true,
     "use_template": true,
-    "use_default_params": true,
+    "use_default_params": false,
     "dtype": "bf16",
     "enable_cache": true,
     "enable_fusion": true,
@@ -92,13 +96,16 @@
   },
   "execution_policy": {
     "submit_as_shards": true,
-    "shard_count": 5,
-    "seeds_per_shard": 5,
+    "shard_count": 30,
+    "target_shard_count": 6,
+    "seed_block_count": 5,
+    "seeds_per_execution_shard": 5,
+    "reuse_seed_101_105_from": "server_v2_attack_scoreable_size_balanced_shard01..06_msa_reuse_protenix5_seed101_105",
     "merge_policy": "score only after every shard has finished or mark the row partial/unranked",
     "reason": "25 scoreable-target seeds are too large for a single honest 48-hour Vista job, and local no-reference jobs should not consume the winner-scale budget before reference recovery."
   },
   "launch_gate": [
-    "score server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105 first, or explicitly supersede it with a recorded reason",
+    "merge and score server_v2_attack_scoreable_size_balanced_shard01..06_msa_reuse_protenix5_seed101_105 first, or explicitly supersede P14 with a recorded reason",
     "use the same 74-job size-first phase-alias scoreable input artifact for every shard",
     "rebuild data/msa_cache/index.tsv if source runs moved, then require complete MSA reuse before launching each shard",
     "do not score a complete row until all 25 declared candidates are present or the row is explicitly partial/unranked",

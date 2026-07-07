@@ -222,15 +222,14 @@ Useful strategy hypotheses:
     domain jobs, keeps 169 jobs below the token limit, and currently needs
     fresh MSA for 7 chains under the pending single-seed run spec before any
     multi-seed promotion.
-17. `casp16_server_attack_protenix25_scoreable_nofail`: planned but not queued.
+17. `casp16_server_attack_protenix25_scoreable_nofail`: prepared but not queued.
     It is the winner-scale 25-seed successor to the scoreable `protenix5`
-    attack. The shard manifest now points at the size-first phase-alias
-    scoreable input, so it will not spend 25 seeds on stale `H0220` `A1B1` or
-    start every shard with the largest exact-oligo blockers. Launch only if the
-    5-seed scoreable row gives a reason to spend the GPU-hours; keep the older
-    165-job
-    `protenix25_nofail` plan as a full-input ablation until reference
-    recovery.
+    attack. The target+seed shard manifest now points at the size-first
+    phase-alias scoreable input, reuses the active P14 seed101-105 target
+    shards, and prepares 24 deferred seed106-125 run specs with complete MSA
+    reuse. Launch only if the 5-seed scoreable row gives a reason to spend the
+    GPU-hours; keep the older 165-job `protenix25_nofail` plan as a full-input
+    ablation until reference recovery.
 18. `scoreable_antibody_fv_oligo_size_first_phase_alias_v1`: queued behind the
     size-first phase-alias row as a risky O5 branch. It promotes the Fv
     target-lab signal into a sequence-only, predeclared scoreable attack input:

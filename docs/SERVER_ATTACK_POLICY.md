@@ -101,14 +101,15 @@ skipped no-reference targets stay local zeros. Each shard must inject
 after the running scoreable `protenix5` attack is scored or explicitly
 superseded.
 
-Because Protenix loops serially over seeds, this budget must be executed as
-five predeclared five-seed shards and merged only after all shards finish. A
-partial 25-seed attempt is unranked unless it is explicitly reported as
-partial. Launch this tier only after the current `protenix5` attack and the
-v2 alias-fixed `dev_fixed` baseline have produced evidence that the extra
-candidate spend is worth the GPU-hours. For the nofail tier, also score the
-v2 oligo-recovery no-over-token dev baseline first, or explicitly record why
-the attack supersedes it.
+Because Protenix loops serially over seeds and large assemblies can block a
+whole serial run, this budget is prepared as a target-shard x seed-block grid:
+six target-balanced shards times five 5-seed blocks. The first seed block
+(`101..105`) is the already submitted P14 `protenix5` target-sharded attack,
+so the 25-candidate plan reuses those six run specs instead of spending that
+compute twice. The remaining 24 run specs for seeds `106..125` are prepared as
+`deferred:await_protenix5_score` and must not be submitted before P14 is
+merged/scored or explicitly superseded. A partial 25-seed attempt is unranked
+unless it is explicitly reported as partial.
 
 For very large scoreable inputs, target-size sharding is allowed as an
 execution-only optimization when every shard uses the same declared budget and
@@ -183,36 +184,42 @@ When the launch gate opens, generate each shard with the TSV row's fields:
   --seeds <shard_seeds> \
   --sample 1 \
   --selected-model-policy protenix_confidence_v1 \
-  --candidate-count 25 \
-  --use-msa --use-template --use-default-params \
-  --enable-cache --enable-fusion
+  --candidate-count <execution_candidate_count_from_shard_tsv> \
+  --no-rank-eligible \
+  --use-msa --use-template --no-use-default-params \
+  --enable-cache --enable-fusion --enable-tf32 \
+  --reuse-global-msa-cache \
+  --msa-reuse-require-complete
 ```
 
 For the nofail tier, use the shard TSV rows from
 `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`; do not
 reuse the older `protenix25` input artifact by accident.
 For the scoreable nofail tier, use
-`attack_budgets/casp16_server_attack_protenix25_scoreable_nofail_shards.tsv`
-and include `--msa-cache-index <msa_cache_index_from_shard_tsv>` plus
-`--msa-reuse-require-complete` on every `run-spec`.
+`attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv`.
+It has 30 execution rows: six existing P14 reuse rows for seeds `101..105` and
+24 deferred rows for seeds `106..125`.
 
-After every shard has completed, register the merged attack row before scoring:
+After every shard has completed, register the merged attack row before scoring.
+For the scoreable target+seed grid, do not hand-write the final merge command;
+first run the readiness check with the full input and final candidate budget:
 
 ```bash
-./casp16 merge-shards \
-  --run-id server_v2_attack_oligo_recovery_nofail_protenix25_seed101_125 \
+./casp16 check-shards \
   --benchmark casp16_server_protein_v2_aliasfix \
-  --candidate-count 25 \
-  --shard-run-id server_v2_attack_oligo_recovery_nofail_protenix25_shard1_seed101_105 \
-  --shard-run-id server_v2_attack_oligo_recovery_nofail_protenix25_shard2_seed106_110 \
-  --shard-run-id server_v2_attack_oligo_recovery_nofail_protenix25_shard3_seed111_115 \
-  --shard-run-id server_v2_attack_oligo_recovery_nofail_protenix25_shard4_seed116_120 \
-  --shard-run-id server_v2_attack_oligo_recovery_nofail_protenix25_shard5_seed121_125
+  --merged-run-id server_v2_attack_scoreable_size_balanced_msa_reuse_protenix25_seed101_125 \
+  --merged-input-json strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json \
+  --candidate-count 5 \
+  --merged-candidate-count 25 \
+  --output-tsv diagnostics/score_probes/protenix25_scoreable_target_seed_readiness.tsv \
+  --shard-run-id <each row from attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv>
 ```
 
-`merge-shards` symlinks completed shard predictions into one registered run
-directory. It does not launch predictions, select models, or make a partial
-shard rank-eligible as the complete 25-candidate budget.
+When the readiness result is `ready=true`, use its emitted
+`merge-shards --allow-target-shards --candidate-count 25` command. The merge
+symlinks completed shard predictions into one registered run directory. It
+does not launch predictions, select models, or make a partial shard
+rank-eligible as the complete 25-candidate budget.
 
 ## Execution Semantics
 
