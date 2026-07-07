@@ -11,8 +11,8 @@ Official server leaders to beat on the local server-style comparator:
 
 | Track | Official metric | Fixed targets | Server leader | Mean to beat |
 | --- | --- | ---: | --- | ---: |
-| protein domain | GDT_TS | 71 | `110s` | `0.923321` |
-| protein oligo | QSglob | 104 | `456s` | `0.582615` |
+| protein domain | GDT_TS | 71 | `110s` MIEnsembles-Server | `0.923321` |
+| protein oligo | QSglob | 104 | `456s` Yang-Multimer | `0.582615` |
 
 Current best complete local server-v2 attack baseline:
 
@@ -53,19 +53,19 @@ infrastructure. It is:
 
 ## Active Gate
 
-Checked `2026-07-07 15:53 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 15:56 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1370` |
-| shard-level missing candidates | `688` |
-| full 25-candidate slots still missing | `618` |
-| complete full-budget tasks | `1 / 79` |
+| observed candidates | `1388` |
+| shard-level missing candidates | `670` |
+| full 25-candidate slots still missing | `603` |
+| complete full-budget tasks | `4 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; `gh` `MaxJobsPU=20` and one `tacc-vscode` job is also running |
-| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 15:53 CDT |
+| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 15:54 CDT |
 | action | wait for declared candidates, then run the P25 closeout wrapper |
 
 Do not score the P25 row or launch O5b/P27b/D6a from partial outputs. The
@@ -84,6 +84,7 @@ diversity.
 | Winner clue | Local reproduction | Current evidence | Next action | Stop or skip condition |
 | --- | --- | --- | --- | --- |
 | Top domain servers had broad coverage and high automatic accuracy | Yang-style input repair: sequence recovery, phase aliases, low-complexity cleanup, token-safe fallback | P17 repaired the 5 scoreable missing-prediction rows and is the best complete local server-v2 row | Keep P17 as the seed101-105 overlay for P25 | Stop adding input-cleanup variants until P25 shows a specific failure class |
+| Top server families are MIEnsembles/Zheng/Yang/Guijun rather than a single narrow trick | balanced automatic pipeline with input realism, candidate diversity, and QA | official group registry maps `110s` to MIEnsembles-Server, `456s` to Yang-Multimer, `052s` to Yang-Server, `019s/147s` to Zheng, and `148s` to Guijunlab-Complex | Keep winner reproduction focused on broad server-style rows, not isolated target rescues | Do not claim a recipe matched the winner unless the fixed-set server score closes the gap |
 | Winner-scale systems use multiple internal candidates, but ranking is fragile | P25: 25 fixed seeds on the repaired 79-job scoreable subset with `protenix_confidence_v1` | Submitted as Slurm jobs `812935..812958`; MSA preflight was complete; still running | Finish P25, merge, score, regenerate leaderboard, then inspect aggregate deltas | Never score a partial 25-candidate row; if flat and valid, do not just add more seeds |
 | MULTICOM/QA-style systems rely on diverse model/MSA pools plus QA | P27b repaired-input default-params model/config variant; broader MSA/model diversity design gate; future P28a-style `msa_server_mode=colabfold` probe | P27b is prepared and MSA-clean, but deferred behind P25; MSA server mode is now explicit in run specs | If complete P25 is flat with valid predictions/metrics, launch P27b before another seed grid; only then consider a production ColabFold/MMseqs MSA variant | Do not turn off MSA or use toy settings; do not choose variants per target from scores |
 | Complex winners/top methods still struggle on antibodies and high-order stoichiometry; specialized handling can help | O5b repaired-input antibody/Fv branch | Target-lab Fv diagnostics were positive, and O5b preflight is clean | Launch only if P25 shows antibody/Fv oligos are the dominant recoverable weakness | Do not use target-lab DockQ positives as leaderboard evidence |

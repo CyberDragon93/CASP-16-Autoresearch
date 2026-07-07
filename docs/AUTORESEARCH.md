@@ -1892,6 +1892,20 @@ competitive result.
      `0.107690` vs domain winner `0.923321` and `0.118933` vs oligo winner
      `0.582615`, so only server-style fixed-set, missing-as-zero comparisons
      count as winner-comparison points. Keep P25 as the active gate.
+131. `2026-07-07 15:56 CDT` P25 still not ready, but progress continues:
+     `1388` observed candidates, `670` shard-level missing, `603` full merged
+     candidate slots missing, and `4/79` full-budget tasks now complete.
+     Slurm remains 19 running P25 jobs plus 5 pending P25 jobs behind
+     `QOSMaxJobsPerUserLimit`; the pending jobs are still shard05
+     seed121-125 plus all shard06 seed blocks. Error scan remains clean and
+     latest prediction writes reached 15:54 CDT on shard01/02/03 rows. While
+     waiting, mapped the official server leaders to CASP group names from the
+     official registry: domain leader `110s` is MIEnsembles-Server, oligo
+     leader `456s` is Yang-Multimer, with nearby top server families including
+     Yang-Server (`052s`), Zheng-Server (`019s`), Zheng-Multimer (`147s`),
+     Guijunlab-Complex (`148s`), and NKRNA-s (`028s`). This reinforces that
+     the target is a broad automatic server pipeline family, not a one-target
+     rescue. Keep P25 as the active gate.
 
 ## Run Discipline
 
