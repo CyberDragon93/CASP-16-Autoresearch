@@ -118,6 +118,15 @@ Most missing-reference rows still have zero usable sequence-search candidates.
 Start with high-value domain rows because they affect the domain score cap and
 have simpler single-chain/domain mapping than oligo assemblies:
 
+2026-07-07 follow-up: a focused RCSB sequence probe retried the highest-value
+domain gaps `T1292`, `T1294V1`, `T1274`, and `T1231`. Exact search, T1292
+C-terminal His-tag trimming, and relaxed identity cutoffs down to 0.90 all
+returned no hits. Public search can surface template-like structures such as
+`6N63` for T1292, but its sequence is not the CASP target construct and it must
+not be promoted as a native reference without separate provider/native
+provenance. Keep these rows in manual native search, not automated refmap
+promotion.
+
 | Priority | Target | Server best score | Next action |
 | ---: | --- | ---: | --- |
 | 1 | `T1292` | 1.000000 | manual native/reference search |

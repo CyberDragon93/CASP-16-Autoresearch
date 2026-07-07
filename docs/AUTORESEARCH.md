@@ -1368,6 +1368,17 @@ competitive result.
     `QOSMaxJobsPerUserLimit`; the same five pending rows have zero outputs.
     Recent new artifacts include `H1227` and `T1249V1` from running shards.
     Error scanning remains clean. Keep waiting for the complete merged row.
+87. `2026-07-07 11:51 CDT` P25 live gate: still `ready=false` and
+    `compatible=true`, with `808` observed candidates, `1242` shard-level
+    candidates missing, and `1167` full 25-candidate slots missing. Slurm still
+    shows 19 P25 jobs running and 5 P25 jobs pending behind
+    `QOSMaxJobsPerUserLimit`; no merge or partial score is allowed. While
+    waiting, a focused reference-recovery probe checked the high-value domain
+    gaps `T1292`, `T1294V1`, `T1274`, and `T1231`: exact search, T1292
+    C-terminal His-tag trimming, and relaxed identity cutoffs down to 0.90
+    returned no RCSB hits. Template-like public hits such as `6N63` for T1292
+    remain non-promotable without native/provider provenance and construct
+    mapping.
 
 ## Run Discipline
 
