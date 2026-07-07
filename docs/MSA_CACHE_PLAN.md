@@ -148,22 +148,27 @@ moving or deleting source run directories.
 2. If the current scoreable `protenix5` row is superseded or needs a faster
    oligo signal, use
    `scoreable_target_subset_oligo_first_v1` as the successor input. It is
-   derived from the same 74-job scoreable artifact, moves the 14 exact `*O`
-   jobs to the front, and still preflights at 141/141 exact-sequence
-   protein-chain MSA paths with 0 fresh-MSA chains.
-3. The older v1 coverage/stoich attack has a cache-reuse successor,
+   derived from the same 74-job scoreable artifact, moves all 50 exact
+   `protein_oligo` jobs to the front, and still preflights at 141/141
+   exact-sequence protein-chain MSA paths with 0 fresh-MSA chains.
+3. The domain-sequence-recovery nofail ablation,
+   `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101`, is the
+   exception that intentionally allows fresh MSA. It reuses 269/276 chains from
+   the global cache and sets `--msa-reuse-min-fraction 0.97` so only the 7
+   repaired protein-domain chains pay new MSA cost.
+4. The older v1 coverage/stoich attack has a cache-reuse successor,
    `server_attack_protenix_coverage_stoich_msa_reuse_seed101_105`, but its
    preflight reuses only 180/196 exact-sequence protein-chain paths and misses
    16. Keep it behind the v2 scoreable nofail path unless a specific ablation
    needs the v1 stack.
-4. Keep the older full-input MSA-reuse attack as an ablation only until the
+5. Keep the older full-input MSA-reuse attack as an ablation only until the
    missing references are recovered. Its 165-job input repeats expensive
    no-reference jobs such as `T1295/T1295O`, which cannot improve current local
    score because missing references score 0.
-5. For planned `protenix25_nofail` seed shards, build every shard input from
+6. For planned `protenix25_nofail` seed shards, build every shard input from
    the same MSA cache index or the same MSA-reused artifact. The five shards
    should not each repeat MSA search for the same 165 jobs.
-6. For strategy ablations, reuse only unchanged chains. The TSV report should
+7. For strategy ablations, reuse only unchanged chains. The TSV report should
    show which changed chains will force fresh MSA search.
 
 ## Next Upgrade Path

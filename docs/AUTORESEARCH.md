@@ -65,6 +65,26 @@ where methods should change.
   reference-registry gaps, and 5 need sequence/input alias repair first. Treat
   this only as scoring-infrastructure triage, never as target-specific
   prediction guidance.
+- `2026-07-06 18:57 CDT` reference-gap audit update: several high-priority
+  `missing_reference` rows first need input-kind repair, not native hunting.
+  `T1276`, `T1228V1`, and `T2276` were locally represented as short DNA jobs
+  even though the official sequence archive has protein-like records; `T1239V1`
+  has the same protein/DNA modality bug despite already having a local
+  reference. The new artifact
+  `strategies/yang_domain_sequence_recovery_oligo_nofail_v1/casp16_server_protein_v2_aliasfix/`
+  composes domain sequence recovery onto the strongest v2 nofail stack,
+  changes 8 domain jobs, keeps 169 jobs under the Protenix token limit, and
+  should be treated as an input-repair candidate rather than a reference-map
+  patch.
+- MSA cache coverage for that domain-sequence-recovery nofail artifact is
+  almost complete but not launch-clean: 269/276 protein chains are covered from
+  `data/msa_cache/index.tsv`, with fresh MSA still needed for 7 chains
+  (`T1239V1`, `T1239V2`, `T1228V1`, `T1228V2`, `T1212`, `T1276`, `T2276`).
+  A pending single-seed run spec,
+  `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101`,
+  explicitly allows this 97.46% cache reuse floor. Do not promote it to
+  multi-seed compute until the single-seed coverage score proves the repair is
+  worth the fresh-MSA cost.
 - Multi-candidate work now has a separate policy:
   `docs/SERVER_ATTACK_POLICY.md` and
   `attack_budgets/casp16_server_attack_protenix5.json`.
@@ -96,6 +116,12 @@ where methods should change.
   141/141 reusable protein chains, 0 missing sources, and 0 stale cached paths
   against `data/msa_cache/index.tsv`; future MSA-heavy shards should pass this
   check before Slurm submission.
+- A pending scoreable oligo-first successor now exists:
+  `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`.
+  It is derived from the same 74-job scoreable artifact, moves all 50 exact
+  `protein_oligo` jobs to the front, and its run-spec again requires complete
+  MSA reuse with 141/141 protein chains covered. `run-next --dry-run` correctly
+  blocks it behind the running scoreable `protenix5` row.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
   about chasing CASP16 server winners must report the attack budget, candidates
   per target, selector, and GPU cost. Run specs and manifests expose
@@ -152,6 +178,15 @@ where methods should change.
   `c636-072`; the Protenix log confirms `inputs.msa-reuse.json` and skips MSA
   update. The `2026-07-06 18:39 CDT` check found 24/74 seed-101 CIFs; no
   later seeds have started, so it remains incomplete and unranked.
+- Pending oligo-first scoreable-subset successor:
+  `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`
+  uses the same 74 scoreable jobs, fixed five-candidate budget, confidence-only
+  selector, and 141/141 exact-sequence MSA reuse as the running scoreable
+  attack, but reorders the input so the 50 exact `protein_oligo` jobs run
+  first. This is a scheduling/signal-latency optimization only; it does not
+  change the 175-target scoring denominator or rank rules. Launch it only after
+  the running scoreable attack completes, stalls before exact oligo artifacts,
+  or is explicitly superseded.
 - Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   produced 39/165 CIFs and then spent extended GPU time on `T1295`, which is

@@ -780,6 +780,74 @@ def test_sequence_recovery_restores_protein_domain_inputs(tmp_path) -> None:
     assert rows[3]["source_target_id"] == "T1280"
 
 
+def test_domain_sequence_recovery_oligo_nofail_alias_restores_only_domains(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "domain_sequence_recovery" / "inputs.json"
+    manifest = tmp_path / "domain_sequence_recovery" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    sequences = tmp_path / "sequences.tsv"
+    domain_sequence = "MELKNIVNSYNITNILGYLRRSRQDMEREKRTGEDTLTEQELMNKILTAIEIPYELKMEIGSGESIDGRP"
+    oligo_sequence = "ACDEFGHIKLMNPQRSTVWY" * 4
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1239V1",
+                    "sequences": [{"dnaSequence": {"sequence": "NNNTNGTGTTNTAGGGCGAATGAGNTNATTGATAAGGAG", "count": 1, "id": ["A"]}}],
+                    "covalent_bonds": [],
+                },
+                {
+                    "name": "H1239",
+                    "sequences": [{"dnaSequence": {"sequence": "NNNTNGTGTTNTAGGGCGAATGAG", "count": 1, "id": ["A"]}}],
+                    "covalent_bonds": [],
+                },
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "track", "oligo_state"]),
+                "\t".join(["T1239V1", "protein_domain", "A1"]),
+                "\t".join(["H1239", "protein_oligo", "A1"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    sequences.write_text(
+        "\n".join(
+            [
+                "\t".join(["record_id", "target_ids", "sequence_family", "sequence_kind", "length", "sequence", "header", "source_file"]),
+                "\t".join(["T1239v1", "T1239V1", "T", "dnaSequence", str(len(domain_sequence)), domain_sequence, "T1239v1 protein subunit", "seq"]),
+                "\t".join(["H1239p", "H1239", "H", "dnaSequence", str(len(oligo_sequence)), oligo_sequence, "H1239 protein-looking oligo", "seq"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_domain_sequence_recovery_oligo_nofail_v1",
+        targets_path=targets,
+        official_sequences_path=sequences,
+    )
+
+    assert summary["strategy"] == "yang_domain_sequence_recovery_oligo_nofail_v1"
+    assert summary["changed_targets"] == 1
+    optimized = {job["name"]: job for job in json.loads(output_json.read_text(encoding="utf-8"))}
+    assert optimized["T1239V1"]["sequences"][0]["proteinChain"]["sequence"] == domain_sequence
+    assert "dnaSequence" in optimized["H1239"]["sequences"][0]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert [row["target_id"] for row in rows] == ["T1239V1"]
+
+
 def test_protein_oligo_sequence_recovery_restores_alias_protein_inputs(tmp_path) -> None:
     input_json = tmp_path / "inputs.json"
     output_json = tmp_path / "oligo_sequence_recovery" / "inputs.json"

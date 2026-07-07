@@ -96,6 +96,28 @@ Use this artifact only for evaluation-infrastructure work. It must not be used
 to tune target-specific prediction strategies, and accepted references still
 need explicit native provenance plus chain/domain/assembly mapping.
 
+## Input-Kind Reclassification
+
+Follow-up triage showed that some apparent `missing_reference` rows should be
+handled as input-repair work before native-reference recovery. In particular,
+`T1276`, `T1228V1`, and `T2276` were generated locally as short `dnaSequence`
+jobs even though the CASP sequence archive contains protein-like records.
+`T1239V1` has the same input-modality problem despite already having a local
+reference, so it is a prediction-input bug rather than a reference gap.
+
+The generated artifact
+`strategies/yang_domain_sequence_recovery_oligo_nofail_v1/casp16_server_protein_v2_aliasfix/`
+applies the existing target-agnostic `yang_sequence_recovery_v1` rule on top
+of the v2 nofail oligo-recovery stack. It changes 8 domain jobs
+(`T1212`, `T1228V1`, `T1228V2`, `T1239V1`, `T1239V2`, `T1276`, `T1294V2`,
+`T2276`), keeps all 169 jobs under Protenix's token limit, and leaves
+benchmark eligibility unchanged.
+
+MSA cache status for this artifact is 269/276 protein chains covered from the
+global exact-sequence cache. The 7 fresh-MSA chains are `T1239V1`, `T1239V2`,
+`T1228V1`, `T1228V2`, `T1212`, `T1276`, and `T2276`, so it should not be
+promoted to a multi-seed attack row until that fresh-MSA cost is explicit.
+
 ## RCSB Sequence-Search Probe
 
 RCSB sequence search is useful for triage, but it is not safe as an automatic

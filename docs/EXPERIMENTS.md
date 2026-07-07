@@ -495,7 +495,8 @@ leaderboard progress.
       74 jobs.
     - New strategy artifact:
       `strategies/scoreable_target_subset_oligo_first_v1/casp16_server_protein_v2_aliasfix/`,
-      same 74 kept jobs, 0 skipped jobs, and 14 prioritized exact `*O` jobs.
+      same 74 kept jobs, 0 skipped jobs, and now 50 prioritized exact
+      `protein_oligo` jobs.
     - New run spec:
       `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`,
       same five-candidate `server_attack` budget and confidence-only selector
@@ -535,22 +536,44 @@ full official-compatible server claim.
 ### 2026-07-06 Scoreable Oligo-First MSA Successor
 
 Decision: prepare, but do not submit, a reordered scoreable attack input that
-puts exact `*O` oligo jobs before the long H-complex block.
+puts exact `protein_oligo` jobs before the domain-heavy block.
 
 Rationale: the running scoreable attack already avoids repeated MSA search, but
-its original order reaches exact `T...O` oligo jobs only after many domain/base
-jobs and large H complexes. Reordering does not change the eligible benchmark
-set, candidate budget, selector, or MSA source, but it can surface exact oligo
-artifacts much earlier if a retry or replacement run is needed.
+its original order reaches exact oligo jobs only after many domain/base jobs.
+Reordering does not change the eligible benchmark set, candidate budget,
+selector, or MSA source, but it can surface exact oligo artifacts much earlier
+if a retry or replacement run is needed.
 
 Implementation: `scoreable_target_subset_oligo_first_v1` is derived from the
 existing 74-job scoreable artifact, not from a regenerated benchmark input, so
-it keeps exactly the same job set. The first 14 tasks are exact `*O` jobs, and
-`check-msa-cache --require-complete` reports 141/141 reusable protein chains.
+it keeps exactly the same job set. The first 50 tasks are exact
+`protein_oligo` jobs, and `check-msa-cache --require-complete` reports 141/141
+reusable protein chains.
 
 Guardrail: this successor must remain pending while the current scoreable
 `protenix5` job is running. Use it only after recording why the current run is
 insufficient.
+
+### 2026-07-06 Domain Sequence-Recovery Nofail Ablation
+
+Decision: register a single-seed input-repair ablation for protein-domain jobs
+that were locally represented as short DNA or empty inputs.
+
+Rationale: reference-gap triage showed that `T1276`, `T1228V1`, `T2276`, and
+the `T1239V1` class are not just native-reference gaps. They need protein
+sequence recovery before prediction quality can be evaluated. This is a
+target-agnostic official-sequence parser repair, not per-target tuning.
+
+Implementation: `yang_domain_sequence_recovery_oligo_nofail_v1` applies the
+existing domain sequence-recovery rule on top of the v2 oligo-recovery nofail
+input stack. It changes 8 domain jobs, keeps 169 total jobs under the Protenix
+token limit, and is registered as
+`server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101`.
+
+MSA policy: the run-spec reuses 269/276 protein-chain MSA paths from
+`data/msa_cache/index.tsv` and sets `--msa-reuse-min-fraction 0.97`, so the
+7 repaired chains can run fresh MSA once. Keep this as `dev_fixed` until the
+fixed-set score shows whether the repair is worth scaling.
 
 ### 2026-07-06 Hydrophobic Leader Nofail Derivative
 

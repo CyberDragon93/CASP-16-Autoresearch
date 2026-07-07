@@ -26,6 +26,7 @@ STRATEGY_YANG_TERMINAL_TAG_ANTIBODY_FV_CLEANUP = "yang_terminal_tag_antibody_fv_
 STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK = "yang_oversize_domain_monomer_fallback_v1"
 STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK = "yang_large_target_split_or_fallback_v1"
 STRATEGY_YANG_SEQUENCE_RECOVERY = "yang_sequence_recovery_v1"
+STRATEGY_YANG_DOMAIN_SEQUENCE_RECOVERY_OLIGO_NOFAIL = "yang_domain_sequence_recovery_oligo_nofail_v1"
 STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_RECOVERY = "yang_protein_oligo_sequence_recovery_v1"
 STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK = "yang_sequence_recovery_large_target_fallback_v1"
 STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY = "yang_oligo_stoichiometry_recovery_v1"
@@ -45,6 +46,7 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_OVERSIZE_DOMAIN_MONOMER_FALLBACK,
     STRATEGY_YANG_LARGE_TARGET_SPLIT_OR_FALLBACK,
     STRATEGY_YANG_SEQUENCE_RECOVERY,
+    STRATEGY_YANG_DOMAIN_SEQUENCE_RECOVERY_OLIGO_NOFAIL,
     STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_RECOVERY,
     STRATEGY_YANG_SEQUENCE_RECOVERY_LARGE_TARGET_FALLBACK,
     STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY,
@@ -427,7 +429,7 @@ def derive_strategy_inputs(
             manifest_path=manifest_path,
             targets_path=targets_path,
         )
-    if strategy == STRATEGY_YANG_SEQUENCE_RECOVERY:
+    if strategy in {STRATEGY_YANG_SEQUENCE_RECOVERY, STRATEGY_YANG_DOMAIN_SEQUENCE_RECOVERY_OLIGO_NOFAIL}:
         if targets_path is None:
             raise ValueError("targets_path is required for sequence recovery strategy")
         if official_sequences_path is None:
@@ -438,6 +440,7 @@ def derive_strategy_inputs(
             manifest_path=manifest_path,
             targets_path=targets_path,
             official_sequences_path=official_sequences_path,
+            strategy_name=strategy,
         )
     if strategy == STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_RECOVERY:
         if targets_path is None:

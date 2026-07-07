@@ -59,6 +59,7 @@ benchmark target set or inspect references.
 | D4 | AF3-style model selection | assessment says AF3 adoption improved confidence/model selection | `protenix_confidence_v1` is implemented for the separate `server_attack` tier; `dev_fixed` remains first-output-only | attack runs must use the locked seed/sample budget and never compare directly against `dev_fixed` rows |
 | D5 | Large-target split/fallback | top methods used target handling and construct/domain decomposition; baseline Protenix lost 8 jobs to `n_token > 2560` before prediction | `./casp16 strategy-inputs --strategy yang_large_target_split_or_fallback_v1` predeclares chain/copy fallback for all eight hard failures after the conservative `T1295` probe | treat as coverage recovery; assembly quality may regress when chains are dropped |
 | D6 | Sequence recovery | server-style coverage fails if target sequence archives are parsed or aliased incorrectly | `./casp16 strategy-inputs --strategy yang_sequence_recovery_v1 --input-json strategies/yang_terminal_tag_cleanup_v1/.../inputs.json` recovers protein-like records as `proteinChain` | queue after active jobs; do not use references or scores to choose recovered targets |
+| D6a | V2 nofail domain sequence recovery | reference-gap triage exposed protein-domain inputs that were locally represented as short DNA or empty jobs before scoring could be trusted | `yang_domain_sequence_recovery_oligo_nofail_v1` composes D6 onto the strongest v2 nofail stack, changing 8 domain jobs including the `T1276/T1228V1/T1239V1/T2276` class | pending single-seed run allows 7 fresh MSA chains; promote as input repair only if fixed-set score improves |
 | D7 | Coverage-first stack | realistic attack compute should not be spent on missing-sequence or token-limit hard zeros | `yang_sequence_recovery_large_target_fallback_v1` stacks sequence recovery with the large-target fallback on terminal-tag-cleaned inputs | queue after the component runs or when the queue needs a single combined coverage candidate |
 
 ## Protein Oligos
@@ -94,7 +95,7 @@ wrong assemblies should score poorly on the oligo track.
 | O2a | H1258 public interaction window | CASP16 complex assessment notes top Yang H1258 models used the LRRK2 interacting region rather than full-length LRRK2 | `target_lab/h1258_interaction_window_v1/` builds LRRK2 861-1014 plus 14-3-3 A1B2 | target_lab only; promotion requires a target-agnostic window rule |
 | O2b | Small complex learning batch | exact stoichiometry and construct windows need faster feedback than full-benchmark runs | `target_lab/small_complex_stoich_batch_v1/` batches 5 exact-stoich jobs plus H1258 window | target_lab only; use for promotion decisions, not direct ranking |
 | O3 | Customized MSA/template | top complex groups beat default AFM/AF3 via customized MSAs, templates, and sampling | full MSA/template baseline first, then compare MSA-cache and template modes | full server target coverage increases before target_lab tuning |
-| O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | `attack_budgets/casp16_server_attack_protenix5.json` defines the starter 5-candidate attack tier; `attack_budgets/casp16_server_attack_protenix25*.json` declares planned 25-seed v2 tiers; every run must expose `budget_tier` and `candidate_count` | launch only after the target question is worth multi-seed compute and budget accounting is recorded |
+| O4 | Massive sampling + ranking | MULTICOM/Kihara-style gains came from sampling, but ranking stayed weak | `attack_budgets/casp16_server_attack_protenix5.json` defines the starter 5-candidate attack tier; `attack_budgets/casp16_server_attack_protenix25*.json` declares planned 25-seed v2 tiers; every run must expose `budget_tier` and `candidate_count`; `scoreable_target_subset_oligo_first_v1` is a scheduling-only variant that gets exact oligo artifacts earlier without changing budget or rank rules | launch only after the target question is worth multi-seed compute and budget accounting is recorded |
 | O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `yang_antibody_fv_cleanup_v1` completed a full-set run; `targetlab_protenix_yang_antibody_fv_seed101` completed as a target_lab Fv-only diagnostic with DockQ positives H0233=0.916 and H1233=0.891 | do not promote until QSglob assembly mapping can evaluate the antibody oligo predictions |
 | O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
 | O7 | Oversize complex fallback | complex targets can exceed AF3-like token limits, and the baseline lost H0217/H0258/H0272/H1217/H1258/H1272 before any model was produced | `yang_large_target_split_or_fallback_v1` keeps under-budget chain/copy prefixes and records dropped chains | score as coverage recovery until QSglob and assembly mapping are trustworthy |
@@ -196,10 +197,16 @@ Useful strategy hypotheses:
     141/141 exact-sequence MSA paths in the running
     `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
 16. `scoreable_target_subset_oligo_first_v1`: pending successor to the running
-    scoreable `protenix5` row. It keeps the same 74-job set, moves the 14 exact
-    `*O` oligo jobs to the front, and preflights at 141/141 exact-sequence MSA
-    paths. Use only as a clean retry or replacement if faster exact-oligo
-    feedback is needed.
+    scoreable `protenix5` row. It keeps the same 74-job set, moves all 50
+    exact `protein_oligo` jobs to the front, and preflights at 141/141
+    exact-sequence MSA paths. Use only as a clean retry or replacement if
+    faster exact-oligo feedback is needed.
+    Related D6a artifact:
+    `yang_domain_sequence_recovery_oligo_nofail_v1` was generated after
+    reference-gap triage exposed protein-domain input-kind bugs. It changes 8
+    domain jobs, keeps 169 jobs below the token limit, and currently needs
+    fresh MSA for 7 chains under the pending single-seed run spec before any
+    multi-seed promotion.
 17. `casp16_server_attack_protenix25_scoreable_nofail`: planned but not queued.
     It is the winner-scale 25-seed successor to the running scoreable
     `protenix5` attack. Launch only if the 5-seed scoreable row gives a reason

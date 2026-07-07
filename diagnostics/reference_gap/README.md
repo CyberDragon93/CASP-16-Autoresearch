@@ -9,6 +9,17 @@ Generated from `benchmarks/casp16_server_protein_v2_aliasfix/targets.tsv` and th
 - reference_registry_gap: 51
 - sequence_or_input_gap_before_reference: 5
 
+Audit addendum, `2026-07-06 18:57 CDT`: follow-up inspection found that
+`T1276`, `T1228V1`, and `T2276` should be treated as input-kind repair before
+reference recovery, because the local v2 inputs represented protein-like CASP
+sequence records as short DNA jobs. `T1239V1` has the same input-kind issue
+even though its reference is already available. The generated repair artifact
+is
+`strategies/yang_domain_sequence_recovery_oligo_nofail_v1/casp16_server_protein_v2_aliasfix/`.
+Do not remove these targets from the denominator; fix prediction inputs first,
+then expand references in a new benchmark version only when native provenance
+and chain/domain mapping are explicit.
+
 ## Track Counts
 
 | track | blocker class | targets |
