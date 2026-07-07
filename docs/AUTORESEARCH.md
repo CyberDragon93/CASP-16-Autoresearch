@@ -266,6 +266,14 @@ where methods should change.
   wrapper exits, so P14 can start without manual queue babysitting. This is
   scheduling glue only; it does not change benchmark eligibility, budget, or
   scoring.
+- Terminal-tag attack partial diagnostic:
+  `diagnostics/score_probes/server_attack_terminal_tag_partial_latest/target_scores.csv`
+  scored the still-running v1 five-seed terminal-tag attack with available
+  candidates (`98/98/98/48/0` CIFs by seed at `2026-07-06 20:16 CDT`). Fixed
+  domain mean is only `0.044437` with 9 ok and 7 nonzero domain targets; oligo
+  remains `0.000000`. This is not a complete ranked attack row, and it argues
+  against spending more compute on terminal-tag scaling before the v2
+  scoreable line is resolved.
 - Reference recovery probe: the RCSB exact-sequence diagnostic on 40
   `prediction_waiting_on_reference` rows found full target/entity candidates
   for `T1228V1` and `T1278` only; partial hits such as `10BR_1` for
