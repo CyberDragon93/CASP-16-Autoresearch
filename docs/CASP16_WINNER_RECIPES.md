@@ -21,6 +21,30 @@ per-target oracles.
 - AlphaFold3 CASP16 preprint:
   https://www.biorxiv.org/content/10.1101/2025.04.10.648174v1.full-text
 
+## Current Recipe Ladder
+
+This is the active decision ladder for turning winner clues into local
+experiments. It is deliberately ordered by expected leaderboard leverage, not
+by how interesting the trick is.
+
+| Gate | Winner clue | Local reproduction | Current status | Next decision |
+| --- | --- | --- | --- | --- |
+| G1 | Strong CASP16 systems did careful input preparation before spending sampling budget | v2 nofail scoreable stack: protein-oligo sequence recovery, phase-alias stoichiometry, low-complexity cleanup, token fallback, full MSA reuse | P14 six target shards are running as the first full five-candidate scoreable attack; not merge-ready yet | Wait for `check-shards ready=true`, merge, score, and only then decide the next GPU wave |
+| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and prepared `protenix25_scoreable_nofail` budgets with `protenix_confidence_v1` | `protenix25` is prepared, not launched | Launch 25 seeds only if P14 has broad fixed-set signal and failures are mostly selection/sampling, not missing references or wrong inputs |
+| G3 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a is MSA-ready but deferred behind P14 | If P14 is weak on domains because inputs are missing/wrong, run D6a before scaling candidates |
+| G4 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache, but not true MSA-variant or multi-engine generation | not implemented as a ranked branch | Add an explicit MSA/model-variant budget only after current Protenix input repairs stop yielding easy coverage gains |
+| G5 | Complex assessment highlights antibody-antigen difficulty and specialized docking/Fv treatment | O5 antibody-Fv target-lab positives and prepared scoreable Fv target shards | prepared, risky, not submitted | Launch only if P14 exact QSglob shows antibody rows remain a major recoverable weakness |
+| G6 | Reference gaps hide local progress but are not prediction tricks | versioned `refmap` overlays and oligo assembly audit | v4 adds only audited `T1278/T2278`; oligo candidates remain unaccepted | Keep reference recovery opportunistic and versioned; do not let it block runnable prediction experiments |
+
+Default branch after P14:
+
+- P14 strong and candidate-limited: launch the scoreable 25-seed grid.
+- P14 strong but v4-only targets matter: launch P15 on `casp16_server_protein_v4_refmap`.
+- P14 weak from input coverage/domain mistakes: run D6a single-seed input repair.
+- P14 weak mainly on antibody/Fv oligos: run the prepared O5 scoreable Fv shards.
+- P14 weak with no clear input/scoring failure: do not scale Protenix; design a
+  new MSA/model-variant budget instead.
+
 ## Protein Domains
 
 Public reports and the CASP16 domain z-score page indicate that Yang-lab
