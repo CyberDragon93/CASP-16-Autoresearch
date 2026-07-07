@@ -115,8 +115,10 @@ benchmark eligibility unchanged.
 
 MSA cache status for this artifact is 269/276 protein chains covered from the
 global exact-sequence cache. The 7 fresh-MSA chains are `T1239V1`, `T1239V2`,
-`T1228V1`, `T1228V2`, `T1212`, `T1276`, and `T2276`, so it should not be
-promoted to a multi-seed attack row until that fresh-MSA cost is explicit.
+`T1228V1`, `T1228V2`, `T1212`, `T1276`, and `T2276`. The pending run spec
+`server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101` explicitly
+allows that fresh-MSA cost for a single-seed `dev_fixed` ablation, but it must
+not become a multi-seed attack row until the ablation improves fixed-set score.
 
 ## RCSB Sequence-Search Probe
 
