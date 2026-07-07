@@ -73,11 +73,12 @@ scored as `missing_reference`.
 
 ## Active Score Gates
 
-Post-P14 update, `2026-07-07`: P14 completed and scored with all 370 declared
+Post-P17 update, `2026-07-07`: P14 completed and scored with all 370 declared
 candidates, but still had 5 locally scoreable targets as `missing_prediction`.
-P16 consensus replay did not improve the score. The active gate is now P17:
-run, merge, and score the repaired 79-target input
-`scoreable_target_subset_input_repair_v1` before launching any 25-seed budget.
+P17 fixed that via a P14 plus added-only overlay, improved both ranked tracks,
+and produced a `candidate_limited_signal`. The active gate is now P25:
+wait for the submitted seed106-125 target-seed shards, merge them with the
+seed101-105 overlay, then score the complete 25-candidate row.
 
 1. Historical P14 closeout command sequence, now complete:
    `server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105`.
@@ -188,12 +189,12 @@ This helper reads only `runs.csv`, `target_scores.csv`, and benchmark target
 metadata. It does not read native structures, official per-target score tables,
 or prediction outputs, and it does not submit jobs.
 
-Current live P17 status, checked `2026-07-07 07:28 CDT`: six repaired-input
-GH200 shard jobs `812765..812770` are running. They cover 79/79 locally
-scoreable targets, have complete exact-sequence MSA reuse, and are
-rank-ineligible until merged. Dry-run closeout currently sees `38/395`
-candidates, `357` missing candidates, and `0/6` complete shards.
-Do not launch P15, P18/P25, P27a, D6a, or O5 before P17 merge plus scoring.
+Current live P25 status, checked `2026-07-07 09:55 CDT`: P17 overlay is merged
+and scored. The 24 seed106-125 GH200 target-seed jobs `812935..812958` are
+submitted after `24/24 ok` preflight with complete MSA reuse and 0 stale paths.
+Do not score the 25-candidate row, launch a competing branch, or make a
+winner-comparison claim before those jobs finish and are merged with the
+seed101-105 overlay.
 
 ## Post-P17 Decision Matrix
 
@@ -233,7 +234,7 @@ Prepared branch readiness to revisit after P17:
 | --- | --- | --- |
 | P15 v4 refmap target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_v4_scoreable_target_run_preflight.tsv` |
 | superseded P18 74-target scoreable grid | `30/30 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix25_scoreable_target_seed_run_preflight.tsv` |
-| P25 repaired 79-target scoreable grid | `30/30 ok`, complete MSA reuse, 0 stale; readiness intentionally `ready=false` until P17 and deferred seed blocks finish | `diagnostics/msa_cache/protenix25_scoreable_input_repair_target_seed_run_preflight.tsv`, `diagnostics/score_probes/protenix25_scoreable_input_repair_target_seed_readiness.tsv` |
+| P25 repaired 79-target scoreable grid | seed106-125 jobs `812935..812958` submitted after `24/24 ok`, complete MSA reuse, 0 stale; readiness remains false until all submitted jobs finish and merge with the seed101-105 overlay | `diagnostics/msa_cache/protenix25_scoreable_input_repair_target_seed_run_preflight.tsv`, `diagnostics/score_probes/protenix25_scoreable_input_repair_target_seed_readiness.tsv` |
 | P27a default-params model/config variant | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_defaultparams_model_variant_preflight.tsv` |
 | D6a domain sequence recovery | `1/1 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/domain_sequence_recovery_after_warmup_preflight.tsv` |
 | O5 antibody-Fv target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_antibody_fv_target_run_preflight.tsv` |

@@ -141,10 +141,13 @@ where methods should change.
   `strategies/scoreable_target_subset_input_repair_v1/casp16_server_protein_v2_aliasfix/manifest.tsv`.
   The repaired input is 79/79 covered, `skipped_targets=0`, and exact-sequence
   MSA reuse is complete (`146/146` protein chains, 0 missing, 0 stale).
-  Six P17 GH200 shards
+  The initial six full P17 GH200 shards
   `server_v2_attack_scoreable_input_repair_size_balanced_shard01..06_msa_reuse_protenix5_seed101_105`
-  were submitted as Slurm jobs `812765..812770` and are rank-ineligible until
-  merged against the full repaired 79-job input.
+  were submitted as Slurm jobs `812765..812770`, then cancelled after early
+  wall time repeated old large H-oligo targets already covered by P14. The
+  accepted closeout is the P14 plus added-only overlay
+  `server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105`,
+  which is complete and scored.
 - `2026-07-06 18:57 CDT` reference-gap audit update: several high-priority
   `missing_reference` rows first need input-kind repair, not native hunting.
   `T1276`, `T1228V1`, and `T2276` were locally represented as short DNA jobs
@@ -197,6 +200,11 @@ where methods should change.
   `input_manifest.tsv`, and requires complete exact-sequence MSA reuse from
   `data/msa_cache/index.tsv`. It is not queued yet; use it only if the running
   scoreable `protenix5` row is worth scaling.
+- The repaired-input scoreable 25-candidate successor is
+  `attack_budgets/casp16_server_attack_protenix25_scoreable_input_repair.json`.
+  P17 scored as a `candidate_limited_signal`, so the 24 seed106-125 target-seed
+  jobs are now submitted as Slurm jobs `812935..812958`; seeds101-105 come from
+  the P14 plus added-only P17 overlay.
 - A v4 refmap scoreable successor is prepared at
   `strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v4_refmap/`.
   It uses the same no-over-token phase-alias/low-complexity/large-fallback
@@ -1152,9 +1160,10 @@ competitive result.
     Do not submit those seed106-125 jobs unless P17 scores as a broad,
     candidate-limited signal.
 69. `2026-07-07 07:43 CDT` P17 pivot: the full repaired 79-target rerun was
-    cancelled after about 33 hours because all six jobs were stalled on old
-    large H-oligo targets that already completed in the P14 74-target run.
-    The replacement path is an overlay, not another full rerun: reuse
+    cancelled after about 33 minutes, not hours, because the early wall time
+    was being spent on old large H-oligo targets that already completed in the
+    P14 74-target run. The replacement path is an overlay, not another full
+    rerun: reuse
     `server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105`
     for the 74 unchanged scoreable targets and run only the 5 targets added by
     scoreable input repair. The added-only artifact is
@@ -1175,6 +1184,29 @@ competitive result.
     `attack_budgets/casp16_server_attack_protenix25_scoreable_input_repair.json`
     is now explicitly gated on the P14 plus added-only overlay score; do not
     launch its seed106-125 grid by replaying the cancelled full P17 shard plan.
+71. `2026-07-07 09:37 CDT` P17 overlay closeout finished. The merged
+    `server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105`
+    run is complete for 79 scoreable jobs and 395 prediction CIFs, with no
+    partial candidates and no metric-unavailable rows. It improves over P14:
+    protein domain mean `0.107690` vs `0.102777`, and protein oligo mean
+    `0.118933` vs `0.116923`. The consensus replay is lower
+    (`0.107230` domain, `0.117260` oligo), so keep `protenix_confidence_v1` as
+    the current selector for this branch. Added target contributions are mixed:
+    `T1239V2=0.348600`, `T1249V2O=0.104000`, `T2249V2O=0.105000`, while
+    `T1212` and `T1269V1O` score zero. The post-P17 readout is
+    `candidate_limited_signal` and recommends launching the repaired
+    25-candidate scoreable grid, while the 96 no-reference targets still cap
+    official-server comparability.
+72. `2026-07-07 09:55 CDT` P25 launch: the repaired-input 25-candidate
+    scoreable grid was submitted after `preflight-runs` reported `24/24 ok`
+    for the seed106-125 target-seed shards, with complete exact-sequence MSA
+    reuse and 0 stale covered paths. Slurm jobs `812935..812958` now cover
+    target shards `01..06` across seed blocks `106_110`, `111_115`,
+    `116_120`, and `121_125`. Seeds `101..105` are not rerun; they come from
+    the P14 plus added-only P17 overlay. The full 25-candidate row remains
+    unscoreable/rank-ineligible until the 24 submitted jobs finish, all
+    target-seed shards are merged with the overlay, and the leaderboard is
+    regenerated.
 
 ## Run Discipline
 

@@ -1302,11 +1302,11 @@ Useful follow-up:
 Decision: stop the full P17 repaired scoreable rerun and replace it with a
 P14 plus added-only overlay.
 
-Evidence: after about 33 hours, the six P17 full-target shards were still
-running but had stopped making useful progress on old large H-oligo targets
-that already existed in the completed P14 run. P14 already supplies completed
-five-candidate predictions for 74 unchanged scoreable targets. The repaired
-P17 input adds only five genuinely new scoreable jobs:
+Evidence: after about 33 minutes, not hours, the six P17 full-target shards
+were spending early wall time on old large H-oligo targets that already existed
+in the completed P14 run. P14 already supplies completed five-candidate
+predictions for 74 unchanged scoreable targets. The repaired P17 input adds
+only five genuinely new scoreable jobs:
 `T1212`, `T1239V2`, `T1249V2O`, `T1269V1O`, and `T2249V2O`.
 
 Artifact:
@@ -1316,12 +1316,37 @@ jobs and has complete exact-sequence MSA reuse. The registered run
 uses the same five fixed seeds and `protenix_confidence_v1` selector as the
 P14/P17 attack budget. It was submitted as Slurm job `812783`.
 
+Result: the overlay finished with 79 scoreable jobs and no partial candidates.
+It improved over P14 from `0.102777` to `0.107690` on protein domains and from
+`0.116923` to `0.118933` on protein oligos. The consensus replay was lower
+(`0.107230` domain, `0.117260` oligo), so the current branch keeps
+`protenix_confidence_v1`. The useful added targets were `T1239V2=0.348600`,
+`T1249V2O=0.104000`, and `T2249V2O=0.105000`; `T1212` and `T1269V1O` scored
+zero.
+
 Interpretation: this is a scheduling and compute-efficiency correction. It
 does not change the scoring denominator, budget, model, MSA policy, or
-selector. Once the five added targets finish, merge them with P14 into
-`server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105`
-and score the full 79-job repaired scoreable input. Do not launch the repaired
-25-candidate scale-up until this overlay has a real score.
+selector. Because the overlay cleared the scoreable probe floor and has broad
+nonzero QSglob coverage, the next scale-up is the repaired 25-candidate
+scoreable grid. It is still far from server champion scores because 96 fixed
+server targets remain local `missing_reference`/unpredicted rows.
+
+### 2026-07-07 Repaired P25 Scoreable Launch
+
+Decision: launch the repaired-input P25 grid, but only for seed blocks
+`106..125`; reuse the completed P14 plus added-only P17 overlay for seeds
+`101..105`.
+
+Evidence: `preflight-runs` on the 24 deferred seed106-125 target-seed shards
+reported `24/24 ok`, complete exact-sequence MSA reuse, and 0 stale covered
+paths. The P17 overlay improved both ranked tracks over P14, while the
+consensus replay was lower, so the branch keeps `protenix_confidence_v1`.
+
+Status: submitted Slurm jobs `812935..812958` on Vista `gh`, one job for each
+target shard `01..06` and seed block `106_110`, `111_115`, `116_120`, and
+`121_125`. The eventual full row is still not scoreable until all submitted
+jobs finish and are merged with the P14/P17 overlay into a 25-candidate
+artifact.
 
 ## Promotion Rules
 

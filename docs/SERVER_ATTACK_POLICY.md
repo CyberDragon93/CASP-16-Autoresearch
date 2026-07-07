@@ -99,20 +99,19 @@ input-repair plan below; keep it for provenance and ablation accounting only.
 is the current scoreable-target winner-scale plan. It uses the same budget and
 selector on the repaired P17 79-job target set. It preserves the fixed
 benchmark scoring set, skips no-reference jobs as local zeros, and requires
-complete `data/msa_cache/index.tsv` reuse for every execution shard. Launch it
-only after P17 is merged/scored and the post-P17 decision matrix says the next
-bottleneck is sampling/selection rather than input repair, reference mapping,
-or scorer failure.
+complete `data/msa_cache/index.tsv` reuse for every execution shard. P17 has
+now merged/scored as a `candidate_limited_signal`, so the seed106-125
+target-seed shards are submitted; the next gate is completion plus explicit
+merge/scoring, not another launch decision.
 
 Because Protenix loops serially over seeds and large assemblies can block a
 whole serial run, the repaired budget is prepared as a target-shard x
 seed-block grid: six target-balanced shards times five 5-seed blocks. The
-first seed block (`101..105`) reuses the already submitted P17 input-repair
-target-sharded attack, so the 25-candidate plan does not spend that compute
-twice. The remaining 24 run specs for seeds `106..125` are prepared as
-`deferred:await_p17_score` and must not be submitted before P17 is
-merged/scored or explicitly superseded. A partial 25-seed attempt is unranked
-unless it is explicitly reported as partial.
+first seed block (`101..105`) reuses the completed P14 plus added-only P17
+overlay, so the 25-candidate plan does not spend that compute twice. The
+remaining 24 run specs for seeds `106..125` were submitted as Slurm jobs
+`812935..812958`. A partial 25-seed attempt is unranked unless it is explicitly
+reported as partial.
 
 For very large scoreable inputs, target-size sharding is allowed as an
 execution-only optimization when every shard uses the same declared budget and
@@ -256,9 +255,9 @@ the run specs:
 ```
 
 This check is launch hygiene only: it reads run specs and MSA reuse reports, not
-references or scores. The repaired scoreable target+seed grid is `30/30 ok`,
-with complete MSA coverage and 0 stale covered paths. The seed106-125 rows stay
-`deferred:await_p17_score` until P17 is scored or explicitly superseded.
+references or scores. The submitted seed106-125 slice is `24/24 ok`, with
+complete MSA coverage and 0 stale covered paths. The seed101-105 slice is
+provided by the completed P14 plus added-only P17 overlay.
 
 After every shard has completed, register the merged attack row before scoring.
 For the repaired scoreable target+seed grid, do not hand-write the final merge

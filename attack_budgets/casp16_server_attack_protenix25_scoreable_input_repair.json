@@ -2,8 +2,8 @@
   "name": "casp16_server_attack_protenix25_scoreable_input_repair",
   "parent_benchmark": "casp16_server_protein_v2_aliasfix",
   "tier": "server_attack",
-  "status": "prepared_deferred_await_p17_overlay_score",
-  "active_run_id": "",
+  "status": "ready_to_launch_seed106_125_after_p17_overlay",
+  "active_run_id": "server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105",
   "backend": "protenix",
   "model_name": "protenix-v2",
   "strategy": "target_shards_scoreable_input_repair_size_balanced_v1_server_attack_protenix25",
@@ -72,6 +72,24 @@
     "server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105",
     "server_v2_attack_scoreable_input_repair_added_only_msa_reuse_protenix5_seed101_105"
   ],
+  "p17_overlay_run_id": "server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105",
+  "p17_overlay_replay_run_id": "server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105_consensus_replay",
+  "p17_overlay_decision_status": "candidate_limited_signal",
+  "p17_overlay_next_branch": "launch_p18_p25_scoreable_25_candidate_grid",
+  "p17_overlay_scores": {
+    "protein_domain": {
+      "mean_score": 0.107690,
+      "eligible_targets": 71,
+      "ok_targets": 26,
+      "missing_targets": 45
+    },
+    "protein_oligo": {
+      "mean_score": 0.118933,
+      "eligible_targets": 104,
+      "ok_targets": 53,
+      "missing_targets": 51
+    }
+  },
   "prepared_additional_seed_shard_specs": 24,
   "selected_model_policy": "protenix_confidence_v1",
   "selection_formula": "0.20*plddt_norm + 0.50*ptm + 0.30*iptm - 0.10*disorder - 0.20*has_clash",
@@ -105,16 +123,16 @@
     "target_shard_count": 6,
     "seed_block_count": 5,
     "seeds_per_execution_shard": 5,
-    "reuse_seed_101_105_from": "P14 74-target merged run plus P17 added-only 5-target overlay; the full P17 shard01..06 rerun was cancelled after stalling on old large H-oligo targets.",
+    "reuse_seed_101_105_from": "P14 74-target merged run plus P17 added-only 5-target overlay; the full P17 shard01..06 rerun was cancelled after early duplicated wall time on old large H-oligo targets already covered by P14.",
     "merge_policy": "score only after every shard has finished or mark the row partial/unranked",
     "reason": "This retargets the old pre-P17 74-job protenix25 plan to the repaired 79-job scoreable input, while keeping the same fixed 25-candidate attack budget. The seed101-105 evidence must come from the P14 plus added-only overlay, not from the cancelled full P17 target shards."
   },
   "launch_gate": [
-    "Do not submit seed106-125 shards before the P14 plus added-only P17 overlay is merged and scored, unless that overlay is explicitly superseded with a recorded reason.",
+    "P14 plus added-only P17 overlay is merged and scored; the next allowed compute branch is seed106-125 target-seed shards.",
     "Use the same 79-job scoreable input-repair target shards for every seed block.",
     "Require complete global exact-sequence MSA reuse before launching each shard.",
     "Do not score the complete 25-candidate row until all 30 target-seed shards are present.",
     "Keep this row separate from dev_fixed and from the earlier 74-target protenix25_scoreable_nofail budget."
   ],
-  "budget_note": "Winner-scale CASP16 systems almost certainly generated more than five candidates. This artifact prepares a fair 25-candidate Protenix scale-up for the P17 repaired scoreable target set without launching additional GPU before the five-candidate P14+added-only overlay evidence is known. Because the full P17 rerun stalled on old large H-oligo targets, any future 25-candidate launch should be rescheduled around overlay reuse or blocker-aware target shards instead of blindly replaying the old full grid."
+  "budget_note": "Winner-scale CASP16 systems almost certainly generated more than five candidates. The five-candidate P14+added-only P17 overlay improved both ranked tracks over P14, so this artifact now authorizes a fair 25-candidate Protenix scale-up for the repaired 79-job scoreable target set. Because the full P17 rerun spent early wall time repeating old large H-oligo targets, the 25-candidate launch reuses the P14+added-only overlay for seeds 101-105 and only runs seed106-125 target-seed shards."
 }
