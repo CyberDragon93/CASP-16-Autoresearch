@@ -170,11 +170,11 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 
 P14 is now historical: it completed, merged, and scored as the five-candidate
 scoreable baseline, then P17 added the five repaired scoreable targets through
-an overlay. The current live launch gate is P25, checked `2026-07-07 11:38
+an overlay. The current live launch gate is P25, checked `2026-07-07 11:42
 CDT`: seed106-125 target-seed shards `812935..812958` are submitted, with 19
 P25 jobs running and 5 pending behind `QOSMaxJobsPerUserLimit`. `check-shards`
-reports `ready=false`, `compatible=true`, `746` observed candidates, `1304`
-shard-level candidates missing, and `1229` full 25-candidate slots missing.
+reports `ready=false`, `compatible=true`, `751` observed candidates, `1299`
+shard-level candidates missing, and `1224` full 25-candidate slots missing.
 Shard05 seed121-125 and all shard06 seed blocks are still zero-output. Error
 scanning remains clean, and the bottleneck is still Protenix forward plus queue
 limits rather than repeated MSA search. Do not merge, score, submit O5b/P27b,

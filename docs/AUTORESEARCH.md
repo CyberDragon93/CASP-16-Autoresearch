@@ -1361,6 +1361,13 @@ competitive result.
     explains the five zero-output readiness rows. Recent log scanning again
     found no traceback/OOM/CUDA killed/disk/timeout signatures. This is still
     a waiting gate, not a score gate.
+86. `2026-07-07 11:42 CDT` P25 live gate: still `ready=false` and
+    `compatible=true`, with `751` observed candidates, `1299` shard-level
+    candidates missing, and `1224` full 25-candidate slots missing. Slurm is
+    unchanged at 19 P25 jobs running plus 5 P25 jobs pending behind
+    `QOSMaxJobsPerUserLimit`; the same five pending rows have zero outputs.
+    Recent new artifacts include `H1227` and `T1249V1` from running shards.
+    Error scanning remains clean. Keep waiting for the complete merged row.
 
 ## Run Discipline
 
