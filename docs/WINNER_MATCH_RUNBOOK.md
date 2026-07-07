@@ -40,6 +40,17 @@ rg -n "Traceback|RuntimeError|CUDA out of memory|out of memory|Killed|killed|No 
   runs/server_v2_attack_scoreable_input_repair_size_balanced_shard*_msa_reuse_protenix25_seed*/logs/p25_*.err
 ```
 
+Not-ready discipline:
+
+- If `observed_candidate_count` increases and recent CIF/JSON writes are fresh,
+  keep waiting. This is useful runtime, not a strategy signal.
+- If zero-output shards are all pending in Slurm, keep waiting for the queue.
+  Do not submit another GPU branch to compete with them.
+- If a running shard has no new writes for a long interval and the error scan
+  is still clean, inspect that shard's latest log before deciding anything.
+- Only change the prediction pipeline when there is a reproducible failure
+  signature or a complete scored P25 readout selecting the next branch.
+
 When the dry-run reports `status_summary.action=run_finish_without_dry_run`,
 run the same wrapper without `--dry-run`:
 
@@ -93,10 +104,10 @@ named before submission.
 
 ## Current Live Note
 
-At `2026-07-07 16:05 CDT`, P25 was still not ready:
-`ready=false`, `1413` observed candidates, `645` shard-level missing
-candidates, `580` full 25-candidate slots missing, and `6/79` full-budget
+At `2026-07-07 16:09 CDT`, P25 was still not ready:
+`ready=false`, `1442` observed candidates, `618` shard-level missing
+candidates, `553` full 25-candidate slots missing, and `11/79` full-budget
 tasks complete. Slurm showed 19 P25 jobs running and 5 P25 jobs pending behind
 `QOSMaxJobsPerUserLimit`; the zero-output rows were shard05 seed121-125 and all
 four shard06 seed blocks. The error keyword scan was clean, and prediction
-artifacts were still being written at 16:05 CDT.
+artifacts were still being written at 16:09 CDT.

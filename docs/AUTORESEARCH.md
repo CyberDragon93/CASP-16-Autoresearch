@@ -1933,6 +1933,18 @@ competitive result.
      closeout and post-P25 branch selection. `./casp16 post-p25-branch-readiness`
      reports all four deferred branch families
      launch-ready after complete P25 selection: P27b, D6a, O5b, and P15/v4.
+134. `2026-07-07 16:09 CDT` P25 remains not ready, but progress is healthy:
+     `ready=false`, `compatible=true`, `1442` observed candidates, `618`
+     shard-level missing candidates, `553` full 25-candidate slots missing,
+     and `11/79` full-budget tasks complete. This is +29 observed candidates
+     and +5 full-budget tasks since the 16:05 checkpoint. Slurm still has 19
+     P25 jobs running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`;
+     zero-output rows are unchanged and queue-blocked. Error-keyword scanning
+     is clean, and latest prediction writes reached 16:09 CDT. Added
+     not-ready discipline to `docs/WINNER_MATCH_RUNBOOK.md`: if candidates are
+     still appearing and pending shards are queue-blocked, wait rather than
+     launching another GPU branch or treating partial outputs as a strategy
+     signal.
 
 ## Run Discipline
 
