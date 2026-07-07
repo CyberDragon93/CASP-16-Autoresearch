@@ -77,6 +77,12 @@ deferred target shards that reuse P14's scoreable inputs, seeds, real
 MSA/template settings, and selector while changing only Protenix's default
 parameter mode. P27a is a model/config diversity probe, not a full MSA-variant
 system and not a replacement for P14 scoring.
+P27b,
+`casp16_server_attack_protenix5_input_repair_defaultparams_model_variant`,
+retargets the same default-params probe onto the repaired P17/P25 79-job
+scoreable input. It is prepared and preflight-clean, but remains deferred until
+P25 finishes and shows that model/config diversity is a better next spend than
+more seed scaling or reference recovery.
 
 Candidate budget sketch:
 
@@ -131,17 +137,17 @@ by how interesting the trick is.
 | G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row |
 | G3 | First-model QA/ranking can change apparent method quality without more GPU | P16 consensus replay used the same P14 five-candidate pool with `selection-qa` and `diversity_confidence_consensus_v1` | scored but slightly below P14 (`0.102218` domain, `0.115250` oligo) | Do not tune selectors again until P17 removes scoreable missing predictions and shows candidate selection is the limiting factor |
 | G4 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a is MSA-ready but deferred behind P17 | If P17 is weak on domains because inputs are missing/wrong, run D6a before scaling candidates |
-| G5 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache and P27a as the first concrete Protenix model/config variant, but not true MSA-variant or multi-engine generation | P27a prepared/deferred; broader variants not queued | Add broader MSA/model-variant budgets only after current Protenix input repairs stop yielding easy coverage gains |
+| G5 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache, P27a for the old 74-job scoreable input, and P27b for the repaired 79-job scoreable input as concrete Protenix model/config variants, but not true MSA-variant or multi-engine generation | P27b prepared/deferred behind P25; broader variants not queued | Add broader MSA/model-variant budgets only after current Protenix input repairs and P25 seed scaling stop yielding easy gains |
 | G6 | Complex assessment highlights antibody-antigen difficulty and specialized docking/Fv treatment | O5 antibody-Fv target-lab positives and prepared scoreable Fv target shards | prepared, risky, not submitted | Launch only if P17 exact QSglob shows antibody rows remain a major recoverable weakness |
 | G7 | Reference gaps hide local progress but are not prediction tricks | versioned `refmap` overlays and oligo assembly audit | v4 adds only audited `T1278/T2278`; `docs/REFERENCE_RECOVERY_V5_PLAN.md` keeps `T1228V1` as the near-term domain audit and leaves H0217/H0267 oligo families blocked on assembly/QSglob mapping | Keep reference recovery opportunistic and versioned; do not let it block runnable prediction experiments |
-| G8 | QA4/MULTICOM-style systems use diverse MSA/model pools plus QA rather than only seed count | `casp16_server_attack_msa_model_diversity_v1` design gate plus P27a default-params model/config probe | P27a prepared/deferred; full diversity system not queued | Build or launch only if P17 is complete/valid but weak and the prepared 25-seed row is not the right next spend |
+| G8 | QA4/MULTICOM-style systems use diverse MSA/model pools plus QA rather than only seed count | `casp16_server_attack_msa_model_diversity_v1` design gate plus P27a/P27b default-params model/config probes | P27b prepared/deferred behind P25; full diversity system not queued | Build or launch only if P25 is complete/valid but weak and model/config diversity is the recorded next spend |
 
 Post-P17 branch:
 
 - P17 fixed the scoreable missing predictions and scored as a
   `candidate_limited_signal`, so P25 seed106-125 is now submitted. Do not launch
-  P27a, O5, or a refmap compute branch until the P25 row finishes or fails with
-  a recorded reason.
+  P27a, P27b, O5, or a refmap compute branch until the P25 row finishes or
+  fails with a recorded reason.
 
 Default branch after P17:
 
@@ -202,7 +208,7 @@ benchmark target set or inspect references.
 | D6a | V2 nofail domain sequence recovery | reference-gap triage exposed protein-domain inputs that were locally represented as short DNA or empty jobs before scoring could be trusted | `yang_domain_sequence_recovery_oligo_nofail_v1` composes D6 onto the strongest v2 nofail stack, changing 8 domain jobs including the `T1276/T1228V1/T1239V1/T2276` class; `domain_sequence_recovery_msa_warmup_v1` materialized the 4 unique fresh-MSA sequences | single-seed run is MSA-ready but `deferred:await_p14_score`; launch only if post-P14 scoring selects D6a |
 | D7 | Coverage-first stack | realistic attack compute should not be spent on missing-sequence or token-limit hard zeros | `yang_sequence_recovery_large_target_fallback_v1` stacks sequence recovery with the large-target fallback on terminal-tag-cleaned inputs | queue after the component runs or when the queue needs a single combined coverage candidate |
 | D8 | Reference/input registry discipline | server-style domain comparison is only meaningful when native provenance, chain mapping, and crop mapping are explicit | `casp16_server_protein_v3_refmap` and `v4_refmap` add only accepted reference-map rows such as `T1278/T2278 -> 9hav` with chain `A` crop `34-370`; input-kind bugs such as `T1228V1` stay as input-repair work until mapping is strict | create a new benchmark version for accepted mappings; never patch v2/v4 TSVs by hand or use scores to select references |
-| D9 | MSA/model diversity budget | MULTICOM4 and QA4-style CASP16 clues emphasize diverse MSA generation, model sampling, and QA over a single default input | design `casp16_server_attack_msa_model_diversity_v1`: 4 target-agnostic MSA/model variants times 5 fixed seeds, all with real MSA/template settings; P27a is the first prepared Protenix config variant with `use_default_params=true` | build or launch only after P14 proves complete valid predictions are weak and not simply coverage/reference limited |
+| D9 | MSA/model diversity budget | MULTICOM4 and QA4-style CASP16 clues emphasize diverse MSA generation, model sampling, and QA over a single default input | design `casp16_server_attack_msa_model_diversity_v1`: 4 target-agnostic MSA/model variants times 5 fixed seeds, all with real MSA/template settings; P27a and repaired-input P27b are the first prepared Protenix config variants with `use_default_params=true` | build or launch only after P25 proves complete valid predictions are weak and not simply coverage/reference limited |
 
 ## Protein Oligos
 

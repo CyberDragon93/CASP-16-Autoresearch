@@ -1,0 +1,67 @@
+{
+  "name": "casp16_server_attack_protenix5_input_repair_defaultparams_model_variant",
+  "tier": "server_attack",
+  "status": "prepared_deferred_await_p25_score",
+  "parent_benchmark": "casp16_server_protein_v2_aliasfix",
+  "source_recipe": "MULTICOM4/QA4-style model/config diversity with real MSA/template settings",
+  "strategy": "target_shards_scoreable_input_repair_size_balanced_v1_server_attack_protenix5_defaultparams",
+  "base_strategy": "target_shards_scoreable_input_repair_size_balanced_v1_server_attack_protenix5",
+  "fixed_scoring_targets": 175,
+  "scoreable_jobs_kept": 79,
+  "target_shard_count": 6,
+  "seeds": ["101", "102", "103", "104", "105"],
+  "sample_per_seed": 1,
+  "candidate_count": 5,
+  "selected_model_policy": "protenix_confidence_v1",
+  "model_name": "protenix-v2",
+  "input_json": "strategies/scoreable_target_subset_input_repair_v1/casp16_server_protein_v2_aliasfix/inputs.json",
+  "input_manifest": "strategies/scoreable_target_subset_input_repair_v1/casp16_server_protein_v2_aliasfix/manifest.tsv",
+  "input_sha256": "d2a26ea7c86647e6e2e831048f07393fa33151f03d544b0382e6177bde8b04ae",
+  "input_manifest_sha256": "0fb2d718f54935dba7c6f6f6e9656018755f2db36f30e5d542463be581978e27",
+  "shard_manifest": "attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant_shards.tsv",
+  "target_shard_preflight_tsv": "diagnostics/msa_cache/protenix5_input_repair_defaultparams_model_variant_preflight.tsv",
+  "target_shard_preflight_sha256": "513a8eb2cfdc3717f2f54208322ac03739758bdd391ee60234ee366b65bba112",
+  "preflight": {
+    "rows": 6,
+    "ok": 6,
+    "blocked": 0,
+    "missing": 0,
+    "msa_protein_chains": 146,
+    "msa_usable_covered": 146,
+    "msa_stale_covered": 0,
+    "msa_coverage_fraction": 1.0
+  },
+  "prediction_policy": {
+    "use_msa": true,
+    "use_template": true,
+    "use_default_params": true,
+    "enable_cache": true,
+    "enable_fusion": true,
+    "enable_tf32": true,
+    "msa_reuse": "global exact-sequence cache with require_complete"
+  },
+  "variant_from_p25_input_repair": {
+    "only_changed_knob": "use_default_params:false -> true",
+    "unchanged": [
+      "benchmark",
+      "repaired scoreable target subset",
+      "target shard partition",
+      "seeds",
+      "sample count",
+      "MSA/template enabled",
+      "candidate selection policy"
+    ]
+  },
+  "forbidden_selection_signals": [
+    "native or reference structures",
+    "official CASP score tables",
+    "previous target_scores.csv values",
+    "leaderboard rows used as a per-target oracle",
+    "manual per-target intervention after seeing scores"
+  ],
+  "launch_gate": [
+    "Do not submit while P25 is running or unscored.",
+    "Use only if P25 shows seed scaling is weak or flat and the post-P25 decision selects model/config diversity.",
+    "Keep this as a separate server_attack row; do not merge it into the P17 overlay or P25 protenix_confidence_v1 row."
+  ]
+}

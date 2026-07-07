@@ -113,6 +113,18 @@ remaining 24 run specs for seeds `106..125` were submitted as Slurm jobs
 `812935..812958`. A partial 25-seed attempt is unranked unless it is explicitly
 reported as partial.
 
+The repaired-input default-params model/config branch is prepared but gated
+behind P25. Its machine-readable budget is
+`attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant.json`,
+with shard rows in
+`attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant_shards.tsv`.
+It uses the same repaired 79-job scoreable input, seeds `101..105`, real
+MSA/template settings, and `protenix_confidence_v1` selector as the starter
+attack tier, changing only `use_default_params:false -> true`. All six run
+specs are `deferred:await_p25_score` and rank-ineligible until merged through a
+future explicit decision. Do not submit this branch while P25 is running or
+unscored.
+
 For very large scoreable inputs, target-size sharding is allowed as an
 execution-only optimization when every shard uses the same declared budget and
 strategy. A target-sharded merge must be explicit:

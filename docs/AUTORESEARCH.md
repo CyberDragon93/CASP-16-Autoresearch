@@ -303,6 +303,16 @@ where methods should change.
   complete MSA reuse and 0 stale paths. Do not submit it before P14 is
   merged/scored and the post-P14 decision matrix selects model/config
   diversity over seed scaling, reference recovery, or input repair.
+- The repaired-input successor P27b is now prepared as
+  `attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant.json`
+  plus six deferred target shards
+  `server_v2_attack_scoreable_input_repair_defaultparams_shard01..06_msa_reuse_protenix5_seed101_105`.
+  It retargets the same default-params model/config probe onto the P17/P25
+  79-job repaired scoreable input, keeps seeds `101..105`, real MSA/template
+  settings, and `protenix_confidence_v1`, and flips only
+  `use_default_params:false -> true`. Batch preflight is `6/6 ok` with
+  `146/146` reusable protein chains and 0 stale paths. It is explicitly
+  `deferred:await_p25_score`; do not submit it while P25 is running or unscored.
 - `diversity_confidence_consensus_v1` is now wired as a prediction-only
   selector for future diversity budgets. It extends `protenix_confidence_v1`
   with optional consensus/cluster-support fields from run-local confidence or
@@ -1227,6 +1237,20 @@ competitive result.
     this wait is inference/shard completion, not repeated MSA work. The
     readiness TSV is now generated with `missing_tasks=none` for complete
     shards, so polling no longer needs hand cleanup.
+75. `2026-07-07` P25/P27b checkpoint: live Slurm status still shows the
+    repaired P25 seed106-125 grid incomplete, with 19 GH jobs running and 5
+    pending behind `QOSMaxJobsPerUserLimit`; do not merge or score it yet. A
+    refreshed `check-shards` pass reports `ready=false`, `compatible=true`,
+    `600` observed candidates, `1450` shard-level candidates still missing,
+    and `1375` full 25-candidate slots still missing. A repaired-input
+    default-params model/config branch, P27b, is now fully documented but still
+    deferred:
+    `attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant.json`
+    and its shard TSV point to six run specs on the P17/P25 79-job repaired
+    scoreable input. Preflight is `6/6 ok`, complete MSA reuse is `146/146`,
+    and all rows remain `deferred:await_p25_score`. Use P27b only if the
+    complete P25 score shows that extra seed scaling is weak and
+    target-agnostic model/config diversity is the next best compute spend.
 
 ## Run Discipline
 
