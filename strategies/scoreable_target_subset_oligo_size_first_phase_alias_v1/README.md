@@ -22,6 +22,8 @@ Generated artifacts:
 
 - `casp16_server_protein_v2_aliasfix/inputs.json`
 - `casp16_server_protein_v2_aliasfix/manifest.tsv`
+- `casp16_server_protein_v4_refmap/inputs.json`
+- `casp16_server_protein_v4_refmap/manifest.tsv`
 
 Generation summary:
 
@@ -45,3 +47,33 @@ First exact-oligo blockers after sorting:
 - `H0258/H1258/H2258`: total length 2535, moved to the end of the exact-oligo
   block.
 
+## v4 Refmap Successor
+
+After accepting `T1278/T2278 -> 9hav` in
+`casp16_server_protein_v4_refmap`, the same scoreable size-first recipe keeps
+76 jobs instead of the v2 74-job subset. The two extra jobs are `T1278` and
+`T2278`, both scoreable through the accepted refmap rows and both kept after
+the exact-oligo priority block.
+
+Generation summary:
+
+- benchmark: `casp16_server_protein_v4_refmap`
+- base input:
+  `strategies/yang_oligo_sequence_stoich_phase_alias_low_complexity_large_fallback_v1/casp16_server_protein_v4_refmap/inputs.json`
+- original jobs: 165
+- kept jobs: 76
+- skipped jobs: 89
+- prioritized exact oligo jobs: 50
+- output SHA256:
+  `589c9df298c9c8b70084b08b140989a38b6760250d54cb5100da7b972df68150`
+
+MSA cache check:
+
+- report:
+  `diagnostics/msa_cache/scoreable_target_subset_oligo_size_first_phase_alias_v1_v4.tsv`
+- result: 143/143 protein chains covered, 0 missing sources, 0 stale covered
+  rows.
+
+Use this as the next scoreable-subset attack input after the running v2 P14
+row is scored; do not compare it directly against v2 without noting the larger
+81-reference v4 scoring registry.

@@ -131,6 +131,14 @@ where methods should change.
   `input_manifest.tsv`, and requires complete exact-sequence MSA reuse from
   `data/msa_cache/index.tsv`. It is not queued yet; use it only if the running
   scoreable `protenix5` row is worth scaling.
+- A v4 refmap scoreable successor is prepared at
+  `strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v4_refmap/`.
+  It uses the same no-over-token phase-alias/low-complexity/large-fallback
+  recipe, but the accepted `T1278/T2278 -> 9hav` refmap rows raise the
+  scoreable subset from 74 to 76 jobs. Its MSA preflight is clean at 143/143
+  reusable protein chains against `data/msa_cache/index.tsv`. Treat it as the
+  next P15-style input after the running v2 P14 row is scored; do not mix its
+  result into v2 leaderboards without naming the v4 benchmark.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and
@@ -809,6 +817,13 @@ competitive result.
     benchmark-input sequence identity to `T1278`, raising local reference
     coverage to 81/175 with 94 gaps remaining. This is measurement coverage
     only; it does not change the active v2 attack row.
+49. `2026-07-06 23:30 CDT` prepared the v4 scoreable-subset successor:
+    `strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v4_refmap/inputs.json`.
+    It keeps 76/165 jobs, adds `T1278` and `T2278` relative to the v2
+    scoreable subset, keeps exact oligo jobs size-first, and checks at 143/143
+    MSA cache coverage with no stale rows. This is queued-for-decision
+    preparation only; the live P14 shards remain v2 and should finish before
+    new GPU submission.
 
 ## Run Discipline
 

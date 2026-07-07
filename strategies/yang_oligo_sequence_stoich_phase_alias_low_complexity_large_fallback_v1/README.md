@@ -12,6 +12,8 @@ Generated artifacts:
 
 - `casp16_server_protein_v2_aliasfix/inputs.json`
 - `casp16_server_protein_v2_aliasfix/manifest.tsv`
+- `casp16_server_protein_v4_refmap/inputs.json`
+- `casp16_server_protein_v4_refmap/manifest.tsv`
 
 Generation summary:
 
@@ -30,3 +32,28 @@ Largest retained jobs after fallback:
 - `H0217/H1217/H2217`: 2312 tokens after fallback
 - `H0272/H1272/H2272`: 2285 tokens after fallback
 
+## v4 Refmap Stack
+
+The v4 stack reuses the same composed recipe on top of
+`casp16_server_protein_v4_refmap`, which adds accepted references for
+`T1278/T2278`.
+
+Generation chain:
+
+1. `yang_protein_oligo_sequence_stoich_token_safe_v1`
+2. `yang_low_complexity_terminal_cleanup_v1`
+3. `yang_large_target_split_or_fallback_v1`
+
+Generation summary:
+
+- jobs: 165
+- sequence/stoich phase changed targets: 3
+- low-complexity changed targets: 21
+- final fallback changed targets: 29
+- max optimized job length: 2535 tokens
+- jobs above 2560 tokens: 0
+- output SHA256:
+  `8c0f39ace0a9eae282274964b0337cfc894611c95293eceb7e25982f1f8055ae`
+
+`T1278` and `T2278` pass through this stack as 360-token protein-domain jobs
+and become scoreable in the v4 scoreable-subset successor.
