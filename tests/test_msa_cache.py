@@ -405,6 +405,95 @@ def test_incremental_materialized_cache_preserves_existing_records(tmp_path: Pat
     assert reuse_summary["missing_source"] == 0
 
 
+def test_build_msa_cache_cli_can_require_fresh_source_scan(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    msa_dir = tmp_path / "runs" / "source" / "predictions" / "protenix-v2" / "T1" / "msa" / "0"
+    msa_dir.mkdir(parents=True)
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_json = tmp_path / "runs" / "source" / "inputs" / "inputs-update-msa.json"
+    source_json.parent.mkdir(parents=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"], "unpairedMsaPath": str(unpaired)}}
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    index_tsv = tmp_path / "data" / "msa_cache" / "index.tsv"
+    build_msa_cache_index(source_jsons=[source_json], output_tsv=index_tsv)
+
+    empty_source_json = tmp_path / "empty-inputs-update-msa.json"
+    empty_source_json.write_text(json.dumps([{"name": "empty", "sequences": []}]) + "\n", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="source scan found 0 usable record"):
+        main(
+            [
+                "--root",
+                str(tmp_path),
+                "build-msa-cache",
+                "--output-tsv",
+                str(index_tsv),
+                "--existing-index",
+                str(index_tsv),
+                "--msa-source-json",
+                str(empty_source_json),
+                "--min-source-records",
+                "1",
+            ]
+        )
+    capsys.readouterr()
+
+
+def test_build_msa_cache_cli_can_require_unique_added_records(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    msa_dir = tmp_path / "runs" / "source" / "predictions" / "protenix-v2" / "T1" / "msa" / "0"
+    msa_dir.mkdir(parents=True)
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_json = tmp_path / "runs" / "source" / "inputs" / "inputs-update-msa.json"
+    source_json.parent.mkdir(parents=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"], "unpairedMsaPath": str(unpaired)}}
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    index_tsv = tmp_path / "data" / "msa_cache" / "index.tsv"
+    build_msa_cache_index(source_jsons=[source_json], output_tsv=index_tsv)
+
+    with pytest.raises(RuntimeError, match="source scan added 0 unique record"):
+        main(
+            [
+                "--root",
+                str(tmp_path),
+                "build-msa-cache",
+                "--output-tsv",
+                str(index_tsv),
+                "--existing-index",
+                str(index_tsv),
+                "--msa-source-json",
+                str(source_json),
+                "--min-source-records",
+                "1",
+                "--min-added-records",
+                "1",
+            ]
+        )
+    capsys.readouterr()
+
+
 def test_run_spec_can_refresh_and_use_global_msa_cache(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     input_json = tmp_path / "inputs.json"
     input_manifest = tmp_path / "input_manifest.tsv"

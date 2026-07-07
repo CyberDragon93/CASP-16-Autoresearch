@@ -507,6 +507,8 @@ def build_parser() -> argparse.ArgumentParser:
     build_msa_cache.add_argument("--existing-index", type=Path, action="append", default=None, help="Existing cache index to merge; defaults to --output-tsv when --incremental is set and it exists.")
     build_msa_cache.add_argument("--manifest-json", type=Path, default=None, help="Defaults to <output-tsv parent>/manifest.json.")
     build_msa_cache.add_argument("--min-records", type=int, default=1, help="Fail if the built index has fewer usable sequence records.")
+    build_msa_cache.add_argument("--min-source-records", type=int, default=0, help="Fail if this source scan finds fewer usable sequence records.")
+    build_msa_cache.add_argument("--min-added-records", type=int, default=0, help="Fail if this source scan adds fewer unique records to the merged index.")
 
     reuse_msa = subparsers.add_parser("reuse-msa", help="Inject existing Protenix MSA paths into a new input JSON by exact protein sequence match.")
     reuse_msa.add_argument("--input-json", type=Path, required=True)
@@ -878,6 +880,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise RuntimeError(
                 f"MSA cache index has {summary.get('source_sequence_records', 0)} usable record(s), "
                 f"below required {args.min_records}"
+            )
+        if int(summary.get("new_source_sequence_records", 0) or 0) < args.min_source_records:
+            raise RuntimeError(
+                f"MSA cache source scan found {summary.get('new_source_sequence_records', 0)} usable record(s), "
+                f"below required {args.min_source_records}"
+            )
+        if int(summary.get("records_added_from_sources", 0) or 0) < args.min_added_records:
+            raise RuntimeError(
+                f"MSA cache source scan added {summary.get('records_added_from_sources', 0)} unique record(s), "
+                f"below required {args.min_added_records}"
             )
         manifest_json = (args.manifest_json or (output_tsv.parent / "manifest.json")).resolve()
         summary["manifest_json"] = str(manifest_json)

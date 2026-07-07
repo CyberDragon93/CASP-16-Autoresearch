@@ -24,7 +24,8 @@ Preferred run creation path:
   --benchmark casp16_server_protein_v2_aliasfix \
   --output-tsv data/msa_cache/index.tsv \
   --materialize-cache \
-  --incremental
+  --incremental \
+  --min-source-records 1
 
 ./casp16 msa-cache-report \
   --benchmark casp16_server_protein_v2_aliasfix \
@@ -58,6 +59,11 @@ fails before GPU allocation if cache coverage is lower than declared.
 incrementally, materializes any newly discovered A3M files into
 `data/msa_cache/store/`, writes `data/msa_cache/manifest.json`, and then uses
 that refreshed global index for the run spec.
+When refreshing after a completed warmup or attack shard, use
+`build-msa-cache --min-source-records <n>` to prove the scan actually found
+fresh source artifacts, and `--min-added-records <n>` when you expect new
+unique sequence records to enter the global index. This prevents an old large
+index from masking a bad source path.
 
 `check-msa-cache` is the read-only preflight for planning and queue notes. It
 uses the same exact-sequence matcher as `run-spec`, writes a diagnostics TSV,
