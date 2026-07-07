@@ -5,9 +5,9 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 ## Post-P25 Fast Decision Queue
 
-Current live P25 gate, checked `2026-07-07 15:14 CDT`: `ready=false`,
-`compatible=true`, `1297` observed candidates, `761` shard-level candidates
-missing, and `691` full 25-candidate slots missing. One target is now complete
+Current live P25 gate, checked `2026-07-07 15:22 CDT`: `ready=false`,
+`compatible=true`, `1341` observed candidates, `717` shard-level candidates
+missing, and `647` full 25-candidate slots missing. One target is now complete
 at the full 25-candidate budget, but the merged P25 row is not scoreable yet.
 Slurm has 19 P25 jobs running and 5 P25 jobs pending behind
 `QOSMaxJobsPerUserLimit`; `qlimits` reports `gh` `MaxJobsPU=20`, and one
@@ -144,6 +144,14 @@ It rejects the current H0217/H1217/H2217 and H0267/H1267/H2267 candidate
 assemblies for refmap promotion because none matches the benchmark target
 polymer-chain count. Keep these rows in manual native assembly/provenance work
 unless target-stoichiometry agreement or explicit QSglob mapping appears.
+The Lane E domain search review is recorded in
+`diagnostics/reference_gap/casp16_server_protein_v5_lane_e_domain_search_review.tsv`.
+It unifies the relaxed90 RCSB evidence for all `16` queued domain families and
+`36` target rows. Fifteen families have no relaxed90 sequence hits. The only
+hits are `5AQ5`, `4UW7`, and `4UW8` for `T0257/T1257/T2257`, and those are
+short tail-fiber domain/template structures rather than the 1263-residue CASP
+construct. Lane E should now stay in manual native/provenance search plus
+explicit domain-crop mapping; do not run another search-depth-only RCSB loop.
 The first high-value Lane F relaxed RCSB probe is also recorded:
 `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_high_value_oligo_targets.tsv`
 and its candidate TSV show `15` oligo rows checked at identity `0.90`.
@@ -217,7 +225,7 @@ source for selected run ids and preflight files.
 | done | `target_lab/domain_fragment_batch_v1` | target_lab only | job `810862` complete; 12/12 structures and confidence files | Compact domain-decomposition reproduction for D2 winner recipe | Diagnostic confidence is high on most fragments; promote only target-agnostic segmentation, not CASP-domain hand crops |
 | target_lab | `811918` | `targetlab_protenix_yang_antibody_fv_seed101` | target_lab only | complete on `c620-142`; 8/8 CIFs, confidence summaries, and DockQ diagnostics | Eight full-MSA/template Fv-only antibody-antigen jobs from `yang_antibody_fv_fragment_inputs_v1`; DockQ strong positives `H0233__fv=0.916` and `H1233__fv=0.891`; never ranked |
 | superseded P18 | `casp16_server_attack_protenix25_scoreable_nofail` | `casp16_server_protein_v2_aliasfix` | prepared, not queued; target+seed shard manifest has 30 rows for the pre-P17 74-target input | Winner-like compute is likely more than five candidates, but this artifact predates P17's 79-target input repair | Do not launch the old 74-target P18 grid; use the repaired P25 plan below if P17 justifies scale-up |
-| P25 submitted | `casp16_server_attack_protenix25_scoreable_input_repair` | `casp16_server_protein_v2_aliasfix` | submitted Slurm jobs `812935..812958` for the 24 seed106-125 target-seed shards; latest live gate at `2026-07-07 15:14 CDT` is `ready=false`, `compatible=true`, 19 P25 running, 5 P25 pending behind `QOSMaxJobsPerUserLimit`, `1297` observed candidates, `761` shard-level missing, complete MSA reuse, and large-complex inference currently active on scoreable targets | This is the winner-like 25-candidate successor to P17 on the repaired 79-target scoreable input | Wait for all jobs to finish, merge with the overlay, then score/leaderboard the complete 25-candidate row; do not score partial output or launch O5b/P27b early |
+| P25 submitted | `casp16_server_attack_protenix25_scoreable_input_repair` | `casp16_server_protein_v2_aliasfix` | submitted Slurm jobs `812935..812958` for the 24 seed106-125 target-seed shards; latest live gate at `2026-07-07 15:22 CDT` is `ready=false`, `compatible=true`, 19 P25 running, 5 P25 pending behind `QOSMaxJobsPerUserLimit`, `1341` observed candidates, `717` shard-level missing, complete MSA reuse, and large-complex inference currently active on scoreable targets | This is the winner-like 25-candidate successor to P17 on the repaired 79-target scoreable input | Wait for all jobs to finish, merge with the overlay, then score/leaderboard the complete 25-candidate row; do not score partial output or launch O5b/P27b early |
 | P19 | `casp16_server_attack_protenix25_nofail` | `casp16_server_protein_v2_aliasfix` | planned, not queued; keep as full-input ablation while references are incomplete | Same 25-seed budget on the 165-job oligo-recovery nofail stack, with exact-sequence MSA paths reused across shards | Do not launch before reference recovery or a recorded decision to spend compute on full-input ablation |
 | design P27 | `casp16_server_attack_msa_model_diversity_v1` | P17/P25 repaired-input server benchmark unless post-P25 readout selects refmap first | P25-era design recorded in `attack_budgets/casp16_server_attack_msa_model_diversity_v1.json`; `diversity_confidence_consensus_v1` is implemented, P25 consensus replay is configured in the closeout wrapper, and P27b is the prepared model/config child | Reproduces the MULTICOM4/QA4-style lesson: diverse MSA/model generation plus QA, with real MSA/template settings, rather than just turning one Protenix input through more seeds | Launch P27b first only if complete P25 is flat but valid; build true MSA variants only after P25/P27b show model/config diversity is the right next spend |
 | superseded P27a | `server_v2_attack_scoreable_defaultparams_shard01..06_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | prepared but not submitted; old pre-P17 74-target run specs kept for provenance only | First model/config diversity probe on the pre-P17 scoreable target shards, flipping only `use_default_params:false -> true` | Do not launch; use repaired-input P27b if complete P25 selects model/config diversity |

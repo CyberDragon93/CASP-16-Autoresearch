@@ -289,15 +289,33 @@ and the header-only candidate TSV beside it. These rows should now be treated
 as native/provenance manual-search work, not as candidates for another
 search-depth-only RCSB loop.
 
+2026-07-07 15:22 CDT follow-up: a unified Lane E relaxed RCSB sweep covered
+all 16 queued domain families and all 36 target rows at `identity_cutoff=0.90`
+with `max_hits=25`. Outputs are:
+
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_e_remaining_domain_worklist.tsv`
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_e_all_domain_targets.tsv`
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_e_all_domain_candidates.tsv`
+- `diagnostics/reference_gap/casp16_server_protein_v5_lane_e_domain_search_review.tsv`
+
+The sweep found 9 candidate rows, all from the `T0257/T1257/T2257` phase
+family (`5AQ5`, `4UW7`, `4UW8`). They are short bacteriophage T5 tail-fiber
+C-terminal domain/template structures, 294-427 residues versus the
+1263-residue CASP target sequences, and have no exact or contained sequence
+relationship. They remain `reject_relaxed90_hits_for_refmap`. The other 15
+Lane E domain families are `relaxed90_no_hits_manual_native_search`. Lane E
+automated sequence-search probing is now exhausted; useful next work is manual
+native/provenance search plus explicit domain crop mapping.
+
 | Priority | Target | Server best score | Next action |
 | ---: | --- | ---: | --- |
 | 1 | `T1292` | 1.000000 | manual native/reference search |
 | 2 | `T0240/T1240/T2240` | 0.997600 | manual native/reference search; relaxed RCSB probe exhausted |
-| 3 | `T1274/T2274` | 0.997200 | search as one phase-alias family |
+| 3 | `T1274/T2274` | 0.997200 | manual native/reference search; relaxed RCSB probe exhausted |
 | 4 | `T1294V1` | 0.994000 | manual native/reference search |
 | 5 | `T1279/T2279` | 0.991700 | manual native/reference search; relaxed RCSB probe exhausted |
-| 6 | `T1231/T2231` | 0.982400 | search as one phase-alias family |
-| 7 | `T1276/T2276` | 0.982000 | verify input repair state, then search |
+| 6 | `T1231/T2231` | 0.982400 | manual native/reference search; relaxed RCSB probe exhausted |
+| 7 | `T1276/T2276` | 0.982000 | verify input repair state, then manual native/reference search |
 | 8 | `T1259/T2259/T0259` | 0.979200 | manual native/reference search; relaxed RCSB probe exhausted |
 | 9 | `T0246/T1246/T2246` | 0.976200 | manual native/reference search; relaxed RCSB probe exhausted |
 | 10 | `T0218/T1218/T2218` | 0.975800 | manual native/reference search; long multidomain mapping required |

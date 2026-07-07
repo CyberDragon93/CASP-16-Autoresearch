@@ -1813,6 +1813,25 @@ competitive result.
      tetrameric or 34-meric assemblies versus 2-chain target rows. No current
      Lane D assembly is accepted for refmap promotion; future progress needs
      native assembly provenance plus explicit QSglob chain/interface mapping.
+125. `2026-07-07 15:22 CDT` P25 live gate plus Lane E domain search review:
+     P25 is still not merge-ready but continues to advance: `ready=false`,
+     `compatible=true`, `1341` observed candidates, `717` shard-level missing
+     candidates, and `647` full 25-candidate slots missing. While waiting,
+     built
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_e_remaining_domain_worklist.tsv`
+     from all Lane E domain families and ran `./casp16 refmap-probe` at
+     `identity_cutoff=0.90` / `max_hits=25` over 36 target rows. Outputs are
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_e_all_domain_targets.tsv`,
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_e_all_domain_candidates.tsv`,
+     and
+     `diagnostics/reference_gap/casp16_server_protein_v5_lane_e_domain_search_review.tsv`.
+     The sweep found 9 candidate rows, all for the `T0257/T1257/T2257`
+     family (`5AQ5`, `4UW7`, `4UW8`), and rejects them as short tail-fiber
+     domain/template structures: 294-427 residues versus the 1263-residue CASP
+     target sequences, with no exact or contained sequence relationship. The
+     other 15 Lane E families have relaxed90 `no_hits`. No Lane E accepted
+     reference is added; future work is manual native/provenance search plus
+     explicit domain crop mapping only.
 
 ## Run Discipline
 
