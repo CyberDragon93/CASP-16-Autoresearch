@@ -2153,6 +2153,21 @@ competitive result.
      error-keyword scan is still clean. Continue waiting for declared
      candidates; do not partial-score or launch P27b/O5b/D6a/P15 before the
      closeout wrapper reports ready.
+149. `2026-07-07 18:08 CDT` Added and submitted a narrow CPU closeout watcher
+     so P25 closeout is no longer tied to the current interactive GH session.
+     Latest dry-run is still `ready=false`, `action=wait_for_declared_candidates`
+     with `1725` observed candidates, `345` shard-level missing candidates,
+     `312` full 25-candidate slots missing, `50/79` full-budget tasks complete,
+     and `13` complete seed-shards. All P25 shards are running and
+     `zero_output_shard_count=0`; newest artifacts reached 18:03 CDT and the
+     error-keyword scan is clean. The new Slurm script
+     `slurm/casp16_p25_closeout_gg.slurm` runs on `gg`, polls
+     `scripts/finish_p25_scoreable_input_repair.sh --dry-run` every 900 seconds,
+     and only when the action becomes `run_finish_without_dry_run` runs the
+     existing closeout wrapper plus `winner-gap`. It was submitted via
+     `ssh login1` as job `814295` and is running on `i615-061`. This is not a
+     new prediction branch and does not change benchmark rules; it is a watcher
+     for the already-declared P25 closeout gate.
 
 ## Run Discipline
 
