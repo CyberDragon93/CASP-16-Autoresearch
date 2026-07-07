@@ -552,6 +552,45 @@ def test_post_p25_readout_selects_seed_scaling_signal(tmp_path) -> None:
     assert "per-target prediction tuning" in summary["target_delta_summary"]["note"]
 
 
+def test_post_p25_readout_selects_refmap_when_scoreable_is_strong_but_full_set_is_capped(tmp_path) -> None:
+    benchmark, p25_id, baseline_id = write_p25_readout_fixture(
+        tmp_path,
+        p25_domain_mean="0.050000",
+        p25_oligo_mean="0.050000",
+        baseline_domain_mean="0.050000",
+        baseline_oligo_mean="0.050000",
+    )
+
+    summary = post_p25_readout(project_root=tmp_path, benchmark=benchmark, run_id=p25_id, baseline_run_id=baseline_id)
+
+    assert summary["decision_status"] == "reference_limited_signal"
+    assert summary["next_branch"] == "continue_versioned_refmap_or_score_p15_v4"
+    assert summary["comparison"]["scoreable_nonzero_fraction"] == 1.0
+    assert summary["target_sets"]["no_reference_targets"] == 1
+    assert summary["launch_plan"]["action"] == "continue_refmap_or_launch_p15_v4"
+    assert summary["launch_plan"]["target_disjoint_shards"] is True
+
+
+def test_post_p25_readout_selects_p27b_when_complete_valid_and_flat(tmp_path) -> None:
+    benchmark, p25_id, baseline_id = write_p25_readout_fixture(
+        tmp_path,
+        p25_domain_mean="0.000000",
+        p25_oligo_mean="0.000000",
+        baseline_domain_mean="0.000000",
+        baseline_oligo_mean="0.000000",
+    )
+
+    summary = post_p25_readout(project_root=tmp_path, benchmark=benchmark, run_id=p25_id, baseline_run_id=baseline_id)
+
+    assert summary["decision_status"] == "model_config_diversity_signal"
+    assert summary["next_branch"] == "launch_p27b_model_config_diversity_after_p25"
+    assert summary["comparison"]["fixed_set_delta"] == 0.0
+    assert summary["comparison"]["scoreable_nonzero_fraction"] == 0.0
+    assert summary["launch_plan"]["action"] == "launch_p27b_defaultparams_shards"
+    assert summary["launch_plan"]["target_disjoint_shards"] is True
+    assert len(summary["launch_plan"]["run_ids"]) == 6
+
+
 def test_post_p25_readout_requires_p17_baseline_before_branching(tmp_path) -> None:
     benchmark, p25_id, baseline_id = write_p25_readout_fixture(tmp_path, include_baseline=False)
 

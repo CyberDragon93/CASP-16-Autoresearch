@@ -1957,6 +1957,21 @@ competitive result.
      D6a domain input repair, and P15/v4 refmap comparison. These snippets are
      not a launch decision; they are meant to remove friction only after a
      complete scored P25 readout selects exactly one branch.
+136. `2026-07-07 16:22 CDT` P25 remains healthy but incomplete:
+     `ready=false`, `compatible=true`, `1503` observed candidates, `563`
+     shard-level missing candidates, `500` full 25-candidate slots missing,
+     and `22/79` full-budget tasks complete. Slurm still has 19 P25 GH jobs
+     running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; the
+     zero-output rows are still shard05 seed121-125 plus all shard06 seed
+     blocks. Error-keyword scanning stayed clean, and latest prediction writes
+     reached 16:20 CDT. While waiting, hardened `post_p25_readout` tests for
+     two winner-match branch gates: strong scoreable signal with no-reference
+     cap must route to versioned refmap/P15-v4, and a complete valid flat P25
+     must route to P27b model/config diversity. Validation:
+     `python -m pytest tests/test_decisions.py` passed 15 tests in the protein
+     env, and full `python -m pytest` passed 178 tests. Keep waiting for
+     declared candidates; do not score partial P25 or launch another GPU
+     branch.
 
 ## Run Discipline
 
