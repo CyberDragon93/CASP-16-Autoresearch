@@ -5,7 +5,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 ## Post-P25 Fast Decision Queue
 
-Current live P25 gate, checked `2026-07-07 12:22 CDT`: `ready=false`,
+Current live P25 gate, checked `2026-07-07 12:35 CDT`: `ready=false`,
 `compatible=true`, `855` observed candidates, `1195` shard-level candidates
 missing, and `1120` full 25-candidate slots missing. Slurm has 19 P25 jobs
 running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`. Do not submit
@@ -37,6 +37,14 @@ Use this queue immediately after the complete P25 score exists:
 | 3 | P25 domain zeros or failures concentrate on `T1276/T1228V1/T1239V1/T2276`-class input-kind/alias repairs | D6a domain sequence recovery full run | More seeds repeat bad inputs; the D6a input is now cache-complete and repairs the sequence modality class | Mark `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101` pending, dry-run it, then run a single `dev_fixed` job |
 | 4 | P25 oligo QSglob failures concentrate on antibody/Fv rows while non-antibody exact oligos show signal | O5b repaired-input antibody/Fv shards | Target-lab Fv diagnostics were positive, and O5b promotes the rule without hand-picking targets | Run only the six `server_v2_attack_scoreable_input_repair_antibody_fv_shard*` specs; preflight is `6/6 ok`, MSA `146/146`, 0 stale |
 | 5 | P25 is mostly capped by `missing_reference` while predictions are otherwise usable | P15/v4 or V5 refmap work, not more GPU | Additional predictions cannot score without references; reference work must be versioned | Do not patch v2/v4 in place; use accepted refmap rows and a new benchmark version when needed |
+
+While P25 is still running, use the non-GPU V5 reference queue in
+`diagnostics/reference_gap/casp16_server_protein_v5_refmap_recovery_queue.tsv`
+for scoring-infrastructure work. It groups the 94 v4 missing-reference rows
+into 42 target-family tasks, with explicit lanes for `T1228V1` provenance,
+domain manual native search, oligo assembly mapping, input/alias repair, and
+oligo manual native search. This queue is not prediction guidance and must not
+be used for target-specific strategy tuning.
 
 For a selected deferred run, record the decision before launch:
 

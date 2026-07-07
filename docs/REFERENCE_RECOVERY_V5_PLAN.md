@@ -13,6 +13,7 @@ Source artifacts:
 - `diagnostics/reference_gap/casp16_server_protein_v4_refmap_reference_gap_report.tsv`
 - `diagnostics/reference_gap/casp16_server_protein_latest_all_refmap_review.tsv`
 - `diagnostics/reference_gap/casp16_server_protein_latest_oligo_assembly_audit.tsv`
+- `diagnostics/reference_gap/casp16_server_protein_v5_refmap_recovery_queue.tsv`
 
 `casp16_server_protein_v4_refmap` has severe reference-limited score caps:
 
@@ -24,6 +25,26 @@ Source artifacts:
 So reference recovery is necessary for a full server-track comparison. It is
 not a substitute for better predictions, and it must not change v2/v4 in
 place.
+
+## Machine-Readable Queue
+
+`diagnostics/reference_gap/casp16_server_protein_v5_refmap_recovery_queue.tsv`
+is the current work queue for v5. It compresses the 94 missing-reference rows
+from the v4 report into 42 target-family tasks:
+
+| Lane | Meaning | Groups |
+| --- | --- | ---: |
+| `A_near_term_domain_candidate` | candidate exists, but provenance/mapping is not accepted | 1 |
+| `D_domain_manual_native_search` | domain target family needs native/reference search | 18 |
+| `B_oligo_assembly_mapping` | oligo candidate exists, but assembly/QSglob mapping is unresolved | 2 |
+| `C_input_or_alias_repair_first` | input or alias must be repaired before reference promotion | 5 |
+| `E_oligo_manual_native_search` | oligo target family needs native/reference search | 16 |
+
+The queue uses official target metadata and reference status only. It must not
+be joined with local prediction `target_scores.csv` to choose per-target
+prediction behavior. A row marked `audit_first_not_accepted`,
+`search_first_not_accepted`, or `not_reference_ready` is deliberately not an
+accepted benchmark reference.
 
 ## V5 Rule
 

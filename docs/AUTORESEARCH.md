@@ -116,6 +116,15 @@ where methods should change.
   The rest are manual native-search targets, grouped by phase alias. Any
   accepted expansion must become `casp16_server_protein_v5_refmap`; do not
   mutate v2/v4 in place.
+- `2026-07-07 12:35 CDT` v5 reference-recovery queue:
+  `diagnostics/reference_gap/casp16_server_protein_v5_refmap_recovery_queue.tsv`
+  groups the 94 current v4 missing-reference rows into 42 target-family tasks.
+  The first lane is `T1228V1` provenance/mapping; the highest-gain manual
+  domain families are `T0240/T1240/T2240`, `T0259/T1259/T2259`,
+  `T0246/T1246/T2246`, `T0218/T1218/T2218`, and
+  `T0270/T1270/T2270`. Treat the queue as scoring-infrastructure triage only:
+  it must not be joined with local prediction `target_scores.csv` to tune
+  target-specific prediction behavior.
 - `2026-07-07` latest all-gap chain audit:
   `diagnostics/reference_gap/casp16_server_protein_latest_all_chain_audit.tsv`
   audits 81 candidate structures and 1021 chain rows. It confirms that
