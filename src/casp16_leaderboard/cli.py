@@ -489,12 +489,43 @@ def write_msa_cache_report_tsv(path: Path, rows: Sequence[dict[str, object]]) ->
             writer.writerow({field: row.get(field, "") for field in MSA_CACHE_REPORT_FIELDS})
 
 
+def summarize_missing_msa_tasks(rows: Sequence[dict[str, str]], *, limit: int) -> list[dict[str, object]]:
+    by_task: dict[str, dict[str, object]] = {}
+    for row in rows:
+        task_name = str(row.get("task_name", "") or "")
+        if not task_name:
+            continue
+        item = by_task.setdefault(
+            task_name,
+            {
+                "task_name": task_name,
+                "missing_chains": 0,
+                "missing_residues": 0,
+                "max_chain_residues": 0,
+            },
+        )
+        residues = int(row.get("sequence_len", "0") or 0)
+        item["missing_chains"] = int(item["missing_chains"]) + 1
+        item["missing_residues"] = int(item["missing_residues"]) + residues
+        item["max_chain_residues"] = max(int(item["max_chain_residues"]), residues)
+    out = list(by_task.values())
+    out.sort(
+        key=lambda item: (
+            -int(item["missing_residues"]),
+            -int(item["missing_chains"]),
+            str(item["task_name"]),
+        )
+    )
+    return out[: max(limit, 0)]
+
+
 def write_msa_cache_report_md(
     path: Path,
     *,
     cache_summary: dict[str, object],
     coverage_rows: Sequence[dict[str, object]],
     missing_rows_by_label: dict[str, list[dict[str, str]]],
+    missing_task_rows_by_label: dict[str, list[dict[str, object]]],
 ) -> None:
     ensure_dir(path.parent)
     lines = [
@@ -537,6 +568,22 @@ def write_msa_cache_report_md(
                 f"{fraction_text(row.get('residue_coverage_fraction'))} | "
                 f"{row.get('fresh_msa_chains', '')} | "
                 f"{row.get('status', '')} |"
+            )
+        lines.append("")
+
+    for label, rows in missing_task_rows_by_label.items():
+        if not rows:
+            continue
+        lines.extend([f"## Fresh MSA Tasks: {label}", ""])
+        lines.append("| task | missing chains | missing residues | max chain residues |")
+        lines.append("| --- | ---: | ---: | ---: |")
+        for row in rows:
+            lines.append(
+                "| "
+                f"`{row.get('task_name', '')}` | "
+                f"{row.get('missing_chains', '')} | "
+                f"{row.get('missing_residues', '')} | "
+                f"{row.get('max_chain_residues', '')} |"
             )
         lines.append("")
 
@@ -1315,6 +1362,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         cache_summary = summarize_msa_cache_indexes(msa_cache_indexes)
         coverage_rows: list[dict[str, object]] = []
         missing_rows_by_label: dict[str, list[dict[str, str]]] = {}
+        missing_task_rows_by_label: dict[str, list[dict[str, object]]] = {}
 
         for label, input_json in input_specs:
             report_label = safe_report_label(label)
@@ -1358,6 +1406,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             missing_rows = [row for row in read_tsv_rows(report_tsv) if row.get("status") == "missing_source"]
             missing_rows.sort(key=lambda item: int(item.get("sequence_len", "0") or 0), reverse=True)
             missing_rows_by_label[label] = missing_rows[: max(args.top_missing, 0)]
+            missing_task_rows_by_label[label] = summarize_missing_msa_tasks(missing_rows, limit=args.top_missing)
 
         write_msa_cache_report_tsv(output_tsv, coverage_rows)
         write_msa_cache_report_md(
@@ -1365,6 +1414,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             cache_summary=cache_summary,
             coverage_rows=coverage_rows,
             missing_rows_by_label=missing_rows_by_label,
+            missing_task_rows_by_label=missing_task_rows_by_label,
         )
         print_json(
             {

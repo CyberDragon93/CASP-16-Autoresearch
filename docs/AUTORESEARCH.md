@@ -1397,6 +1397,18 @@ competitive result.
     input-kind bug. It does not promote any native reference, does not change
     locked benchmark eligibility in place, and does not make current
     `missing_reference` rows scoreable without a versioned refmap benchmark.
+90. `2026-07-07 12:04 CDT` P25 live gate: still not merge-ready. Shard
+    readiness is `ready=false`, `compatible=true`, with `847` observed
+    candidates, `1203` shard-level candidates missing, and `1128` full
+    25-candidate slots missing. Slurm still has 19 P25 jobs running and 5 P25
+    jobs pending behind `QOSMaxJobsPerUserLimit`; shard05 seed121-125 and all
+    shard06 seed blocks remain zero-output. While waiting, MSA cache reporting
+    was upgraded to show fresh-MSA cost by task, then run on the next attack
+    inputs. The current scoreable input-repair P25 input has `146/146` protein
+    chains covered from exact-sequence cache, and the D6 full input has
+    `276/276` covered, both with 0 stale index rows. The next bottleneck is
+    GPU inference completion and scoring, not fresh MSA generation for these
+    two branches.
 
 ## Run Discipline
 

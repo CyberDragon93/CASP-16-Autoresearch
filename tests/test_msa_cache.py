@@ -599,6 +599,82 @@ def test_check_msa_cache_default_report_label_uses_input_path(tmp_path: Path, ca
     assert (tmp_path / "diagnostics" / "msa_cache" / "strategies_strategy_b_inputs.tsv").exists()
 
 
+def test_msa_cache_report_shows_fresh_msa_task_cost(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    msa_dir = tmp_path / "msa"
+    msa_dir.mkdir()
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_json = tmp_path / "runs" / "source" / "inputs" / "inputs-update-msa.json"
+    source_json.parent.mkdir(parents=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "source_target",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"], "unpairedMsaPath": str(unpaired)}}
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    input_json = tmp_path / "inputs.json"
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "big_complex",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}},
+                        {"proteinChain": {"sequence": "CCCCCCC", "count": 1, "id": ["B"]}},
+                        {"proteinChain": {"sequence": "DDD", "count": 1, "id": ["C"]}},
+                    ],
+                },
+                {
+                    "name": "small_target",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "EEEE", "count": 1, "id": ["D"]}},
+                    ],
+                },
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    output_md = tmp_path / "msa_report.md"
+    output_tsv = tmp_path / "msa_report.tsv"
+
+    assert (
+        main(
+            [
+                "--root",
+                str(tmp_path),
+                "msa-cache-report",
+                "--input-json",
+                str(input_json),
+                "--msa-source-json",
+                str(source_json),
+                "--output-md",
+                str(output_md),
+                "--output-tsv",
+                str(output_tsv),
+            ]
+        )
+        == 0
+    )
+    capsys.readouterr()
+
+    text = output_md.read_text(encoding="utf-8")
+    assert "## Fresh MSA Tasks: inputs" in text
+    assert "| `big_complex` | 2 | 10 | 7 |" in text
+    assert "| `small_target` | 1 | 4 | 4 |" in text
+    rows = list(csv.DictReader(output_tsv.open(encoding="utf-8"), delimiter="\t"))
+    assert rows[0]["fresh_msa_chains"] == "3"
+    assert rows[0]["fresh_msa_residues"] == "14"
+
+
 def test_index_size_mismatch_is_treated_as_stale(tmp_path: Path) -> None:
     msa_dir = tmp_path / "msa"
     msa_dir.mkdir()
