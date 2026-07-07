@@ -59,7 +59,7 @@ benchmark target set or inspect references.
 | D4 | AF3-style model selection | assessment says AF3 adoption improved confidence/model selection | `protenix_confidence_v1` is implemented for the separate `server_attack` tier; `dev_fixed` remains first-output-only | attack runs must use the locked seed/sample budget and never compare directly against `dev_fixed` rows |
 | D5 | Large-target split/fallback | top methods used target handling and construct/domain decomposition; baseline Protenix lost 8 jobs to `n_token > 2560` before prediction | `./casp16 strategy-inputs --strategy yang_large_target_split_or_fallback_v1` predeclares chain/copy fallback for all eight hard failures after the conservative `T1295` probe | treat as coverage recovery; assembly quality may regress when chains are dropped |
 | D6 | Sequence recovery | server-style coverage fails if target sequence archives are parsed or aliased incorrectly | `./casp16 strategy-inputs --strategy yang_sequence_recovery_v1 --input-json strategies/yang_terminal_tag_cleanup_v1/.../inputs.json` recovers protein-like records as `proteinChain` | queue after active jobs; do not use references or scores to choose recovered targets |
-| D6a | V2 nofail domain sequence recovery | reference-gap triage exposed protein-domain inputs that were locally represented as short DNA or empty jobs before scoring could be trusted | `yang_domain_sequence_recovery_oligo_nofail_v1` composes D6 onto the strongest v2 nofail stack, changing 8 domain jobs including the `T1276/T1228V1/T1239V1/T2276` class | pending single-seed run allows 7 fresh MSA chains; promote as input repair only if fixed-set score improves |
+| D6a | V2 nofail domain sequence recovery | reference-gap triage exposed protein-domain inputs that were locally represented as short DNA or empty jobs before scoring could be trusted | `yang_domain_sequence_recovery_oligo_nofail_v1` composes D6 onto the strongest v2 nofail stack, changing 8 domain jobs including the `T1276/T1228V1/T1239V1/T2276` class; `domain_sequence_recovery_msa_warmup_v1` isolates the 4 unique fresh-MSA sequences | pending single-seed run allows 7 fresh MSA chains; warmup is rank-ineligible and only materializes MSA before full-set promotion |
 | D7 | Coverage-first stack | realistic attack compute should not be spent on missing-sequence or token-limit hard zeros | `yang_sequence_recovery_large_target_fallback_v1` stacks sequence recovery with the large-target fallback on terminal-tag-cleaned inputs | queue after the component runs or when the queue needs a single combined coverage candidate |
 
 ## Protein Oligos
@@ -221,7 +221,10 @@ Useful strategy hypotheses:
     reference-gap triage exposed protein-domain input-kind bugs. It changes 8
     domain jobs, keeps 169 jobs below the token limit, and currently needs
     fresh MSA for 7 chains under the pending single-seed run spec before any
-    multi-seed promotion.
+    multi-seed promotion. The 7 chains collapse to 4 unique sequences, so the
+    rank-ineligible `domain_sequence_recovery_msa_warmup_v1` run spec now
+    isolates `T1239V1`, `T1228V1`, `T1276`, and `T1212` as a cheap
+    materialization step before the full D6a ablation.
 17. `casp16_server_attack_protenix25_scoreable_nofail`: prepared but not queued.
     It is the winner-scale 25-seed successor to the scoreable `protenix5`
     attack. The target+seed shard manifest now points at the size-first

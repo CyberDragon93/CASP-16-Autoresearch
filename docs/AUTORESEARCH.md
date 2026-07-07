@@ -82,6 +82,10 @@ where methods should change.
   almost complete but not launch-clean: 269/276 protein chains are covered from
   `data/msa_cache/index.tsv`, with fresh MSA still needed for 7 chains
   (`T1239V1`, `T1239V2`, `T1228V1`, `T1228V2`, `T1212`, `T1276`, `T2276`).
+  Those 7 chains are only 4 unique protein sequences, so the rank-ineligible
+  warmup spec `server_v2_domain_sequence_recovery_msa_warmup_seed101` now
+  isolates `T1239V1`, `T1228V1`, `T1276`, and `T1212` for one-time MSA
+  materialization before a full D6a launch.
   A pending single-seed run spec,
   `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101`,
   explicitly allows this 97.46% cache reuse floor. Do not promote it to
@@ -700,6 +704,14 @@ competitive result.
     reports `30/30 ok`, complete MSA coverage for every shard, and 0 stale
     covered paths. The current blocker for P18 remains the policy gate
     `await_protenix5_score`, not MSA readiness.
+37. `2026-07-06 21:56 CDT` prepared the D6a MSA warmup
+    `server_v2_domain_sequence_recovery_msa_warmup_seed101` as a
+    rank-ineligible diagnostic run. It contains only four representative
+    recovered protein-domain inputs (`T1239V1`, `T1228V1`, `T1276`, `T1212`)
+    that cover the seven fresh-MSA chains in the full D6a artifact by exact
+    sequence. This is a cache/materialization step for input repair, not a
+    leaderboard row, and `run-next --dry-run` still selects the P14 scoreable
+    shard first.
 
 ## Run Discipline
 

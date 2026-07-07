@@ -1,0 +1,5 @@
+target_id	track	status	skip_reason	source_target_id	source_record_ids	original_entity_count	optimized_entity_count	original_total_len	optimized_total_len	rules
+T1212	protein_domain	changed	none	T1212	T1212	0	1	0	466	protein_sequence_recovery
+T1228V1	protein_domain	changed	none	T1228V1	T1228v1	1	1	121	545	protein_sequence_recovery
+T1239V1	protein_domain	changed	none	T1239V1	T1239v1	1	1	141	620	protein_sequence_recovery
+T1276	protein_domain	changed	none	T1276	T1276	1	1	40	196	protein_sequence_recovery

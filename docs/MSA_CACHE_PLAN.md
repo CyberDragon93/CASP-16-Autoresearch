@@ -182,7 +182,11 @@ where `run-next --dry-run` would only inspect one selected run.
    `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101`, is the
    exception that intentionally allows fresh MSA. It reuses 269/276 chains from
    the global cache and sets `--msa-reuse-min-fraction 0.97` so only the 7
-   repaired protein-domain chains pay new MSA cost.
+   repaired protein-domain chains pay new MSA cost. Those 7 chains collapse to
+   4 unique sequences, now isolated by the rank-ineligible
+   `server_v2_domain_sequence_recovery_msa_warmup_seed101` run spec. After that
+   warmup completes, refresh the global MSA cache before recreating or launching
+   the full D6a ablation.
 4. The older v1 coverage/stoich attack has a cache-reuse successor,
    `server_attack_protenix_coverage_stoich_msa_reuse_seed101_105`, but its
    preflight reuses only 180/196 exact-sequence protein-chain paths and misses
