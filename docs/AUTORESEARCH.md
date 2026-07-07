@@ -37,15 +37,17 @@ where methods should change.
   conda env; OpenStructure `ost` is installed at
   `/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost` and is the
   default QSglob-compatible scorer. The first H0220 probe returned
-  `status=ok` but `QSglob=0` because automatic chain/chem mapping failed, so
-  assembly mapping is now the bottleneck for affected targets. The scorer now
-  records OpenStructure mapping diagnostics in `target_scores.csv` `message`,
-  making false-zero classes visible without changing official-compatible
-  scores.
+  `status=ok` and `QSglob=0`; follow-up probes against the 9h1g assembly and a
+  cropped A/B reference showed that this class is not fixed by scorer
+  permissiveness alone. The actionable root cause for the current input stack
+  was phase-alias stoichiometry: early-phase `H0220` kept local `A1B1` while
+  later official aliases `H1220/H2220` expose `A1B4`. The scorer still records
+  OpenStructure mapping diagnostics in `target_scores.csv` `message`, but the
+  next compute should use the fixed input, not retune QSglob.
 - A six-target QSglob signal probe across the four completed server-v1
   Protenix dev runs produced nonzero scores on `H0222` and `T1249V1O`; QSglob
-  is useful for strategy triage, but `H0220` remains a clear unmapped false-zero
-  risk.
+  is useful for strategy triage, but stale `H0220` predictions remain a clear
+  input-realism failure until they are regenerated with `A1B4`.
 - Current best local server-domain `dev_fixed` run:
   `server_protenix_yang_terminal_tag_cleanup_seed101`, mean `0.066908`.
 - `server_protenix_yang_antibody_fv_cleanup_seed101` is a negative
@@ -123,11 +125,23 @@ where methods should change.
   materialized cache rows survive source-run cleanup. Verified with
   `pytest tests/test_msa_cache.py` and
   `pytest tests/test_runs.py tests/test_strategies.py tests/test_benchmark.py`.
-- A pending scoreable oligo-first successor now exists:
+- `2026-07-06 19:38 CDT` phase-alias stoichiometry fix: generated a new
+  no-over-token stack rooted at
+  `strategies/yang_protein_oligo_sequence_stoich_phase_alias_v1/`. It changes
+  20 targets, including `H0220/H1220/H2220` as recovered protein `A1B4`
+  assemblies of total length 2515, still under Protenix's 2560-token limit.
+  The final scoreable oligo-first artifact
+  `strategies/scoreable_target_subset_oligo_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json`
+  keeps 74 jobs and preflights at 141/141 reusable protein chains, 0 missing,
+  0 stale.
+- Superseded stale scoreable oligo-first successor:
   `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`.
-  It is derived from the same 74-job scoreable artifact, moves all 50 exact
-  `protein_oligo` jobs to the front, and its run-spec again requires complete
-  MSA reuse with 141/141 protein chains covered. `run-next --dry-run` correctly
+  Its source input kept `H0220` as `A1B1`, so it should not be launched.
+- Pending phase-alias scoreable oligo-first successor:
+  `server_v2_attack_scoreable_oligo_first_phase_alias_msa_reuse_protenix5_seed101_105`.
+  It keeps the same five-candidate server-attack budget and confidence-only
+  selector, moves the exact oligo jobs to the front, requires complete MSA
+  reuse, and has run-local `H0220` as `A1B4`. `run-next --dry-run` correctly
   blocks it behind the running scoreable `protenix5` row.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
   about chasing CASP16 server winners must report the attack budget, candidates
@@ -190,16 +204,21 @@ where methods should change.
   H0223 `0.591`, H0225 `0.270`, H0233 `0.221`, H0222 `0.074`, and H0227
   `0.024`. The full five-candidate attack remains incomplete and unranked, but
   the running job is now producing useful exact oligo signal.
-- Pending oligo-first scoreable-subset successor:
+- Superseded oligo-first scoreable-subset successor:
   `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`
   uses the same 74 scoreable jobs, fixed five-candidate budget, confidence-only
   selector, and 141/141 exact-sequence MSA reuse as the running scoreable
   attack, but reorders the input so the 50 exact `protein_oligo` jobs run
   first. This is a scheduling/signal-latency optimization only; it does not
-  change the 175-target scoring denominator or rank rules. Launch it only after
-  the running scoreable attack completes, fails, or is explicitly superseded;
-  do not cancel P13 just to reach H oligos faster because P13 has already
-  reached exact H-oligo jobs.
+  change the 175-target scoring denominator or rank rules. It is now
+  superseded because the source input kept stale `H0220` `A1B1` stoichiometry.
+- Queued phase-alias oligo-first scoreable-subset successor:
+  `server_v2_attack_scoreable_oligo_first_phase_alias_msa_reuse_protenix5_seed101_105`
+  is the corrected replacement. It uses
+  `strategies/scoreable_target_subset_oligo_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json`,
+  keeps 74 scoreable jobs, restores `H0220/H1220/H2220` to `A1B4`, preflights
+  at 141/141 MSA reuse, and is now the next v2 `run-next` candidate after P13
+  finishes.
 - Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   produced 39/165 CIFs and then spent extended GPU time on `T1295`, which is

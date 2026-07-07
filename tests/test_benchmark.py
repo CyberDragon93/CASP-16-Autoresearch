@@ -292,6 +292,53 @@ def test_build_aliasfix_server_benchmark_version(tmp_path) -> None:
     assert (output_dir / "official_all_groups.csv").exists()
 
 
+def test_server_benchmark_exact_metadata_beats_early_phase_alias(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+
+    build_casp16_server_protein_benchmark(project_root=project_root, official_root=official_root)
+
+    benchmark_dir = project_root / "benchmarks" / "casp16_server_protein_v1"
+    targets = {row["target_id"]: row for row in read_tsv(benchmark_dir / "targets.tsv")}
+    assert targets["H1222"]["oligo_state"] == "A1B1C1"
+    assert targets["H1222"]["chain_count"] == "3"
+
+
+def test_server_benchmark_can_inherit_later_phase_oligo_state(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+    paths = OfficialPaths(official_root)
+    score_rows = read_tsv(paths.scores_tsv)
+    score_rows.append(
+        {
+            "category": "prot_oligo",
+            "table": "oligo.csv",
+            "target_id": "H0222",
+            "model": "H0222TS456_1",
+            "group": "456s",
+            "submitted_model_rank": "1",
+            "primary_metric": "QSglob",
+            "primary_score": "0.500000",
+            "metric_json": "{}",
+            "source_path": "oligo.csv",
+        }
+    )
+    write_tsv(
+        paths.scores_tsv,
+        score_rows,
+        ["category", "table", "target_id", "model", "group", "submitted_model_rank", "primary_metric", "primary_score", "metric_json", "source_path"],
+    )
+
+    build_casp16_server_protein_benchmark(project_root=project_root, official_root=official_root)
+
+    benchmark_dir = project_root / "benchmarks" / "casp16_server_protein_v1"
+    targets = {row["target_id"]: row for row in read_tsv(benchmark_dir / "targets.tsv")}
+    assert targets["H0222"]["oligo_state"] == "A1B1C1"
+    assert targets["H0222"]["chain_count"] == "3"
+
+
 def test_server_benchmark_uses_phase_2_reference_aliases(tmp_path) -> None:
     official_root = tmp_path / "official"
     project_root = tmp_path / "project"

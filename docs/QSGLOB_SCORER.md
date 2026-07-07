@@ -33,18 +33,18 @@ Result:
 - `ost` completed successfully.
 - Project scoring returned `status=ok`, `metric=QSglob`, `score=0.000000`.
 - The JSON reported no chain mapping for model chains `A/B` against the
-  reference chem groups, so the zero is an assembly/chain-mapping signal, not a
-  missing-tool failure.
+  reference chem groups, so the zero is not a missing-tool failure.
 - The scorer now preserves these OpenStructure mapping diagnostics in the
   `target_scores.csv` `message` column, for example
   `ost_unmapped_model_chains:A,B;ost_empty_chain_mapping;ost_empty_chem_mapping`.
   This keeps the official-compatible score unchanged while making false-zero
   classes visible for triage.
-- Follow-up input audit found an additional `H0220/H1220/H2220` class: some
-  local v2 protein-oligo inputs were short nucleic-acid records even though the
-  official sequence archive has protein-like records through target aliases.
-  Those targets need sequence/input recovery before scorer mapping alone can
-  give a meaningful QSglob comparison.
+- Follow-up assembly/cropped-reference probes showed that scorer
+  permissiveness is not the main actionable fix for `H0220`. The current v2
+  input stack had early-phase `H0220` as recovered protein `A1B1`, while later
+  official aliases `H1220/H2220` expose `A1B4`. Those targets need
+  sequence/input recovery plus phase-alias stoichiometry recovery before
+  scorer mapping alone can give a meaningful QSglob comparison.
 
 ## Mapping Parameter Probe
 
@@ -55,7 +55,7 @@ predictions for representative oligo targets.
 
 | target | default QSglob | forced QSglob | default chain map count | forced chain map count | conclusion |
 | --- | ---: | ---: | ---: | ---: | --- |
-| `H0220` | 0.000 | 0.000 | 0 | 0 | not fixed by permissive chem mapping; prioritize input sequence/modality recovery |
+| `H0220` | 0.000 | 0.000 | 0 | 0 | not fixed by permissive chem mapping; prioritize phase-alias sequence/stoichiometry recovery |
 | `T0234O` | 0.000 | 0.000 | 1 | 1 | mapping parameter does not rescue the zero |
 | `T1249V1O` | 0.090 | 0.090 | 3 | 3 | nonzero score is stable under the parameter |
 | `H1232` | 0.000 | 0.000 | 2 | 2 | mapping exists, so the zero is not the H0220-style unmapped-chain failure |
@@ -100,7 +100,8 @@ Interpretation:
 - QSglob is producing nonzero values and can distinguish strategies; it is not
   merely returning universal zeros.
 - `H0220` still has no model-chain mapping (`A/B` unmapped), and permissive
-  chemical mapping did not fix it; this reinforces the v2 input-recovery path.
+  chemical mapping did not fix it; this reinforces the v2 phase-alias
+  input-recovery path.
 - `T0234O` and `T1249V1O` have empty chem-group mappings for some groups, so
   full oligo ranking still needs assembly mapping diagnostics.
 - The signal supports continuing token-safe stoichiometry/coverage runs before
@@ -149,7 +150,8 @@ partial runs from accidentally scoring domain/base outputs as oligo assemblies.
 - Score server oligo targets with `ost` once the active run is complete, so
   partial attack rows are not written into checked-in leaderboard artifacts.
 - Use the `message` column diagnostics to isolate target classes where
-  automatic OpenStructure mapping gives false zeros, then add explicit
-  assembly/chain mapping only for target-agnostic classes.
+  automatic OpenStructure mapping gives false zeros, but first rule out input
+  modality, sequence, and phase-alias stoichiometry bugs before adding explicit
+  assembly/chain mapping.
 - Keep DockQ as an interface diagnostic only; do not use it as a ranked QSglob
   replacement.

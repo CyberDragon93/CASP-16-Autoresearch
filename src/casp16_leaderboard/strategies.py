@@ -1548,13 +1548,27 @@ def parse_oligo_state_counts(oligo_state: str, entity_count: int) -> list[int] |
 
 def load_official_oligo_states(path: Path) -> dict[str, str]:
     states: dict[str, str] = {}
+    rows: list[dict[str, str]] = []
     with path.open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle, delimiter="\t"):
+            rows.append(dict(row))
             target_id = row.get("target_id", "")
             state = row.get("Oligo.State", "")
             if target_id:
                 states[target_id] = state
+    for row in rows:
+        target_id = row.get("target_id", "").upper()
+        state = row.get("Oligo.State", "")
+        if not target_id or not is_informative_oligo_state(state):
+            continue
+        for alias in sorted(target_lookup_aliases(target_id)):
+            if not is_informative_oligo_state(states.get(alias, "")):
+                states[alias] = state
     return states
+
+
+def is_informative_oligo_state(value: str) -> bool:
+    return value.strip().upper() not in {"", "-", "N/A", "NA", "UNK", "UNKNOWN"}
 
 
 def load_tsv_rows(path: Path) -> list[dict[str, str]]:

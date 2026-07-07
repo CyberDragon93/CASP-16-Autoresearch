@@ -714,7 +714,7 @@ def server_benchmark_target_row(
     sequence_lookup_id = server_sequence_lookup_id(target_id, category)
     target = target_meta.get(sequence_lookup_id, {})
     description = target.get("Description", "")
-    oligo_state = target.get("Oligo.State", "")
+    oligo_state = effective_oligo_state(target_meta, sequence_lookup_id)
     cancelled = target.get("Cancellation Date", "").strip() not in {"", "-"}
     track = "protein_domain" if category == "prot_domains" else "protein_oligo"
     records = by_target.get(sequence_lookup_id, [])
@@ -784,11 +784,32 @@ def target_metadata_lookup(target_rows: Sequence[Mapping[str, str]]) -> dict[str
     lookup: dict[str, Mapping[str, str]] = {}
     for row in target_rows:
         target_id = row.get("target_id", "").upper()
+        if target_id:
+            lookup[target_id] = row
+    for row in target_rows:
+        target_id = row.get("target_id", "").upper()
         if not target_id:
             continue
         for lookup_id in target_lookup_aliases(target_id):
             lookup.setdefault(lookup_id, row)
     return lookup
+
+
+def effective_oligo_state(target_meta: Mapping[str, Mapping[str, str]], target_id: str) -> str:
+    target_id = target_id.upper()
+    exact = target_meta.get(target_id, {})
+    exact_state = str(exact.get("Oligo.State", ""))
+    if is_informative_oligo_state(exact_state):
+        return exact_state
+    for alias in sorted(target_lookup_aliases(target_id)):
+        alias_state = str(target_meta.get(alias, {}).get("Oligo.State", ""))
+        if is_informative_oligo_state(alias_state):
+            return alias_state
+    return exact_state
+
+
+def is_informative_oligo_state(value: str) -> bool:
+    return value.strip().upper() not in {"", "-", "N/A", "NA", "UNK", "UNKNOWN"}
 
 
 def server_sequence_lookup_id(target_id: str, category: str) -> str:

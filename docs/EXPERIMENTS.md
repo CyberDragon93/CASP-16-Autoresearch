@@ -1139,6 +1139,42 @@ selection. Wait for the full five declared seeds before making an attack-tier
 claim; use `scoreable_target_subset_oligo_first_v1` only as a retry/successor
 if the current run fails or stalls.
 
+### 2026-07-06 Phase-Alias Stoichiometry Fix
+
+Decision: supersede the stale oligo-first retry and register a corrected
+phase-alias scoreable attack input.
+
+Evidence: probing `H0220` against 9h1g assembly/cropped references showed that
+QSglob permissiveness alone was not the useful fix. The input audit found the
+real actionable gap: `data/official/parsed/targets.tsv` has early `H0220`
+`Oligo.State=UNK`, while later phase aliases `H1220/H2220` expose `A1B4`.
+The previous scoreable oligo-first run spec kept `H0220` as local `A1B1`.
+
+Artifact: `yang_protein_oligo_sequence_stoich_phase_alias_v1` changes 20
+targets, including `H0220/H1220/H2220` as recovered protein `A1B4`. The
+composed no-over-token artifact
+`yang_oligo_sequence_stoich_phase_alias_low_complexity_large_fallback_v1`
+keeps 165 jobs, max length 2535, and has output hash
+`360fc88325fb40d97f744f76ab8220e28f9fcafc255bdf1193a636a4e24ae12c`. The
+scoreable oligo-first subset
+`scoreable_target_subset_oligo_first_phase_alias_v1` keeps 74 jobs, prioritizes
+50 exact oligo jobs, and has input hash
+`b364e95132dbb96fa212f6afbc818cf0e4fb031bc64ac5491fa3c1e4f1f6336c`.
+
+Queue action: registered
+`server_v2_attack_scoreable_oligo_first_phase_alias_msa_reuse_protenix5_seed101_105`
+with five fixed seeds, candidate_count `5`, selector
+`protenix_confidence_v1`, and complete exact-sequence MSA reuse
+`141/141`. Append-only superseded
+`server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105` and
+deferred `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101`
+so `run-next --dry-run` now names the phase-alias attack as the next pending
+v2 row after the running P13 attack.
+
+Interpretation: this is a real input-realism correction, not a benchmark-rule
+change and not an oracle fix. It should improve or at least honestly test the
+`H0220/H1220/H2220` complex class before spending any larger 25-seed budget.
+
 ### 2026-07-06 Terminal Tag Cleanup Result
 
 Decision: keep `yang_terminal_tag_cleanup_v1` as a weak positive construct

@@ -1007,6 +1007,71 @@ def test_protein_oligo_sequence_stoich_token_safe_composes_recovery_and_counts(t
     ]
 
 
+def test_oligo_stoich_token_safe_inherits_phase_alias_state(tmp_path) -> None:
+    input_json = tmp_path / "inputs.json"
+    output_json = tmp_path / "oligo_phase_alias" / "inputs.json"
+    manifest = tmp_path / "oligo_phase_alias" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    official_targets = tmp_path / "official_targets.tsv"
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "H0220",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "A" * 100, "count": 1, "id": ["A"]}},
+                        {"proteinChain": {"sequence": "B" * 50, "count": 1, "id": ["B"]}},
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "track", "oligo_state"]),
+                "\t".join(["H0220", "protein_oligo", "UNK"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    official_targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "Oligo.State"]),
+                "\t".join(["H0220", "UNK"]),
+                "\t".join(["H1220", "A1B4"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="yang_oligo_stoichiometry_token_safe_v1",
+        targets_path=targets,
+        official_targets_path=official_targets,
+    )
+
+    assert summary["changed_targets"] == 1
+    optimized = {job["name"]: job for job in json.loads(output_json.read_text(encoding="utf-8"))}
+    proteins = [entity["proteinChain"] for entity in optimized["H0220"]["sequences"]]
+    assert [protein["count"] for protein in proteins] == [1, 4]
+    assert proteins[1]["id"] == ["B", "C", "D", "E"]
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    h0220 = next(row for row in rows if row["target_id"] == "H0220")
+    assert h0220["status"] == "changed"
+    assert h0220["official_oligo_state"] == "A1B4"
+    assert h0220["rules"] == "recover_official_oligo_state,benchmark_state_was_unknown"
+
+
 def test_scoreable_target_subset_keeps_only_jobs_with_available_reference_aliases(tmp_path) -> None:
     input_json = tmp_path / "inputs.json"
     output_json = tmp_path / "scoreable" / "inputs.json"
