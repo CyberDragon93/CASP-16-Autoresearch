@@ -117,6 +117,12 @@ where methods should change.
   141/141 reusable protein chains, 0 missing sources, and 0 stale cached paths
   against `data/msa_cache/index.tsv`; future MSA-heavy shards should pass this
   check before Slurm submission.
+- `2026-07-06 19:21 CDT` MSA-cache implementation status: commit `09ff0e4`
+  adds incremental cache-index refresh, `run-spec --refresh-global-msa-cache`,
+  path-specific `check-msa-cache` report labels, and tests proving that
+  materialized cache rows survive source-run cleanup. Verified with
+  `pytest tests/test_msa_cache.py` and
+  `pytest tests/test_runs.py tests/test_strategies.py tests/test_benchmark.py`.
 - A pending scoreable oligo-first successor now exists:
   `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`.
   It is derived from the same 74-job scoreable artifact, moves all 50 exact
@@ -137,9 +143,9 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
-  is running. The `2026-07-06 19:08 CDT` check found seed CIF counts
-  `98/98/98/1/0`; the log still hits the known `n_token > 2560` classes, so it
-  is incomplete and must not be scored as a five-candidate result.
+  is running. The `2026-07-06 19:21 CDT` check found seed CIF counts
+  `98/98/98/13/0`; the log still hits the known `n_token > 2560` classes, so
+  it is incomplete and must not be scored as a five-candidate result.
 - Superseded second attack run spec:
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
   sequence-recovery + large-target fallback + token-safe stoichiometry inputs
