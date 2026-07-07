@@ -1429,6 +1429,16 @@ competitive result.
     exactly one branch by failure mode: P27b for flat valid predictions, D6a
     for domain input-kind/alias zeros, O5b for antibody/Fv oligo weakness, or
     versioned refmap work for reference caps. No new Slurm jobs were submitted.
+93. `2026-07-07 12:19 CDT` P25 live gate: still `ready=false` and
+    `compatible=true`; the safe finish wrapper reports `855` observed
+    candidates, `1195` shard-level missing candidates, and `1120` full
+    25-candidate slots missing. Slurm still has 19 P25 jobs running and 5 P25
+    jobs pending behind `QOSMaxJobsPerUserLimit`. Added
+    `scripts/finish_p25_scoreable_input_repair.sh` so the eventual closeout is
+    one audited command wrapping `finish-shards` with the seed101-105 overlay
+    plus all submitted seed106-125 target shards. The wrapper returns
+    `finish_status=not_ready` while incomplete, so it can be dry-run safely
+    without producing a partial score.
 
 ## Run Discipline
 
