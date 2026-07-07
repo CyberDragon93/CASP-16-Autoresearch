@@ -311,12 +311,18 @@ def write_input_shards(
     }
 
 
-def _prediction_candidates_for_task(output_dir: Path, task_name: str) -> list[Path]:
+def _prediction_candidate_files(output_dir: Path) -> list[Path]:
     if not output_dir.exists():
         return []
+    return sorted(output_dir.glob("**/*.cif")) + sorted(output_dir.glob("**/*.pdb"))
+
+
+def _prediction_candidates_for_task(output_dir: Path, task_name: str, candidate_files: Sequence[Path] | None = None) -> list[Path]:
+    if candidate_files is None:
+        candidate_files = _prediction_candidate_files(output_dir)
     task_low = task_name.lower()
     matches: list[Path] = []
-    for path in sorted(output_dir.glob("**/*.cif")) + sorted(output_dir.glob("**/*.pdb")):
+    for path in candidate_files:
         try:
             parts = path.relative_to(output_dir).parts
         except ValueError:
@@ -370,13 +376,14 @@ def check_prediction_shards(
         input_json = Path(str(spec.get("input_json", "")))
         output_dir = Path(str(spec.get("output_dir", "")))
         tasks = load_protenix_tasks(input_json) if input_json.exists() else []
+        candidate_files = _prediction_candidate_files(output_dir)
         expected_candidates = int(candidate_count_override or spec.get("candidate_count") or candidate_count(str(spec.get("seeds", "101")), spec.get("sample", 1)))
         complete_task_count = 0
         observed_candidate_count = 0
         missing_tasks: list[str] = []
         missing_candidate_count = 0
         for task in tasks:
-            observed = len(_prediction_candidates_for_task(output_dir, task.name))
+            observed = len(_prediction_candidates_for_task(output_dir, task.name, candidate_files))
             observed_by_task[task.name] = observed_by_task.get(task.name, 0) + observed
             observed_candidate_count += observed
             if observed >= expected_candidates:

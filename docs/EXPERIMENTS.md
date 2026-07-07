@@ -1297,6 +1297,32 @@ Useful follow-up:
   constant regions, avoids known domain-core overlap, and changes only a small
   auditable target set.
 
+### 2026-07-07 Scoreable Input Repair Overlay
+
+Decision: stop the full P17 repaired scoreable rerun and replace it with a
+P14 plus added-only overlay.
+
+Evidence: after about 33 hours, the six P17 full-target shards were still
+running but had stopped making useful progress on old large H-oligo targets
+that already existed in the completed P14 run. P14 already supplies completed
+five-candidate predictions for 74 unchanged scoreable targets. The repaired
+P17 input adds only five genuinely new scoreable jobs:
+`T1212`, `T1239V2`, `T1249V2O`, `T1269V1O`, and `T2249V2O`.
+
+Artifact:
+`scoreable_target_subset_input_repair_added_only_v1` contains only those five
+jobs and has complete exact-sequence MSA reuse. The registered run
+`server_v2_attack_scoreable_input_repair_added_only_msa_reuse_protenix5_seed101_105`
+uses the same five fixed seeds and `protenix_confidence_v1` selector as the
+P14/P17 attack budget. It was submitted as Slurm job `812783`.
+
+Interpretation: this is a scheduling and compute-efficiency correction. It
+does not change the scoring denominator, budget, model, MSA policy, or
+selector. Once the five added targets finish, merge them with P14 into
+`server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105`
+and score the full 79-job repaired scoreable input. Do not launch the repaired
+25-candidate scale-up until this overlay has a real score.
+
 ## Promotion Rules
 
 - A target_lab improvement is not a leaderboard improvement.

@@ -1151,6 +1151,30 @@ competitive result.
     until P17 finishes and the deferred seed blocks are explicitly launched.
     Do not submit those seed106-125 jobs unless P17 scores as a broad,
     candidate-limited signal.
+69. `2026-07-07 07:43 CDT` P17 pivot: the full repaired 79-target rerun was
+    cancelled after about 33 hours because all six jobs were stalled on old
+    large H-oligo targets that already completed in the P14 74-target run.
+    The replacement path is an overlay, not another full rerun: reuse
+    `server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105`
+    for the 74 unchanged scoreable targets and run only the 5 targets added by
+    scoreable input repair. The added-only artifact is
+    `strategies/scoreable_target_subset_input_repair_added_only_v1/casp16_server_protein_v2_aliasfix/`
+    with 5 jobs, 100% exact-sequence MSA cache coverage, and Slurm job
+    `812783` (`p17_added_only`) running on one GH200 node. Overlay readiness is
+    expected to remain `ready=false` until exactly
+    `T1212/T1239V2/T1249V2O/T1269V1O/T2249V2O` each have 5 candidates.
+70. `2026-07-07 07:43 CDT` infrastructure hygiene for the overlay path:
+    `check-shards` now caches each shard output directory's CIF/PDB file list
+    once before per-target matching, which makes readiness checks fast on the
+    P14 merged symlink tree. Validation passed with `py_compile` on
+    `src/casp16_leaderboard/sharding.py` and the targeted tests
+    `test_check_prediction_shards_reports_missing_and_merge_command`,
+    `test_check_prediction_shards_validates_merged_candidate_count`, and
+    `test_finish_shards_cli_dry_run_checks_without_merging`. The repaired
+    25-candidate budget
+    `attack_budgets/casp16_server_attack_protenix25_scoreable_input_repair.json`
+    is now explicitly gated on the P14 plus added-only overlay score; do not
+    launch its seed106-125 grid by replaying the cancelled full P17 shard plan.
 
 ## Run Discipline
 

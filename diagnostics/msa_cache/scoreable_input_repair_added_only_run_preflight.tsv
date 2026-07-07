@@ -1,0 +1,2 @@
+run_id	benchmark	status	result	message	budget_tier	candidate_count	rank_eligible	use_msa	msa_checked	msa_protein_chains	msa_usable_covered	msa_stale_covered	msa_coverage_fraction	run_dir
+server_v2_attack_scoreable_input_repair_added_only_msa_reuse_protenix5_seed101_105	casp16_server_protein_v2_aliasfix	pending	ok		server_attack	5	False	true	true	5	5	0	1.0	/scratch/10992/liaorunlong93/casp16-leaderboard/runs/server_v2_attack_scoreable_input_repair_added_only_msa_reuse_protenix5_seed101_105

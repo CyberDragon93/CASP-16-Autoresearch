@@ -2,7 +2,7 @@
   "name": "casp16_server_attack_protenix25_scoreable_input_repair",
   "parent_benchmark": "casp16_server_protein_v2_aliasfix",
   "tier": "server_attack",
-  "status": "prepared_deferred_await_p17_score",
+  "status": "prepared_deferred_await_p17_overlay_score",
   "active_run_id": "",
   "backend": "protenix",
   "model_name": "protenix-v2",
@@ -68,7 +68,10 @@
   "target_seed_shard_manifest": "attack_budgets/casp16_server_attack_protenix25_scoreable_input_repair_target_seed_shards.tsv",
   "target_seed_preflight_tsv": "diagnostics/msa_cache/protenix25_scoreable_input_repair_target_seed_run_preflight.tsv",
   "target_seed_readiness_tsv": "diagnostics/score_probes/protenix25_scoreable_input_repair_target_seed_readiness.tsv",
-  "reuse_existing_protenix5_shards": 6,
+  "reuse_existing_protenix5_overlay_runs": [
+    "server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105",
+    "server_v2_attack_scoreable_input_repair_added_only_msa_reuse_protenix5_seed101_105"
+  ],
   "prepared_additional_seed_shard_specs": 24,
   "selected_model_policy": "protenix_confidence_v1",
   "selection_formula": "0.20*plddt_norm + 0.50*ptm + 0.30*iptm - 0.10*disorder - 0.20*has_clash",
@@ -102,16 +105,16 @@
     "target_shard_count": 6,
     "seed_block_count": 5,
     "seeds_per_execution_shard": 5,
-    "reuse_seed_101_105_from": "server_v2_attack_scoreable_input_repair_size_balanced_shard01..06_msa_reuse_protenix5_seed101_105",
+    "reuse_seed_101_105_from": "P14 74-target merged run plus P17 added-only 5-target overlay; the full P17 shard01..06 rerun was cancelled after stalling on old large H-oligo targets.",
     "merge_policy": "score only after every shard has finished or mark the row partial/unranked",
-    "reason": "This retargets the old pre-P17 74-job protenix25 plan to the repaired 79-job scoreable input, while keeping the same fixed 25-candidate attack budget."
+    "reason": "This retargets the old pre-P17 74-job protenix25 plan to the repaired 79-job scoreable input, while keeping the same fixed 25-candidate attack budget. The seed101-105 evidence must come from the P14 plus added-only overlay, not from the cancelled full P17 target shards."
   },
   "launch_gate": [
-    "Do not submit seed106-125 shards before P17 is merged and scored, unless P17 is explicitly superseded with a recorded reason.",
+    "Do not submit seed106-125 shards before the P14 plus added-only P17 overlay is merged and scored, unless that overlay is explicitly superseded with a recorded reason.",
     "Use the same 79-job scoreable input-repair target shards for every seed block.",
     "Require complete global exact-sequence MSA reuse before launching each shard.",
     "Do not score the complete 25-candidate row until all 30 target-seed shards are present.",
     "Keep this row separate from dev_fixed and from the earlier 74-target protenix25_scoreable_nofail budget."
   ],
-  "budget_note": "Winner-scale CASP16 systems almost certainly generated more than five candidates. This artifact prepares a fair 25-candidate Protenix scale-up for the P17 repaired scoreable target set without launching additional GPU before the five-candidate P17 evidence is known."
+  "budget_note": "Winner-scale CASP16 systems almost certainly generated more than five candidates. This artifact prepares a fair 25-candidate Protenix scale-up for the P17 repaired scoreable target set without launching additional GPU before the five-candidate P14+added-only overlay evidence is known. Because the full P17 rerun stalled on old large H-oligo targets, any future 25-candidate launch should be rescheduled around overlay reuse or blocker-aware target shards instead of blindly replaying the old full grid."
 }

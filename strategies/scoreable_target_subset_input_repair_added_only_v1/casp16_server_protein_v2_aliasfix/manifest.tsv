@@ -1,0 +1,6 @@
+target_id	track	status	skip_reason	source_lookup_id	source_record_ids	source_target_ids	oligo_state	entity_count	chain_count	total_len	rules
+T1212	protein_domain	added	none	T1212	T1212s1	M1212,T1212,T1212S1	A1	1	1	466	scoreable_input_repair
+T1239V2	protein_domain	added	none	T1239V1	T1239v1	T1239V1	A1	1	1	620	scoreable_input_repair,recast_sequence_kind:dnaSequence,alias_fallback:T1239V1
+T1249V2O	protein_oligo	added	none	T1249V1	T1249v1	T1249V1	A3	1	3	1464	scoreable_input_repair,alias_fallback:T1249V1
+T1269V1O	protein_oligo	added	none	T1269	T1269	T1269	An	1	1	1410	scoreable_input_repair,alias_fallback:T1269,unparsed_oligo_state:An
+T2249V2O	protein_oligo	added	none	T1249V1	T1249v1	T1249V1	A3	1	3	1464	scoreable_input_repair,alias_fallback:T1249V1
