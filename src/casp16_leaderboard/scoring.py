@@ -43,6 +43,19 @@ TARGET_SCORE_FIELDS = [
     "message",
 ]
 DOCKQ_ALLOWED_MISMATCHES = 5
+SELECTION_QA_FIELDS = [
+    "target_id",
+    "prediction_path",
+    "confidence_path",
+    "selection_qa_path",
+    "candidate_count",
+    "pairwise_ok_count",
+    "consensus_score",
+    "cluster_support",
+    "min_cluster_score",
+    "status",
+    "message",
+]
 
 
 def resolve_tool(configured: Path | None, names: Sequence[str]) -> str:
@@ -341,7 +354,21 @@ def read_confidence_json(path: Path) -> dict[str, Any]:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return {}
-    return payload if isinstance(payload, dict) else {}
+    if not isinstance(payload, dict):
+        return {}
+    qa_path = selection_qa_sidecar_path(path)
+    if qa_path.exists():
+        try:
+            qa_payload = json.loads(qa_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            qa_payload = {}
+        if isinstance(qa_payload, dict):
+            payload.update(qa_payload)
+    return payload
+
+
+def selection_qa_sidecar_path(confidence_path: Path) -> Path:
+    return confidence_path.with_suffix(".selection_qa.json")
 
 
 def protenix_confidence_v1_score(confidence: Mapping[str, Any]) -> float | None:
@@ -390,6 +417,145 @@ def _first_confidence_float(confidence: Mapping[str, Any], keys: Sequence[str]) 
         if value is not None:
             return value
     return None
+
+
+def write_prediction_selection_qa(
+    *,
+    output_dir: Path,
+    target_ids: Sequence[str],
+    tm_tool: str,
+    output_csv: Path | None = None,
+    min_cluster_score: float = 0.5,
+) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    for target_id in target_ids:
+        candidates = prediction_candidates_for_target(output_dir, target_id)
+        rows.extend(
+            selection_qa_rows_for_target(
+                output_dir=output_dir,
+                target_id=target_id,
+                candidates=candidates,
+                tm_tool=tm_tool,
+                min_cluster_score=min_cluster_score,
+            )
+        )
+    if output_csv is not None:
+        write_csv(output_csv, rows, SELECTION_QA_FIELDS)
+    ok_rows = sum(1 for row in rows if row.get("status") == "ok")
+    return {
+        "output_dir": str(output_dir),
+        "targets": len(target_ids),
+        "rows": len(rows),
+        "ok_rows": ok_rows,
+        "tm_tool": tm_tool,
+        "output_csv": str(output_csv) if output_csv else "",
+    }
+
+
+def selection_qa_rows_for_target(
+    *,
+    output_dir: Path,
+    target_id: str,
+    candidates: Sequence[Path],
+    tm_tool: str,
+    min_cluster_score: float,
+) -> list[dict[str, Any]]:
+    if not candidates:
+        return [
+            {
+                "target_id": target_id,
+                "candidate_count": 0,
+                "status": "missing_prediction",
+                "message": "no_prediction_file",
+            }
+        ]
+    if not tm_tool:
+        return [
+            {
+                "target_id": target_id,
+                "prediction_path": str(path),
+                "candidate_count": len(candidates),
+                "status": "metric_unavailable",
+                "message": "TMscore_or_USalign_not_found",
+            }
+            for path in candidates
+        ]
+
+    pair_scores: dict[Path, list[float]] = {path: [] for path in candidates}
+    pair_failures: list[str] = []
+    for left_index, left in enumerate(candidates):
+        for right in candidates[left_index + 1 :]:
+            score, message = prediction_pair_score(tm_tool, left, right)
+            if score is None:
+                pair_failures.append(message)
+                continue
+            pair_scores[left].append(score)
+            pair_scores[right].append(score)
+
+    rows: list[dict[str, Any]] = []
+    for prediction_path in candidates:
+        confidence_path = find_confidence_for_prediction(prediction_path)
+        base: dict[str, Any] = {
+            "target_id": target_id,
+            "prediction_path": str(prediction_path),
+            "confidence_path": str(confidence_path) if confidence_path else "",
+            "selection_qa_path": "",
+            "candidate_count": len(candidates),
+            "pairwise_ok_count": len(pair_scores[prediction_path]),
+            "consensus_score": "",
+            "cluster_support": "",
+            "min_cluster_score": f"{min_cluster_score:.6f}",
+            "status": "",
+            "message": "",
+        }
+        if confidence_path is None:
+            rows.append({**base, "status": "missing_confidence", "message": "no_confidence_file"})
+            continue
+        if len(candidates) == 1:
+            consensus_score = 1.0
+            cluster_support = 1.0
+        elif pair_scores[prediction_path]:
+            consensus_score = sum(pair_scores[prediction_path]) / len(pair_scores[prediction_path])
+            cluster_support = (1 + sum(1 for score in pair_scores[prediction_path] if score >= min_cluster_score)) / len(candidates)
+        else:
+            message = pair_failures[0] if pair_failures else "no_pairwise_scores"
+            rows.append({**base, "status": "metric_failed", "message": message[:240]})
+            continue
+        qa_path = selection_qa_sidecar_path(confidence_path)
+        qa_payload = {
+            "selection_qa_version": "prediction_consensus_v1",
+            "target_id": target_id,
+            "prediction_path": str(prediction_path),
+            "candidate_count": len(candidates),
+            "pairwise_ok_count": len(pair_scores[prediction_path]),
+            "consensus_score": consensus_score,
+            "mean_pairwise_tm": consensus_score,
+            "cluster_support": cluster_support,
+            "cluster_size_fraction": cluster_support,
+            "min_cluster_score": min_cluster_score,
+        }
+        qa_path.write_text(json.dumps(qa_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        rows.append(
+            {
+                **base,
+                "selection_qa_path": str(qa_path),
+                "consensus_score": f"{consensus_score:.6f}",
+                "cluster_support": f"{cluster_support:.6f}",
+                "status": "ok",
+            }
+        )
+    return rows
+
+
+def prediction_pair_score(tm_tool: str, left: Path, right: Path) -> tuple[float | None, str]:
+    code, stdout, stderr = run_metric([tm_tool, str(left), str(right)])
+    if code != 0:
+        return None, stderr.strip()[:240] or f"pairwise_metric_exit:{code}"
+    parsed = parse_tmscore_output(stdout)
+    score = parsed.get("tm_score", parsed.get("gdt_ts_norm"))
+    if score is None:
+        return None, "no_TMscore_or_GDT_TS"
+    return score, ""
 
 
 def _confidence_float(value: Any) -> float | None:

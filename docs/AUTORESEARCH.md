@@ -186,7 +186,9 @@ where methods should change.
 - `diversity_confidence_consensus_v1` is now wired as a prediction-only
   selector for future diversity budgets. It extends `protenix_confidence_v1`
   with optional consensus/cluster-support fields from run-local confidence or
-  QA JSON and still fails closed without confidence data.
+  QA JSON and still fails closed without confidence data. `./casp16
+  selection-qa` can now generate those sidecar QA fields by running
+  prediction-vs-prediction TMscore/USalign only, with no reference access.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and

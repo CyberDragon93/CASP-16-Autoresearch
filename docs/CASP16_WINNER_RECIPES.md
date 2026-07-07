@@ -86,7 +86,8 @@ Candidate budget sketch:
 - selector: predeclared confidence/consensus/geometry QA only; no references,
   official scores, or prior target-score rows. The initial selector hook is
   `diversity_confidence_consensus_v1`, which reads only run-local prediction
-  confidence/QA JSON fields.
+  confidence/QA JSON fields; `./casp16 selection-qa` can generate consensus
+  sidecars from prediction-vs-prediction TMscore/USalign.
 - rank rule: score only after every declared candidate exists, or mark the row
   partial/unranked
 

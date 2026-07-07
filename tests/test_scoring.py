@@ -11,9 +11,12 @@ from casp16_leaderboard.scoring import (
     prediction_candidate_index,
     prediction_candidate_index_for_targets,
     probe_qsglob_targets,
+    read_confidence_json,
     score_benchmark_runs,
     score_target,
     select_prediction_for_target,
+    selection_qa_sidecar_path,
+    write_prediction_selection_qa,
 )
 
 
@@ -830,6 +833,63 @@ def test_diversity_confidence_consensus_policy_uses_prediction_only_qa(tmp_path)
     assert selected["prediction_path"] == str(consensus)
     assert selected["confidence_path"] == str(confidence)
     assert selected["selection_score"] == "0.646500"
+
+
+def test_diversity_selector_reads_selection_qa_sidecar(tmp_path) -> None:
+    output_dir = tmp_path / "predictions" / "protenix-v2"
+    candidate_dir = output_dir / "T1234" / "seed_101" / "predictions"
+    candidate_dir.mkdir(parents=True)
+    prediction = candidate_dir / "T1234_sample_0.cif"
+    confidence = candidate_dir / "T1234_summary_confidence_sample_0.json"
+    prediction.write_text("data_prediction\n", encoding="utf-8")
+    confidence.write_text('{"plddt": 80.0, "ptm": 0.50, "iptm": 0.10}\n', encoding="utf-8")
+    selection_qa_sidecar_path(confidence).write_text(
+        '{"consensus_score": 1.0, "cluster_support": 1.0}\n',
+        encoding="utf-8",
+    )
+
+    payload = read_confidence_json(confidence)
+    selected = select_prediction_for_target(
+        output_dir,
+        "T1234",
+        selected_model_policy="diversity_confidence_consensus_v1",
+    )
+
+    assert payload["consensus_score"] == 1.0
+    assert selected["status"] == "ok"
+    assert selected["prediction_path"] == str(prediction)
+    assert selected["selection_score"] == "0.608000"
+
+
+def test_write_prediction_selection_qa_generates_prediction_only_sidecars(tmp_path) -> None:
+    output_dir = tmp_path / "predictions" / "protenix-v2"
+    first_dir = output_dir / "T1234" / "seed_101" / "predictions"
+    second_dir = output_dir / "T1234" / "seed_102" / "predictions"
+    first_dir.mkdir(parents=True)
+    second_dir.mkdir(parents=True)
+    first = first_dir / "T1234_sample_0.cif"
+    second = second_dir / "T1234_sample_0.cif"
+    first_conf = first_dir / "T1234_summary_confidence_sample_0.json"
+    second_conf = second_dir / "T1234_summary_confidence_sample_0.json"
+    first.write_text("data_first\n", encoding="utf-8")
+    second.write_text("data_second\n", encoding="utf-8")
+    first_conf.write_text('{"plddt": 80.0, "ptm": 0.50, "iptm": 0.10}\n', encoding="utf-8")
+    second_conf.write_text('{"plddt": 70.0, "ptm": 0.40, "iptm": 0.10}\n', encoding="utf-8")
+    tm = _write_fake_tool(tmp_path / "tm.sh", "TM-score = 0.800")
+    output_csv = tmp_path / "selection_qa.csv"
+
+    summary = write_prediction_selection_qa(
+        output_dir=output_dir,
+        target_ids=["T1234"],
+        tm_tool=tm,
+        output_csv=output_csv,
+        min_cluster_score=0.5,
+    )
+
+    assert summary["ok_rows"] == 2
+    assert output_csv.exists()
+    assert read_confidence_json(first_conf)["consensus_score"] == 0.8
+    assert read_confidence_json(second_conf)["cluster_support"] == 1.0
 
 
 def test_confidence_policy_fails_closed_without_confidence(tmp_path) -> None:

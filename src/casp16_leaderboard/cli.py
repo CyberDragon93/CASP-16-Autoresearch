@@ -30,6 +30,7 @@ from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, gen
 from .msa_cache import audit_msa_reuse_report, build_msa_cache_index, file_sha256, plan_msa_reuse, reuse_msa_paths, summarize_msa_cache_indexes
 from .official import ensure_dir, ingest_official_data
 from .runs import (
+    DEFAULT_TMSCORE_BIN,
     DEFAULT_PROTENIX_BIN,
     DEFAULT_PROTENIX_ROOT,
     RUN_PREFLIGHT_FIELDS,
@@ -42,7 +43,7 @@ from .runs import (
     run_next,
     run_one,
 )
-from .scoring import probe_qsglob_targets, score_benchmark_runs
+from .scoring import probe_qsglob_targets, resolve_tool, score_benchmark_runs, write_prediction_selection_qa
 from .sharding import SHARD_READINESS_FIELDS, check_prediction_shards, write_input_shards, write_tsv
 from .strategies import STRATEGY_YANG_TERMINAL_TAG_CLEANUP, derive_strategy_inputs
 
@@ -694,6 +695,13 @@ def build_parser() -> argparse.ArgumentParser:
     score.add_argument("--dockq-bin", type=Path, default=None)
     score.add_argument("--qsglob-bin", type=Path, default=None)
 
+    selection_qa = subparsers.add_parser("selection-qa", help="Write prediction-only consensus QA sidecars for model selection.")
+    selection_qa.add_argument("--output-dir", type=Path, required=True, help="Prediction output directory to scan.")
+    selection_qa.add_argument("--target", action="append", required=True, help="Target id(s) to annotate; repeat or comma-separate.")
+    selection_qa.add_argument("--tmscore-bin", type=Path, default=None, help="TMscore/USalign-compatible binary for prediction-vs-prediction consensus.")
+    selection_qa.add_argument("--output-csv", type=Path, default=None, help="Defaults to diagnostics/selection_qa/<output-dir-name>.selection_qa.csv.")
+    selection_qa.add_argument("--min-cluster-score", type=float, default=0.5, help="Pairwise TM/GDT threshold for cluster-support fraction.")
+
     qsglob_probe = subparsers.add_parser("qsglob-probe", help="Run targeted QSglob diagnostics without writing leaderboard artifacts.")
     qsglob_probe.add_argument("--benchmark", default=SERVER_ALIASFIX_BENCHMARK_NAME)
     qsglob_probe.add_argument("--run-id", action="append", required=True, help="Run id(s) to probe; repeat or comma-separate.")
@@ -1264,6 +1272,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.output_tsv:
             write_tsv(args.output_tsv.resolve(), summary["rows"], RUN_PREFLIGHT_FIELDS)
             summary["output_tsv"] = str(args.output_tsv.resolve())
+        print_json(summary)
+        return 0
+
+    if args.command == "selection-qa":
+        output_dir = args.output_dir.resolve()
+        output_csv = (
+            args.output_csv.resolve()
+            if args.output_csv
+            else (root / "diagnostics" / "selection_qa" / f"{output_dir.name}.selection_qa.csv").resolve()
+        )
+        tm_tool = resolve_tool(args.tmscore_bin or DEFAULT_TMSCORE_BIN, ["TMscore", "USalign"])
+        summary = write_prediction_selection_qa(
+            output_dir=output_dir,
+            target_ids=split_csv_args(args.target),
+            tm_tool=tm_tool,
+            output_csv=output_csv,
+            min_cluster_score=args.min_cluster_score,
+        )
         print_json(summary)
         return 0
 
