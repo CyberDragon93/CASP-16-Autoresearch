@@ -26,7 +26,8 @@ per-target scores during prediction.
 
 ## Active Gate
 
-Checked `2026-07-07 14:09 CDT`: P25 is still incomplete.
+Checked `2026-07-07 14:11 CDT`: P25 is still incomplete, but the live jobs
+look healthy.
 
 | Gate | Status |
 | --- | --- |
@@ -37,6 +38,7 @@ Checked `2026-07-07 14:09 CDT`: P25 is still incomplete.
 | full 25-candidate slots still missing | `874` |
 | complete full-budget tasks | `1 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit` |
+| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes still advancing |
 | action | wait for declared candidates, then run the P25 closeout wrapper |
 
 Do not score the P25 row or launch O5b/P27b/D6a from partial outputs.
