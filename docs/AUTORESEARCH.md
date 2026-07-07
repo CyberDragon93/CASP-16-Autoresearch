@@ -2041,6 +2041,17 @@ competitive result.
      Winner-match discipline remains unchanged: no partial P25 score, no new
      GPU branch, and no claim against the server winners until the full P25
      pool is merged and scored.
+142. `2026-07-07 16:53 CDT` Added a read-only `./casp16 winner-gap` command
+     so every completed leaderboard refresh can report the exact gap to the
+     official CASP16 server winners without hand calculation. On current
+     `casp16_server_protein_v2_aliasfix` artifacts it reports `not_matched`:
+     domain best local `0.107690` versus `110s` winner `0.923321`
+     (`11.66%` of winner, gap `0.815631`), oligo best local `0.118933` versus
+     `456s` winner `0.582615` (`20.41%` of winner, gap `0.463682`), and
+     target-weighted combined local `0.114371554` versus winner `0.720844291`.
+     This is a global progress readout only; it reads generated `runs.csv` and
+     `official_server_groups.csv` and must not be used for per-target tuning.
+     Validation: `python -m pytest tests/test_decisions.py` passed 23 tests.
 
 ## Run Discipline
 

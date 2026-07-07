@@ -13,6 +13,7 @@ from casp16_leaderboard.decisions import (
     post_p14_readout,
     post_p25_branch_readiness,
     post_p25_readout,
+    winner_gap_readout,
 )
 
 
@@ -30,6 +31,170 @@ def write_tsv(path, rows, fields):
         writer = csv.DictWriter(handle, fieldnames=fields, delimiter="\t", lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
+
+
+def write_winner_gap_fixture(tmp_path):
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    leaderboard_dir = tmp_path / "leaderboards" / benchmark
+    official_fields = [
+        "category",
+        "rank",
+        "group",
+        "group_type",
+        "eligible_target_count",
+        "submitted_target_count",
+        "missing_target_count",
+        "mean_fixed_score",
+        "mean_submitted_score",
+        "best_score",
+        "primary_metric",
+    ]
+    write_csv(
+        leaderboard_dir / "official_server_groups.csv",
+        [
+            {
+                "category": "prot_domains",
+                "rank": "1",
+                "group": "110s",
+                "group_type": "server",
+                "eligible_target_count": "71",
+                "submitted_target_count": "71",
+                "missing_target_count": "0",
+                "mean_fixed_score": "0.900000",
+                "mean_submitted_score": "0.900000",
+                "best_score": "1.000000",
+                "primary_metric": "GDT_TS",
+            },
+            {
+                "category": "prot_oligo",
+                "rank": "1",
+                "group": "456s",
+                "group_type": "server",
+                "eligible_target_count": "104",
+                "submitted_target_count": "102",
+                "missing_target_count": "2",
+                "mean_fixed_score": "0.600000",
+                "mean_submitted_score": "0.612000",
+                "best_score": "1.000000",
+                "primary_metric": "QSglob",
+            },
+            {
+                "category": "prot_domains",
+                "rank": "1",
+                "group": "999",
+                "group_type": "human",
+                "eligible_target_count": "71",
+                "submitted_target_count": "71",
+                "missing_target_count": "0",
+                "mean_fixed_score": "1.000000",
+                "mean_submitted_score": "1.000000",
+                "best_score": "1.000000",
+                "primary_metric": "GDT_TS",
+            },
+        ],
+        official_fields,
+    )
+    run_fields = [
+        "rank",
+        "run_id",
+        "track",
+        "rank_status",
+        "budget_tier",
+        "candidate_count",
+        "selected_model_policy",
+        "mean_score",
+        "eligible_targets",
+        "ok_targets",
+        "missing_targets",
+        "failed_targets",
+        "partial_candidate_targets",
+        "metric_unavailable_targets",
+        "artifact_path",
+    ]
+    write_csv(
+        leaderboard_dir / "runs.csv",
+        [
+            {
+                "rank": "",
+                "run_id": "weak_domain",
+                "track": "protein_domain",
+                "rank_status": "ranked",
+                "budget_tier": "dev_fixed",
+                "candidate_count": "1",
+                "selected_model_policy": "first_output_only",
+                "mean_score": "0.100000",
+                "eligible_targets": "71",
+                "ok_targets": "10",
+                "missing_targets": "61",
+                "failed_targets": "0",
+                "partial_candidate_targets": "0",
+                "metric_unavailable_targets": "0",
+                "artifact_path": "",
+            },
+            {
+                "rank": "",
+                "run_id": "best_domain",
+                "track": "protein_domain",
+                "rank_status": "attack:selector",
+                "budget_tier": "server_attack",
+                "candidate_count": "5",
+                "selected_model_policy": "selector",
+                "mean_score": "0.250000",
+                "eligible_targets": "71",
+                "ok_targets": "30",
+                "missing_targets": "41",
+                "failed_targets": "0",
+                "partial_candidate_targets": "0",
+                "metric_unavailable_targets": "0",
+                "artifact_path": "",
+            },
+            {
+                "rank": "",
+                "run_id": "best_oligo",
+                "track": "protein_oligo",
+                "rank_status": "attack:selector",
+                "budget_tier": "server_attack",
+                "candidate_count": "5",
+                "selected_model_policy": "selector",
+                "mean_score": "0.200000",
+                "eligible_targets": "104",
+                "ok_targets": "50",
+                "missing_targets": "54",
+                "failed_targets": "0",
+                "partial_candidate_targets": "0",
+                "metric_unavailable_targets": "0",
+                "artifact_path": "",
+            },
+        ],
+        run_fields,
+    )
+    return benchmark
+
+
+def test_winner_gap_readout_compares_best_local_to_server_winners(tmp_path) -> None:
+    benchmark = write_winner_gap_fixture(tmp_path)
+
+    summary = winner_gap_readout(project_root=tmp_path, benchmark=benchmark)
+
+    assert summary["status"] == "not_matched"
+    assert summary["tracks"]["protein_domain"]["winner_group"] == "110s"
+    assert summary["tracks"]["protein_domain"]["best_local_run_id"] == "best_domain"
+    assert summary["tracks"]["protein_domain"]["absolute_gap"] == 0.65
+    assert summary["tracks"]["protein_oligo"]["winner_group"] == "456s"
+    assert summary["tracks"]["protein_oligo"]["relative_level"] == 0.33333333333333337
+    assert summary["combined"]["target_count"] == 175
+
+
+def test_winner_gap_cli_writes_json(tmp_path, capsys) -> None:
+    benchmark = write_winner_gap_fixture(tmp_path)
+    output_json = tmp_path / "diagnostics" / "winner_gap.json"
+
+    rc = main(["--root", str(tmp_path), "winner-gap", "--benchmark", benchmark, "--output-json", str(output_json)])
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["tracks"]["protein_domain"]["best_local_run_id"] == "best_domain"
+    assert output_json.exists()
 
 
 def write_readout_fixture(tmp_path, *, include_replay=True, scoreable_failure=False, domain_mean="0.120000", qsglob="0.300000"):

@@ -33,6 +33,7 @@ from .decisions import (
     post_p14_readout,
     post_p25_branch_readiness,
     post_p25_readout,
+    winner_gap_readout,
 )
 from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
@@ -1118,6 +1119,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     post_p25_branches.add_argument("--output-json", type=Path, default=None, help="Optional JSON copy of the audit.")
 
+    winner_gap = subparsers.add_parser(
+        "winner-gap",
+        help="Read generated leaderboard CSVs and report the gap to official CASP16 server winners.",
+    )
+    winner_gap.add_argument("--benchmark", default=SERVER_ALIASFIX_BENCHMARK_NAME)
+    winner_gap.add_argument("--leaderboard-dir", type=Path, default=None, help="Defaults to <root>/leaderboards/<benchmark>.")
+    winner_gap.add_argument("--output-json", type=Path, default=None, help="Optional JSON copy of the readout.")
+
     run_next_parser = subparsers.add_parser("run-next", help="Run the next pending run spec.")
     run_next_parser.add_argument("--benchmark", default=None)
     run_next_parser.add_argument("--dry-run", action="store_true")
@@ -1810,6 +1819,19 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "post-p25-branch-readiness":
         summary = post_p25_branch_readiness(root)
+        if args.output_json:
+            ensure_dir(args.output_json.resolve().parent)
+            args.output_json.resolve().write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            summary["output_json"] = str(args.output_json.resolve())
+        print_json(summary)
+        return 0
+
+    if args.command == "winner-gap":
+        summary = winner_gap_readout(
+            project_root=root,
+            benchmark=args.benchmark,
+            leaderboard_dir=args.leaderboard_dir.resolve() if args.leaderboard_dir else None,
+        )
         if args.output_json:
             ensure_dir(args.output_json.resolve().parent)
             args.output_json.resolve().write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -19,6 +19,15 @@ The official server leaders to beat are pinned in
 The current best complete local row is
 `server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105`:
 domain `0.107690`, oligo `0.118933`. Treat that as a floor, not as a near-win.
+Use the read-only gap command after every leaderboard refresh:
+
+```bash
+./casp16 winner-gap --benchmark casp16_server_protein_v2_aliasfix
+```
+
+This reports the best local row per track against the official server winner.
+It is for global progress accounting only; do not use it for target-specific
+prediction changes.
 
 ## Immediate Gate
 

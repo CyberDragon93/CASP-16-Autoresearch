@@ -17,6 +17,10 @@ DEFAULT_P25_RUN_ID = "server_v2_attack_scoreable_input_repair_size_balanced_msa_
 DEFAULT_DOMAIN_FLOOR = 0.049685
 DEFAULT_EXACT_DOMAIN_PROBE_FLOOR = 0.099576
 DEFAULT_MIN_EXACT_OLIGO_NONZERO = 2
+SERVER_WINNER_TRACKS = {
+    "protein_domain": "prot_domains",
+    "protein_oligo": "prot_oligo",
+}
 
 D6A_INPUT_REPAIR_TARGETS = {"T1276", "T1228V1", "T1239V1", "T2276"}
 D6A_RUN_IDS = ("server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101",)
@@ -620,6 +624,100 @@ def as_int(value: object, default: int = 0) -> int:
         return int(float(str(value or "").strip()))
     except ValueError:
         return default
+
+
+def winner_gap_readout(
+    *,
+    project_root: Path,
+    benchmark: str,
+    leaderboard_dir: Path | None = None,
+) -> dict[str, Any]:
+    """Compare the best local rows with official server winners.
+
+    This is a read-only scoreboard diagnostic. It reads only generated
+    leaderboard CSVs, and it must not be used for target-specific tuning.
+    """
+
+    root = project_root.resolve()
+    output_dir = (leaderboard_dir or (root / "leaderboards" / benchmark)).resolve()
+    runs_csv = output_dir / "runs.csv"
+    official_csv = output_dir / "official_server_groups.csv"
+    for path in (runs_csv, official_csv):
+        if not path.exists():
+            raise FileNotFoundError(f"required winner-gap input is missing: {path}")
+
+    run_rows = read_csv_rows(runs_csv)
+    official_rows = read_csv_rows(official_csv)
+    tracks: dict[str, dict[str, Any]] = {}
+    combined_local_weighted = 0.0
+    combined_winner_weighted = 0.0
+    combined_target_count = 0
+
+    for track, official_category in SERVER_WINNER_TRACKS.items():
+        server_rows = [
+            row
+            for row in official_rows
+            if row.get("category") == official_category and row.get("group_type") == "server"
+        ]
+        server_rows.sort(key=lambda row: (as_int(row.get("rank"), default=10**9), -as_float(row.get("mean_fixed_score"))))
+        winner = server_rows[0] if server_rows else {}
+        local_rows = [row for row in run_rows if row.get("track") == track and str(row.get("run_id", "")).strip()]
+        local_rows.sort(key=lambda row: (-as_float(row.get("mean_score")), str(row.get("run_id", ""))))
+        best_local = local_rows[0] if local_rows else {}
+
+        winner_mean = as_float(winner.get("mean_fixed_score"))
+        local_mean = as_float(best_local.get("mean_score"))
+        eligible_targets = as_int(winner.get("eligible_target_count") or best_local.get("eligible_targets"))
+        absolute_gap = winner_mean - local_mean
+        relative_level = local_mean / winner_mean if winner_mean > 0.0 else 0.0
+        multiplier_needed = winner_mean / local_mean if local_mean > 0.0 else None
+
+        combined_local_weighted += local_mean * eligible_targets
+        combined_winner_weighted += winner_mean * eligible_targets
+        combined_target_count += eligible_targets
+        tracks[track] = {
+            "official_category": official_category,
+            "winner_group": winner.get("group", ""),
+            "winner_mean": winner_mean,
+            "winner_metric": winner.get("primary_metric", ""),
+            "winner_eligible_targets": eligible_targets,
+            "best_local_run_id": best_local.get("run_id", ""),
+            "best_local_mean": local_mean,
+            "best_local_rank_status": best_local.get("rank_status", ""),
+            "best_local_budget_tier": best_local.get("budget_tier", ""),
+            "best_local_candidate_count": as_int(best_local.get("candidate_count")),
+            "best_local_policy": best_local.get("selected_model_policy", ""),
+            "best_local_ok_targets": as_int(best_local.get("ok_targets")),
+            "best_local_missing_targets": as_int(best_local.get("missing_targets")),
+            "best_local_failed_targets": as_int(best_local.get("failed_targets")),
+            "best_local_partial_candidate_targets": as_int(best_local.get("partial_candidate_targets")),
+            "best_local_metric_unavailable_targets": as_int(best_local.get("metric_unavailable_targets")),
+            "absolute_gap": absolute_gap,
+            "relative_level": relative_level,
+            "multiplier_needed": multiplier_needed,
+            "matched": local_mean >= winner_mean and winner_mean > 0.0,
+        }
+
+    combined_local_mean = combined_local_weighted / combined_target_count if combined_target_count else 0.0
+    combined_winner_mean = combined_winner_weighted / combined_target_count if combined_target_count else 0.0
+    return {
+        "benchmark": benchmark,
+        "status": "matched" if tracks and all(row["matched"] for row in tracks.values()) else "not_matched",
+        "tracks": tracks,
+        "combined": {
+            "target_weighted_local_mean": combined_local_mean,
+            "target_weighted_winner_mean": combined_winner_mean,
+            "absolute_gap": combined_winner_mean - combined_local_mean,
+            "relative_level": combined_local_mean / combined_winner_mean if combined_winner_mean > 0.0 else 0.0,
+            "target_count": combined_target_count,
+            "note": "Weighted over the two official server protein target sets; each track still has its own winner.",
+        },
+        "inputs": {
+            "runs_csv": str(runs_csv),
+            "official_server_groups_csv": str(official_csv),
+        },
+        "note": "Read-only global comparison; do not use this for target-specific prediction tuning.",
+    }
 
 
 def status_counts(rows: Sequence[Mapping[str, str]]) -> dict[str, int]:

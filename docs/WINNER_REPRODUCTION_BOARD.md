@@ -39,6 +39,14 @@ target sets, with the same missing-as-zero rule, and be compared to
 server-only groups in `official_server_groups.csv`. A `target_lab` result,
 DockQ-only result, small `casp16_protein_v1` result, partial shard, or
 unmerged P25 row is not a winner-comparison point.
+Use the read-only gap command after each leaderboard refresh:
+
+```bash
+./casp16 winner-gap --benchmark casp16_server_protein_v2_aliasfix
+```
+
+It reads only `runs.csv` and `official_server_groups.csv`; it is a global
+scoreboard sanity check, not permission to tune individual targets.
 
 The fastest honest route to matching the winner is not to add random
 infrastructure. It is:

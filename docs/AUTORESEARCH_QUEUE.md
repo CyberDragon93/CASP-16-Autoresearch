@@ -60,6 +60,7 @@ aggregate branch gate before selecting any deferred branch:
 
 ```bash
 ./casp16 post-p25-readout
+./casp16 winner-gap --benchmark casp16_server_protein_v2_aliasfix
 ```
 
 On current artifacts this command returns `decision_status=not_scored` and
@@ -72,7 +73,9 @@ When the chosen branch has run ids, `run_specs` reports whether each
 budget tier, candidate count, rank eligibility, input/output paths, and MSA
 reuse summary. The current P17 repaired-input baseline is score-path clean
 (`79/79` scoreable targets `ok`) with fixed-set mean `0.114371554` and 96
-no-reference zero rows.
+no-reference zero rows. `winner-gap` reads generated leaderboard CSVs only and
+reports how far the best local row remains below the server winners; it should
+be used for global progress accounting, not per-target tuning.
 The readout now also emits predeclared branch diagnostics for D6a input-repair
 targets, antibody/Fv oligo rows, exact non-antibody oligo signal, and
 reference-limited scoreable coverage. Use those aggregate diagnostics after
