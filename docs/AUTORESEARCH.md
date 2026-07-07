@@ -2083,6 +2083,23 @@ competitive result.
      predictions. This is a QA/model-ranking winner-recipe test with no extra
      GPU prediction work. Validation: `python -m pytest tests/test_scoring.py
      tests/test_runs.py` passed 64 tests.
+145. `2026-07-07 17:24 CDT` Ran the new no-GPU ranking selector replay on the
+     completed P17 repaired-input 5-candidate prediction pool:
+     `server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105_ranking_consensus_replay`
+     uses the same prediction directory and inputs as P17, with
+     `selected_model_policy=protenix_ranking_consensus_v1`. The replay is a
+     negative selector result: domain mean `0.105372` versus P17 confidence
+     selector `0.107690`, and oligo mean `0.116654` versus P17 `0.118933`.
+     The older consensus replay is also below P17 (`0.107230` domain,
+     `0.117260` oligo). Current best local server-v2 row therefore remains the
+     original P17/P17-overlay `protenix_confidence_v1` selector. This does not
+     invalidate the P25 ranking replay, because the 25-candidate pool may have
+     different selector behavior, but it means ranking-score consensus is not
+     an immediate winner shortcut on the 5-candidate baseline. The leaderboard
+     was regenerated through `./casp16 leaderboard --benchmark
+     casp16_server_protein_v2_aliasfix`; `winner-gap` remains `not_matched`
+     with domain `11.66%`, oligo `20.41%`, and combined `15.87%` of the
+     server winners.
 
 ## Run Discipline
 

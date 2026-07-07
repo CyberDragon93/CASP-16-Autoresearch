@@ -24,6 +24,12 @@ This is not close to the winners yet. The immediate goal is to raise valid
 scoreable-target signal and coverage without using references or official
 per-target scores during prediction.
 
+Selector note: the P17 no-GPU `protenix_ranking_consensus_v1` replay was
+scored on `2026-07-07` and is worse than the original P17 confidence selector
+(`0.105372` domain, `0.116654` oligo). Keep `protenix_confidence_v1` as the
+current best selector for the 5-candidate repaired-input baseline; treat the
+P25 ranking replay as a candidate-selection diagnostic, not as an assumed win.
+
 ## Winner-Match Gap
 
 The current complete local row is still a reproduction scaffold, not a
@@ -100,7 +106,7 @@ diversity.
 | --- | --- | --- | --- | --- |
 | Top domain servers had broad coverage and high automatic accuracy | Yang-style input repair: sequence recovery, phase aliases, low-complexity cleanup, token-safe fallback | P17 repaired the 5 scoreable missing-prediction rows and is the best complete local server-v2 row | Keep P17 as the seed101-105 overlay for P25 | Stop adding input-cleanup variants until P25 shows a specific failure class |
 | Top server families are MIEnsembles/Zheng/Yang/Guijun rather than a single narrow trick | balanced automatic pipeline with input realism, candidate diversity, and QA | official group registry maps `110s` to MIEnsembles-Server, `456s` to Yang-Multimer, `052s` to Yang-Server, `019s/147s` to Zheng, and `148s` to Guijunlab-Complex | Keep winner reproduction focused on broad server-style rows, not isolated target rescues | Do not claim a recipe matched the winner unless the fixed-set server score closes the gap |
-| Winner-scale systems use multiple internal candidates, but ranking is fragile | P25: 25 fixed seeds on the repaired 79-job scoreable subset with `protenix_confidence_v1` | Submitted as Slurm jobs `812935..812958`; MSA preflight was complete; still running | Finish P25, merge, score, regenerate leaderboard, then inspect aggregate deltas | Never score a partial 25-candidate row; if flat and valid, do not just add more seeds |
+| Winner-scale systems use multiple internal candidates, but ranking is fragile | P25: 25 fixed seeds on the repaired 79-job scoreable subset with `protenix_confidence_v1`; no-GPU consensus and ranking-consensus selector replays configured at closeout | Submitted as Slurm jobs `812935..812958`; MSA preflight was complete; P17 ranking-consensus replay was negative, so keep confidence as current baseline | Finish P25, merge, score, regenerate leaderboard, then inspect aggregate deltas and selector replay behavior | Never score a partial 25-candidate row; if flat and valid, do not just add more seeds |
 | MULTICOM/QA-style systems rely on diverse model/MSA pools plus QA | P27b repaired-input default-params model/config variant; broader MSA/model diversity design gate; future P28a-style `msa_server_mode=colabfold` probe | P27b is prepared and MSA-clean, but deferred behind P25; MSA server mode is now explicit in run specs | If complete P25 is flat with valid predictions/metrics, launch P27b before another seed grid; only then consider a production ColabFold/MMseqs MSA variant | Do not turn off MSA or use toy settings; do not choose variants per target from scores |
 | Complex winners/top methods still struggle on antibodies and high-order stoichiometry; specialized handling can help | O5b repaired-input antibody/Fv branch | Target-lab Fv diagnostics were positive, and O5b preflight is clean | Launch only if P25 shows antibody/Fv oligos are the dominant recoverable weakness | Do not use target-lab DockQ positives as leaderboard evidence |
 | Domain decomposition and construct boundaries matter | D6a domain sequence recovery after warmup; domain-fragment target-lab evidence | D6a MSA reuse is complete after warmup | Launch D6a only if P25 domain zeros cluster around input-kind/alias/domain classes | Do not hand-pick CASP domain crops from target scores |
