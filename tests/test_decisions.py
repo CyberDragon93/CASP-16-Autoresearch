@@ -5,7 +5,9 @@ import json
 
 from casp16_leaderboard.cli import main
 from casp16_leaderboard.decisions import (
+    ANTIBODY_FV_TARGETS,
     D6A_RUN_IDS,
+    O5B_RUN_IDS,
     P27B_RUN_IDS,
     post_p14_readout,
     post_p25_branch_readiness,
@@ -949,6 +951,145 @@ def test_post_p25_branch_readiness_blocks_p27b_variant_drift(tmp_path) -> None:
     assert p27b["launch_ready_after_p25_selection"] is False
     assert p27b["variant_guard"]["status"] == "blocked"
     assert any("default_params_not_enabled" in failure for failure in p27b["variant_guard"]["failures"])
+
+
+def protein_job(name: str, sequence: str) -> dict[str, object]:
+    return {
+        "name": name,
+        "sequences": [{"proteinChain": {"sequence": sequence, "count": 1, "id": ["A"]}}],
+        "covalent_bonds": [],
+    }
+
+
+def write_o5b_variant_readiness_fixture(tmp_path, *, break_non_antibody=False) -> None:
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    antibody_targets = sorted(ANTIBODY_FV_TARGETS)
+    all_targets = antibody_targets + ["T1234"]
+    status_rows = []
+    preflight_rows = []
+    for shard, o5b_run_id in enumerate(O5B_RUN_IDS, 1):
+        shard_targets = all_targets[shard - 1 :: len(O5B_RUN_IDS)]
+        p25_source = tmp_path / "strategies" / "p25_input_repair" / benchmark / f"shard{shard:02d}.inputs.json"
+        o5b_source = tmp_path / "strategies" / "o5b_antibody_fv" / benchmark / f"shard{shard:02d}.inputs.json"
+        p25_source.parent.mkdir(parents=True, exist_ok=True)
+        o5b_source.parent.mkdir(parents=True, exist_ok=True)
+        p25_source.write_text(json.dumps([protein_job(target, "BASE") for target in shard_targets]) + "\n", encoding="utf-8")
+        o5b_rows = []
+        for target in shard_targets:
+            sequence = "FVTRIM" if target in ANTIBODY_FV_TARGETS else "BASE"
+            if break_non_antibody and target == "T1234":
+                sequence = "DRIFT"
+            o5b_rows.append(protein_job(target, sequence))
+        o5b_source.write_text(json.dumps(o5b_rows) + "\n", encoding="utf-8")
+
+        common = {
+            "benchmark_name": benchmark,
+            "backend": "protenix",
+            "model_name": "protenix-v2",
+            "sample": 1,
+            "candidate_count": 5,
+            "fixed_budget": True,
+            "selected_model_policy": "protenix_confidence_v1",
+            "use_msa": True,
+            "references_sha256": "reference-sha",
+        }
+        o5b_run_dir = tmp_path / "runs" / o5b_run_id
+        o5b_run_dir.mkdir(parents=True)
+        (o5b_run_dir / "run_spec.json").write_text(
+            json.dumps(
+                {
+                    **common,
+                    "run_id": o5b_run_id,
+                    "strategy": "target_shards_scoreable_input_repair_antibody_fv_size_balanced_v1_server_attack_protenix5",
+                    "seeds": "101,102,103,104,105",
+                    "budget_tier": "server_attack",
+                    "rank_eligible": False,
+                    "use_default_params": False,
+                    "source_input_json": str(o5b_source),
+                    "input_manifest_sha256": "o5b-manifest-sha",
+                    "input_json": str(o5b_run_dir / "inputs" / "inputs.msa-reuse.json"),
+                    "output_dir": str(o5b_run_dir / "predictions" / "protenix-v2"),
+                    "stdout_path": str(o5b_run_dir / "stdout.txt"),
+                    "stderr_path": str(o5b_run_dir / "stderr.txt"),
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        p25_run_id = (
+            f"server_v2_attack_scoreable_input_repair_size_balanced_shard{shard:02d}"
+            "_msa_reuse_protenix25_seed106_110"
+        )
+        p25_run_dir = tmp_path / "runs" / p25_run_id
+        p25_run_dir.mkdir(parents=True)
+        (p25_run_dir / "run_spec.json").write_text(
+            json.dumps(
+                {
+                    **common,
+                    "run_id": p25_run_id,
+                    "strategy": "target_shards_scoreable_input_repair_size_balanced_v1_server_attack_protenix25",
+                    "seeds": "106,107,108,109,110",
+                    "budget_tier": "server_attack",
+                    "rank_eligible": False,
+                    "use_default_params": False,
+                    "source_input_json": str(p25_source),
+                    "input_manifest_sha256": "p25-manifest-sha",
+                    "input_json": str(p25_run_dir / "inputs" / "inputs.msa-reuse.json"),
+                    "output_dir": str(p25_run_dir / "predictions" / "protenix-v2"),
+                    "stdout_path": str(p25_run_dir / "stdout.txt"),
+                    "stderr_path": str(p25_run_dir / "stderr.txt"),
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        status_rows.append(
+            {
+                "timestamp": "2026-07-07T19:00:00+00:00",
+                "benchmark": benchmark,
+                "run_id": o5b_run_id,
+                "status": "deferred:await_p25_score",
+                "message": "fixture",
+            }
+        )
+        preflight_rows.append(
+            {
+                "run_id": o5b_run_id,
+                "benchmark": benchmark,
+                "status": "deferred:await_p25_score",
+                "result": "ok",
+                "message": "",
+            }
+        )
+    write_tsv(tmp_path / "runs" / "status.tsv", status_rows, ["timestamp", "benchmark", "run_id", "status", "message"])
+    write_tsv(
+        tmp_path / "diagnostics" / "msa_cache" / "protenix5_input_repair_antibody_fv_preflight.tsv",
+        preflight_rows,
+        ["run_id", "benchmark", "status", "result", "message"],
+    )
+
+
+def test_post_p25_branch_readiness_accepts_o5b_antibody_only_changes(tmp_path) -> None:
+    write_o5b_variant_readiness_fixture(tmp_path)
+
+    audit = post_p25_branch_readiness(tmp_path)
+
+    o5b = {branch["branch"]: branch for branch in audit["branches"]}["o5b_antibody_fv"]
+    assert o5b["launch_ready_after_p25_selection"] is True
+    assert o5b["variant_guard"]["status"] == "ok"
+    assert o5b["variant_guard"]["changed_target_count"] == len(ANTIBODY_FV_TARGETS)
+    assert o5b["variant_guard"]["failures"] == []
+
+
+def test_post_p25_branch_readiness_blocks_o5b_non_antibody_drift(tmp_path) -> None:
+    write_o5b_variant_readiness_fixture(tmp_path, break_non_antibody=True)
+
+    audit = post_p25_branch_readiness(tmp_path)
+
+    o5b = {branch["branch"]: branch for branch in audit["branches"]}["o5b_antibody_fv"]
+    assert o5b["launch_ready_after_p25_selection"] is False
+    assert o5b["variant_guard"]["status"] == "blocked"
+    assert any("unexpected_changed_targets:T1234" in failure for failure in o5b["variant_guard"]["failures"])
 
 
 def test_post_p25_readout_selects_o5b_for_antibody_fv_signal(tmp_path) -> None:

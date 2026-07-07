@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 from collections import Counter
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -342,6 +343,113 @@ def p27b_variant_guard(project_root: Path, specs_by_id: Mapping[str, Mapping[str
     }
 
 
+def _load_input_jobs(path: str) -> dict[str, Any]:
+    if not path:
+        return {}
+    input_path = Path(path)
+    if not input_path.exists():
+        return {}
+    with input_path.open(encoding="utf-8") as handle:
+        rows = json.load(handle)
+    return {str(row.get("name", "")): row for row in rows if row.get("name")}
+
+
+def _canonical_json(value: Any) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"))
+
+
+def o5b_variant_guard(project_root: Path, specs_by_id: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+    """Validate that O5b only changes the predeclared antibody/Fv inputs."""
+
+    root = project_root.resolve()
+    p25_specs = [
+        spec
+        for run_id, spec in specs_by_id.items()
+        if run_id.startswith("server_v2_attack_scoreable_input_repair_size_balanced_shard")
+        and "_msa_reuse_protenix25_seed" in run_id
+    ]
+    p25_source_paths = sorted({_normalized_spec_path(root, spec, "source_input_json") for spec in p25_specs})
+    p25_reference_hashes = {str(spec.get("references_sha256", "") or "") for spec in p25_specs}
+    o5b_source_paths = sorted(
+        {
+            _normalized_spec_path(root, specs_by_id.get(run_id, {}), "source_input_json")
+            for run_id in O5B_RUN_IDS
+        }
+    )
+    p25_jobs: dict[str, Any] = {}
+    o5b_jobs: dict[str, Any] = {}
+    failures: list[str] = []
+    for source in p25_source_paths:
+        if not source:
+            continue
+        if not Path(source).exists():
+            failures.append(f"p25_source_missing:{source}")
+        p25_jobs.update(_load_input_jobs(source))
+    for source in o5b_source_paths:
+        if not source:
+            continue
+        if not Path(source).exists():
+            failures.append(f"o5b_source_missing:{source}")
+        o5b_jobs.update(_load_input_jobs(source))
+
+    for run_id in O5B_RUN_IDS:
+        spec = specs_by_id.get(run_id)
+        if spec is None:
+            failures.append(f"{run_id}:missing_run_spec")
+            continue
+        if str(spec.get("benchmark_name", "")) != "casp16_server_protein_v2_aliasfix":
+            failures.append(f"{run_id}:unexpected_benchmark")
+        if str(spec.get("backend", "")) != "protenix":
+            failures.append(f"{run_id}:unexpected_backend")
+        if str(spec.get("selected_model_policy", "") or "first_output_only") != "protenix_confidence_v1":
+            failures.append(f"{run_id}:unexpected_selected_model_policy")
+        if not spec_bool(spec.get("use_msa"), default=False):
+            failures.append(f"{run_id}:msa_disabled")
+        if spec_bool(spec.get("use_default_params"), default=False):
+            failures.append(f"{run_id}:default_params_enabled")
+        if str(spec.get("seeds", "")) != "101,102,103,104,105":
+            failures.append(f"{run_id}:unexpected_seeds")
+        if as_int(spec.get("sample"), default=0) != 1:
+            failures.append(f"{run_id}:unexpected_sample")
+        if as_int(spec.get("candidate_count"), default=0) != 5:
+            failures.append(f"{run_id}:unexpected_candidate_count")
+        if str(spec.get("budget_tier", "")) != "server_attack":
+            failures.append(f"{run_id}:unexpected_budget_tier")
+        if str(spec.get("references_sha256", "") or "") not in p25_reference_hashes:
+            failures.append(f"{run_id}:references_sha256_not_in_p25_comparators")
+
+    p25_targets = set(p25_jobs)
+    o5b_targets = set(o5b_jobs)
+    if p25_targets != o5b_targets:
+        failures.append(
+            f"target_set_mismatch:missing={len(p25_targets - o5b_targets)} extra={len(o5b_targets - p25_targets)}"
+        )
+    changed_targets = sorted(
+        target_id
+        for target_id in p25_targets & o5b_targets
+        if _canonical_json(p25_jobs[target_id]) != _canonical_json(o5b_jobs[target_id])
+    )
+    unexpected_changed_targets = sorted(set(changed_targets) - ANTIBODY_FV_TARGETS)
+    missing_changed_targets = sorted(ANTIBODY_FV_TARGETS - set(changed_targets))
+    if unexpected_changed_targets:
+        failures.append(f"unexpected_changed_targets:{','.join(unexpected_changed_targets[:12])}")
+    if missing_changed_targets:
+        failures.append(f"missing_antibody_fv_changes:{','.join(missing_changed_targets[:12])}")
+
+    return {
+        "status": "ok" if not failures else "blocked",
+        "checked_run_ids": len(O5B_RUN_IDS),
+        "p25_comparator_specs": len(p25_specs),
+        "p25_source_count": len([source for source in p25_source_paths if source]),
+        "o5b_source_count": len([source for source in o5b_source_paths if source]),
+        "target_count": len(o5b_targets),
+        "changed_target_count": len(changed_targets),
+        "changed_targets": changed_targets,
+        "failures": failures[:25],
+        "note": "O5b must keep the P25 target set and change only predeclared antibody/Fv inputs; this guard reads run specs and inputs only.",
+    }
+
+
 POST_P25_BRANCH_READINESS = (
     {
         "branch": "p27b_model_config_diversity",
@@ -396,6 +504,8 @@ def post_p25_branch_readiness(project_root: Path) -> dict[str, Any]:
         variant_guard: dict[str, Any] = {}
         if config["branch"] == "p27b_model_config_diversity":
             variant_guard = p27b_variant_guard(root, specs_by_id)
+        elif config["branch"] == "o5b_antibody_fv":
+            variant_guard = o5b_variant_guard(root, specs_by_id)
         variant_guard_ok = not variant_guard or variant_guard.get("status") == "ok"
         launch_ready = not missing_run_specs and preflight_ok and alternate_preflight_ok and variant_guard_ok
         branches.append(

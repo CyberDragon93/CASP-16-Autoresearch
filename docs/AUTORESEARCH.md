@@ -1999,6 +1999,21 @@ competitive result.
      `24` matched P25 comparator specs, and no failures. Validation:
      `python -m pytest tests/test_decisions.py` passed 18 tests, and full
      `python -m pytest` passed 181 tests in the protein env.
+139. `2026-07-07 16:39 CDT` P25 is still not merge-ready and should not be
+     scored or used for branch choice: `ready=false`, `1512` observed
+     candidates, `554` shard-level missing candidates, `491` full
+     25-candidate slots missing, and `25/79` full-budget tasks complete.
+     Slurm still has 19 P25 GH jobs running and 5 queued behind
+     `QOSMaxJobsPerUserLimit`; the error scan is clean. Log tails show slow
+     large-complex forwards rather than failures, including shard03 seed125
+     on `H2236`, shard04 seed109 on `H0220`, and shard05 seed119 on `H1220`.
+     Added an O5b antibody/Fv variant guard to branch readiness: O5b must keep
+     the exact P25 79-target set, keep non-antibody jobs unchanged, and change
+     only the 12 predeclared antibody/Fv targets. The real repo audit reports
+     O5b `variant_guard.status=ok`, `target_count=79`,
+     `changed_target_count=12`, and no failures. Validation:
+     `python -m pytest tests/test_decisions.py` passed 20 tests, and full
+     `python -m pytest` passed 183 tests in the protein env.
 
 ## Run Discipline
 
