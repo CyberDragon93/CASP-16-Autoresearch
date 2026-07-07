@@ -1210,6 +1210,35 @@ jobs complete, the fixed-set score is unchanged versus phase-alias oligo-first;
 the benefit is faster exact-oligo signal and lower risk that 48-hour jobs spend
 their early wall time on the largest local blockers.
 
+### 2026-07-06 Scoreable Antibody-Fv Successor
+
+Decision: generate, but do not launch ahead of the size-first phase-alias row,
+a scoreable antibody-Fv cleanup successor.
+
+Evidence: the latest rank-ineligible P13 seed-101 diagnostic includes 33 CIFs.
+Fixed-set domain mean remains `0.099576`; oligo mean remains `0.011346`.
+`H0258` now scores scorer-ok but `QSglob=0.000`, so the new large-target CIF did
+not add useful quality signal. The useful exact H-oligo signal is still
+`H0223=0.591`, `H0225=0.270`, `H0233=0.221`, `H0222=0.074`, and
+`H0227=0.024`. Separately, the target-lab Fv-only run had strong DockQ
+diagnostics on `H0233__fv=0.916` and `H1233__fv=0.891`.
+
+Artifact: `scoreable_oligo_size_first_phase_alias_antibody_fv_cleanup_v1`
+applies the existing sequence-only antibody constant-region cleanup to the
+size-first phase-alias scoreable input. It changes 12 H targets and 24 antibody
+chains without reading references or scores. The final
+`scoreable_antibody_fv_oligo_size_first_phase_alias_v1` artifact then re-sorts
+after cleanup, keeps 74 jobs, preserves `H0220/H1220/H2220` as `A1B4`, and has
+output hash `285c9e088c0d91bb7dd80920637519a2e3fe103ab28c190a452ee6eb9492bd4c`.
+With `targetlab_protenix_yang_antibody_fv_seed101` as an extra MSA source, the
+preflight covers 141/141 protein chains, 0 missing, 0 stale.
+
+Interpretation: this is the next plausible O5/antibody branch after the
+size-first phase-alias retry, not a replacement for it. It is allowed because
+the rule is sequence-derived and predeclared; it remains risky because the
+previous full-set antibody cleanup was negative on the domain track and DockQ
+target-lab positives are not server QSglob wins.
+
 ### 2026-07-06 Terminal Tag Cleanup Result
 
 Decision: keep `yang_terminal_tag_cleanup_v1` as a weak positive construct
