@@ -463,6 +463,8 @@ def build_parser() -> argparse.ArgumentParser:
     merge_shards.add_argument("--shard-run-id", action="append", required=True, help="Shard run id; repeat in seed order.")
     merge_shards.add_argument("--candidate-count", type=int, default=None, help="Declared total candidates per target. Defaults to merged seeds*sample.")
     merge_shards.add_argument("--rank-eligible", action=argparse.BooleanOptionalAction, default=True)
+    merge_shards.add_argument("--merged-input-json", type=Path, default=None, help="Full input JSON to attach to a target-sharded merged run.")
+    merge_shards.add_argument("--allow-target-shards", action="store_true", help="Allow shards with different subset input JSON hashes; requires --merged-input-json.")
 
     collect = subparsers.add_parser("collect", help="Collect local run artifacts into CSV/Markdown.")
     collect.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards.")
@@ -886,6 +888,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             shard_run_ids=args.shard_run_id,
             candidate_count_override=args.candidate_count,
             rank_eligible=args.rank_eligible,
+            merged_input_json=args.merged_input_json,
+            allow_target_shards=args.allow_target_shards,
         )
         print_json(summary)
         return 0

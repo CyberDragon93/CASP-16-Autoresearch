@@ -110,6 +110,26 @@ candidate spend is worth the GPU-hours. For the nofail tier, also score the
 v2 oligo-recovery no-over-token dev baseline first, or explicitly record why
 the attack supersedes it.
 
+For very large scoreable inputs, target-size sharding is allowed as an
+execution-only optimization when every shard uses the same declared budget and
+strategy. A target-sharded merge must be explicit:
+
+```bash
+./casp16 merge-shards \
+  --allow-target-shards \
+  --merged-input-json <full_strategy_input_json> \
+  --run-id <merged_run_id> \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --candidate-count <declared_candidates> \
+  --shard-run-id <target_shard_1> \
+  --shard-run-id <target_shard_2>
+```
+
+The merged input JSON must be the full predeclared strategy input, not a shard
+subset. This keeps exact-target accounting and candidate selection tied to the
+complete strategy while allowing small/medium/large target batches to run
+without one 2500-token assembly blocking every other target.
+
 When the launch gate opens, generate each shard with the TSV row's fields:
 
 ```bash

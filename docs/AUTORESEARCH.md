@@ -634,6 +634,13 @@ competitive result.
     optimize MSA reuse for these rows; the current wall-time bottleneck is
     large oligo forward passes such as `H1220`/`H0258`, so the useful levers
     are size-first scheduling, scoreable shards, or token/assembly strategy.
+30. `2026-07-06 20:42 CDT` pipe upgrade: `./casp16 merge-shards` now has an
+    explicit target-shard mode via `--allow-target-shards --merged-input-json`.
+    This is for the next scoreable size-sharded attack: run small/medium/large
+    target subsets under the same declared budget, then merge them against the
+    full strategy input so scoring and exact-target accounting remain honest.
+    Default seed-shard behavior is unchanged and still requires identical input
+    hashes.
 
 ## Run Discipline
 

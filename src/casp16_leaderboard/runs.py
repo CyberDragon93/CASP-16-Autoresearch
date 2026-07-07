@@ -596,6 +596,8 @@ def merge_prediction_shards(
     shard_run_ids: Sequence[str],
     candidate_count_override: int | None = None,
     rank_eligible: bool = True,
+    merged_input_json: Path | None = None,
+    allow_target_shards: bool = False,
 ) -> dict[str, object]:
     """Register a merged attack-budget run from completed shard output dirs.
 
@@ -619,8 +621,13 @@ def merge_prediction_shards(
     if len(model_names) != 1:
         raise ValueError(f"all shard specs must use the same model_name, got {sorted(model_names)!r}")
     input_hashes = {str(spec.get("input_sha256", "")) for spec in shard_specs}
-    if len(input_hashes) != 1:
+    if len(input_hashes) != 1 and not allow_target_shards:
         raise ValueError("all shard specs must use the same input artifact")
+    if allow_target_shards and merged_input_json is None:
+        raise ValueError("merged_input_json is required when allow_target_shards=True")
+    input_manifest_hashes = {str(spec.get("input_manifest_sha256", "")) for spec in shard_specs}
+    if len(input_manifest_hashes) != 1:
+        raise ValueError("all shard specs must use the same input manifest")
     selected_policies = {str(spec.get("selected_model_policy", "") or "first_output_only") for spec in shard_specs}
     if len(selected_policies) != 1:
         raise ValueError(f"all shard specs must use the same selection policy, got {sorted(selected_policies)!r}")
@@ -656,11 +663,12 @@ def merge_prediction_shards(
     sample = sample_values.pop()
     declared_candidates = candidate_count_override or candidate_count(seeds, sample)
     benchmark_payload_dir = Path(str(first.get("benchmark_dir", ""))) if first.get("benchmark_dir") else project_root / "benchmarks" / benchmark_name
+    merged_input = (merged_input_json.resolve() if merged_input_json is not None else Path(str(first.get("input_json", ""))))
     summary = register_existing_run(
         project_root=project_root,
         run_id=run_id,
         output_dir=merged_output_dir,
-        input_json=Path(str(first.get("input_json", ""))),
+        input_json=merged_input,
         input_manifest=Path(str(first.get("input_manifest", ""))),
         benchmark_name=benchmark_name,
         benchmark_version=str(first.get("benchmark_version", "")),
@@ -687,8 +695,10 @@ def merge_prediction_shards(
     spec_path = run_dir / "run_spec.json"
     spec_payload = json.loads(spec_path.read_text(encoding="utf-8"))
     spec_payload["merged_prediction_shards"] = True
+    spec_payload["target_sharded_predictions"] = bool(allow_target_shards)
     spec_payload["source_run_ids"] = list(shard_run_ids)
     spec_payload["source_output_dirs"] = source_output_dirs
+    spec_payload["source_input_sha256s"] = sorted(input_hashes)
     spec_payload["linked_file_count"] = linked_files
     spec_path.write_text(json.dumps(spec_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     register_run_spec(project_root, spec_payload)

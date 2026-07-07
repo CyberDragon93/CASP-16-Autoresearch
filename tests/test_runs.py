@@ -502,6 +502,76 @@ def test_merge_prediction_shards_registers_attack_budget_run(tmp_path) -> None:
     assert merged["budget_tier"] == "server_attack"
 
 
+def test_merge_prediction_target_shards_uses_full_input_json(tmp_path) -> None:
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    benchmark_dir = tmp_path / "benchmarks" / benchmark
+    benchmark_dir.mkdir(parents=True)
+    full_input_json = benchmark_dir / "inputs.full.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    full_input_json.write_text('[{"name":"T1234","sequences":[]},{"name":"H1202","sequences":[]}]\n', encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\nT1234\tok\nH1202\tok\n", encoding="utf-8")
+    references.write_text("target_id\treference_path\n", encoding="utf-8")
+
+    shard_rows = [
+        ("target_shard_small", "T1234", "101", "subset-input-small"),
+        ("target_shard_large", "H1202", "101", "subset-input-large"),
+    ]
+    for shard_id, target_id, seed, input_hash in shard_rows:
+        run_dir = tmp_path / "runs" / shard_id
+        subset_input = run_dir / "inputs" / "inputs.json"
+        subset_input.parent.mkdir(parents=True)
+        subset_input.write_text(f'[{{"name":"{target_id}","sequences":[]}}]\n', encoding="utf-8")
+        pred_dir = run_dir / "predictions" / "protenix-v2" / target_id / f"seed_{seed}" / "predictions"
+        pred_dir.mkdir(parents=True)
+        (pred_dir / f"{target_id}_sample_0.cif").write_text(f"data_{target_id}\n", encoding="utf-8")
+        (pred_dir / f"{target_id}_summary_confidence_sample_0.json").write_text('{"plddt": 80.0, "ptm": 0.5, "iptm": 0.1}\n', encoding="utf-8")
+        spec = {
+            "run_id": shard_id,
+            "backend": "protenix",
+            "strategy": "scoreable_target_subset_oligo_size_first_phase_alias_v1_nofail_server_attack_target_shard",
+            "benchmark_name": benchmark,
+            "benchmark_version": "2",
+            "benchmark_dir": str(benchmark_dir),
+            "model_name": "protenix-v2",
+            "input_json": str(subset_input),
+            "input_manifest": str(input_manifest),
+            "input_sha256": input_hash,
+            "input_manifest_sha256": "same-manifest",
+            "references_manifest": str(references),
+            "output_dir": str(run_dir / "predictions" / "protenix-v2"),
+            "seeds": seed,
+            "sample": 1,
+            "candidate_count": 1,
+            "budget_tier": "server_attack",
+            "fixed_budget": True,
+            "selected_model_policy": "protenix_confidence_v1",
+            "rank_eligible": True,
+            "dtype": "bf16",
+            "use_msa": True,
+            "use_template": True,
+            "use_default_params": True,
+        }
+        (run_dir / "run_spec.json").write_text(json.dumps(spec), encoding="utf-8")
+
+    summary = merge_prediction_shards(
+        project_root=tmp_path,
+        run_id="target_sharded_merged",
+        benchmark_name=benchmark,
+        shard_run_ids=[row[0] for row in shard_rows],
+        merged_input_json=full_input_json,
+        allow_target_shards=True,
+    )
+
+    assert summary["linked_file_count"] == 4
+    spec = json.loads((tmp_path / "runs" / "target_sharded_merged" / "run_spec.json").read_text(encoding="utf-8"))
+    assert spec["target_sharded_predictions"] is True
+    assert spec["input_json"] == str(full_input_json.resolve())
+    assert spec["source_input_sha256s"] == ["subset-input-large", "subset-input-small"]
+    assert (Path(str(summary["output_dir"])) / "T1234" / "seed_101" / "predictions" / "T1234_sample_0.cif").is_symlink()
+    assert (Path(str(summary["output_dir"])) / "H1202" / "seed_101" / "predictions" / "H1202_sample_0.cif").is_symlink()
+
+
 def test_run_next_blocks_pending_when_benchmark_run_is_running(tmp_path) -> None:
     running_spec = {
         "run_id": "server_full",
