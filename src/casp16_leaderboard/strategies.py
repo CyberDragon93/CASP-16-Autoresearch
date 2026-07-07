@@ -1187,6 +1187,17 @@ def expanded_scoreable_sequence_aliases(seed: str) -> list[str]:
         pending.append(seed[:-1])
 
     for item in list(pending):
+        score_table_variant_match = re.match(r"^(.*)_V(\d+)(O?)$", item)
+        if score_table_variant_match:
+            base, version, oligo_suffix = score_table_variant_match.groups()
+            if version != "1":
+                pending.append(f"{base}_V1{oligo_suffix}")
+            pending.append(f"{base}{oligo_suffix}")
+            if oligo_suffix:
+                if version != "1":
+                    pending.append(f"{base}_V1")
+                pending.append(base)
+            continue
         version_match = re.match(r"^(.*)V(\d+)(O?)$", item)
         if not version_match:
             continue
@@ -1931,6 +1942,12 @@ def recovery_aliases(target_id: str) -> list[str]:
         base, version = version_match.groups()
         if version != "1":
             aliases.append(f"{base}V1")
+    score_table_variant_match = re.match(r"^(.*)_V(\d+)$", target_id)
+    if score_table_variant_match:
+        base, version = score_table_variant_match.groups()
+        if version != "1":
+            aliases.append(f"{base}_V1")
+        aliases.append(base)
     phase_match = re.match(r"^([TH])2(\d{3})(.*)$", target_id)
     if phase_match:
         prefix, rest, suffix = phase_match.groups()

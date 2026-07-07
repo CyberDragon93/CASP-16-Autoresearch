@@ -3537,6 +3537,78 @@
     "covalent_bonds": []
   },
   {
+    "name": "H1265_V1",
+    "sequences": [
+      {
+        "proteinChain": {
+          "sequence": "ENIYDAFVIYSSQDEDWVRNELVKNLEEGVPPFQLCLHYRDFIPGVAIAANIIHEGFHKSRKVIVVVSQHFIQSRWCIFEYEIAQTWQFLSSRAGIIFIVLQKVEKTLLRQQVELYRLLSRNTYLEWEDSVLGRHIFWRRLRKALLDGKS",
+          "count": 1,
+          "id": [
+            "A"
+          ]
+        }
+      },
+      {
+        "proteinChain": {
+          "sequence": "SSRWSKDYDVCVCHSEEDLVAAQDLVSYLEGSTASLRCFLQLRDATPGGAIVSELCQALSSSHCRVLLITPGFLQDPWCKYQMLQALTEAPGAEGCTIPLLSGLSRAAYPPELRFMYYVDGRGPDGGFRQVKEAVMRYLQTLS",
+          "count": 1,
+          "id": [
+            "B"
+          ]
+        }
+      }
+    ],
+    "covalent_bonds": []
+  },
+  {
+    "name": "H1265_V2",
+    "sequences": [
+      {
+        "proteinChain": {
+          "sequence": "ENIYDAFVIYSSQDEDWVRNELVKNLEEGVPPFQLCLHYRDFIPGVAIAANIIHEGFHKSRKVIVVVSQHFIQSRWCIFEYEIAQTWQFLSSRAGIIFIVLQKVEKTLLRQQVELYRLLSRNTYLEWEDSVLGRHIFWRRLRKALLDGKS",
+          "count": 1,
+          "id": [
+            "A"
+          ]
+        }
+      },
+      {
+        "proteinChain": {
+          "sequence": "SSRWSKDYDVCVCHSEEDLVAAQDLVSYLEGSTASLRCFLQLRDATPGGAIVSELCQALSSSHCRVLLITPGFLQDPWCKYQMLQALTEAPGAEGCTIPLLSGLSRAAYPPELRFMYYVDGRGPDGGFRQVKEAVMRYLQTLS",
+          "count": 1,
+          "id": [
+            "B"
+          ]
+        }
+      }
+    ],
+    "covalent_bonds": []
+  },
+  {
+    "name": "H1265_V3",
+    "sequences": [
+      {
+        "proteinChain": {
+          "sequence": "ENIYDAFVIYSSQDEDWVRNELVKNLEEGVPPFQLCLHYRDFIPGVAIAANIIHEGFHKSRKVIVVVSQHFIQSRWCIFEYEIAQTWQFLSSRAGIIFIVLQKVEKTLLRQQVELYRLLSRNTYLEWEDSVLGRHIFWRRLRKALLDGKS",
+          "count": 1,
+          "id": [
+            "A"
+          ]
+        }
+      },
+      {
+        "proteinChain": {
+          "sequence": "SSRWSKDYDVCVCHSEEDLVAAQDLVSYLEGSTASLRCFLQLRDATPGGAIVSELCQALSSSHCRVLLITPGFLQDPWCKYQMLQALTEAPGAEGCTIPLLSGLSRAAYPPELRFMYYVDGRGPDGGFRQVKEAVMRYLQTLS",
+          "count": 1,
+          "id": [
+            "B"
+          ]
+        }
+      }
+    ],
+    "covalent_bonds": []
+  },
+  {
     "name": "H2213",
     "sequences": [
       {

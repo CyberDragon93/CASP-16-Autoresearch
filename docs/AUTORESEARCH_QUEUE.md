@@ -81,9 +81,11 @@ mapping, input/alias repair, and oligo manual native search. This queue is not
 prediction guidance and must not be used for target-specific strategy tuning.
 The Lane C input-alias details are now split out in
 `diagnostics/reference_gap/casp16_server_protein_v5_input_alias_repair_candidates.tsv`:
-`T1228V2/T1294V2` can move through D6a-style repaired inputs, but all five
-Lane C rows remain `not_reference_ready` until explicit native/domain or
-assembly/QSglob mapping proof exists.
+`T1228V2/T1294V2` can move through D6a-style repaired inputs, and
+`H1265_V1/V2/V3` now have sequence-level H1265 A/B input repair in
+`yang_protein_oligo_sequence_recovery_v1` with complete MSA-cache coverage.
+All five Lane C rows remain `not_reference_ready` until explicit native/domain
+or assembly/QSglob mapping proof exists.
 
 For a selected deferred run, record the decision before launch:
 

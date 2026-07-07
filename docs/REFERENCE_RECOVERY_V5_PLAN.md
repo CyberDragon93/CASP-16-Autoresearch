@@ -165,9 +165,12 @@ The current split is:
   should stay in the D6a-style input lane until native-state/reference
   provenance and explicit domain crop mapping exist.
 - `H1265_V1`, `H1265_V2`, and `H1265_V3` are score-table variant rows without
-  target-list sequence rows. They need a versioned input-alias repair that
-  inherits H1265 sequence metadata before any oligo assembly or QSglob
-  reference mapping can be accepted.
+  target-list sequence rows. They now have a sequence-level repair in
+  `strategies/yang_protein_oligo_sequence_recovery_v1/casp16_server_protein_v2_aliasfix/`
+  that maps the variants to the H1265 A/B protein chains, with complete
+  exact-sequence MSA-cache coverage. That is still not an accepted reference:
+  variant/native assembly provenance and QSglob chain/interface mapping are
+  required first.
 
 Do not promote these five rows by copying H1265/T1228/T1294 references. The
 first deliverable is realistic input coverage; accepted references still need

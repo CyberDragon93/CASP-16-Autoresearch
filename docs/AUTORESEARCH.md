@@ -1569,6 +1569,17 @@ competitive result.
      `not_reference_ready`; realistic input coverage can move forward, but
      accepted v5 references still require native-state/domain or
      assembly/QSglob mapping proof.
+105. `2026-07-07 13:55 CDT` Lane C executable repair: the strategy resolver
+     now handles score-table variant aliases such as `H1265_V2 -> H1265`
+     instead of leaving them as `no_sequence_record`. Regenerating
+     `strategies/yang_protein_oligo_sequence_recovery_v1/casp16_server_protein_v2_aliasfix/`
+     produces `168` jobs and changes `8` oligo targets, including
+     `H1265_V1`, `H1265_V2`, and `H1265_V3` as two-chain H1265 protein
+     inputs of total length `293`. `./casp16 check-msa-cache` reports the
+     repaired artifact is fully cache-covered (`286/286` protein chains,
+     `0` stale). This is input realism and MSA readiness only; those three
+     targets remain `not_reference_ready` until variant/native assembly and
+     QSglob mapping proof exist.
 
 ## Run Discipline
 
