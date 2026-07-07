@@ -191,18 +191,29 @@ not be promoted as a native reference without separate provider/native
 provenance. Keep these rows in manual native search, not automated refmap
 promotion.
 
+2026-07-07 14:08 CDT follow-up: a second relaxed RCSB probe covered the next
+high-gain Lane E families: `T0240/T1240/T2240`,
+`T0259/T1259/T2259`, `T0246/T1246/T2246`,
+`T0218/T1218/T2218`, `T0237/T1237/T2237`, and
+`T1279/T2279`. It used `identity_cutoff=0.90` and `max_hits=25`, checked 17
+domain rows, and found 0 hits. The evidence is in
+`diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_e_high_value_domain_targets.tsv`
+and the header-only candidate TSV beside it. These rows should now be treated
+as native/provenance manual-search work, not as candidates for another
+search-depth-only RCSB loop.
+
 | Priority | Target | Server best score | Next action |
 | ---: | --- | ---: | --- |
 | 1 | `T1292` | 1.000000 | manual native/reference search |
-| 2 | `T0240/T1240/T2240` | 0.997600 | search as one phase-alias family |
+| 2 | `T0240/T1240/T2240` | 0.997600 | manual native/reference search; relaxed RCSB probe exhausted |
 | 3 | `T1274/T2274` | 0.997200 | search as one phase-alias family |
 | 4 | `T1294V1` | 0.994000 | manual native/reference search |
-| 5 | `T1279/T2279` | 0.991700 | search as one phase-alias family |
+| 5 | `T1279/T2279` | 0.991700 | manual native/reference search; relaxed RCSB probe exhausted |
 | 6 | `T1231/T2231` | 0.982400 | search as one phase-alias family |
 | 7 | `T1276/T2276` | 0.982000 | verify input repair state, then search |
-| 8 | `T1259/T2259/T0259` | 0.979200 | search as one phase-alias family |
-| 9 | `T0246/T1246/T2246` | 0.976200 | search as one phase-alias family |
-| 10 | `T0218/T1218/T2218` | 0.975800 | long multidomain, search plus domain mapping |
+| 8 | `T1259/T2259/T0259` | 0.979200 | manual native/reference search; relaxed RCSB probe exhausted |
+| 9 | `T0246/T1246/T2246` | 0.976200 | manual native/reference search; relaxed RCSB probe exhausted |
+| 10 | `T0218/T1218/T2218` | 0.975800 | manual native/reference search; long multidomain mapping required |
 
 Keep searches grouped by phase aliases so one accepted mapping can explain
 multiple fixed-set rows only when sequence, construct, and domain definitions

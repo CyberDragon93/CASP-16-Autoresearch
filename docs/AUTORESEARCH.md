@@ -128,6 +128,15 @@ where methods should change.
   `T0218/T1218/T2218`, and `T0237/T1237/T2237`. Treat the queue as
   scoring-infrastructure triage only: it must not be joined with local
   prediction `target_scores.csv` to tune target-specific prediction behavior.
+- `2026-07-07 14:08 CDT` Lane E relaxed RCSB probe:
+  `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_e_high_value_domain_targets.tsv`
+  checked 17 high-value domain rows from the `T0240/T1240/T2240`,
+  `T0259/T1259/T2259`, `T0246/T1246/T2246`,
+  `T0218/T1218/T2218`, `T0237/T1237/T2237`, and `T1279/T2279`
+  families at identity cutoff `0.90`, `max_hits=25`. It found 0 hits and
+  wrote an empty candidate TSV apart from the header. These families remain
+  manual native/provenance work; do not repeat search-depth-only RCSB probing
+  or promote template-like structures without native/reference evidence.
 - `2026-07-07` latest all-gap chain audit:
   `diagnostics/reference_gap/casp16_server_protein_latest_all_chain_audit.tsv`
   audits 81 candidate structures and 1021 chain rows. It confirms that
