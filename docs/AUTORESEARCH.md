@@ -1314,6 +1314,15 @@ competitive result.
     Error scanning remains clean for traceback/OOM/CUDA killed/disk/timeout
     signatures. Keep waiting for complete P25 readiness; do not partial-score,
     merge, or launch O5b/P27b.
+81. `2026-07-07 11:27 CDT` P25 live gate: still `ready=false` and
+    `compatible=true`, but shard01 continues to produce candidates. New
+    seed106/121 artifacts appeared for `T1210`, `T1298`, `T2201`, and `T2206`
+    classes, raising readiness to `observed_candidate_count=656`,
+    `missing_candidate_count=1394`, and `full_missing_candidate_count=1319`.
+    Slurm state is unchanged at 19 P25 jobs running and 5 P25 jobs pending
+    behind `QOSMaxJobsPerUserLimit`; shard06 remains queued with zero observed
+    candidates. This is progress, not a scoring point. Keep O5b/P27b deferred
+    and do not use a partial P25 row.
 
 ## Run Discipline
 
