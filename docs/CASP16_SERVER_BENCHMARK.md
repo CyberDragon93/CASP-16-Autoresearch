@@ -173,6 +173,21 @@ This writes
 `diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_audit.md`
 and should be read before changing any reference-map row to `accepted`.
 
+Protein-oligo candidates need an additional biological-assembly audit before
+they can become ranked QSglob references:
+
+```bash
+./casp16 refmap-oligo-audit
+```
+
+This reads the review TSV plus cached mmCIF candidate structures and writes
+`diagnostics/reference_gap/casp16_server_protein_latest_oligo_assembly_audit.tsv`.
+It reports whether candidate entity chains are present in the biological
+assembly and whether the assembly polymer-chain count matches the current CASP
+target metadata. Passing this audit is still not sufficient by itself:
+accepted oligo rows also need native provenance and explicit
+scoring-chain/interface mapping.
+
 The first accepted overlay is
 `diagnostics/reference_gap/casp16_server_protein_v3_refmap_accepted_reference_map.tsv`.
 It promotes only `T1278 -> 9hav` with chain `A` and domain crop `34-370`.

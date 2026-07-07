@@ -14,6 +14,7 @@ from .benchmark import (
     SERVER_REFMAP_BENCHMARK_NAME,
     SERVER_REFMAP_BENCHMARK_VERSION,
     audit_reference_candidate_chains,
+    audit_reference_candidate_oligo_assemblies,
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
     default_benchmark_dir,
@@ -447,6 +448,28 @@ def build_parser() -> argparse.ArgumentParser:
     )
     refmap_chain_audit.add_argument("--status", action="append", default=None, help="Reference-map status to audit. Defaults to candidate. Repeat or comma-separate.")
 
+    refmap_oligo_audit = subparsers.add_parser("refmap-oligo-audit", help="Audit cached mmCIF candidate assemblies for protein-oligo reference-map rows.")
+    refmap_oligo_audit.add_argument("--benchmark", default=SERVER_ALIASFIX_BENCHMARK_NAME, help=f"Benchmark with target metadata. Defaults to {SERVER_ALIASFIX_BENCHMARK_NAME}.")
+    refmap_oligo_audit.add_argument(
+        "--review-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_latest_all_refmap_review.tsv.",
+    )
+    refmap_oligo_audit.add_argument(
+        "--structures-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_latest_all_candidate_structures.tsv.",
+    )
+    refmap_oligo_audit.add_argument(
+        "--output-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_latest_oligo_assembly_audit.tsv.",
+    )
+    refmap_oligo_audit.add_argument("--status", action="append", default=None, help="Reference-map status to audit. Defaults to candidate. Repeat or comma-separate.")
+
     make_inputs = subparsers.add_parser("make-inputs", help="Generate Protenix input JSON from CASP16 sequence records.")
     make_inputs.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
     make_inputs.add_argument("--output-json", type=Path, default=None, help="Defaults to <root>/data/inputs/casp16_all.json.")
@@ -750,6 +773,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             review_tsv=(args.review_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_review.tsv")).resolve(),
             structures_tsv=(args.structures_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_candidate_structures.tsv")).resolve(),
             output_tsv=(args.output_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_chain_audit.tsv")).resolve(),
+            statuses=split_csv_args(args.status) or ["candidate"],
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "refmap-oligo-audit":
+        summary = audit_reference_candidate_oligo_assemblies(
+            project_root=root,
+            benchmark=args.benchmark,
+            review_tsv=(args.review_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_latest_all_refmap_review.tsv")).resolve(),
+            structures_tsv=(args.structures_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_latest_all_candidate_structures.tsv")).resolve(),
+            output_tsv=(args.output_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_latest_oligo_assembly_audit.tsv")).resolve(),
             statuses=split_csv_args(args.status) or ["candidate"],
         )
         print_json(summary)

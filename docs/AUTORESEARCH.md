@@ -79,6 +79,13 @@ where methods should change.
   reference-registry gaps, and 5 need sequence/input alias repair first. Treat
   this only as scoring-infrastructure triage, never as target-specific
   prediction guidance.
+- `2026-07-07` oligo reference audit update: the all-gap RCSB probe produced
+  many full-construct candidates for `H0217/H1217/H2217` and
+  `H0267/H1267/H2267`, but `./casp16 refmap-oligo-audit` found 0 candidate
+  biological assemblies whose polymer-chain count matches the current target
+  metadata. These rows remain useful reference-map candidates, not accepted
+  benchmark references. Do not promote them without native assembly provenance
+  plus explicit QSglob chain/interface mapping.
 - `2026-07-06 18:57 CDT` reference-gap audit update: several high-priority
   `missing_reference` rows first need input-kind repair, not native hunting.
   `T1276`, `T1228V1`, and `T2276` were locally represented as short DNA jobs

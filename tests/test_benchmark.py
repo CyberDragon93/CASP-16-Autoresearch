@@ -12,6 +12,7 @@ from casp16_leaderboard.benchmark import (
     SERVER_REFMAP_BENCHMARK_NAME,
     SERVER_REFMAP_BENCHMARK_VERSION,
     audit_reference_candidate_chains,
+    audit_reference_candidate_oligo_assemblies,
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
     generate_reference_map_audit_report,
@@ -939,6 +940,96 @@ ATOM 5 B 1 3 Y
     assert chain_a["chain_supports_domain"] == "true"
     assert chain_b["domain_residue_coverage"] == "0.666667"
     assert chain_b["domain_missing_count"] == "1"
+
+
+def test_audit_reference_candidate_oligo_assemblies_reports_assembly_support(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+    build_casp16_server_protein_benchmark(project_root=project_root, official_root=official_root)
+    review = tmp_path / "review.tsv"
+    write_tsv(
+        review,
+        [
+            {
+                "target_id": "H1202",
+                "pdb_ids": "9abc",
+                "status": "candidate",
+                "source": "rcsb_exact_sequence_probe",
+                "native_provenance": "",
+                "construct_coverage": "full_construct_exact_sequence",
+                "chain_mapping": "candidate_entity=2; asym_ids=B,D; auth_asym_ids=B,D; verify_native_chain_choice",
+                "scoring_mapping": "protein_oligo_requires_biological_assembly_chain_stoichiometry_and_interface_mapping",
+                "notes": "candidate row",
+                "source_path": "",
+            }
+        ],
+        ["target_id", "pdb_ids", "status", "source", "native_provenance", "construct_coverage", "chain_mapping", "scoring_mapping", "notes", "source_path"],
+    )
+    mmcif_dir = tmp_path / "mmcif"
+    mmcif_dir.mkdir()
+    mmcif = mmcif_dir / "9abc.cif"
+    mmcif.write_text(
+        """data_9abc
+_pdbx_struct_assembly.id 1
+_pdbx_struct_assembly.details author_defined_assembly
+_pdbx_struct_assembly.oligomeric_details tetrameric
+_pdbx_struct_assembly.oligomeric_count 4
+#
+_pdbx_struct_assembly_gen.assembly_id 1
+_pdbx_struct_assembly_gen.oper_expression 1
+_pdbx_struct_assembly_gen.asym_id_list A,B,C,D
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.auth_asym_id
+ATOM 1 A 1 1 A
+ATOM 2 B 2 1 B
+ATOM 3 C 1 1 C
+ATOM 4 D 2 1 D
+#
+""",
+        encoding="utf-8",
+    )
+    structures = tmp_path / "structures.tsv"
+    write_tsv(
+        structures,
+        [
+            {
+                "target_id": "H1202",
+                "pdb_id": "9abc",
+                "status": "candidate",
+                "source": "rcsb_exact_sequence_probe",
+                "reference_path": str(mmcif),
+                "download_status": "cached",
+                "sha256": "0123456789abcdef",
+                "bytes": str(mmcif.stat().st_size),
+                "notes": "candidate row",
+            }
+        ],
+        ["target_id", "pdb_id", "status", "source", "reference_path", "download_status", "sha256", "bytes", "notes"],
+    )
+    output = tmp_path / "oligo_audit.tsv"
+
+    summary = audit_reference_candidate_oligo_assemblies(
+        project_root=project_root,
+        benchmark="casp16_server_protein_v1",
+        review_tsv=review,
+        structures_tsv=structures,
+        output_tsv=output,
+    )
+
+    rows = read_tsv(output)
+    assert summary["rows"] == 1
+    assert summary["assemblies_containing_all_candidate_asym_ids"] == 1
+    assert rows[0]["candidate_atom_chains"] == "B,D"
+    assert rows[0]["assembly_contains_all_candidate_asym_ids"] == "true"
+    assert rows[0]["assembly_entity_ids"] == "1,2"
+    assert rows[0]["assembly_oligomeric_details"] == "tetrameric"
 
 
 def test_generate_reference_map_audit_report(tmp_path) -> None:

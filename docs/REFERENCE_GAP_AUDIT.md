@@ -375,6 +375,29 @@ remain candidate references only: accepted promotion requires biological
 assembly provenance, chain/entity stoichiometry, and explicit QSglob interface
 mapping. Do not promote these from sequence identity alone.
 
+The oligo candidates are now materialized and audited separately:
+
+```bash
+./casp16 refmap-materialize \
+  --reference-map-tsv diagnostics/reference_gap/casp16_server_protein_latest_all_refmap_review.tsv \
+  --status candidate \
+  --output-dir diagnostics/reference_gap/refmap_candidate_mmcif \
+  --manifest-tsv diagnostics/reference_gap/casp16_server_protein_latest_all_candidate_structures.tsv
+
+./casp16 refmap-oligo-audit
+```
+
+`diagnostics/reference_gap/casp16_server_protein_latest_all_candidate_structures.tsv`
+records 81 candidate structure rows. The oligo assembly audit writes
+`diagnostics/reference_gap/casp16_server_protein_latest_oligo_assembly_audit.tsv`
+and currently covers 69 candidate assembly rows across 6 oligo targets. All
+69 assemblies contain the candidate asym ids, but 0 match the current target
+polymer-chain count. `H0267/H1267/H2267` have 2-chain target metadata while
+candidate assemblies are tetrameric or 34-meric; `H0217/H1217/H2217` have
+6-chain target metadata while candidate eIF2B assemblies range from 10 to 18
+polymer chains. These rows stay as candidates until native assembly provenance
+and QSglob chain/interface mapping are explicit.
+
 A small TMscore probe against existing predictions is recorded in
 `diagnostics/reference_gap/candidate_ref_tmscore_probe.tsv`. It confirms the
 candidate references can be used by the local metric tooling, but the current

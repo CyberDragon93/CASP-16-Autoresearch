@@ -153,6 +153,33 @@ REFERENCE_CHAIN_AUDIT_FIELDS = [
     "notes",
 ]
 
+REFERENCE_OLIGO_AUDIT_FIELDS = [
+    "target_id",
+    "pdb_id",
+    "status",
+    "target_chain_count",
+    "target_entity_count",
+    "target_oligo_state",
+    "candidate_entity_id",
+    "candidate_asym_ids",
+    "candidate_auth_asym_ids",
+    "candidate_atom_chain_count",
+    "candidate_atom_chains",
+    "assembly_id",
+    "assembly_oligomeric_details",
+    "assembly_oligomeric_count",
+    "assembly_asym_id_count",
+    "assembly_polymer_chain_count",
+    "assembly_candidate_asym_count",
+    "assembly_contains_all_candidate_asym_ids",
+    "assembly_entity_ids",
+    "assembly_entity_count",
+    "assembly_matches_target_chain_count",
+    "reference_path",
+    "sha256",
+    "notes",
+]
+
 RCSB_SEQUENCE_PROBE_TARGET_FIELDS = [
     "priority",
     "target_id",
@@ -770,6 +797,139 @@ def audit_reference_candidate_chains(
     }
 
 
+def audit_reference_candidate_oligo_assemblies(
+    *,
+    project_root: Path,
+    benchmark: str,
+    review_tsv: Path,
+    structures_tsv: Path,
+    output_tsv: Path,
+    statuses: Sequence[str] = ("candidate",),
+) -> dict[str, object]:
+    wanted_statuses = {status.strip().lower() for status in statuses if status.strip()}
+    if not wanted_statuses:
+        raise ValueError("provide at least one reference-map status to audit")
+
+    benchmark_dir = default_benchmark_dir(project_root, benchmark)
+    targets = {row["target_id"]: row for row in read_tsv(benchmark_dir / "targets.tsv")}
+    structures = {(row.get("target_id", ""), row.get("pdb_id", "")): row for row in read_tsv(structures_tsv)}
+
+    output_rows: list[dict[str, object]] = []
+    for review_row in read_tsv(review_tsv):
+        status = review_row.get("status", "").strip().lower()
+        if status not in wanted_statuses:
+            continue
+        target_id = review_row.get("target_id", "").strip().upper()
+        target = targets.get(target_id, {})
+        if target.get("track") != "protein_oligo":
+            continue
+        for pdb_id in _split_pdb_ids(review_row.get("pdb_ids", "")):
+            structure = structures.get((target_id, pdb_id), {})
+            reference_path = Path(structure.get("reference_path", ""))
+            common = {
+                "target_id": target_id,
+                "pdb_id": pdb_id,
+                "status": status,
+                "target_chain_count": target.get("chain_count", ""),
+                "target_entity_count": target.get("entity_count", ""),
+                "target_oligo_state": target.get("oligo_state", ""),
+                "candidate_entity_id": _mapping_value(review_row.get("chain_mapping", ""), "candidate_entity"),
+                "candidate_asym_ids": _mapping_value(review_row.get("chain_mapping", ""), "asym_ids"),
+                "candidate_auth_asym_ids": _mapping_value(review_row.get("chain_mapping", ""), "auth_asym_ids"),
+                "reference_path": str(reference_path),
+                "sha256": structure.get("sha256", ""),
+                "notes": review_row.get("notes", ""),
+            }
+            if not reference_path.exists():
+                output_rows.append(
+                    {
+                        **common,
+                        "candidate_atom_chain_count": "0",
+                        "candidate_atom_chains": "",
+                        "assembly_id": "",
+                        "assembly_oligomeric_details": "",
+                        "assembly_oligomeric_count": "",
+                        "assembly_asym_id_count": "0",
+                        "assembly_polymer_chain_count": "0",
+                        "assembly_candidate_asym_count": "0",
+                        "assembly_contains_all_candidate_asym_ids": "false",
+                        "assembly_entity_ids": "",
+                        "assembly_entity_count": "0",
+                        "assembly_matches_target_chain_count": "false",
+                        "notes": "reference_path_missing",
+                    }
+                )
+                continue
+
+            atom_chains = _parse_mmcif_atom_site_chains(reference_path)
+            chain_entity_by_asym = {str(chain["chain_id"]): str(chain["entity_id"]) for chain in atom_chains}
+            candidate_entity_id = str(common["candidate_entity_id"])
+            candidate_atom_chains = sorted(asym for asym, entity_id in chain_entity_by_asym.items() if candidate_entity_id and entity_id == candidate_entity_id)
+            assemblies = _parse_mmcif_assemblies(reference_path)
+            assembly_gen_rows = _parse_mmcif_assembly_gen(reference_path)
+            if not assembly_gen_rows:
+                output_rows.append(
+                    {
+                        **common,
+                        "candidate_atom_chain_count": len(candidate_atom_chains),
+                        "candidate_atom_chains": ",".join(candidate_atom_chains),
+                        "assembly_id": "",
+                        "assembly_oligomeric_details": "",
+                        "assembly_oligomeric_count": "",
+                        "assembly_asym_id_count": "0",
+                        "assembly_polymer_chain_count": "0",
+                        "assembly_candidate_asym_count": "0",
+                        "assembly_contains_all_candidate_asym_ids": "false",
+                        "assembly_entity_ids": "",
+                        "assembly_entity_count": "0",
+                        "assembly_matches_target_chain_count": "false",
+                        "notes": "no_pdbx_struct_assembly_gen_rows",
+                    }
+                )
+                continue
+
+            candidate_asym_ids = set(_split_mapping_csv(str(common["candidate_asym_ids"])))
+            target_chain_count = _parse_int(str(target.get("chain_count", "")))
+            for assembly_gen in assembly_gen_rows:
+                assembly_id = assembly_gen.get("assembly_id", "")
+                assembly_asym_ids = set(_split_mapping_csv(assembly_gen.get("asym_id_list", "")))
+                assembly_polymer_asym_ids = sorted(asym for asym in assembly_asym_ids if asym in chain_entity_by_asym)
+                assembly_candidate_asym = sorted(assembly_asym_ids & candidate_asym_ids)
+                assembly_entity_ids = sorted({chain_entity_by_asym[asym] for asym in assembly_polymer_asym_ids})
+                assembly = assemblies.get(assembly_id, {})
+                output_rows.append(
+                    {
+                        **common,
+                        "candidate_atom_chain_count": len(candidate_atom_chains),
+                        "candidate_atom_chains": ",".join(candidate_atom_chains),
+                        "assembly_id": assembly_id,
+                        "assembly_oligomeric_details": assembly.get("oligomeric_details", ""),
+                        "assembly_oligomeric_count": assembly.get("oligomeric_count", ""),
+                        "assembly_asym_id_count": len(assembly_asym_ids),
+                        "assembly_polymer_chain_count": len(assembly_polymer_asym_ids),
+                        "assembly_candidate_asym_count": len(assembly_candidate_asym),
+                        "assembly_contains_all_candidate_asym_ids": str(candidate_asym_ids <= assembly_asym_ids if candidate_asym_ids else False).lower(),
+                        "assembly_entity_ids": ",".join(assembly_entity_ids),
+                        "assembly_entity_count": len(assembly_entity_ids),
+                        "assembly_matches_target_chain_count": str(bool(target_chain_count is not None and len(assembly_polymer_asym_ids) == target_chain_count)).lower(),
+                    }
+                )
+
+    write_tsv(output_tsv, output_rows, REFERENCE_OLIGO_AUDIT_FIELDS)
+    return {
+        "benchmark": benchmark,
+        "review_tsv": str(review_tsv),
+        "structures_tsv": str(structures_tsv),
+        "output_tsv": str(output_tsv),
+        "statuses": sorted(wanted_statuses),
+        "rows": len(output_rows),
+        "targets": len({row["target_id"] for row in output_rows}),
+        "candidate_structures": len({(row["target_id"], row["pdb_id"]) for row in output_rows}),
+        "assemblies_containing_all_candidate_asym_ids": sum(1 for row in output_rows if row["assembly_contains_all_candidate_asym_ids"] == "true"),
+        "assemblies_matching_target_chain_count": sum(1 for row in output_rows if row["assembly_matches_target_chain_count"] == "true"),
+    }
+
+
 def _download_mmcif(pdb_id: str, path: Path, *, force: bool = False) -> str:
     if path.exists() and not force:
         return "cached"
@@ -847,6 +1007,103 @@ def _parse_mmcif_atom_site_chains(path: Path) -> list[dict[str, object]]:
             }
         )
     return out
+
+
+def _parse_mmcif_assemblies(path: Path) -> dict[str, dict[str, str]]:
+    assemblies: dict[str, dict[str, str]] = {}
+    for row in _parse_mmcif_category_rows(path, "_pdbx_struct_assembly."):
+        assembly_id = _clean_cif_value(row.get("_pdbx_struct_assembly.id", ""))
+        if not assembly_id:
+            continue
+        assemblies[assembly_id] = {
+            "id": assembly_id,
+            "details": _clean_cif_value(row.get("_pdbx_struct_assembly.details", "")),
+            "oligomeric_details": _clean_cif_value(row.get("_pdbx_struct_assembly.oligomeric_details", "")),
+            "oligomeric_count": _clean_cif_value(row.get("_pdbx_struct_assembly.oligomeric_count", "")),
+        }
+    return assemblies
+
+
+def _parse_mmcif_assembly_gen(path: Path) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for row in _parse_mmcif_category_rows(path, "_pdbx_struct_assembly_gen."):
+        rows.append(
+            {
+                "assembly_id": _clean_cif_value(row.get("_pdbx_struct_assembly_gen.assembly_id", "")),
+                "oper_expression": _clean_cif_value(row.get("_pdbx_struct_assembly_gen.oper_expression", "")),
+                "asym_id_list": _clean_cif_value(row.get("_pdbx_struct_assembly_gen.asym_id_list", "")),
+            }
+        )
+    return rows
+
+
+def _parse_mmcif_category_rows(path: Path, prefix: str) -> list[dict[str, str]]:
+    loop_rows: list[dict[str, str]] = []
+    single_row: dict[str, str] = {}
+    columns: list[str] = []
+    rows_started = False
+    in_loop = False
+    pending_single_key = ""
+    with path.open(encoding="utf-8", errors="replace") as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if not line:
+                continue
+            if line == "loop_":
+                columns = []
+                rows_started = False
+                in_loop = True
+                pending_single_key = ""
+                continue
+            if line.startswith("_"):
+                key = line.split()[0]
+                if key.startswith(prefix) and not in_loop:
+                    parts = line.split(None, 1)
+                    if len(parts) == 2:
+                        single_row[key] = _clean_cif_value(parts[1])
+                        pending_single_key = ""
+                    else:
+                        pending_single_key = key
+                if not rows_started:
+                    columns.append(key)
+                continue
+            if line.startswith("#"):
+                columns = []
+                rows_started = False
+                in_loop = False
+                pending_single_key = ""
+                continue
+            if pending_single_key:
+                single_row[pending_single_key] = _clean_cif_value(line)
+                pending_single_key = ""
+                continue
+            if not columns or not all(column.startswith(prefix) for column in columns):
+                continue
+            rows_started = True
+            try:
+                values = shlex.split(line)
+            except ValueError:
+                continue
+            if len(values) < len(columns):
+                continue
+            loop_rows.append({column: _clean_cif_value(value) for column, value in zip(columns, values)})
+    if loop_rows:
+        return loop_rows
+    return [single_row] if single_row else []
+
+
+def _mapping_value(mapping: str, key: str) -> str:
+    for item in re.split(r";\s*", mapping or ""):
+        if "=" not in item:
+            continue
+        item_key, value = item.split("=", 1)
+        if item_key.strip() == key:
+            return value.strip()
+    return ""
+
+
+def _split_mapping_csv(value: str) -> list[str]:
+    return [item.strip() for item in (value or "").split(",") if item.strip()]
 
 
 def _clean_cif_value(value: str) -> str:
