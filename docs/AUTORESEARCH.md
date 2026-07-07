@@ -1832,6 +1832,15 @@ competitive result.
      other 15 Lane E families have relaxed90 `no_hits`. No Lane E accepted
      reference is added; future work is manual native/provenance search plus
      explicit domain crop mapping only.
+126. `2026-07-07 15:27 CDT` P25 live gate refresh: still not merge-ready but
+     monotonic. `ready=false`, `action=wait_for_declared_candidates`,
+     `compatible=true`, `1353` observed candidates, `705` shard-level missing
+     candidates, and `635` full 25-candidate slots missing. Slurm still has
+     19 P25 jobs running and 5 P25 jobs pending behind
+     `QOSMaxJobsPerUserLimit`; the five zero-output rows are shard05
+     seed121-125 and all four shard06 seed blocks. Error-keyword scanning over
+     P25 logs is clean, and recent CIF writes reached 15:26 CDT. Keep waiting
+     for declared candidates; no partial merge/score or O5b/P27b/D6a launch.
 
 ## Run Discipline
 
