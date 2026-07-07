@@ -142,18 +142,18 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 `rank_eligible=false` until merged. They were submitted as Slurm jobs
 `812239..812244` with `./casp16 run-one --allow-parallel`.
 
-Current launch gate as of `2026-07-07 04:04 CDT`: those six P14 shards are
-still running and not merge-ready. `finish-shards` observes 277/370 expected
-candidate CIFs, 93 missing, 5/74 target tasks complete, and reports
-`ready=false`. The run is live rather than stalled: all shards are continuing
-to emit candidates, and the latest log scan has no traceback/OOM/CUDA/killed
-signatures. The active bottleneck is Protenix forward on 1304-2535 token
-complex targets, not repeated MSA search; one measured example was
-`H2258 [seed:104]` at 2660.01s model-forward time. Do not submit the deferred
-v4 P15 shards, the 25-seed scoreable grid, P27a, D6a, or the antibody-Fv
-scoreable branch until P14 is either merged/scored or explicitly abandoned with
-an append-only status reason. The next decision should be based on fixed-set
-server scores, not on a partial shard snapshot.
+Current launch gate as of `2026-07-07 04:30 CDT`: those six P14 shards are
+still running and not merge-ready. `finish-shards` observes 299/370 expected
+candidate CIFs, 71 missing, 17/74 target tasks complete, 0/6 complete shards,
+and reports `ready=false`. The run is live rather than stalled: all shards are
+continuing to emit candidates, and the latest log scan has no
+traceback/OOM/CUDA/killed signatures. The active bottleneck is Protenix forward
+on 1304-2535 token complex targets, not repeated MSA search; one measured
+example was `H2258 [seed:104]` at 2660.01s model-forward time. Do not submit
+the deferred v4 P15 shards, the 25-seed scoreable grid, P27a, D6a, or the
+antibody-Fv scoreable branch until P14 is either merged/scored or explicitly
+abandoned with an append-only status reason. The next decision should be based
+on fixed-set server scores, not on a partial shard snapshot.
 
 The first prepared model/config-diversity successor is
 `attack_budgets/casp16_server_attack_protenix5_defaultparams_model_variant.json`.

@@ -92,6 +92,13 @@ where methods should change.
   and `.tsv`. Current v4 cap is still severe: domain `28/71` references
   available, oligo `53/104` references available, and only 7 missing-reference
   targets have candidate rows from the latest all-gap review.
+- Missing-reference repair is necessary for a full CASP16 server comparison,
+  but it must stay versioned and non-oracular. The next accepted reference
+  expansion should become a new benchmark such as `casp16_server_protein_v5_refmap`;
+  do not hand-edit v2/v4 TSVs, do not fill scores from official tables, and do
+  not use partial P14 `target_scores.csv` to choose which target to repair.
+  Prioritize accepted-native provenance plus explicit domain crop or oligo
+  biological-assembly/QSglob mapping over broader sequence-search-only probes.
 - `2026-07-07` expanded RCSB exact-sequence probe: raising the all-gap search
   cap from `--max-hits 25` to `--max-hits 50` returned 304 candidate rows and
   156 deferred rows, but still only 81 full-construct exact candidates. It did
@@ -196,6 +203,12 @@ where methods should change.
   time. The active bottleneck is Protenix forward on 1304-2535 token targets,
   not repeated MSA search. Keep P15/P18/P25/P27a/O5/D6a gated until P14 is
   merged/scored or explicitly abandoned.
+- `2026-07-07 04:30 CDT` P14 health check: all six shard jobs remain running,
+  and replay-safe `finish-shards` observes `299/370` candidates with `71`
+  missing, `17/74` target tasks complete, `0/6` shards complete, and
+  `ready=false`. The latest error scan again found no
+  traceback/OOM/CUDA/killed signatures. Progress is still monotonic, so do not
+  launch P15/P18/P25/P27a/O5/D6a or score partial shard outputs.
 - Post-P14 winner-recipe branch `casp16_server_attack_msa_model_diversity_v1`
   is now documented as a design gate in `docs/CASP16_WINNER_RECIPES.md`. It
   captures the MULTICOM4/QA4-style lesson: if P14 is complete and valid but
