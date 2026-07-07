@@ -28,6 +28,12 @@ where methods should change.
   `34-370`, raising local reference coverage from 79 to 80 of the fixed 175
   server-protein targets. Keep v2 as the locked alias-fix baseline and use v3
   only when explicitly testing reference-map coverage recovery.
+- `casp16_server_protein_v4_refmap` extends v3 with one extra
+  phase-alias-inherited row, `T2278 -> 9hav`, because `T2278` is the later
+  380-residue A1 Dehydrogenase target, has a sequence-identical benchmark input
+  to `T1278`, and uses the same `T1278-D1` domain definition. It raises local
+  reference coverage to 81/175. This is still reference-coverage discipline,
+  not a prediction-strategy change.
 - v2 alias-fixed scoring now resolves prediction artifacts through
   `sequence_lookup_id` as well as `target_id`. This matters for official oligo
   rows such as `T0206O` and `T1249V1O`, whose Protenix jobs are named `T0206`
@@ -773,26 +779,36 @@ competitive result.
 44. `2026-07-06 22:52 CDT` added `./casp16 refmap-audit` and generated
     `diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_audit.md`.
     It groups the 22 review rows by target, attaches materialized-structure
-    hashes, and assigns next actions. `T1278` is the nearest v3 refmap unlock
+    hashes, and assigns next actions. `T1278` was the nearest v3 refmap unlock
     because it is single-domain (`T1278-D1`, residues `34-370`) with four
     full-construct candidates; `T1228V1` remains a harder four-domain crop
-    mapping problem. No row was promoted to `accepted`.
+    mapping problem. At this point no row had been promoted to `accepted`.
 45. `2026-07-06 23:03 CDT` added `./casp16 refmap-chain-audit` and generated
     `diagnostics/reference_gap/casp16_server_protein_v3_refmap_chain_audit.tsv`.
     The pure-Python mmCIF atom-site audit records chain/auth/entity IDs,
     observed `label_seq_id` ranges, and domain-range coverage for materialized
     candidate references. `T1278-D1 34-370` now has concrete crop evidence:
     `9HAV` chain A covers the domain fully, while `9HAW`, `9HAX`, and `9HAY`
-    have many fully covering chains. This moves `T1278` closer to a guarded v3
-    refmap overlay, but it still needs native provenance and scorer-side domain
-    crop support before it can become rank-eligible.
+    have many fully covering chains. This created the chain/crop evidence used
+    by the later accepted `T1278` v3 overlay and `T2278` v4 phase-alias overlay.
 46. `2026-07-06 23:12 CDT` added scorer-side server-domain cropping for future
     accepted refmap benchmarks. `score_benchmark_runs` now reads accepted
     `reference_map.tsv` rows, parses `residue_ranges=...`, optionally filters
     the reference by `reference_chain=...`, writes temporary cropped mmCIF
-    inputs, and runs GDT_TS/TMscore on the cropped structures. This removes the
-    scorer-side blocker for a guarded `T1278` v3 overlay; the remaining blocker
-    is native provenance plus an accepted reference-map row, not metric plumbing.
+    inputs, and runs GDT_TS/TMscore on the cropped structures. This removed the
+    scorer-side blocker for accepted refmap overlays.
+47. `2026-07-06 23:21 CDT` generated
+    `casp16_server_protein_v3_refmap` from
+    `diagnostics/reference_gap/casp16_server_protein_v3_refmap_accepted_reference_map.tsv`.
+    The first accepted row is `T1278 -> 9hav`, chain `A`, crop `34-370`; local
+    reference coverage becomes 80/175 with 95 gaps remaining.
+48. `2026-07-06 23:27 CDT` generated
+    `casp16_server_protein_v4_refmap` from
+    `diagnostics/reference_gap/casp16_server_protein_v4_refmap_accepted_reference_map.tsv`.
+    It adds the phase-alias row `T2278 -> 9hav` by target metadata plus exact
+    benchmark-input sequence identity to `T1278`, raising local reference
+    coverage to 81/175 with 94 gaps remaining. This is measurement coverage
+    only; it does not change the active v2 attack row.
 
 ## Run Discipline
 

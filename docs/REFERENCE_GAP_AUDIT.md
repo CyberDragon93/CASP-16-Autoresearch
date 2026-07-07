@@ -252,6 +252,32 @@ The v2 alias-fixed benchmark remains locked at 79 available references and 96
 missing references. Continue adding accepted reference-map rows in versioned
 benchmarks; do not rewrite v2 or hand-edit generated benchmark TSVs.
 
+## Phase-Alias T2278 Refmap Row
+
+`casp16_server_protein_v4_refmap` extends v3 with one phase-alias row:
+`T2278 -> 9hav`. This row is accepted because the official target metadata
+records `T2278` as the later-phase 380-residue A1 Dehydrogenase target, the
+benchmark inputs for `T1278` and `T2278` are sequence-identical, and the server
+domain benchmark maps both rows to `T1278-D1`.
+
+Accepted overlay:
+
+```text
+diagnostics/reference_gap/casp16_server_protein_v4_refmap_accepted_reference_map.tsv
+```
+
+Current generated v4 state:
+
+- ranked targets: 175
+- local references available: 81
+- ranked targets without an available reference: 94
+- generated Protenix jobs: 165
+- accepted reference-map rows: 2
+
+The `T2278` row inherits the already accepted `T1278` chain/crop evidence; no
+prediction score, leaderboard row, or official score value was used to choose
+the reference.
+
 Use `refmap-chain-audit` to convert cached candidate mmCIF atom-site records
 into chain-level domain coverage evidence:
 
@@ -263,8 +289,8 @@ The current output is
 `diagnostics/reference_gap/casp16_server_protein_v3_refmap_chain_audit.tsv`.
 It audits 8 candidate structures and 94 chains. For `T1278-D1` residues
 `34-370`, the complete-covering chains are: `9HAV` chain A only, `9HAW` 18
-chains, `9HAX` 12 chains, and `9HAY` 18 chains. This confirms that `T1278`
-has usable chain/domain crop candidates once native provenance is accepted.
+chains, `9HAX` 12 chains, and `9HAY` 18 chains. This supports the accepted
+`T1278` v3 row and the sequence-identical `T2278` phase-alias row in v4.
 For `T1228V1`, only `9DXK` 4 chains and `9Y66` 1 chain cover the union of the
 current domain ranges in this coarse audit, so it still needs stricter
 multi-domain crop review before promotion. This audit is evidence only; it does
@@ -276,8 +302,8 @@ accepted benchmark `reference_map.tsv` row supplies explicit scoring mapping.
 `residue_ranges=...`, optionally filters the reference to explicit
 `reference_chain=...`, writes temporary cropped mmCIF files, and runs
 GDT_TS/TMscore on those cropped inputs. This does not promote any candidate by
-itself; `T1278` still needs native provenance and an accepted v3 reference-map
-row before it can move from `missing_reference` to ranked scoring.
+itself; promotion still happens only through accepted reference-map rows in
+versioned benchmarks.
 
 ## RCSB Exact-Sequence Probe
 
@@ -298,7 +324,9 @@ Other hits are explicitly marked non-promotable without mapping. For example,
 `10BR_1` matches only a 204-residue HtrA PDZ construct for `T1270/T0270`, and
 the `T1278` `13MI..13MN` rows are local sequence-search hits rather than full
 construct matches. None of these candidates should be written into v2. They are
-the first concrete worklist for a possible `casp16_server_protein_v3_refmap`.
+the first concrete worklist for versioned refmap benchmarks; accepted subsets
+are now materialized in `casp16_server_protein_v3_refmap` and
+`casp16_server_protein_v4_refmap`.
 
 A small TMscore probe against existing predictions is recorded in
 `diagnostics/reference_gap/candidate_ref_tmscore_probe.tsv`. It confirms the

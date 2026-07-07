@@ -173,12 +173,20 @@ This writes
 `diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_audit.md`
 and should be read before changing any reference-map row to `accepted`.
 
-The current accepted overlay is
+The first accepted overlay is
 `diagnostics/reference_gap/casp16_server_protein_v3_refmap_accepted_reference_map.tsv`.
 It promotes only `T1278 -> 9hav` with chain `A` and domain crop `34-370`.
 Regenerating `casp16_server_protein_v3_refmap` from that overlay raises local
 reference coverage from 79 to 80 of the fixed 175 server-protein targets while
 leaving `casp16_server_protein_v2_aliasfix` unchanged.
+
+The next accepted overlay is
+`diagnostics/reference_gap/casp16_server_protein_v4_refmap_accepted_reference_map.tsv`.
+It keeps the `T1278` row and adds `T2278 -> 9hav` as a phase-alias-inherited
+mapping: official target metadata and benchmark inputs show the same
+380-residue A1 Dehydrogenase construct, and both rows use `T1278-D1`.
+Regenerating `casp16_server_protein_v4_refmap` raises local reference coverage
+to 81 of the fixed 175 server-protein targets.
 
 `docs/REFERENCE_GAP_AUDIT.md` records a high-impact alias issue: CASP phase
 ids such as `T2201` and `H2202` should be allowed to inherit metadata and PDB
@@ -301,8 +309,10 @@ whole target set.
    when an accepted refmap row supplies `residue_ranges=...` plus optional
    `reference_chain=...`. The first provenance-backed row, `T1278 -> 9hav`
    chain `A` crop `34-370`, is materialized in
-   `casp16_server_protein_v3_refmap`. Continue promoting only audited rows in
-   new benchmark versions; do not hand-edit v1/v2.
+   `casp16_server_protein_v3_refmap`; the sequence-identical phase alias
+   `T2278 -> 9hav` is materialized in `casp16_server_protein_v4_refmap`.
+   Continue promoting only audited rows in new benchmark versions; do not
+   hand-edit v1/v2.
 4. Partial: oligo scoring now requires a `QSglob` scorer, refuses DockQ as a
    ranked substitute, and can parse OpenStructure `ost compare-structures
    --qs-score` JSON. OpenStructure 2.11.1 is installed in
