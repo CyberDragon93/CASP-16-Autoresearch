@@ -1533,6 +1533,18 @@ competitive result.
      not a closeout point. `docs/CASP16_WINNER_RECIPES.md` now records a
      post-P25 winner-trick triage table so the next branch is selected from the
      complete P25 evidence rather than from a partial shard readout.
+102. `2026-07-07 13:20 CDT` P25 gate: still `ready=false` and
+     `compatible=true`, now with `1013` observed candidates, `1037`
+     shard-level missing candidates, and `967` full 25-candidate slots missing.
+     Slurm still shows 19 P25 jobs running and 5 P25 jobs pending behind
+     `QOSMaxJobsPerUserLimit`, with shard05 seed121-125 and all shard06 seed
+     blocks pending. Error keyword scanning across P25 logs remains clean, and
+     recent logs show active inference on H2236, T1249V1O, H1236, H0236,
+     T1249V1, and H0220. The repaired-input P25 MSA audit is `24/24 ok` with
+     `584/584` protein-chain paths covered and `0` stale paths, so the current
+     wait is queue plus large-complex inference, not repeated MSA work. Do not
+     add more MSA-cache plumbing or launch P27b/O5b/D6a until the complete P25
+     row can be merged and scored.
 
 ## Run Discipline
 

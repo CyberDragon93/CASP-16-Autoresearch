@@ -219,6 +219,15 @@ It checks the 30 rows in
 all 30 are `ok`, with complete MSA coverage and 0 stale covered paths. The 24
 seed106-125 rows remain deferred by policy, not by MSA readiness.
 
+Current repaired-input P25 audit:
+`diagnostics/msa_cache/protenix25_scoreable_input_repair_target_seed_run_preflight.tsv`.
+It checks the 24 submitted seed106-125 target-seed shards for the repaired
+79-job scoreable input. All 24 rows are `ok`, with `584/584` protein-chain MSA
+paths covered and 0 stale covered paths. The live P25 wait is therefore queue
+plus large-complex inference time, not repeated MSA search. Do not add more MSA
+cache plumbing for this active gate unless a future preflight reports missing or
+stale paths.
+
 ## Next Upgrade Path
 
 1. Keep the current index as the default while source run directories are stable.
