@@ -1,0 +1,93 @@
+{
+  "created_at_utc": "2026-07-07T01:52:27.928347+00:00",
+  "cwd": "/scratch/10992/liaorunlong93/casp16-leaderboard",
+  "git_commit": "1f6b881ec130fc01c0e1dde4b4dd1e079d17d7dd",
+  "tools": {
+    "DockQ": {
+      "configured_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/DockQ",
+      "exists": true,
+      "resolved_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/DockQ",
+      "version": "usage: DockQ [-h] [--capri_peptide] [--small_molecule] [--short]"
+    },
+    "QSglob": {
+      "configured_path": "/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost",
+      "exists": true,
+      "resolved_path": "/scratch/10992/liaorunlong93/conda/envs/ost-qsglob/bin/ost",
+      "version": "OpenStructure 2.11.1"
+    },
+    "QSscore": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": "",
+      "version": ""
+    },
+    "TMscore": {
+      "configured_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore",
+      "exists": true,
+      "resolved_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore",
+      "version": "Brief instruction for running TM-score program:"
+    },
+    "TMscore64": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": "",
+      "version": ""
+    },
+    "USalign": {
+      "configured_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/USalign",
+      "exists": true,
+      "resolved_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/USalign",
+      "version": "********************************************************************"
+    },
+    "lddt": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": "",
+      "version": ""
+    },
+    "lddt_stereo": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": "",
+      "version": ""
+    },
+    "ost": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": "",
+      "version": ""
+    },
+    "protenix": {
+      "configured_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/protenix",
+      "exists": true,
+      "resolved_path": "/scratch/10992/liaorunlong93/conda/envs/protein/bin/protenix",
+      "version": ""
+    },
+    "qs-score": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": "",
+      "version": ""
+    },
+    "qs_score": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": "",
+      "version": ""
+    },
+    "qsscore": {
+      "configured_path": "",
+      "exists": false,
+      "optional": true,
+      "resolved_path": "",
+      "version": ""
+    }
+  }
+}

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from casp16_leaderboard.inputs import build_protenix_job, chain_id_for, index_sequences_by_target, oligo_state_counts, sanitize_sequence, target_lookup_aliases
+from casp16_leaderboard.sharding import protenix_task_size, write_input_shards
 
 
 def test_build_protenix_job_mixed_entities() -> None:
@@ -63,3 +66,63 @@ def test_index_sequences_adds_casp_0_1_alias() -> None:
 def test_target_lookup_aliases_cover_server_phase_2_ids() -> None:
     assert target_lookup_aliases("T2201") >= {"T0201", "T1201", "T2201"}
     assert target_lookup_aliases("H2249V1") >= {"H0249V1", "H1249V1", "H2249V1"}
+
+
+def _task(name: str, length: int, *, count: int = 1) -> dict[str, object]:
+    return {
+        "name": name,
+        "sequences": [
+            {
+                "proteinChain": {
+                    "sequence": "A" * length,
+                    "count": count,
+                    "id": [chr(ord("A") + index) for index in range(count)],
+                }
+            }
+        ],
+        "covalent_bonds": [],
+    }
+
+
+def test_protenix_task_size_uses_stoichiometric_count() -> None:
+    assert protenix_task_size(_task("H0001", 50, count=3)) == {
+        "token_estimate": 150,
+        "chain_count": 3,
+        "entity_count": 1,
+    }
+
+
+def test_write_input_shards_balances_and_preserves_tasks(tmp_path) -> None:
+    tasks = [
+        _task("tiny", 10),
+        _task("large_a", 100),
+        _task("small", 20),
+        _task("large_b", 90),
+        _task("medium", 50),
+    ]
+    input_json = tmp_path / "inputs.json"
+    input_json.write_text(json.dumps(tasks, indent=2) + "\n", encoding="utf-8")
+
+    summary = write_input_shards(
+        input_json=input_json,
+        output_dir=tmp_path / "shards",
+        shard_prefix="scoreable",
+        shard_count=2,
+    )
+
+    assert summary["shard_count"] == 2
+    assert summary["task_count"] == 5
+    shard_files = [row["input_json"] for row in summary["shards"]]
+    shard_tasks = []
+    shard_token_sums = []
+    for path in shard_files:
+        payload = json.loads(open(path, encoding="utf-8").read())
+        shard_tasks.extend(payload)
+        shard_token_sums.append(sum(protenix_task_size(task)["token_estimate"] for task in payload))
+    assert sorted(task["name"] for task in shard_tasks) == ["large_a", "large_b", "medium", "small", "tiny"]
+    assert shard_tasks != sorted(shard_tasks, key=lambda item: item["name"])
+    assert max(shard_token_sums) - min(shard_token_sums) <= 50
+
+    task_rows = (tmp_path / "shards" / "shard_tasks.tsv").read_text(encoding="utf-8")
+    assert "large_a" in task_rows
+    assert "large_b" in task_rows

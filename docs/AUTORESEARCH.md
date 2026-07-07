@@ -641,6 +641,18 @@ competitive result.
     full strategy input so scoring and exact-target accounting remain honest.
     Default seed-shard behavior is unchanged and still requires identical input
     hashes.
+31. `2026-07-06 20:50 CDT` target-sharded attack launch: added
+    `./casp16 shard-inputs` and `./casp16 run-one --allow-parallel`, then split
+    the 74-job scoreable size-first phase-alias input into six target-disjoint
+    balanced shards under
+    `strategies/target_shards_scoreable_size_balanced_v1/casp16_server_protein_v2_aliasfix/`.
+    Every shard has complete exact-sequence MSA reuse from
+    `data/msa_cache/index.tsv`, uses the same five-candidate
+    `protenix_confidence_v1` policy, and is rank-ineligible until merged.
+    Submitted GH200 jobs `812239..812244` for shard01..shard06 and cancelled
+    the stale serial auto-advance job `812202`; this keeps the main path on the
+    same scoreable attack budget while avoiding another monolithic H1220/H0258
+    block.
 
 ## Run Discipline
 

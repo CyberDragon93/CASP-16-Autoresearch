@@ -20,8 +20,9 @@ from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
 from .msa_cache import audit_msa_reuse_report, build_msa_cache_index, file_sha256, plan_msa_reuse, reuse_msa_paths, summarize_msa_cache_indexes
 from .official import ensure_dir, ingest_official_data
-from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, run_next
+from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, run_next, run_one
 from .scoring import probe_qsglob_targets, score_benchmark_runs
+from .sharding import write_input_shards
 from .strategies import STRATEGY_YANG_TERMINAL_TAG_CLEANUP, derive_strategy_inputs
 
 
@@ -339,6 +340,17 @@ def build_parser() -> argparse.ArgumentParser:
     strategy_inputs.add_argument("--output-json", type=Path, default=None, help="Defaults to <root>/strategies/<strategy>/<benchmark>/inputs.json.")
     strategy_inputs.add_argument("--manifest", type=Path, default=None, help="Defaults to <root>/strategies/<strategy>/<benchmark>/manifest.tsv.")
 
+    shard_inputs = subparsers.add_parser("shard-inputs", help="Split a Protenix input JSON into target-disjoint execution shards.")
+    shard_inputs.add_argument("--benchmark", default="", help="Benchmark name used only to resolve default --input-json.")
+    shard_inputs.add_argument("--input-json", type=Path, default=None, help="Defaults to <root>/benchmarks/<benchmark>/inputs.json when --benchmark is set.")
+    shard_inputs.add_argument("--output-dir", type=Path, required=True)
+    shard_inputs.add_argument("--shard-prefix", default="shard")
+    shard_inputs.add_argument("--shard-count", type=int, default=None, help="Create this many size-balanced shards.")
+    shard_inputs.add_argument("--max-token-sum", type=int, default=None, help="Create as many shards as needed under this approximate token sum.")
+    shard_inputs.add_argument("--max-tasks-per-shard", type=int, default=None)
+    shard_inputs.add_argument("--order", default="size-desc", choices=["size-desc", "size-asc", "input"], help="Task order for packing.")
+    shard_inputs.add_argument("--within-shard-order", default="input", choices=["size-desc", "size-asc", "input"], help="Task order inside each output JSON.")
+
     build_msa_cache = subparsers.add_parser("build-msa-cache", help="Build an exact-sequence MSA cache index from existing Protenix runs.")
     build_msa_cache.add_argument("--benchmark", action="append", default=None, help="Scan MSA sources from this benchmark; repeatable. Defaults to all Protenix MSA runs.")
     build_msa_cache.add_argument("--run-id", action="append", default=None, help="Scan this run id; repeatable.")
@@ -476,6 +488,11 @@ def build_parser() -> argparse.ArgumentParser:
     run_next_parser.add_argument("--benchmark", default=None)
     run_next_parser.add_argument("--dry-run", action="store_true")
 
+    run_one_parser = subparsers.add_parser("run-one", help="Run one specific run spec; use --allow-parallel only for target-disjoint shards.")
+    run_one_parser.add_argument("--run-id", required=True)
+    run_one_parser.add_argument("--dry-run", action="store_true")
+    run_one_parser.add_argument("--allow-parallel", action="store_true", help="Bypass the benchmark-wide running lock for externally verified target-disjoint shards.")
+
     score = subparsers.add_parser("score", help="Score benchmark run predictions against available references.")
     score.add_argument("--benchmark", default=BENCHMARK_NAME)
     score.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards/<benchmark>.")
@@ -569,6 +586,27 @@ def main(argv: Sequence[str] | None = None) -> int:
             targets_path=benchmark_dir / "targets.tsv",
             official_sequences_path=root / "data" / "official" / "parsed" / "sequences.tsv",
             official_targets_path=root / "data" / "official" / "parsed" / "targets.tsv",
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "shard-inputs":
+        benchmark_dir = None
+        if args.benchmark:
+            benchmark_payload = load_benchmark(root, args.benchmark)
+            benchmark_dir = Path(str(benchmark_payload["_benchmark_dir"]))
+        if args.input_json is None and benchmark_dir is None:
+            raise ValueError("provide --input-json or --benchmark")
+        input_json = (args.input_json or (benchmark_dir / "inputs.json")).resolve()
+        summary = write_input_shards(
+            input_json=input_json,
+            output_dir=args.output_dir.resolve(),
+            shard_prefix=args.shard_prefix,
+            shard_count=args.shard_count,
+            max_token_sum=args.max_token_sum,
+            max_tasks_per_shard=args.max_tasks_per_shard,
+            order=args.order,
+            within_shard_order=args.within_shard_order,
         )
         print_json(summary)
         return 0
@@ -906,6 +944,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "run-next":
         print_json(run_next(root, benchmark=args.benchmark, dry_run=args.dry_run))
+        return 0
+
+    if args.command == "run-one":
+        print_json(run_one(root, run_id=args.run_id, dry_run=args.dry_run, allow_parallel=args.allow_parallel))
         return 0
 
     if args.command == "score":

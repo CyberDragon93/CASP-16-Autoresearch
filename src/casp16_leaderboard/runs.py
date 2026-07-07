@@ -1058,3 +1058,54 @@ def run_next(project_root: Path, *, benchmark: str | None = None, dry_run: bool 
     append_status(project_root, run_id=run_id, benchmark=str(row.get("benchmark", "")), status=status, message="run_next_finished")
     write_runs_manifest(project_root)
     return {"selected": run_id, "status": status, "returncode": completed.returncode}
+
+
+def run_one(project_root: Path, *, run_id: str, dry_run: bool = False, allow_parallel: bool = False) -> dict[str, object]:
+    all_rows = list_run_rows(project_root)
+    rows = [row for row in all_rows if str(row["run_id"]) == run_id]
+    if not rows:
+        return {"selected": "", "status": "missing_run", "run_id": run_id}
+    row = rows[0]
+    current_status = str(row.get("status", "pending"))
+    if current_status not in {"pending", "failed"}:
+        return {"selected": run_id, "status": "not_runnable", "current_status": current_status}
+
+    benchmark = str(row.get("benchmark", ""))
+    if not allow_parallel:
+        running_rows = [
+            candidate
+            for candidate in all_rows
+            if candidate["status"] == "running"
+            and str(candidate.get("benchmark", "")) == benchmark
+            and str(candidate.get("run_id", "")) != run_id
+        ]
+        if running_rows:
+            return {
+                "selected": "",
+                "status": "blocked_by_running_run",
+                "running_run_id": str(running_rows[0]["run_id"]),
+                "pending_run_id": run_id,
+            }
+
+    run_dir = Path(str(row["run_dir"]))
+    script = run_dir / "run.sh"
+    spec_path = run_dir / "run_spec.json"
+    with spec_path.open(encoding="utf-8") as handle:
+        spec = json.load(handle)
+    try:
+        msa_preflight = preflight_msa_reuse(spec)
+    except RuntimeError as exc:
+        if not dry_run:
+            append_status(project_root, run_id=run_id, benchmark=benchmark, status="blocked:msa_preflight", message=str(exc))
+            write_runs_manifest(project_root)
+        return {"selected": run_id, "status": "blocked:msa_preflight", "message": str(exc)}
+    if dry_run:
+        return {"selected": run_id, "status": "dry_run", "script": str(script), "msa_preflight": msa_preflight}
+
+    message = "run_one_parallel_started" if allow_parallel else "run_one_started"
+    append_status(project_root, run_id=run_id, benchmark=benchmark, status="running", message=message)
+    completed = subprocess.run(["bash", str(script)], cwd=run_dir, check=False)
+    status = "ok" if completed.returncode == 0 else f"failed:{completed.returncode}"
+    append_status(project_root, run_id=run_id, benchmark=benchmark, status=status, message="run_one_finished")
+    write_runs_manifest(project_root)
+    return {"selected": run_id, "status": status, "returncode": completed.returncode}

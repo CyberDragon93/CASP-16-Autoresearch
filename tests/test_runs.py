@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from casp16_leaderboard.msa_cache import reuse_msa_paths
-from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, register_run_spec, run_next, write_run_script, write_runs_manifest
+from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, register_run_spec, run_next, run_one, write_run_script, write_runs_manifest
 
 
 def test_build_protenix_command_contains_strategy_knobs() -> None:
@@ -598,6 +598,40 @@ def test_run_next_blocks_pending_when_benchmark_run_is_running(tmp_path) -> None
     assert result["status"] == "blocked_by_running_run"
     assert result["running_run_id"] == "server_full"
     assert result["pending_run_id"] == "server_cleanup"
+
+
+def test_run_one_allows_explicit_parallel_target_shard(tmp_path) -> None:
+    running_spec = {
+        "run_id": "server_full",
+        "benchmark_name": "casp16_server_protein_v1",
+        "backend": "protenix",
+        "strategy": "baseline",
+        "model_name": "protenix-v2",
+        "seeds": "101",
+        "sample": 1,
+        "rank_eligible": True,
+    }
+    shard_spec = {**running_spec, "run_id": "target_shard_01", "strategy": "target_shard"}
+    marker = tmp_path / "target_shard_ran"
+    for spec in (running_spec, shard_spec):
+        run_dir = tmp_path / "runs" / str(spec["run_id"])
+        run_dir.mkdir(parents=True)
+        (run_dir / "run_spec.json").write_text(json.dumps(spec), encoding="utf-8")
+        (run_dir / "run.sh").write_text(f"#!/usr/bin/env bash\ntouch {marker}\n", encoding="utf-8")
+        (run_dir / "run.sh").chmod(0o755)
+        register_run_spec(tmp_path, spec)
+
+    append_status(tmp_path, run_id="server_full", benchmark="casp16_server_protein_v1", status="running", message="started")
+    append_status(tmp_path, run_id="target_shard_01", benchmark="casp16_server_protein_v1", status="pending", message="queued")
+
+    blocked = run_one(tmp_path, run_id="target_shard_01", dry_run=True)
+    launched = run_one(tmp_path, run_id="target_shard_01", allow_parallel=True)
+
+    assert blocked["status"] == "blocked_by_running_run"
+    assert launched["status"] == "ok"
+    assert marker.exists()
+    rows = {row["run_id"]: row for row in list_run_rows(tmp_path, benchmark="casp16_server_protein_v1")}
+    assert rows["target_shard_01"]["status"] == "ok"
 
 
 def test_run_next_blocks_stale_msa_reuse_before_launch(tmp_path) -> None:

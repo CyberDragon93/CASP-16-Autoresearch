@@ -130,6 +130,21 @@ subset. This keeps exact-target accounting and candidate selection tied to the
 complete strategy while allowing small/medium/large target batches to run
 without one 2500-token assembly blocking every other target.
 
+The active five-candidate scoreable attack now uses this execution model. The
+source input is
+`strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json`;
+`./casp16 shard-inputs` created six balanced target shards under
+`strategies/target_shards_scoreable_size_balanced_v1/casp16_server_protein_v2_aliasfix/`.
+Shard runs are named
+`server_v2_attack_scoreable_size_balanced_shard01..06_msa_reuse_protenix5_seed101_105`,
+declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
+`rank_eligible=false` until merged. They were submitted as Slurm jobs
+`812239..812244` with `./casp16 run-one --allow-parallel`.
+
+Use `run-one --allow-parallel` only for target-disjoint shards that will be
+merged later. Normal strategy rows should still use `run-next`, which preserves
+the benchmark-wide running lock.
+
 When the launch gate opens, generate each shard with the TSV row's fields:
 
 ```bash
