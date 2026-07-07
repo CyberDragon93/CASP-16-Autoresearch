@@ -44,6 +44,15 @@ the same wrapper can be rerun without `--dry-run`. `zero_output_shards` and
 `largest_missing_shards` identify queue-blocked or slow execution shards
 without inspecting partial target scores.
 
+Follow-up health check, `2026-07-07 14:11 CDT`: a keyword scan across the P25
+Slurm/stderr logs found no traceback, OOM, killed-process, missing-file, or
+RuntimeError signatures. The newest CIF mtimes are still advancing inside
+running shards, with recent writes from shard03/shard04/shard05 targets such
+as `H2236`, `H0227`, `H2233`, and `T2249V1O`. The five zero-output shards in
+the readiness JSON correspond to pending jobs behind the queue limit, not
+observed execution failures. Keep waiting for declared candidates rather than
+scoring partial output.
+
 After the wrapper succeeds and the leaderboard is regenerated, run the
 aggregate branch gate before selecting any deferred branch:
 
