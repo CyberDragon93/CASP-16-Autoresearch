@@ -2189,6 +2189,21 @@ competitive result.
      refmap work if scoring coverage is the cap. Do not launch a
      partial-response GPU branch and do not treat the current P17/P25-incomplete
      state as matching the CASP16 server winners.
+151. `2026-07-07 18:24 CDT` P25 tail check after watcher poll 2: the row is
+     still not merge-ready, but it is moving for the right reason. Manual
+     dry-run reports `ready=false`, `action=wait_for_declared_candidates`,
+     `1732` observed candidates, `338` shard-level missing, `305` full
+     25-candidate slots missing, `51/79` full-budget tasks complete, and
+     `zero_output_shard_count=0`. The `gg` closeout watcher `814295` logged
+     poll 2 at `1729` observed candidates and continues waiting. Slurm still
+     shows the remaining P25 GH jobs running, with shard05/shard06 as the tail.
+     Recent artifacts reached 18:24 CDT in shard05, where `H1220` and `T1235`
+     candidates finished for seeds 106-120 after the large `H1272` forward
+     completed; shard06 logs show the four seed blocks advancing through the
+     large `H2272` complex (`N_token 2285`) after completing `H1213`. Error
+     scanning remains clean. This is not a signal to launch P27b/O5b/D6a or to
+     score a partial P25 row; it is evidence that the active winner-like
+     candidate-budget run is still executing real large-complex inference.
 
 ## Run Discipline
 
