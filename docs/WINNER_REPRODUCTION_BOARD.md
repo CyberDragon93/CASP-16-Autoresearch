@@ -26,16 +26,16 @@ per-target scores during prediction.
 
 ## Active Gate
 
-Checked `2026-07-07 15:27 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 15:37 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1353` |
-| shard-level missing candidates | `705` |
-| full 25-candidate slots still missing | `635` |
+| observed candidates | `1357` |
+| shard-level missing candidates | `701` |
+| full 25-candidate slots still missing | `631` |
 | complete full-budget tasks | `1 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; `gh` `MaxJobsPU=20` and one `tacc-vscode` job is also running |
 | health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes still advancing |
@@ -45,13 +45,20 @@ Do not score the P25 row or launch O5b/P27b/D6a from partial outputs. The
 current wait is queue plus large-complex Protenix forward time; it is not an
 MSA-cache failure or a reason to open another infrastructure detour.
 
+MSA diversity note: Protenix exposes a real `--msa_server_mode` switch
+(`protenix` or `colabfold`), and local `run-spec` now records this as a first
+class field. That makes a future ColabFold/MMseqs MSA variant auditable without
+turning off MSA. Keep it behind the complete P25 readout and the prepared P27b
+model/config probe unless the post-P25 decision explicitly selects MSA
+diversity.
+
 ## Recipe Reproduction Board
 
 | Winner clue | Local reproduction | Current evidence | Next action | Stop or skip condition |
 | --- | --- | --- | --- | --- |
 | Top domain servers had broad coverage and high automatic accuracy | Yang-style input repair: sequence recovery, phase aliases, low-complexity cleanup, token-safe fallback | P17 repaired the 5 scoreable missing-prediction rows and is the best complete local server-v2 row | Keep P17 as the seed101-105 overlay for P25 | Stop adding input-cleanup variants until P25 shows a specific failure class |
 | Winner-scale systems use multiple internal candidates, but ranking is fragile | P25: 25 fixed seeds on the repaired 79-job scoreable subset with `protenix_confidence_v1` | Submitted as Slurm jobs `812935..812958`; MSA preflight was complete; still running | Finish P25, merge, score, regenerate leaderboard, then inspect aggregate deltas | Never score a partial 25-candidate row; if flat and valid, do not just add more seeds |
-| MULTICOM/QA-style systems rely on diverse model/MSA pools plus QA | P27b repaired-input default-params model/config variant; broader MSA/model diversity design gate | P27b is prepared and MSA-clean, but deferred behind P25 | If complete P25 is flat with valid predictions/metrics, launch P27b before another seed grid | Do not turn off MSA or use toy settings; do not choose variants per target from scores |
+| MULTICOM/QA-style systems rely on diverse model/MSA pools plus QA | P27b repaired-input default-params model/config variant; broader MSA/model diversity design gate; future P28a-style `msa_server_mode=colabfold` probe | P27b is prepared and MSA-clean, but deferred behind P25; MSA server mode is now explicit in run specs | If complete P25 is flat with valid predictions/metrics, launch P27b before another seed grid; only then consider a production ColabFold/MMseqs MSA variant | Do not turn off MSA or use toy settings; do not choose variants per target from scores |
 | Complex winners/top methods still struggle on antibodies and high-order stoichiometry; specialized handling can help | O5b repaired-input antibody/Fv branch | Target-lab Fv diagnostics were positive, and O5b preflight is clean | Launch only if P25 shows antibody/Fv oligos are the dominant recoverable weakness | Do not use target-lab DockQ positives as leaderboard evidence |
 | Domain decomposition and construct boundaries matter | D6a domain sequence recovery after warmup; domain-fragment target-lab evidence | D6a MSA reuse is complete after warmup | Launch D6a only if P25 domain zeros cluster around input-kind/alias/domain classes | Do not hand-pick CASP domain crops from target scores |
 | Local comparison is capped by missing references and QSglob mapping | Versioned refmap work: v4 now has 81/175 refs; v5 queue is lane-based | Lane B deferred sequence hits are reviewed and rejected; Lane D oligo assemblies fail target-stoichiometry matching; Lane E all-domain relaxed90 sweep covers 16 families with no accepted references; all 13 Lane F oligo families now have relaxed90 probe coverage with no accepted references; H1265 input aliases are repaired but reference-blocked | Continue only strict v5 reference lanes while GPU jobs run | Do not patch v2/v4 in place or promote sequence hits without native/reference proof |
@@ -111,6 +118,7 @@ complete run specs and `ok` preflights.
 | Branch | Trigger | Budget or manifest | Preflight | Launch shape |
 | --- | --- | --- | --- | --- |
 | P27b model/config diversity | P25 complete, valid, and flat versus P17 | `attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant.json`; shards in `attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant_shards.tsv` | `diagnostics/msa_cache/protenix5_input_repair_defaultparams_model_variant_preflight.tsv`, `6/6 ok`, `146/146` chains reused | six target-disjoint GH200 shards, seeds `101..105`, real MSA/template, only `use_default_params=true` differs |
+| P28a ColabFold/MMseqs MSA mode | P25 and P27b are valid but model/config diversity alone is flat; score loss looks MSA-depth or pairing related | design only in `attack_budgets/casp16_server_attack_msa_model_diversity_v1.json` | must create fresh run specs with `msa_server_mode=colabfold` or explicit precomputed A3M paths and prove all MSA paths exist | same repaired 79-job scoreable input, real MSA/template, seeds `101..105`; no no-MSA shortcut |
 | D6a domain input repair | P25 domain zeros/failures cluster on the predeclared input-kind/alias class | run spec `runs/server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101/run_spec.json` | `diagnostics/msa_cache/domain_sequence_recovery_after_warmup_preflight.tsv`, `1/1 ok`, `276/276` chains reused | one `dev_fixed` GH200 run; do not scale before the ablation scores |
 | O5b antibody/Fv | P25 exact oligo signal exists, but antibody/Fv rows remain the dominant weakness | `attack_budgets/casp16_server_attack_protenix5_input_repair_antibody_fv.json`; shards in `attack_budgets/casp16_server_attack_protenix5_input_repair_antibody_fv_shards.tsv` | `diagnostics/msa_cache/protenix5_input_repair_antibody_fv_preflight.tsv`, `6/6 ok`, `146/146` chains reused | six target-disjoint GH200 shards; keep separate from P25/P27b |
 | P15/v4 scoreable refmap | P25 is mostly measurement/reference capped and v4 comparison is explicitly chosen | `attack_budgets/casp16_server_attack_protenix5_v4_scoreable_target_shards.tsv` | `diagnostics/msa_cache/protenix5_v4_scoreable_target_run_preflight.tsv`, `6/6 ok`, `143/143` chains reused | six target-disjoint GH200 shards on `casp16_server_protein_v4_refmap`; report only as v4 |

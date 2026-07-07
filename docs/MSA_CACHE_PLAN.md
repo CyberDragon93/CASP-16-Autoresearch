@@ -244,7 +244,14 @@ stale paths.
 4. If Protenix exposes a clean MSA-only mode, split expensive MSA generation
    from model inference. Until then, `inputs-update-msa.json` remains the
    practical boundary between search cost and inference cost.
-5. Do not broaden matching beyond exact protein sequence without a new rule and
+5. For winner-recipe MSA diversity, use a real production MSA variant rather
+   than disabling MSA. Protenix exposes `--msa_server_mode protenix|colabfold`,
+   and `./casp16 run-spec` records this as `msa_server_mode` in
+   `run_spec.json`. A future P28a-style branch can compare the default Protenix
+   MSA service with ColabFold/MMseqs-compatible A3M generation, but it must
+   keep `use_msa=true`, keep templates unless explicitly declared otherwise,
+   and preflight generated/reused MSA paths before GPU launch.
+6. Do not broaden matching beyond exact protein sequence without a new rule and
    tests. Target-id, subsequence, or homology-based reuse can easily leak wrong
    alignments into modified constructs.
 

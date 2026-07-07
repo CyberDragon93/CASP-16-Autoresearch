@@ -983,6 +983,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec.add_argument("--cycle", type=int, default=None)
     run_spec.add_argument("--step", type=int, default=None)
     run_spec.add_argument("--use-msa", action=argparse.BooleanOptionalAction, default=False)
+    run_spec.add_argument("--msa-server-mode", default="protenix", choices=["protenix", "colabfold"], help="Protein MSA search mode used when Protenix must generate missing MSA paths.")
     run_spec.add_argument("--use-template", action=argparse.BooleanOptionalAction, default=False)
     run_spec.add_argument("--use-default-params", action=argparse.BooleanOptionalAction, default=False)
     run_spec.add_argument("--trimul-kernel", default="torch", choices=["torch", "cuequivariance"])
@@ -1606,6 +1607,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             cycle=args.cycle,
             step=args.step,
             use_msa=args.use_msa,
+            msa_server_mode=args.msa_server_mode,
             use_template=args.use_template,
             use_default_params=args.use_default_params,
             trimul_kernel=args.trimul_kernel,

@@ -23,6 +23,7 @@ def test_build_protenix_command_contains_strategy_knobs() -> None:
         cycle=1,
         step=5,
         use_msa=False,
+        msa_server_mode="colabfold",
         use_template=True,
         use_default_params=False,
         trimul_kernel="torch",
@@ -34,6 +35,7 @@ def test_build_protenix_command_contains_strategy_knobs() -> None:
     )
     assert cmd[:2] == ["/bin/protenix", "pred"]
     assert cmd[cmd.index("--use_msa") + 1] == "false"
+    assert cmd[cmd.index("--msa_server_mode") + 1] == "colabfold"
     assert cmd[cmd.index("--use_template") + 1] == "true"
     assert cmd[cmd.index("-s") + 1] == "101,102"
     assert cmd[cmd.index("-e") + 1] == "2"
@@ -218,6 +220,8 @@ def test_create_benchmark_run_spec_uses_run_local_input_copy(tmp_path) -> None:
         references_manifest=references,
         protenix_bin=protenix_bin,
         protenix_root_dir=tmp_path / "protenix_data",
+        use_msa=True,
+        msa_server_mode="colabfold",
     )
 
     spec = json.loads(Path(str(summary["run_spec"])).read_text(encoding="utf-8"))
@@ -226,6 +230,8 @@ def test_create_benchmark_run_spec_uses_run_local_input_copy(tmp_path) -> None:
     assert spec["input_json"] == str(runtime_input)
     assert spec["budget_tier"] == "dev_fixed"
     assert spec["candidate_count"] == 1
+    assert spec["msa_server_mode"] == "colabfold"
+    assert spec["command"][spec["command"].index("--msa_server_mode") + 1] == "colabfold"
     assert str(input_json) not in (tmp_path / "runs" / "server_full" / "run.sh").read_text(encoding="utf-8")
 
 

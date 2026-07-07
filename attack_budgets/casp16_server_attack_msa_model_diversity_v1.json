@@ -6,7 +6,7 @@
   "parent_benchmark_policy": "default parent is casp16_server_protein_v2_aliasfix with the P17/P25 repaired 79-job scoreable input; switch benchmark only if post-P25 readout selects versioned refmap first",
   "backend_policy": "mixed_or_variant_backend_budget",
   "strategy": "msa_model_diversity_v1",
-  "strategy_status": "selector_implemented_p27b_prepared_true_msa_variants_not_implemented",
+  "strategy_status": "selector_implemented_p27b_prepared_msa_server_mode_cli_supported_colabfold_variant_design_only",
   "source_recipe": [
     "MULTICOM4-style diverse MSA generation, extensive sampling, and ensemble quality assessment",
     "GuijunLab/QA4-style enhanced MSA generation and model quality assessment",
@@ -56,8 +56,8 @@
     },
     {
       "name": "alternative_msa_cutoff_or_database",
-      "status": "design_only",
-      "description": "Different MSA generation tool, database, coverage, or e-value policy applied globally, not per target."
+      "status": "design_only_cli_supported",
+      "description": "Different MSA generation tool, database, coverage, or e-value policy applied globally, not per target. The local run-spec CLI now records Protenix --msa_server_mode explicitly, so a production ColabFold/MMseqs MSA variant can be audited separately from the default Protenix MSA service."
     },
     {
       "name": "domain_aware_msa_variant",
@@ -72,6 +72,7 @@
   ],
   "prediction_policy": {
     "use_msa": true,
+    "msa_server_mode": "variant_declared_protenix_or_colabfold",
     "use_template": true,
     "use_default_params": "variant_declared",
     "enable_cache": true,
@@ -102,6 +103,14 @@
       "budget": "6 target shards * 5 seeds, real MSA/template, repaired 79-job input",
       "manifest": "attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant_shards.tsv",
       "preflight": "diagnostics/msa_cache/protenix5_input_repair_defaultparams_model_variant_preflight.tsv"
+    },
+    {
+      "name": "p28a_colabfold_msa_server_mode_probe",
+      "run_id_glob": "not_created_until_after_complete_p25_and_p27b_selection",
+      "status": "design_only_after_p25_p27b",
+      "budget": "same repaired 79-job scoreable input, real MSA/template, seeds101-105, global msa_server_mode=colabfold or equivalent precomputed ColabFold/MMseqs A3M paths",
+      "entrypoint": "./casp16 run-spec --msa-server-mode colabfold --use-msa --use-template ...",
+      "preflight": "must prove every generated or reused MSA path exists before GPU launch"
     }
   ],
   "allowed_selection_signals": [
@@ -125,6 +134,7 @@
     "Do not launch if P25 has many missing predictions, metric failures, or exact-artifact lookup failures after completion; fix the pipeline first.",
     "Do not launch if P25 is mainly reference-limited; use versioned refmap recovery or the v4/P15 row instead.",
     "Launch prepared P27b before building true MSA variants if complete P25 is flat but valid; P27b is the cheapest model/config diversity probe.",
+    "Before any ColabFold/MMseqs MSA variant launch, prove the Protenix runtime imports from Protenix-Insta rather than OpenDDE and records msa_server_mode=colabfold in every run_spec.json.",
     "Only create executable run specs after all variant inputs exist, all MSA policies are explicit, and a preflight report proves no stale cache paths.",
     "Score only after all 20 declared candidates exist for every predicted target, or mark the row partial/unranked."
   ],

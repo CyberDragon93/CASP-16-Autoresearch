@@ -76,6 +76,7 @@ class RunSpec:
     cycle: int | None
     step: int | None
     use_msa: bool
+    msa_server_mode: str
     use_template: bool
     use_default_params: bool
     trimul_kernel: str
@@ -186,6 +187,7 @@ def build_protenix_command(
     cycle: int | None,
     step: int | None,
     use_msa: bool,
+    msa_server_mode: str,
     use_template: bool,
     use_default_params: bool,
     trimul_kernel: str,
@@ -212,6 +214,8 @@ def build_protenix_command(
         model_name,
         "--use_msa",
         bool_text(use_msa),
+        "--msa_server_mode",
+        msa_server_mode,
         "--use_template",
         bool_text(use_template),
         "--use_default_params",
@@ -347,6 +351,7 @@ def create_run_spec(
     cycle: int | None = None,
     step: int | None = None,
     use_msa: bool = False,
+    msa_server_mode: str = "protenix",
     use_template: bool = False,
     use_default_params: bool = False,
     trimul_kernel: str = "torch",
@@ -374,6 +379,9 @@ def create_run_spec(
     msa_cache_indexes = [path.resolve() for path in (msa_cache_indexes or [])]
     if (msa_source_jsons or msa_cache_indexes) and not use_msa:
         raise ValueError("MSA reuse sources were provided but use_msa is false; pass --use-msa for cache-reused runs")
+    msa_server_mode = str(msa_server_mode or "protenix").strip()
+    if msa_server_mode not in {"protenix", "colabfold"}:
+        raise ValueError(f"unsupported msa_server_mode {msa_server_mode!r}; expected 'protenix' or 'colabfold'")
     if benchmark_name or msa_source_jsons or msa_cache_indexes:
         runtime_input_json = run_dir / "inputs" / input_json.name
         ensure_dir(runtime_input_json.parent)
@@ -416,6 +424,7 @@ def create_run_spec(
         cycle=cycle,
         step=step,
         use_msa=use_msa,
+        msa_server_mode=msa_server_mode,
         use_template=use_template,
         use_default_params=use_default_params,
         trimul_kernel=trimul_kernel,
@@ -464,6 +473,7 @@ def create_run_spec(
         cycle=cycle,
         step=step,
         use_msa=use_msa,
+        msa_server_mode=msa_server_mode,
         use_template=use_template,
         use_default_params=use_default_params,
         trimul_kernel=trimul_kernel,
@@ -571,6 +581,7 @@ def register_existing_run(
         cycle=cycle,
         step=step,
         use_msa=use_msa,
+        msa_server_mode="",
         use_template=use_template,
         use_default_params=use_default_params,
         trimul_kernel="",

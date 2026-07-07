@@ -1841,6 +1841,21 @@ competitive result.
      seed121-125 and all four shard06 seed blocks. Error-keyword scanning over
      P25 logs is clean, and recent CIF writes reached 15:26 CDT. Keep waiting
      for declared candidates; no partial merge/score or O5b/P27b/D6a launch.
+127. `2026-07-07 15:37 CDT` P25 live gate plus MSA-diversity audit: P25 is
+     still not merge-ready, with `ready=false`, `action=wait_for_declared_candidates`,
+     `compatible=true`, `1357` observed candidates, `701` shard-level missing
+     candidates, and `631` full 25-candidate slots missing. Slurm still has
+     19 P25 jobs running and 5 P25 jobs pending behind
+     `QOSMaxJobsPerUserLimit`, with the same five zero-output rows blocked or
+     not yet started. While waiting, inspected Protenix-Insta/OpenDDE MSA
+     support and confirmed that Protenix has a real
+     `--msa_server_mode protenix|colabfold` path plus a ColabFold/MMseqs A3M
+     compatibility script. The local CLI/run-spec layer now records
+     `msa_server_mode` explicitly, and
+     `attack_budgets/casp16_server_attack_msa_model_diversity_v1.json` names a
+     future P28a-style production MSA mode probe. This is not a launch
+     decision: keep P28a behind complete P25 and the prepared P27b probe, keep
+     `use_msa=true`, and do not substitute a no-MSA toy row.
 
 ## Run Discipline
 
