@@ -140,6 +140,18 @@ kept in the overlay for audit history, but they do not affect generated
 references. Passing `--reference-map` with `casp16_server_protein_v1` or
 `casp16_server_protein_v2_aliasfix` is rejected by the CLI.
 
+The review input can be bootstrapped from the existing RCSB exact-sequence
+probe:
+
+```bash
+./casp16 refmap-review
+```
+
+This writes
+`diagnostics/reference_gap/casp16_server_protein_v3_refmap_review.tsv`.
+The generated rows remain `candidate` or `rejected`; no row becomes accepted
+until provenance and mapping are supplied.
+
 `docs/REFERENCE_GAP_AUDIT.md` records a high-impact alias issue: CASP phase
 ids such as `T2201` and `H2202` should be allowed to inherit metadata and PDB
 references from matching `T1201`/`H1202` rows. A temporary rebuild with

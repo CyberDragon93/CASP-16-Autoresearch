@@ -178,6 +178,20 @@ The generated benchmark copies the normalized overlay to
 `benchmark.json`. This keeps native-reference recovery auditable without
 allowing a strategy run or an agent to hand-edit locked benchmark TSV files.
 
+Use `refmap-review` to convert RCSB exact-sequence probe output into that
+overlay format without promoting anything automatically:
+
+```bash
+./casp16 refmap-review
+```
+
+The current review artifact is
+`diagnostics/reference_gap/casp16_server_protein_v3_refmap_review.tsv`. It has
+8 `candidate` rows and 14 `rejected` rows. Candidate rows still need explicit
+native provenance plus chain/domain mapping before changing `status` to
+`accepted`; rejected rows are carried only to document why they should not be
+promoted.
+
 ## RCSB Exact-Sequence Probe
 
 A follow-up probe on the 40 `prediction_waiting_on_reference` rows queried the

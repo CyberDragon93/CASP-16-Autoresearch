@@ -12,6 +12,7 @@ from casp16_leaderboard.benchmark import (
     SERVER_REFMAP_BENCHMARK_VERSION,
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
+    generate_reference_map_review,
 )
 from casp16_leaderboard.leaderboard import generate_benchmark_leaderboard
 from casp16_leaderboard.official import OfficialPaths, read_tsv, write_tsv
@@ -537,3 +538,81 @@ def test_server_refmap_benchmark_applies_accepted_reference_overlay(tmp_path) ->
     payload = json.loads((benchmark_dir / "benchmark.json").read_text(encoding="utf-8"))
     assert "reference_map" in payload["files"]
     assert (benchmark_dir / "reference_map.tsv").exists()
+
+
+def test_generate_reference_map_review_from_rcsb_candidates(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+    build_casp16_server_protein_benchmark(project_root=project_root, official_root=official_root)
+    candidate_tsv = tmp_path / "candidates.tsv"
+    write_tsv(
+        candidate_tsv,
+        [
+            {
+                "target_id": "T1201",
+                "track": "protein_domain",
+                "sequence_lookup_id": "T1201",
+                "hit": "9abc_1",
+                "pdb_id": "9ABC",
+                "entity_id": "1",
+                "entry_title": "exact candidate",
+                "release_date": "2026-01-01",
+                "experimental_method": "X-RAY DIFFRACTION",
+                "asym_ids": "A,B",
+                "auth_asym_ids": "A,B",
+                "target_sequence_equals_entity": "true",
+                "target_sequence_contained_in_entity": "true",
+                "entity_sequence_contained_in_target": "true",
+                "candidate_status": "full_construct_exact_candidate_needs_native_provenance_and_mapping",
+            },
+            {
+                "target_id": "T1201",
+                "track": "protein_domain",
+                "sequence_lookup_id": "T1201",
+                "hit": "9def_1",
+                "pdb_id": "9DEF",
+                "entity_id": "1",
+                "entry_title": "partial candidate",
+                "release_date": "2026-01-01",
+                "experimental_method": "X-RAY DIFFRACTION",
+                "asym_ids": "A",
+                "auth_asym_ids": "A",
+                "target_sequence_equals_entity": "false",
+                "target_sequence_contained_in_entity": "false",
+                "entity_sequence_contained_in_target": "false",
+                "candidate_status": "local_sequence_hit_not_full_construct_do_not_promote",
+            },
+        ],
+        [
+            "target_id",
+            "track",
+            "sequence_lookup_id",
+            "hit",
+            "pdb_id",
+            "entity_id",
+            "entry_title",
+            "release_date",
+            "experimental_method",
+            "asym_ids",
+            "auth_asym_ids",
+            "target_sequence_equals_entity",
+            "target_sequence_contained_in_entity",
+            "entity_sequence_contained_in_target",
+            "candidate_status",
+        ],
+    )
+    output_tsv = tmp_path / "review.tsv"
+
+    summary = generate_reference_map_review(project_root=project_root, benchmark="casp16_server_protein_v1", candidate_tsv=candidate_tsv, output_tsv=output_tsv)
+
+    assert summary["rows"] == 2
+    assert summary["candidate"] == 1
+    assert summary["rejected"] == 1
+    rows = read_tsv(output_tsv)
+    assert rows[0]["status"] == "candidate"
+    assert rows[0]["pdb_ids"] == "9abc"
+    assert rows[0]["construct_coverage"] == "full_construct_exact_sequence"
+    assert "candidate_domain=T1201-D1" in rows[0]["scoring_mapping"]
+    assert rows[0]["native_provenance"] == ""
+    assert rows[1]["status"] == "rejected"

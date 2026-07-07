@@ -16,6 +16,7 @@ from .benchmark import (
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
     default_benchmark_dir,
+    generate_reference_map_review,
     load_benchmark,
 )
 from .inputs import generate_protenix_inputs
@@ -346,6 +347,21 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"Accepted reference overlay TSV for a new benchmark version, e.g. {SERVER_REFMAP_BENCHMARK_NAME} version {SERVER_REFMAP_BENCHMARK_VERSION}. Repeatable.",
     )
 
+    refmap_review = subparsers.add_parser("refmap-review", help="Convert RCSB sequence-search candidates into an auditable reference-map review TSV.")
+    refmap_review.add_argument("--benchmark", default=SERVER_ALIASFIX_BENCHMARK_NAME, help=f"Benchmark with target/domain metadata. Defaults to {SERVER_ALIASFIX_BENCHMARK_NAME}.")
+    refmap_review.add_argument(
+        "--candidate-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/rcsb_exact_sequence_probe_v2_candidates.tsv.",
+    )
+    refmap_review.add_argument(
+        "--output-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_v3_refmap_review.tsv.",
+    )
+
     make_inputs = subparsers.add_parser("make-inputs", help="Generate Protenix input JSON from CASP16 sequence records.")
     make_inputs.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
     make_inputs.add_argument("--output-json", type=Path, default=None, help="Defaults to <root>/data/inputs/casp16_all.json.")
@@ -590,6 +606,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             download_references=args.download_references,
             force_references=args.force_references,
             reference_map_paths=args.reference_map,
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "refmap-review":
+        summary = generate_reference_map_review(
+            project_root=root,
+            benchmark=args.benchmark,
+            candidate_tsv=(args.candidate_tsv or (root / "diagnostics" / "reference_gap" / "rcsb_exact_sequence_probe_v2_candidates.tsv")).resolve(),
+            output_tsv=(args.output_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_review.tsv")).resolve(),
         )
         print_json(summary)
         return 0

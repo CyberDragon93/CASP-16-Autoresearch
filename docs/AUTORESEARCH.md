@@ -742,6 +742,14 @@ competitive result.
     mapping, and scoring mapping. This is the correct route to shrink the
     96-target v2 `missing_reference` cap without using official scores or
     hand-editing benchmark TSVs.
+42. `2026-07-06 22:43 CDT` added `./casp16 refmap-review` and generated
+    `diagnostics/reference_gap/casp16_server_protein_v3_refmap_review.tsv`.
+    The artifact converts the RCSB exact-sequence probe into the guarded
+    reference-map schema: 8 full-construct exact rows are still only
+    `candidate`, while 14 partial/local hits are `rejected`. This keeps
+    reference recovery moving without falsely accepting native structures; the
+    next real v3 score unlock is to fill provenance plus mapping for one or
+    more candidate rows, then generate `casp16_server_protein_v3_refmap`.
 
 ## Run Discipline
 

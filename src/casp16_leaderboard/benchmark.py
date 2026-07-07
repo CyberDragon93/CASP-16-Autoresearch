@@ -206,6 +206,104 @@ def read_reference_map_overlays(reference_map_paths: Sequence[Path] | None) -> t
     return pdbs_by_target, normalized_rows
 
 
+def generate_reference_map_review(
+    *,
+    project_root: Path,
+    candidate_tsv: Path,
+    output_tsv: Path,
+    benchmark: str = SERVER_ALIASFIX_BENCHMARK_NAME,
+) -> dict[str, object]:
+    benchmark_dir = default_benchmark_dir(project_root, benchmark)
+    target_rows = {row["target_id"]: row for row in read_tsv(benchmark_dir / "targets.tsv")}
+    domains_by_target: dict[str, list[dict[str, str]]] = defaultdict(list)
+    domain_path = benchmark_dir / "domain_definitions.tsv"
+    if domain_path.exists():
+        for row in read_tsv(domain_path):
+            target_id = row.get("target_id", "").upper()
+            if target_id:
+                domains_by_target[target_id].append(row)
+
+    rows: list[dict[str, object]] = []
+    for candidate in read_tsv(candidate_tsv):
+        target_id = candidate.get("target_id", "").upper()
+        pdb_id = candidate.get("pdb_id", "").lower()
+        candidate_status = candidate.get("candidate_status", "")
+        full_exact = candidate_status.startswith("full_construct_exact")
+        rejected = "do_not_promote" in candidate_status
+        status = "candidate" if full_exact else "rejected" if rejected else "deferred"
+        rows.append(
+            {
+                "target_id": target_id,
+                "pdb_ids": pdb_id,
+                "status": status,
+                "source": "rcsb_exact_sequence_probe",
+                "native_provenance": "",
+                "construct_coverage": _candidate_construct_coverage(candidate),
+                "chain_mapping": _candidate_chain_mapping(candidate) if full_exact else "",
+                "scoring_mapping": _candidate_scoring_mapping(target_rows.get(target_id, {}), domains_by_target.get(candidate.get("sequence_lookup_id", target_id).upper(), [])) if full_exact else "",
+                "notes": _candidate_reference_notes(candidate),
+                "source_path": str(candidate_tsv),
+            }
+        )
+
+    write_tsv(output_tsv, rows, REFERENCE_MAP_FIELDS)
+    return {
+        "benchmark": benchmark,
+        "candidate_tsv": str(candidate_tsv),
+        "output_tsv": str(output_tsv),
+        "rows": len(rows),
+        "candidate": sum(1 for row in rows if row["status"] == "candidate"),
+        "rejected": sum(1 for row in rows if row["status"] == "rejected"),
+        "deferred": sum(1 for row in rows if row["status"] == "deferred"),
+    }
+
+
+def _candidate_construct_coverage(row: Mapping[str, str]) -> str:
+    equals_entity = str(row.get("target_sequence_equals_entity", "")).lower() == "true"
+    contained = str(row.get("target_sequence_contained_in_entity", "")).lower() == "true"
+    entity_contained = str(row.get("entity_sequence_contained_in_target", "")).lower() == "true"
+    if equals_entity and contained and entity_contained:
+        return "full_construct_exact_sequence"
+    if contained:
+        return "target_sequence_contained_in_candidate_entity"
+    if entity_contained:
+        return "candidate_entity_contained_in_target_sequence"
+    return str(row.get("candidate_status", "") or "coverage_unverified")
+
+
+def _candidate_chain_mapping(row: Mapping[str, str]) -> str:
+    entity_id = row.get("entity_id", "")
+    asym_ids = row.get("asym_ids", "")
+    auth_asym_ids = row.get("auth_asym_ids", "")
+    return f"candidate_entity={entity_id}; asym_ids={asym_ids}; auth_asym_ids={auth_asym_ids}; verify_native_chain_choice"
+
+
+def _candidate_scoring_mapping(target: Mapping[str, str], domain_rows: Sequence[Mapping[str, str]]) -> str:
+    track = target.get("track", "")
+    if track == "protein_domain":
+        if len(domain_rows) == 1:
+            domain = domain_rows[0]
+            return f"candidate_domain={domain.get('domain_id', '')}; residue_ranges={domain.get('residue_ranges', '')}; verify_chain_and_crop"
+        if domain_rows:
+            ids = ",".join(row.get("domain_id", "") for row in domain_rows)
+            return f"multi_domain_target={ids}; requires_explicit_domain_crop_mapping"
+        return "protein_domain_requires_domain_definition_and_crop_mapping"
+    if track == "protein_oligo":
+        return "protein_oligo_requires_biological_assembly_chain_stoichiometry_and_interface_mapping"
+    return "track_mapping_required"
+
+
+def _candidate_reference_notes(row: Mapping[str, str]) -> str:
+    parts = [
+        row.get("candidate_status", ""),
+        row.get("hit", ""),
+        row.get("entry_title", ""),
+        row.get("release_date", ""),
+        row.get("experimental_method", ""),
+    ]
+    return " | ".join(part for part in parts if part)
+
+
 def build_casp16_protein_benchmark(
     *,
     project_root: Path,
