@@ -986,6 +986,17 @@ competitive result.
     leaderboard refresh. A live P14 dry-run with this command reports 203/370
     candidates, 167 missing, 0/6 complete shards, and `ready=false`, so the
     correct action remains to wait rather than score partial output.
+64. `2026-07-07 02:44 CDT` predeclared P16 consensus-selector replay before
+    seeing P14 scores:
+    `attack_budgets/casp16_server_attack_protenix5_consensus_selector_replay.json`.
+    It uses the exact same completed P14 five-candidate prediction pool, no
+    new GPU work, and a separate registered run id with
+    `diversity_confidence_consensus_v1` after `selection-qa`. This tests the
+    CASP16 winner clue that QA/model selection matters, while forbidding
+    references, official score tables, prior `target_scores.csv`, leaderboard
+    rows, or manual per-target intervention. It must be registered and
+    sidecar-QA generated after P14 merge but before inspecting P14 target
+    scores, then scored as a separate `server_attack` row.
 
 ## Run Discipline
 
