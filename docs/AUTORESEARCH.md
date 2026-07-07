@@ -1704,6 +1704,18 @@ competitive result.
      all launch-ready with `deferred:await_p25_score` lifecycle rows and `ok`
      preflights. Updated the live control docs to prevent later agents from
      reading stale `await_p14` labels as current launch instructions.
+116. `2026-07-07 14:57 CDT` P25 live gate refresh: still not ready to merge or
+     score. The replay-safe wrapper reports `finish_status=not_ready`,
+     `status_summary.action=wait_for_declared_candidates`, `ready=false`,
+     `compatible=true`, `1261` observed candidates, `797` shard-level missing
+     candidates, and `727` full 25-candidate slots missing. Complete
+     full-budget tasks remain `1/79`, with 5 zero-output rows:
+     shard05 seed121-125 plus all four shard06 seed blocks. Slurm still has 19
+     P25 jobs running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`;
+     `qlimits` confirms `gh` `MaxJobsPU=20`. Error-keyword scanning over P25
+     logs remains clean, recent CIF/log writes reached 14:55 CDT, and
+     `run-next --dry-run` returns `no_pending_runs`. Continue waiting for
+     declared candidates; no partial P25 score or post-P25 GPU branch launch.
 
 ## Run Discipline
 
