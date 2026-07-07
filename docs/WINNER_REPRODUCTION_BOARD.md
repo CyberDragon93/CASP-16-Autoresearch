@@ -53,24 +53,31 @@ infrastructure. It is:
 
 ## Active Gate
 
-Checked `2026-07-07 15:56 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 16:02 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1388` |
-| shard-level missing candidates | `670` |
-| full 25-candidate slots still missing | `603` |
-| complete full-budget tasks | `4 / 79` |
+| observed candidates | `1409` |
+| shard-level missing candidates | `649` |
+| full 25-candidate slots still missing | `584` |
+| complete full-budget tasks | `6 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; `gh` `MaxJobsPU=20` and one `tacc-vscode` job is also running |
-| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 15:54 CDT |
+| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 16:02 CDT |
 | action | wait for declared candidates, then run the P25 closeout wrapper |
 
 Do not score the P25 row or launch O5b/P27b/D6a from partial outputs. The
 current wait is queue plus large-complex Protenix forward time; it is not an
 MSA-cache failure or a reason to open another infrastructure detour.
+
+Winner-match-first rule: every next GPU branch must answer a specific gap
+against the official server winners. P25 answers whether winner-like candidate
+budget plus the predeclared selector can move the repaired P17 row; P27b
+answers model/config diversity; D6a answers domain input repair; O5b answers
+antibody/Fv oligo handling. Do not launch a branch whose expected aggregate
+winner-gap reduction is not named before submission.
 
 MSA diversity note: Protenix exposes a real `--msa_server_mode` switch
 (`protenix` or `colabfold`), and local `run-spec` now records this as a first

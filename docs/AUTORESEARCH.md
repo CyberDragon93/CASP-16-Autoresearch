@@ -1906,6 +1906,21 @@ competitive result.
      Guijunlab-Complex (`148s`), and NKRNA-s (`028s`). This reinforces that
      the target is a broad automatic server pipeline family, not a one-target
      rescue. Keep P25 as the active gate.
+132. `2026-07-07 16:02 CDT` winner-match-first checkpoint: the best complete
+     local row is still far from the official server winners, so the active
+     objective is to match the server-winner protocol and then reproduce
+     winner-family capabilities, not to branch from partial outputs. P25
+     remains the first winner-like candidate-budget test and is still
+     incomplete: `ready=false`, `compatible=true`, `1409` observed candidates,
+     `649` shard-level missing candidates, `584` full 25-candidate slots
+     missing, and `6/79` full-budget tasks complete. Slurm still has 19 P25
+     jobs running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`;
+     shard05 seed121-125 and all four shard06 seed blocks are the zero-output
+     pending rows. Error-keyword scanning over the P25 logs is clean, and
+     latest prediction writes reached 16:02 CDT on shard02/shard03 rows. Do
+     not score P25, launch O5b/P27b/D6a, or claim winner comparison until the
+     declared P25 candidates are complete and the server-style leaderboard is
+     regenerated.
 
 ## Run Discipline
 

@@ -152,10 +152,10 @@ this with a no-MSA speed row. The local environment also needs an explicit
 Protenix-Insta import path at runtime because the bare console script can be
 shadowed by OpenDDE's `runner.batch_inference`.
 
-Current live gate, `2026-07-07 15:56 CDT`: P25 is healthy but incomplete.
+Current live gate, `2026-07-07 16:02 CDT`: P25 is healthy but incomplete.
 `scripts/finish_p25_scoreable_input_repair.sh --dry-run` reports
-`ready=false`, `compatible=true`, `1388` observed candidates, `670`
-shard-level candidates missing, and `603` full 25-candidate slots missing.
+`ready=false`, `compatible=true`, `1409` observed candidates, `649`
+shard-level candidates missing, and `584` full 25-candidate slots missing.
 Slurm has 19 P25 jobs running and 5 P25 jobs pending behind
 `QOSMaxJobsPerUserLimit`; `gh` `MaxJobsPU=20` and one `tacc-vscode` job is
 also running. P25 MSA preflight is still clean (`24/24 ok`, `584/584` protein
@@ -163,9 +163,10 @@ chains covered, `0` stale), so the current wait is queue plus
 large-complex inference, not an MSA-cache problem. This is forward progress,
 not evidence for a new strategy choice. Keep O5b, P27b, D6a, and P15/v5 refmap
 work gated until the full declared P25 row is merged and scored.
-Follow-up log health at `2026-07-07 14:11 CDT` is clean: no traceback/OOM/
+Follow-up log health at `2026-07-07 16:02 CDT` is clean: no traceback/OOM/
 killed-process signatures were found in the running P25 shard logs, and recent
-CIF writes confirm active inference rather than a stalled wrapper.
+CIF writes reached 16:02 CDT, confirming active inference rather than a stalled
+wrapper.
 `./casp16 post-p25-readout` now includes a `launch_plan` object so the selected
 post-P25 branch carries its run ids, preflight file, target-shard flag, and
 command templates in JSON rather than relying on manual lookup here.
@@ -233,7 +234,7 @@ by how interesting the trick is.
 | Gate | Winner clue | Local reproduction | Current status | Next decision |
 | --- | --- | --- | --- | --- |
 | G1 | Strong CASP16 systems did careful input preparation before spending sampling budget | v2 nofail scoreable stack plus P17 input repair: protein-oligo sequence recovery, phase-alias stoichiometry, low-complexity cleanup, token fallback, full MSA reuse, and target-agnostic `O`/`Vn`/phase alias repair | P17 overlay completed and scored on 79/79 scoreable targets, improving P14 to domain `0.107690` and oligo `0.118933` | Keep the P17 overlay as seeds101-105 for P25; input coverage is no longer the immediate scoreable-target blocker |
-| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight; latest documented live gate at `2026-07-07 15:56 CDT` is healthy but incomplete at `1388` observed candidates, 19 running P25 jobs, and 5 pending P25 jobs behind the `gh` user-job cap; active runtime is large-complex inference rather than MSA | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row; keep O5b/P27b/D6a gated until this score exists |
+| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight; latest documented live gate at `2026-07-07 16:02 CDT` is healthy but incomplete at `1409` observed candidates, 19 running P25 jobs, and 5 pending P25 jobs behind the `gh` user-job cap; active runtime is large-complex inference rather than MSA | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row; keep O5b/P27b/D6a gated until this score exists |
 | G3 | First-model QA/ranking can change apparent method quality without more GPU | P16 consensus replay used the same P14 five-candidate pool with `selection-qa` and `diversity_confidence_consensus_v1` | scored but slightly below P14 (`0.102218` domain, `0.115250` oligo) | Do not tune selectors again until P17 removes scoreable missing predictions and shows candidate selection is the limiting factor |
 | G4 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a full input is now exact-sequence MSA-cache complete (`276/276`, 0 stale) but deferred behind P25 | If complete P25 still shows domain zeros from input-kind or alias repair classes, run D6a before another seed-scaling spend |
 | G5 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache, P25 no-GPU consensus replay configured at closeout, P27b for the repaired 79-job scoreable input as the concrete Protenix model/config variant, and an explicit `msa_server_mode` run-spec field for a future ColabFold/MMseqs production-MSA variant | P27b prepared/deferred behind P25; broader MSA variants are design-only, not queued | Launch P27b first if P25 is flat but valid; add a P28a-style `msa_server_mode=colabfold` branch only after P25/P27b show model/config diversity or MSA construction is worth the next compute |
