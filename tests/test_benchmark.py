@@ -5,6 +5,7 @@ import json
 
 import pytest
 
+from casp16_leaderboard import benchmark as benchmark_module
 from casp16_leaderboard.benchmark import (
     SERVER_ALIASFIX_BENCHMARK_NAME,
     SERVER_ALIASFIX_BENCHMARK_VERSION,
@@ -15,6 +16,7 @@ from casp16_leaderboard.benchmark import (
     build_casp16_server_protein_benchmark,
     generate_reference_map_audit_report,
     generate_reference_map_review,
+    generate_rcsb_exact_sequence_probe,
     materialize_reference_map_candidates,
 )
 from casp16_leaderboard.leaderboard import generate_benchmark_leaderboard
@@ -619,6 +621,127 @@ def test_generate_reference_map_review_from_rcsb_candidates(tmp_path) -> None:
     assert "candidate_domain=T1201-D1" in rows[0]["scoring_mapping"]
     assert rows[0]["native_provenance"] == ""
     assert rows[1]["status"] == "rejected"
+
+
+def test_generate_rcsb_exact_sequence_probe_writes_full_construct_candidates(tmp_path, monkeypatch) -> None:
+    project_root = tmp_path / "project"
+    official_root = project_root / "data" / "official"
+    write_tsv(
+        OfficialPaths(official_root).sequences_tsv,
+        [
+            {
+                "record_id": "T1228v1",
+                "target_ids": "T1228V1",
+                "sequence_family": "T",
+                "sequence_kind": "dnaSequence",
+                "length": "6",
+                "sequence": "MELKQW",
+                "header": "misclassified protein-like CASP sequence",
+                "source_file": "fixture.seq.txt",
+            }
+        ],
+        ["record_id", "target_ids", "sequence_family", "sequence_kind", "length", "sequence", "header", "source_file"],
+    )
+    worklist = tmp_path / "missing.tsv"
+    write_tsv(
+        worklist,
+        [
+            {
+                "priority": "1",
+                "target_id": "T1228V1",
+                "track": "protein_domain",
+                "blocker_class": "prediction_waiting_on_reference",
+                "sequence_lookup_id": "T1228V1",
+            }
+        ],
+        ["priority", "target_id", "track", "blocker_class", "sequence_lookup_id"],
+    )
+
+    def fake_rcsb_json(url: str, *, payload=None):
+        if payload is not None:
+            assert payload["query"]["parameters"]["identity_cutoff"] == 1.0
+            assert payload["query"]["parameters"]["value"] == "MELKQW"
+            return {"result_set": [{"identifier": "9ABC_1"}]}
+        if "/entry/" in url:
+            return {
+                "struct": {"title": "native candidate"},
+                "rcsb_accession_info": {"initial_release_date": "2025-11-19T00:00:00.000+00:00"},
+                "exptl": [{"method": "X-RAY DIFFRACTION"}],
+            }
+        if "/polymer_entity/" in url:
+            return {
+                "entity_poly": {"pdbx_seq_one_letter_code_can": "MELKQW"},
+                "rcsb_polymer_entity": {"pdbx_description": "candidate protein"},
+                "rcsb_polymer_entity_container_identifiers": {"asym_ids": ["A"], "auth_asym_ids": ["A"]},
+            }
+        raise AssertionError(url)
+
+    monkeypatch.setattr(benchmark_module, "_rcsb_json_request", fake_rcsb_json)
+    output_targets = tmp_path / "targets.tsv"
+    output_candidates = tmp_path / "candidates.tsv"
+
+    summary = generate_rcsb_exact_sequence_probe(
+        project_root=project_root,
+        official_root=official_root,
+        worklist_tsv=worklist,
+        output_targets_tsv=output_targets,
+        output_candidates_tsv=output_candidates,
+    )
+
+    assert summary["rows"] == 1
+    assert summary["targets_with_hits"] == 1
+    assert summary["candidate_rows"] == 1
+    assert summary["full_construct_exact_candidates"] == 1
+    target_rows = read_tsv(output_targets)
+    assert target_rows[0]["hit_count"] == "1"
+    candidate_rows = read_tsv(output_candidates)
+    assert candidate_rows[0]["sequence_kind"] == "dnaSequence"
+    assert candidate_rows[0]["target_sequence_equals_entity"] == "true"
+    assert candidate_rows[0]["candidate_status"] == "full_construct_exact_candidate_needs_native_provenance_and_mapping"
+
+
+def test_generate_rcsb_exact_sequence_probe_skips_true_nucleic_acid(tmp_path, monkeypatch) -> None:
+    project_root = tmp_path / "project"
+    official_root = project_root / "data" / "official"
+    write_tsv(
+        OfficialPaths(official_root).sequences_tsv,
+        [
+            {
+                "record_id": "R1203",
+                "target_ids": "R1203",
+                "sequence_family": "R",
+                "sequence_kind": "dnaSequence",
+                "length": "8",
+                "sequence": "ACGTACGT",
+                "header": "true nucleic acid",
+                "source_file": "fixture.seq.txt",
+            }
+        ],
+        ["record_id", "target_ids", "sequence_family", "sequence_kind", "length", "sequence", "header", "source_file"],
+    )
+    worklist = tmp_path / "missing.tsv"
+    write_tsv(
+        worklist,
+        [{"priority": "1", "target_id": "R1203", "track": "protein_domain", "blocker_class": "prediction_waiting_on_reference", "sequence_lookup_id": "R1203"}],
+        ["priority", "target_id", "track", "blocker_class", "sequence_lookup_id"],
+    )
+    monkeypatch.setattr(benchmark_module, "_rcsb_json_request", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("RCSB should not be called")))
+
+    output_targets = tmp_path / "targets.tsv"
+    output_candidates = tmp_path / "candidates.tsv"
+    summary = generate_rcsb_exact_sequence_probe(
+        project_root=project_root,
+        official_root=official_root,
+        worklist_tsv=worklist,
+        output_targets_tsv=output_targets,
+        output_candidates_tsv=output_candidates,
+    )
+
+    assert summary["targets_with_hits"] == 0
+    assert summary["candidate_rows"] == 0
+    target_rows = read_tsv(output_targets)
+    assert target_rows[0]["hits"] == "no_protein_like_sequence"
+    assert read_tsv(output_candidates) == []
 
 
 def test_materialize_reference_map_candidates_uses_cached_files(tmp_path) -> None:

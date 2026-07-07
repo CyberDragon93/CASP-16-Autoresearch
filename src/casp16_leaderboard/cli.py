@@ -19,6 +19,7 @@ from .benchmark import (
     default_benchmark_dir,
     generate_reference_map_audit_report,
     generate_reference_map_review,
+    generate_rcsb_exact_sequence_probe,
     load_benchmark,
     materialize_reference_map_candidates,
 )
@@ -365,6 +366,32 @@ def build_parser() -> argparse.ArgumentParser:
         help="Defaults to diagnostics/reference_gap/casp16_server_protein_v3_refmap_review.tsv.",
     )
 
+    refmap_probe = subparsers.add_parser("refmap-probe", help="Query RCSB exact sequence candidates for missing-reference targets.")
+    refmap_probe.add_argument("--benchmark", default=SERVER_ALIASFIX_BENCHMARK_NAME, help=f"Benchmark with target metadata. Defaults to {SERVER_ALIASFIX_BENCHMARK_NAME}.")
+    refmap_probe.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
+    refmap_probe.add_argument(
+        "--worklist-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_v2_aliasfix_missing_references.tsv.",
+    )
+    refmap_probe.add_argument(
+        "--output-targets-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_targets.tsv.",
+    )
+    refmap_probe.add_argument(
+        "--output-candidates-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_candidates.tsv.",
+    )
+    refmap_probe.add_argument("--blocker-class", action="append", default=None, help="Only probe this blocker class. Repeat or comma-separate.")
+    refmap_probe.add_argument("--limit", type=int, default=None, help="Limit rows from the filtered worklist.")
+    refmap_probe.add_argument("--max-hits", type=int, default=25, help="Maximum RCSB hits per target sequence.")
+    refmap_probe.add_argument("--identity-cutoff", type=float, default=1.0, help="RCSB sequence identity cutoff. Defaults to exact matches.")
+
     refmap_materialize = subparsers.add_parser("refmap-materialize", help="Download/cache mmCIF files for reference-map review rows and write a hash manifest.")
     refmap_materialize.add_argument(
         "--reference-map-tsv",
@@ -674,6 +701,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             benchmark=args.benchmark,
             candidate_tsv=(args.candidate_tsv or (root / "diagnostics" / "reference_gap" / "rcsb_exact_sequence_probe_v2_candidates.tsv")).resolve(),
             output_tsv=(args.output_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_review.tsv")).resolve(),
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "refmap-probe":
+        summary = generate_rcsb_exact_sequence_probe(
+            project_root=root,
+            benchmark=args.benchmark,
+            official_root=(args.official_dir or (root / "data" / "official")).resolve(),
+            worklist_tsv=(args.worklist_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v2_aliasfix_missing_references.tsv")).resolve(),
+            output_targets_tsv=(args.output_targets_tsv or (root / "diagnostics" / "reference_gap" / "rcsb_exact_sequence_probe_latest_targets.tsv")).resolve(),
+            output_candidates_tsv=(args.output_candidates_tsv or (root / "diagnostics" / "reference_gap" / "rcsb_exact_sequence_probe_latest_candidates.tsv")).resolve(),
+            blocker_classes=split_csv_args(args.blocker_class),
+            limit=args.limit,
+            max_hits=args.max_hits,
+            identity_cutoff=args.identity_cutoff,
         )
         print_json(summary)
         return 0

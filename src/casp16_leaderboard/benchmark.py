@@ -31,6 +31,9 @@ SERVER_ALIASFIX_BENCHMARK_VERSION = "2"
 SERVER_REFMAP_BENCHMARK_NAME = "casp16_server_protein_v3_refmap"
 SERVER_REFMAP_BENCHMARK_VERSION = "3"
 RCSB_MMCIF_URL = "https://files.rcsb.org/download/{pdb_id}.cif"
+RCSB_SEARCH_URL = "https://search.rcsb.org/rcsbsearch/v2/query"
+RCSB_ENTRY_URL = "https://data.rcsb.org/rest/v1/core/entry/{pdb_id}"
+RCSB_POLYMER_ENTITY_URL = "https://data.rcsb.org/rest/v1/core/polymer_entity/{pdb_id}/{entity_id}"
 PDB_ID_RE = re.compile(r"\b([0-9](?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{3})\b")
 
 TARGET_FIELDS = [
@@ -150,6 +153,44 @@ REFERENCE_CHAIN_AUDIT_FIELDS = [
     "notes",
 ]
 
+RCSB_SEQUENCE_PROBE_TARGET_FIELDS = [
+    "priority",
+    "target_id",
+    "track",
+    "blocker_class",
+    "sequence_lookup_id",
+    "source_alias",
+    "sequence_kind",
+    "length",
+    "hit_count",
+    "hits",
+]
+
+RCSB_SEQUENCE_PROBE_CANDIDATE_FIELDS = [
+    "target_id",
+    "track",
+    "sequence_lookup_id",
+    "source_alias",
+    "sequence_kind",
+    "target_length",
+    "hit",
+    "pdb_id",
+    "entity_id",
+    "entry_title",
+    "release_date",
+    "experimental_method",
+    "entity_description",
+    "asym_ids",
+    "auth_asym_ids",
+    "entity_length",
+    "target_sequence_equals_entity",
+    "target_sequence_contained_in_entity",
+    "entity_sequence_contained_in_target",
+    "candidate_status",
+    "entry_error",
+    "entity_error",
+]
+
 
 def default_benchmark_dir(project_root: Path, benchmark: str = BENCHMARK_NAME) -> Path:
     return project_root / "benchmarks" / benchmark
@@ -236,6 +277,281 @@ def read_reference_map_overlays(reference_map_paths: Sequence[Path] | None) -> t
                 raise ValueError(f"{path}:{index}: accepted reference map row is missing {', '.join(missing_fields)}")
             pdbs_by_target.setdefault(target_id, set()).update(pdb_ids)
     return pdbs_by_target, normalized_rows
+
+
+def generate_rcsb_exact_sequence_probe(
+    *,
+    project_root: Path,
+    worklist_tsv: Path,
+    output_targets_tsv: Path,
+    output_candidates_tsv: Path,
+    benchmark: str = SERVER_ALIASFIX_BENCHMARK_NAME,
+    official_root: Path | None = None,
+    blocker_classes: Sequence[str] | None = None,
+    limit: int | None = None,
+    max_hits: int = 25,
+    identity_cutoff: float = 1.0,
+) -> dict[str, object]:
+    official_root = (official_root or (project_root / "data" / "official")).resolve()
+    sequence_rows = read_tsv(OfficialPaths(official_root).sequences_tsv)
+    sequences_by_target = index_sequences_by_target(sequence_rows)
+    wanted_blockers = {item.strip() for item in blocker_classes or [] if item.strip()}
+
+    target_rows: list[dict[str, object]] = []
+    candidate_rows: list[dict[str, object]] = []
+    selected_rows = _selected_reference_gap_rows(read_tsv(worklist_tsv), wanted_blockers=wanted_blockers, limit=limit)
+    for work_row in selected_rows:
+        target_id = work_row.get("target_id", "").strip().upper()
+        sequence_lookup_id = work_row.get("sequence_lookup_id", "").strip().upper() or target_id
+        source_record = _select_rcsb_probe_sequence(sequences_by_target.get(sequence_lookup_id, []))
+        if source_record is None:
+            target_rows.append(_empty_sequence_probe_target_row(work_row, source_alias=""))
+            continue
+
+        source_alias = sequence_lookup_id
+        sequence = _protein_search_sequence(source_record.get("sequence", ""))
+        if not sequence:
+            target_rows.append(_empty_sequence_probe_target_row(work_row, source_alias=source_alias, source_record=source_record))
+            continue
+
+        try:
+            hits = _rcsb_sequence_search(sequence, max_hits=max_hits, identity_cutoff=identity_cutoff)
+            target_rows.append(
+                {
+                    "priority": work_row.get("priority", ""),
+                    "target_id": target_id,
+                    "track": work_row.get("track", ""),
+                    "blocker_class": work_row.get("blocker_class", ""),
+                    "sequence_lookup_id": sequence_lookup_id,
+                    "source_alias": source_alias,
+                    "sequence_kind": source_record.get("sequence_kind", ""),
+                    "length": len(sequence),
+                    "hit_count": len(hits),
+                    "hits": ",".join(hits) if hits else "no_hits",
+                }
+            )
+        except Exception as exc:  # pragma: no cover - exercised through live probe use.
+            target_rows.append(
+                {
+                    "priority": work_row.get("priority", ""),
+                    "target_id": target_id,
+                    "track": work_row.get("track", ""),
+                    "blocker_class": work_row.get("blocker_class", ""),
+                    "sequence_lookup_id": sequence_lookup_id,
+                    "source_alias": source_alias,
+                    "sequence_kind": source_record.get("sequence_kind", ""),
+                    "length": len(sequence),
+                    "hit_count": 0,
+                    "hits": f"search_error:{exc}",
+                }
+            )
+            continue
+
+        for hit in hits:
+            candidate_rows.append(_rcsb_candidate_row(work_row, source_record, sequence_lookup_id, source_alias, sequence, hit))
+
+    write_tsv(output_targets_tsv, target_rows, RCSB_SEQUENCE_PROBE_TARGET_FIELDS)
+    write_tsv(output_candidates_tsv, candidate_rows, RCSB_SEQUENCE_PROBE_CANDIDATE_FIELDS)
+    return {
+        "benchmark": benchmark,
+        "worklist_tsv": str(worklist_tsv),
+        "output_targets_tsv": str(output_targets_tsv),
+        "output_candidates_tsv": str(output_candidates_tsv),
+        "rows": len(selected_rows),
+        "targets_with_hits": sum(1 for row in target_rows if int(str(row.get("hit_count") or "0")) > 0),
+        "candidate_rows": len(candidate_rows),
+        "full_construct_exact_candidates": sum(1 for row in candidate_rows if str(row.get("candidate_status", "")).startswith("full_construct_exact")),
+        "blocker_classes": sorted(wanted_blockers),
+        "max_hits": max_hits,
+        "identity_cutoff": identity_cutoff,
+    }
+
+
+def _selected_reference_gap_rows(rows: Sequence[Mapping[str, str]], *, wanted_blockers: set[str], limit: int | None) -> list[Mapping[str, str]]:
+    selected: list[Mapping[str, str]] = []
+    for row in rows:
+        if wanted_blockers and row.get("blocker_class", "") not in wanted_blockers:
+            continue
+        selected.append(row)
+        if limit is not None and len(selected) >= limit:
+            break
+    return selected
+
+
+def _select_rcsb_probe_sequence(records: Sequence[Mapping[str, str]]) -> Mapping[str, str] | None:
+    searchable = [record for record in records if _protein_search_sequence(record.get("sequence", ""))]
+    if not searchable:
+        return None
+    return sorted(searchable, key=lambda row: (-len(_protein_search_sequence(row.get("sequence", ""))), row.get("record_id", "")))[0]
+
+
+def _empty_sequence_probe_target_row(
+    work_row: Mapping[str, str],
+    *,
+    source_alias: str,
+    source_record: Mapping[str, str] | None = None,
+) -> dict[str, object]:
+    return {
+        "priority": work_row.get("priority", ""),
+        "target_id": work_row.get("target_id", "").strip().upper(),
+        "track": work_row.get("track", ""),
+        "blocker_class": work_row.get("blocker_class", ""),
+        "sequence_lookup_id": work_row.get("sequence_lookup_id", "").strip().upper() or work_row.get("target_id", "").strip().upper(),
+        "source_alias": source_alias,
+        "sequence_kind": (source_record or {}).get("sequence_kind", ""),
+        "length": 0,
+        "hit_count": 0,
+        "hits": "no_protein_like_sequence",
+    }
+
+
+def _protein_search_sequence(sequence: str) -> str:
+    seq = re.sub(r"\s+", "", sequence.upper())
+    if not seq:
+        return ""
+    nucleic = set("ACGTUN")
+    if set(seq) <= nucleic:
+        return ""
+    return "".join(char if char in set("ABCDEFGHIKLMNPQRSTUVWXYZ") else "X" for char in seq)
+
+
+def _rcsb_sequence_search(sequence: str, *, max_hits: int, identity_cutoff: float) -> list[str]:
+    payload = {
+        "query": {
+            "type": "terminal",
+            "service": "sequence",
+            "parameters": {
+                "evalue_cutoff": 1,
+                "identity_cutoff": identity_cutoff,
+                "target": "pdb_protein_sequence",
+                "value": sequence,
+            },
+        },
+        "return_type": "polymer_entity",
+        "request_options": {
+            "paginate": {"start": 0, "rows": max_hits},
+            "scoring_strategy": "sequence",
+        },
+    }
+    data = _rcsb_json_request(RCSB_SEARCH_URL, payload=payload)
+    hits = []
+    for item in data.get("result_set", []):
+        identifier = str(item.get("identifier", "")).upper()
+        if re.fullmatch(r"[0-9][A-Z0-9]{3}_\d+", identifier):
+            hits.append(identifier)
+    return hits
+
+
+def _rcsb_candidate_row(
+    work_row: Mapping[str, str],
+    source_record: Mapping[str, str],
+    sequence_lookup_id: str,
+    source_alias: str,
+    target_sequence: str,
+    hit: str,
+) -> dict[str, object]:
+    pdb_id, entity_id = hit.split("_", 1)
+    entry_error = ""
+    entity_error = ""
+    entry_data: Mapping[str, object] = {}
+    entity_data: Mapping[str, object] = {}
+    try:
+        entry_data = _rcsb_json_request(RCSB_ENTRY_URL.format(pdb_id=pdb_id))
+    except Exception as exc:  # pragma: no cover - depends on live RCSB failures.
+        entry_error = str(exc)
+    try:
+        entity_data = _rcsb_json_request(RCSB_POLYMER_ENTITY_URL.format(pdb_id=pdb_id, entity_id=entity_id))
+    except Exception as exc:  # pragma: no cover - depends on live RCSB failures.
+        entity_error = str(exc)
+
+    entity_sequence = _protein_search_sequence(_nested_str(entity_data, "entity_poly", "pdbx_seq_one_letter_code_can"))
+    equals_entity = bool(entity_sequence and target_sequence == entity_sequence)
+    target_contained = bool(entity_sequence and target_sequence in entity_sequence)
+    entity_contained = bool(entity_sequence and entity_sequence in target_sequence)
+    return {
+        "target_id": work_row.get("target_id", "").strip().upper(),
+        "track": work_row.get("track", ""),
+        "sequence_lookup_id": sequence_lookup_id,
+        "source_alias": source_alias,
+        "sequence_kind": source_record.get("sequence_kind", ""),
+        "target_length": len(target_sequence),
+        "hit": hit,
+        "pdb_id": pdb_id,
+        "entity_id": entity_id,
+        "entry_title": _nested_str(entry_data, "struct", "title"),
+        "release_date": _nested_str(entry_data, "rcsb_accession_info", "initial_release_date"),
+        "experimental_method": _entry_experimental_method(entry_data),
+        "entity_description": _nested_str(entity_data, "rcsb_polymer_entity", "pdbx_description"),
+        "asym_ids": ",".join(_nested_list(entity_data, "rcsb_polymer_entity_container_identifiers", "asym_ids")),
+        "auth_asym_ids": ",".join(_nested_list(entity_data, "rcsb_polymer_entity_container_identifiers", "auth_asym_ids")),
+        "entity_length": len(entity_sequence) if entity_sequence else "",
+        "target_sequence_equals_entity": str(equals_entity).lower(),
+        "target_sequence_contained_in_entity": str(target_contained).lower(),
+        "entity_sequence_contained_in_target": str(entity_contained).lower(),
+        "candidate_status": _rcsb_candidate_status(equals_entity, target_contained, entity_contained),
+        "entry_error": entry_error or "none",
+        "entity_error": entity_error or "none",
+    }
+
+
+def _rcsb_candidate_status(equals_entity: bool, target_contained: bool, entity_contained: bool) -> str:
+    if equals_entity and target_contained and entity_contained:
+        return "full_construct_exact_candidate_needs_native_provenance_and_mapping"
+    if target_contained:
+        return "partial_or_construct_variant_candidate_do_not_promote_without_mapping"
+    if entity_contained:
+        return "local_sequence_hit_not_full_construct_do_not_promote"
+    return "sequence_search_hit_alignment_unverified"
+
+
+def _rcsb_json_request(url: str, *, payload: Mapping[str, object] | None = None) -> dict[str, object]:
+    data = json.dumps(payload).encode("utf-8") if payload is not None else None
+    headers = {"User-Agent": "casp16-leaderboard/0.1"}
+    if payload is not None:
+        headers["Content-Type"] = "application/json"
+    request = urllib.request.Request(url, data=data, headers=headers)
+    with urllib.request.urlopen(request, timeout=60) as response:
+        text = response.read().decode("utf-8")
+    if not text.strip():
+        return {}
+    return json.loads(text)
+
+
+def _nested_str(data: Mapping[str, object], *keys: str) -> str:
+    value: object = data
+    for key in keys:
+        if not isinstance(value, Mapping):
+            return ""
+        value = value.get(key, "")
+    if value is None:
+        return ""
+    return str(value).replace("\n", " ").strip()
+
+
+def _nested_list(data: Mapping[str, object], *keys: str) -> list[str]:
+    value: object = data
+    for key in keys:
+        if not isinstance(value, Mapping):
+            return []
+        value = value.get(key, [])
+    if not isinstance(value, list):
+        return []
+    return [str(item) for item in value]
+
+
+def _entry_experimental_method(entry_data: Mapping[str, object]) -> str:
+    exptl = entry_data.get("exptl", [])
+    if isinstance(exptl, list) and exptl:
+        first = exptl[0]
+        if isinstance(first, Mapping):
+            return str(first.get("method", "") or "")
+    methods = entry_data.get("rcsb_entry_info", {})
+    if isinstance(methods, Mapping):
+        method_value = methods.get("experimental_method", "")
+        if isinstance(method_value, list):
+            return ",".join(str(item) for item in method_value)
+        return str(method_value or "")
+    return ""
 
 
 def generate_reference_map_review(

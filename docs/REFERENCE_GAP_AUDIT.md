@@ -328,6 +328,24 @@ the first concrete worklist for versioned refmap benchmarks; accepted subsets
 are now materialized in `casp16_server_protein_v3_refmap` and
 `casp16_server_protein_v4_refmap`.
 
+`./casp16 refmap-probe` now makes this discovery step repeatable without
+promoting any reference:
+
+```bash
+./casp16 refmap-probe \
+  --blocker-class prediction_waiting_on_reference \
+  --limit 40 \
+  --max-hits 25 \
+  --output-targets-tsv diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_prediction_waiting.tsv \
+  --output-candidates-tsv diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_candidates.tsv
+```
+
+A live rerun on `2026-07-07 00:13 CDT` found hits for the same 6 rows and the
+same 8 full-construct exact entity candidates. It also found additional
+alignment-unverified `T1278` hits (`13MO..13NC` class), but these are not
+accepted references; they remain diagnostics until native provenance and exact
+construct/domain mapping are explicit.
+
 A small TMscore probe against existing predictions is recorded in
 `diagnostics/reference_gap/candidate_ref_tmscore_probe.tsv`. It confirms the
 candidate references can be used by the local metric tooling, but the current

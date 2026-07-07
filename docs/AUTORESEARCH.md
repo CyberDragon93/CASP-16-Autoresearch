@@ -513,6 +513,9 @@ then improve methods against that harder target set.
   diagnostics, and validation notes
 - `./casp16 qsglob-probe`: targeted QSglob diagnostic command that writes
   `diagnostics/qsglob_probes/*.csv` without touching `leaderboards/*`
+- `./casp16 refmap-probe`: targeted RCSB exact-sequence diagnostic command that
+  writes `diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_*.tsv`
+  without accepting references or touching benchmark/leaderboard artifacts
 - `docs/REFERENCE_GAP_AUDIT.md`: server benchmark reference/input coverage gaps
 - `attack_budgets/`: JSON attack-budget definitions
 - `./casp16 merge-shards`: registers completed seed-sharded attack predictions
@@ -856,6 +859,28 @@ competitive result.
     ready work is to keep MSA reuse complete for deferred P15/P25 shards and to
     prepare target-agnostic input-repair branches; do not open a new GPU run
     merely because a no-reference target looks tempting.
+53. `2026-07-07 00:13 CDT` added `./casp16 refmap-probe`, a guarded RCSB
+    exact-sequence diagnostic for missing-reference worklists. It queries RCSB
+    with `identity_cutoff=1.0`, writes target and candidate TSVs, treats
+    protein-like CASP records safely even when the original parser labeled them
+    `dnaSequence`, and skips true nucleic-acid sequences. It only creates
+    candidate diagnostics; promotion still requires the existing
+    `refmap-review -> refmap-materialize -> refmap-chain-audit -> accepted
+    overlay -> new benchmark version` path.
+54. `2026-07-07 00:13 CDT` live `refmap-probe` on the 40
+    `prediction_waiting_on_reference` rows wrote
+    `diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_prediction_waiting.tsv`
+    and
+    `diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_candidates.tsv`.
+    It found hits for 6 targets and 37 candidate rows, but still only 8
+    full-construct exact entity candidates: the same `T1228V1` and `T1278`
+    classes as before. The extra new `T1278` hits are alignment-unverified
+    local/partial sequence hits, not immediate refmap promotions.
+55. `2026-07-07 00:15 CDT` P14 readiness check: all six shard jobs are still
+    RUNNING on GH200 nodes. `check-shards` sees 112/370 candidates, 258 missing
+    candidates, 0/6 complete shards, and 74 incomplete target tasks. Error
+    scans across shard logs remain clean. Keep waiting for full readiness before
+    merge/score; do not launch P15/P25 while P14 is still unscored.
 
 ## Run Discipline
 
