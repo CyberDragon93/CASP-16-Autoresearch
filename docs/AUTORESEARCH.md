@@ -166,12 +166,12 @@ where methods should change.
   `protenix_confidence_v1`. All six run specs preflight clean with complete
   MSA reuse. They must remain `deferred:await_p14_score` until the live v2 P14
   row has been merged/scored.
-- `2026-07-07 01:33 CDT` P14 gate: the live v2 target-sharded scoreable
+- `2026-07-07 01:49 CDT` P14 gate: the live v2 target-sharded scoreable
   Protenix5 attack remains healthy but not merge-ready. `check-shards` sees
-  160/370 expected candidate CIFs, all six Slurm jobs `812239..812244` are
-  still running, and a log error scan found no traceback/OOM/CUDA/killed
-  signatures. Do not launch P15/P25/O5 before P14 is merged/scored or
-  explicitly abandoned.
+  184/370 expected candidate CIFs, all six Slurm jobs `812239..812244` are
+  still running, and shard plus Slurm log error scans found no
+  traceback/OOM/CUDA/killed signatures. Do not launch P15/P25/O5 before P14 is
+  merged/scored or explicitly abandoned.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and
@@ -902,11 +902,12 @@ competitive result.
     full-construct exact entity candidates: the same `T1228V1` and `T1278`
     classes as before. The extra new `T1278` hits are alignment-unverified
     local/partial sequence hits, not immediate refmap promotions.
-55. `2026-07-07 00:25 CDT` P14 readiness check: all six shard jobs are still
-    RUNNING on GH200 nodes. `check-shards` sees 115/370 candidates, 255 missing
+55. `2026-07-07 01:49 CDT` P14 readiness check: all six shard jobs are still
+    RUNNING on GH200 nodes. `check-shards` sees 184/370 candidates, 186 missing
     candidates, 0/6 complete shards, and 74 incomplete target tasks. Error
-    scans across shard logs remain clean. Keep waiting for full readiness before
-    merge/score; do not launch P15/P25 while P14 is still unscored.
+    scans across shard and Slurm logs remain clean. Keep waiting for full
+    readiness before merge/score; do not launch P15/P25/O5 while P14 is still
+    unscored.
 56. `2026-07-07 00:23 CDT` live `refmap-probe` was expanded from the 40
     `prediction_waiting_on_reference` rows to all 96 v2 missing-reference rows.
     It wrote

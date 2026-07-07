@@ -374,9 +374,9 @@ Useful strategy hypotheses:
 34. Model-selection research: collect confidence/consensus after predictions,
     but keep ranked `first_output_only` unless a new benchmark version is
     created.
-35. P14 live scoreable target-sharded attack: as of `2026-07-07 00:40 CDT`,
-    all six v2 shards are still running, with 115/370 expected candidate CIFs
-    observed and 255 missing. Do not score or compare it yet. The next valid
+35. P14 live scoreable target-sharded attack: as of `2026-07-07 01:49 CDT`,
+    all six v2 shards are still running, with 184/370 expected candidate CIFs
+    observed and 186 missing. Do not score or compare it yet. The next valid
     action is `check-shards`; only when it reports `ready=true` should the run
     be merged, scored, and added to the v2 server leaderboard.
 36. P15/P25 launch gate: the v4 scoreable target shards and the v2 25-seed
