@@ -186,7 +186,8 @@ where `run-next --dry-run` would only inspect one selected run.
    4 unique sequences, now isolated by the rank-ineligible
    `server_v2_domain_sequence_recovery_msa_warmup_seed101` run spec. After that
    warmup completes, refresh the global MSA cache before recreating or launching
-   the full D6a ablation.
+   the full D6a ablation. The unique missing-sequence audit is
+   `diagnostics/msa_cache/domain_sequence_recovery_msa_warmup_unique_missing.tsv`.
 4. The older v1 coverage/stoich attack has a cache-reuse successor,
    `server_attack_protenix_coverage_stoich_msa_reuse_seed101_105`, but its
    preflight reuses only 180/196 exact-sequence protein-chain paths and misses
