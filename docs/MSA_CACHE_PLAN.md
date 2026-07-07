@@ -23,7 +23,8 @@ Preferred run creation path:
 ./casp16 build-msa-cache \
   --benchmark casp16_server_protein_v2_aliasfix \
   --output-tsv data/msa_cache/index.tsv \
-  --materialize-cache
+  --materialize-cache \
+  --incremental
 
 ./casp16 msa-cache-report \
   --benchmark casp16_server_protein_v2_aliasfix \
@@ -39,7 +40,7 @@ Preferred run creation path:
   --input-json <new_inputs.json> \
   --strategy <strategy_name> \
   --use-msa --use-template --use-default-params \
-  --reuse-global-msa-cache \
+  --refresh-global-msa-cache \
   --msa-reuse-require-complete
 ```
 
@@ -48,6 +49,10 @@ Preferred run creation path:
 the cache-reused input, and stores the reuse summary plus source/index hashes in
 `run_spec.json`. This is the default path for queued attack runs because it
 fails before GPU allocation if cache coverage is lower than declared.
+`--refresh-global-msa-cache` first rebuilds `data/msa_cache/index.tsv`
+incrementally, materializes any newly discovered A3M files into
+`data/msa_cache/store/`, writes `data/msa_cache/manifest.json`, and then uses
+that refreshed global index for the run spec.
 
 `check-msa-cache` is the read-only preflight for planning and queue notes. It
 uses the same exact-sequence matcher as `run-spec`, writes a diagnostics TSV,
@@ -83,6 +88,10 @@ When `--materialize-cache` is passed, the command also copies paired/unpaired
 MSA files into an ignored content-addressed local store under
 `data/msa_cache/store/` and points `data/msa_cache/index.tsv` at those stable
 paths. The index then survives cleanup of old source run prediction directories.
+When `--incremental` is passed, usable rows from the existing index are merged
+before newly discovered source JSONs are added. This prevents a refresh from
+dropping older materialized sequences just because their original run directory
+was cleaned or is no longer part of the discovery filter.
 The cache manifest is written to `data/msa_cache/manifest.json` with the index
 hash and materialization summary; both files are derived local artifacts and
 remain ignored by Git.
@@ -131,6 +140,9 @@ moving or deleting source run directories.
   multi-seed or sharded run specs; if it reports fresh MSA chains, explicitly
   decide whether the new sequences are intended strategy changes or avoidable
   duplicate search.
+- Prefer `run-spec --refresh-global-msa-cache` for attack runs so the global
+  exact-sequence index is refreshed from completed/running MSA artifacts before
+  reuse is locked into `runs/<run_id>/inputs/msa_reuse.tsv`.
 - Report `reused`, `kept_existing`, and `missing_source` counts in strategy
   notes before launching a cache-reused run.
 - Use a coverage guard (`--require-complete` or `--min-reuse-fraction`) for
@@ -179,10 +191,11 @@ moving or deleting source run directories.
    sources change, run `check-msa-cache`, create the run spec with
    `--msa-reuse-require-complete` or a declared `--msa-reuse-min-fraction`, and
    include the JSON summary in the job notes.
-3. Use `--materialize-cache` before launching multi-shard attack budgets. This
-   already promotes the cache to a content-addressed local store under ignored
-   scratch storage, keyed by sequence SHA256 and MSA file SHA256, so the index
-   points at stable cache paths instead of source run paths.
+3. Use `--materialize-cache --incremental` before launching multi-shard attack
+   budgets, or use `run-spec --refresh-global-msa-cache` when creating the run.
+   This promotes the cache to a content-addressed local store under ignored
+   scratch storage, keyed by sequence SHA256 and MSA file SHA256, while keeping
+   older materialized rows available for later strategy variants.
 4. If Protenix exposes a clean MSA-only mode, split expensive MSA generation
    from model inference. Until then, `inputs-update-msa.json` remains the
    practical boundary between search cost and inference cost.

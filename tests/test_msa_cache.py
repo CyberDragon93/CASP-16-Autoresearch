@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from casp16_leaderboard.cli import discover_msa_source_jsons, resolve_msa_cache_indexes, resolve_msa_source_jsons, validate_msa_reuse_summary
+from casp16_leaderboard.cli import discover_msa_source_jsons, main, resolve_msa_cache_indexes, resolve_msa_source_jsons, validate_msa_reuse_summary
 from casp16_leaderboard.msa_cache import audit_msa_reuse_report, build_msa_cache_index, plan_msa_reuse, reuse_msa_paths, summarize_msa_cache_indexes
 
 
@@ -322,6 +322,192 @@ def test_materialized_msa_cache_survives_source_run_cleanup(tmp_path: Path) -> N
     assert reuse_summary["reused"] == 1
     chain = json.loads(output_json.read_text(encoding="utf-8"))[0]["sequences"][0]["proteinChain"]
     assert chain["pairedMsaPath"].startswith(str(store_dir))
+
+
+def test_incremental_materialized_cache_preserves_existing_records(tmp_path: Path) -> None:
+    store_dir = tmp_path / "data" / "msa_cache" / "store"
+    index_tsv = tmp_path / "data" / "msa_cache" / "index.tsv"
+
+    source_a_msa = tmp_path / "runs" / "source_a" / "predictions" / "protenix-v2" / "T1" / "msa" / "0"
+    source_a_msa.mkdir(parents=True)
+    source_a_unpaired = source_a_msa / "non_pairing.a3m"
+    source_a_unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_a = tmp_path / "runs" / "source_a" / "inputs" / "inputs-update-msa.json"
+    source_a.parent.mkdir(parents=True)
+    source_a.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"], "unpairedMsaPath": str(source_a_unpaired)}}
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    first_summary = build_msa_cache_index(source_jsons=[source_a], output_tsv=index_tsv, materialize_store_dir=store_dir)
+    assert first_summary["total_sequence_records"] == 1
+
+    source_a.unlink()
+    source_a_unpaired.unlink()
+    source_b_msa = tmp_path / "runs" / "source_b" / "predictions" / "protenix-v2" / "T2" / "msa" / "0"
+    source_b_msa.mkdir(parents=True)
+    source_b_unpaired = source_b_msa / "non_pairing.a3m"
+    source_b_unpaired.write_text(">q\nBBBB\n", encoding="utf-8")
+    source_b = tmp_path / "runs" / "source_b" / "inputs" / "inputs-update-msa.json"
+    source_b.parent.mkdir(parents=True)
+    source_b.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T2",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "BBBB", "count": 1, "id": ["A"], "unpairedMsaPath": str(source_b_unpaired)}}
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    second_summary = build_msa_cache_index(
+        source_jsons=[source_b],
+        output_tsv=index_tsv,
+        materialize_store_dir=store_dir,
+        existing_index_paths=[index_tsv],
+    )
+
+    assert second_summary["existing_index_records"] == 1
+    assert second_summary["records_added_from_sources"] == 1
+    assert second_summary["total_sequence_records"] == 2
+
+    input_json = tmp_path / "new_inputs.json"
+    input_json.write_text(
+        json.dumps(
+            [
+                {"name": "old_sequence", "sequences": [{"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}}]},
+                {"name": "new_sequence", "sequences": [{"proteinChain": {"sequence": "BBBB", "count": 1, "id": ["A"]}}]},
+            ]
+        ),
+        encoding="utf-8",
+    )
+    reuse_summary = reuse_msa_paths(
+        input_json=input_json,
+        msa_cache_indexes=[index_tsv],
+        output_json=tmp_path / "new_inputs_msa.json",
+        report_tsv=tmp_path / "msa_reuse.tsv",
+    )
+
+    assert reuse_summary["reused"] == 2
+    assert reuse_summary["missing_source"] == 0
+
+
+def test_run_spec_can_refresh_and_use_global_msa_cache(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    input_json = tmp_path / "inputs.json"
+    input_manifest = tmp_path / "input_manifest.tsv"
+    input_json.write_text(
+        json.dumps([{"name": "T1", "sequences": [{"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}}]}]) + "\n",
+        encoding="utf-8",
+    )
+    input_manifest.write_text("target_id\tstatus\nT1\tok\n", encoding="utf-8")
+    protenix_bin = tmp_path / "protenix"
+    protenix_bin.write_text("#!/usr/bin/env bash\necho protenix-test\n", encoding="utf-8")
+    protenix_bin.chmod(0o755)
+
+    msa_dir = tmp_path / "runs" / "source" / "predictions" / "protenix-v2" / "T1" / "msa" / "0"
+    msa_dir.mkdir(parents=True)
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_json = tmp_path / "runs" / "source" / "inputs" / "inputs-update-msa.json"
+    source_json.parent.mkdir(parents=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"], "unpairedMsaPath": str(unpaired)}}
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "runs" / "source" / "run_spec.json").write_text(
+        json.dumps({"run_id": "source", "backend": "protenix", "use_msa": True}) + "\n",
+        encoding="utf-8",
+    )
+
+    exit_code = main(
+        [
+            "--root",
+            str(tmp_path),
+            "run-spec",
+            "--run-id",
+            "cached",
+            "--input-json",
+            str(input_json),
+            "--input-manifest",
+            str(input_manifest),
+            "--protenix-bin",
+            str(protenix_bin),
+            "--protenix-root-dir",
+            str(tmp_path / "protenix_data"),
+            "--use-msa",
+            "--refresh-global-msa-cache",
+            "--msa-reuse-require-complete",
+        ]
+    )
+    capsys.readouterr()
+
+    assert exit_code == 0
+    global_index = tmp_path / "data" / "msa_cache" / "index.tsv"
+    assert global_index.exists()
+    spec = json.loads((tmp_path / "runs" / "cached" / "run_spec.json").read_text(encoding="utf-8"))
+    assert spec["msa_reuse"]["reused"] == 1
+    assert spec["msa_reuse"]["msa_cache_index_hashes"][0]["path"] == str(global_index.resolve())
+    runtime_input = Path(spec["input_json"])
+    chain = json.loads(runtime_input.read_text(encoding="utf-8"))[0]["sequences"][0]["proteinChain"]
+    assert chain["unpairedMsaPath"].startswith(str(tmp_path / "data" / "msa_cache" / "store"))
+
+
+def test_check_msa_cache_default_report_label_uses_input_path(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    msa_dir = tmp_path / "msa"
+    msa_dir.mkdir()
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(">q\nAAAA\n", encoding="utf-8")
+    source_json = tmp_path / "runs" / "source" / "inputs" / "inputs-update-msa.json"
+    source_json.parent.mkdir(parents=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1",
+                    "sequences": [
+                        {"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"], "unpairedMsaPath": str(unpaired)}}
+                    ],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    for label in ("strategy_a", "strategy_b"):
+        input_json = tmp_path / "strategies" / label / "inputs.json"
+        input_json.parent.mkdir(parents=True)
+        input_json.write_text(
+            json.dumps([{"name": "T1", "sequences": [{"proteinChain": {"sequence": "AAAA", "count": 1, "id": ["A"]}}]}]) + "\n",
+            encoding="utf-8",
+        )
+        assert main(["--root", str(tmp_path), "check-msa-cache", "--input-json", str(input_json), "--msa-source-json", str(source_json)]) == 0
+    capsys.readouterr()
+
+    assert (tmp_path / "diagnostics" / "msa_cache" / "strategies_strategy_a_inputs.tsv").exists()
+    assert (tmp_path / "diagnostics" / "msa_cache" / "strategies_strategy_b_inputs.tsv").exists()
 
 
 def test_index_size_mismatch_is_treated_as_stale(tmp_path: Path) -> None:

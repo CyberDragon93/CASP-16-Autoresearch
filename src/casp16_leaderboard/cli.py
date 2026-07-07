@@ -346,6 +346,8 @@ def build_parser() -> argparse.ArgumentParser:
     build_msa_cache.add_argument("--output-tsv", type=Path, default=None, help="Defaults to <root>/data/msa_cache/index.tsv.")
     build_msa_cache.add_argument("--materialize-cache", action="store_true", help="Copy MSA files into a stable content-addressed local store before writing the index.")
     build_msa_cache.add_argument("--store-dir", type=Path, default=None, help="Defaults to <root>/data/msa_cache/store when --materialize-cache is set.")
+    build_msa_cache.add_argument("--incremental", action="store_true", help="Merge usable rows from the existing cache index before adding newly discovered MSA sources.")
+    build_msa_cache.add_argument("--existing-index", type=Path, action="append", default=None, help="Existing cache index to merge; defaults to --output-tsv when --incremental is set and it exists.")
     build_msa_cache.add_argument("--manifest-json", type=Path, default=None, help="Defaults to <output-tsv parent>/manifest.json.")
     build_msa_cache.add_argument("--min-records", type=int, default=1, help="Fail if the built index has fewer usable sequence records.")
 
@@ -426,6 +428,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec.add_argument("--msa-reuse-require-complete", action="store_true", help="Fail run-spec unless every protein chain receives or already has usable MSA paths.")
     run_spec.add_argument("--msa-reuse-min-fraction", type=float, default=None, help="Fail run-spec unless MSA coverage is at least this fraction.")
     run_spec.add_argument("--overwrite-existing-msa", action="store_true", help="Replace existing MSA paths when an exact-sequence cache match exists.")
+    run_spec.add_argument("--refresh-global-msa-cache", action="store_true", help="Before creating the run spec, incrementally rebuild data/msa_cache/index.tsv with materialized MSA files and use it.")
 
     register_existing = subparsers.add_parser("register-existing-run", help="Register an existing prediction directory for diagnostic benchmark scoring.")
     register_existing.add_argument("--run-id", required=True)
@@ -569,6 +572,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.command == "build-msa-cache":
+        output_tsv = (args.output_tsv or (root / "data" / "msa_cache" / "index.tsv")).resolve()
+        existing_indexes = [path.resolve() for path in (args.existing_index or [])]
+        if args.incremental and not existing_indexes and output_tsv.exists():
+            existing_indexes = [output_tsv]
+        missing_existing = [str(path) for path in existing_indexes if not path.exists()]
+        if missing_existing:
+            raise FileNotFoundError(f"existing MSA cache index not found: {', '.join(missing_existing)}")
         should_discover_sources = bool(args.run_id or args.benchmark or not args.msa_source_json)
         discovered_sources = (
             discover_msa_source_jsons(root, run_ids=args.run_id, benchmarks=args.benchmark)
@@ -577,17 +587,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         explicit_sources = [path.resolve() for path in (args.msa_source_json or [])]
         sources = unique_paths([*discovered_sources, *explicit_sources])
-        if not sources:
-            raise ValueError("no Protenix MSA source JSONs found; provide --run-id, --benchmark, or --msa-source-json")
+        if not sources and not existing_indexes:
+            raise ValueError("no Protenix MSA source JSONs found; provide --run-id, --benchmark, --msa-source-json, or --incremental with an existing index")
         missing = [str(path) for path in sources if not path.exists()]
         if missing:
             raise FileNotFoundError(f"MSA source JSON not found: {', '.join(missing)}")
-        output_tsv = (args.output_tsv or (root / "data" / "msa_cache" / "index.tsv")).resolve()
         materialize_store_dir = (args.store_dir or default_msa_cache_store(root)).resolve() if args.materialize_cache else None
         summary = build_msa_cache_index(
             source_jsons=sources,
             output_tsv=output_tsv,
             materialize_store_dir=materialize_store_dir,
+            existing_index_paths=existing_indexes,
         )
         if int(summary.get("source_sequence_records", 0) or 0) < args.min_records:
             raise RuntimeError(
@@ -637,7 +647,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         msa_cache_indexes = resolve_msa_cache_indexes(root, args.cache_index, default_if_available=True)
         if not msa_source_jsons and not msa_cache_indexes:
             raise ValueError("provide at least one --cache-index, --msa-source-json, or --source-run-id")
-        report_name = args.benchmark or input_json.stem
+        report_name = args.benchmark or input_json_label(root, input_json)
         report_tsv = (args.report_tsv or (root / "diagnostics" / "msa_cache" / f"{report_name}.tsv")).resolve()
         summary = plan_msa_reuse(
             input_json=input_json,
@@ -768,6 +778,23 @@ def main(argv: Sequence[str] | None = None) -> int:
             if (args.msa_source_json or args.msa_source_run_id)
             else []
         )
+        cache_refresh_summary = None
+        if args.refresh_global_msa_cache:
+            global_index = default_msa_cache_index(root).resolve()
+            existing_indexes = [global_index] if global_index.exists() else []
+            discovered_sources = discover_msa_source_jsons(root, run_ids=None, benchmarks=[args.benchmark] if args.benchmark else None)
+            if not discovered_sources and not existing_indexes:
+                raise ValueError("cannot refresh global MSA cache: no existing index or Protenix MSA source JSONs found")
+            cache_refresh_summary = build_msa_cache_index(
+                source_jsons=discovered_sources,
+                output_tsv=global_index,
+                materialize_store_dir=default_msa_cache_store(root).resolve(),
+                existing_index_paths=existing_indexes,
+            )
+            manifest_json = (global_index.parent / "manifest.json").resolve()
+            cache_refresh_summary["manifest_json"] = str(manifest_json)
+            cache_refresh_summary["index_sha256"] = write_msa_cache_manifest(manifest_json, cache_refresh_summary)["index_sha256"]
+            args.reuse_global_msa_cache = True
         msa_cache_indexes = resolve_msa_cache_indexes(
             root,
             args.msa_cache_index,
@@ -812,6 +839,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             msa_reuse_min_fraction=args.msa_reuse_min_fraction,
             msa_reuse_overwrite_existing=args.overwrite_existing_msa,
         )
+        if cache_refresh_summary is not None:
+            summary["msa_cache_refresh"] = cache_refresh_summary
         print_json(summary)
         return 0
 

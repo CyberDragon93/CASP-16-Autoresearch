@@ -72,9 +72,9 @@ Allowed during strategy design and prediction:
   index, with a recorded reuse report, `check-msa-cache`/`run-next --dry-run`
   preflight, and a coverage guard for queued attack runs
 - for multi-seed or sharded Protenix runs, refresh `data/msa_cache/index.tsv`
-  with `--materialize-cache`, create run specs with `--reuse-global-msa-cache`,
-  and use `--msa-reuse-require-complete` or a declared minimum reuse fraction
-  before launch
+  with `--materialize-cache --incremental` or create run specs with
+  `--refresh-global-msa-cache`, and use `--msa-reuse-require-complete` or a
+  declared minimum reuse fraction before launch
 - before queuing a new MSA-heavy strategy or shard, run `msa-cache-report` on
   its input JSON and record whether fresh MSA chains are intended strategy
   changes or avoidable duplicate search

@@ -313,8 +313,17 @@ def build_msa_cache_index(
     source_jsons: Sequence[Path],
     output_tsv: Path,
     materialize_store_dir: Path | None = None,
+    existing_index_paths: Sequence[Path] = (),
 ) -> dict[str, object]:
-    records = collect_msa_records([path.resolve() for path in source_jsons])
+    source_jsons = [path.resolve() for path in source_jsons]
+    existing_index_paths = [path.resolve() for path in existing_index_paths]
+    existing_records, existing_stats = load_msa_cache_records(existing_index_paths) if existing_index_paths else ({}, {})
+    source_records = collect_msa_records(source_jsons)
+    records: dict[str, MsaRecord] = {}
+    for record in existing_records.values():
+        _remember_record(records, record)
+    for record in source_records.values():
+        _remember_record(records, record)
     materialize_summary: dict[str, object] = {}
     if materialize_store_dir is not None:
         records, materialize_summary = materialize_msa_records(records, materialize_store_dir.resolve())
@@ -325,11 +334,21 @@ def build_msa_cache_index(
         writer = csv.DictWriter(handle, fieldnames=MSA_CACHE_INDEX_FIELDS, delimiter="\t", lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
+    existing_keys = set(existing_records)
+    source_keys = set(source_records)
     return {
         "output_tsv": str(output_tsv),
         "msa_source_jsons": [str(path) for path in source_jsons],
         "source_json_count": len(source_jsons),
+        "new_source_sequence_records": len(source_records),
         "source_sequence_records": len(records),
+        "total_sequence_records": len(records),
+        "existing_index_paths": [str(path) for path in existing_index_paths],
+        "existing_index_records": len(existing_records),
+        "existing_index_rows": existing_stats.get("cache_index_rows", 0),
+        "existing_index_stale_rows": existing_stats.get("cache_index_stale_rows", 0),
+        "records_added_from_sources": len(source_keys - existing_keys),
+        "records_overlap_with_existing": len(source_keys & existing_keys),
         "records_with_paired_msa": sum(1 for record in records.values() if record.paired_msa_path),
         "records_with_unpaired_msa": sum(1 for record in records.values() if record.unpaired_msa_path),
         **materialize_summary,

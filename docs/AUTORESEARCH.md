@@ -111,7 +111,8 @@ where methods should change.
   exact-sequence MSA reuse from `data/msa_cache/index.tsv`. It is not queued
   yet; use it only if the running scoreable `protenix5` row is worth scaling.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
-  materialized local A3M storage under ignored `data/msa_cache/store/`, and
+  incremental materialized local A3M storage under ignored
+  `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and
   `run-next` stale-path auditing. The scoreable v2 attack input checks at
   141/141 reusable protein chains, 0 missing sources, and 0 stale cached paths
   against `data/msa_cache/index.tsv`; future MSA-heavy shards should pass this
