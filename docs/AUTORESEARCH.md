@@ -2014,6 +2014,20 @@ competitive result.
      `changed_target_count=12`, and no failures. Validation:
      `python -m pytest tests/test_decisions.py` passed 20 tests, and full
      `python -m pytest` passed 183 tests in the protein env.
+140. `2026-07-07 16:43 CDT` P25 remains a healthy incomplete run:
+     `ready=false`, `1515` observed candidates, `551` shard-level missing
+     candidates, `488` full 25-candidate slots missing, and `25/79`
+     full-budget tasks complete. Slurm remains 19 P25 GH jobs running and 5
+     pending behind `QOSMaxJobsPerUserLimit`; the error scan is clean, and
+     latest predictions reached 16:38 CDT. Added a D6a variant guard to branch
+     readiness: the domain-sequence-recovery branch must remain a single-run,
+     single-seed, single-candidate `dev_fixed` ablation with real MSA, default
+     Protenix params, first-output selection, and the four predeclared
+     domain-input repair targets (`T1228V1`, `T1239V1`, `T1276`, `T2276`) in
+     its source input. The real repo audit reports D6a
+     `variant_guard.status=ok`, `target_count=169`, and no failures.
+     Validation: `python -m pytest tests/test_decisions.py` passed 21 tests,
+     and full `python -m pytest` passed 184 tests in the protein env.
 
 ## Run Discipline
 

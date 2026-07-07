@@ -6,6 +6,7 @@ import json
 from casp16_leaderboard.cli import main
 from casp16_leaderboard.decisions import (
     ANTIBODY_FV_TARGETS,
+    D6A_INPUT_REPAIR_TARGETS,
     D6A_RUN_IDS,
     O5B_RUN_IDS,
     P27B_RUN_IDS,
@@ -742,6 +743,12 @@ def test_post_p25_branch_readiness_audits_prepared_branches_without_launching(tm
     run_id = D6A_RUN_IDS[0]
     run_dir = tmp_path / "runs" / run_id
     run_dir.mkdir(parents=True)
+    source_input = tmp_path / "strategies" / "yang_domain_sequence_recovery_oligo_nofail_v1" / benchmark / "inputs.json"
+    source_input.parent.mkdir(parents=True, exist_ok=True)
+    source_input.write_text(
+        json.dumps([protein_job(target, "DOMAIN") for target in sorted(D6A_INPUT_REPAIR_TARGETS)]) + "\n",
+        encoding="utf-8",
+    )
     (run_dir / "run_spec.json").write_text(
         json.dumps(
             {
@@ -758,6 +765,9 @@ def test_post_p25_branch_readiness_audits_prepared_branches_without_launching(tm
                 "rank_eligible": True,
                 "selected_model_policy": "first_output_only",
                 "use_msa": True,
+                "use_default_params": True,
+                "source_input_json": str(source_input),
+                "references_sha256": "reference-sha",
                 "input_json": str(run_dir / "inputs" / "inputs.msa-reuse.json"),
                 "output_dir": str(run_dir / "predictions" / "protenix-v2"),
                 "stdout_path": str(run_dir / "stdout.txt"),
@@ -825,10 +835,90 @@ def test_post_p25_branch_readiness_audits_prepared_branches_without_launching(tm
     branches = {branch["branch"]: branch for branch in audit["branches"]}
     assert audit["status"] == "ok"
     assert branches["d6a_domain_sequence_recovery"]["launch_ready_after_p25_selection"] is True
+    assert branches["d6a_domain_sequence_recovery"]["variant_guard"]["status"] == "ok"
+    assert branches["d6a_domain_sequence_recovery"]["variant_guard"]["target_count"] == 4
     assert branches["d6a_domain_sequence_recovery"]["preflight"]["result_counts"] == {"ok": 1}
     assert branches["d6a_domain_sequence_recovery"]["status_counts"] == {"deferred:await_p25_score": 1}
     assert branches["p27b_model_config_diversity"]["launch_ready_after_p25_selection"] is False
     assert branches["p27b_model_config_diversity"]["missing_run_specs"]
+
+
+def write_d6a_variant_readiness_fixture(tmp_path, *, candidate_count=1) -> None:
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    run_id = D6A_RUN_IDS[0]
+    run_dir = tmp_path / "runs" / run_id
+    run_dir.mkdir(parents=True)
+    source_input = tmp_path / "strategies" / "yang_domain_sequence_recovery_oligo_nofail_v1" / benchmark / "inputs.json"
+    source_input.parent.mkdir(parents=True, exist_ok=True)
+    source_input.write_text(
+        json.dumps([protein_job(target, "DOMAIN") for target in sorted(D6A_INPUT_REPAIR_TARGETS)]) + "\n",
+        encoding="utf-8",
+    )
+    (run_dir / "run_spec.json").write_text(
+        json.dumps(
+            {
+                "run_id": run_id,
+                "benchmark_name": benchmark,
+                "backend": "protenix",
+                "strategy": "yang_domain_sequence_recovery_oligo_nofail_v1_after_warmup",
+                "model_name": "protenix-v2",
+                "seeds": "101",
+                "sample": 1,
+                "candidate_count": candidate_count,
+                "budget_tier": "dev_fixed",
+                "fixed_budget": True,
+                "rank_eligible": True,
+                "selected_model_policy": "first_output_only",
+                "use_msa": True,
+                "use_default_params": True,
+                "source_input_json": str(source_input),
+                "references_sha256": "reference-sha",
+                "input_json": str(run_dir / "inputs" / "inputs.msa-reuse.json"),
+                "output_dir": str(run_dir / "predictions" / "protenix-v2"),
+                "stdout_path": str(run_dir / "stdout.txt"),
+                "stderr_path": str(run_dir / "stderr.txt"),
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    write_tsv(
+        tmp_path / "runs" / "status.tsv",
+        [
+            {
+                "timestamp": "2026-07-07T19:00:00+00:00",
+                "benchmark": benchmark,
+                "run_id": run_id,
+                "status": "deferred:await_p25_score",
+                "message": "fixture",
+            }
+        ],
+        ["timestamp", "benchmark", "run_id", "status", "message"],
+    )
+    write_tsv(
+        tmp_path / "diagnostics" / "msa_cache" / "domain_sequence_recovery_after_warmup_preflight.tsv",
+        [
+            {
+                "run_id": run_id,
+                "benchmark": benchmark,
+                "status": "deferred:await_p25_score",
+                "result": "ok",
+                "message": "",
+            }
+        ],
+        ["run_id", "benchmark", "status", "result", "message"],
+    )
+
+
+def test_post_p25_branch_readiness_blocks_d6a_candidate_budget_drift(tmp_path) -> None:
+    write_d6a_variant_readiness_fixture(tmp_path, candidate_count=5)
+
+    audit = post_p25_branch_readiness(tmp_path)
+
+    d6a = {branch["branch"]: branch for branch in audit["branches"]}["d6a_domain_sequence_recovery"]
+    assert d6a["launch_ready_after_p25_selection"] is False
+    assert d6a["variant_guard"]["status"] == "blocked"
+    assert any("unexpected_candidate_count" in failure for failure in d6a["variant_guard"]["failures"])
 
 
 def write_p27b_variant_readiness_fixture(tmp_path, *, break_default_params=False) -> None:

@@ -450,6 +450,63 @@ def o5b_variant_guard(project_root: Path, specs_by_id: Mapping[str, Mapping[str,
     }
 
 
+def d6a_variant_guard(project_root: Path, specs_by_id: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+    """Validate that D6a stays a single-seed domain input-repair ablation."""
+
+    root = project_root.resolve()
+    failures: list[str] = []
+    run_id = D6A_RUN_IDS[0]
+    spec = specs_by_id.get(run_id)
+    source_jobs: dict[str, Any] = {}
+    if spec is None:
+        failures.append(f"{run_id}:missing_run_spec")
+    else:
+        source = _normalized_spec_path(root, spec, "source_input_json")
+        if not source:
+            failures.append(f"{run_id}:missing_source_input_json")
+        elif not Path(source).exists():
+            failures.append(f"{run_id}:source_input_json_missing_on_disk")
+        source_jobs = _load_input_jobs(source)
+
+        if str(spec.get("benchmark_name", "")) != "casp16_server_protein_v2_aliasfix":
+            failures.append(f"{run_id}:unexpected_benchmark")
+        if str(spec.get("backend", "")) != "protenix":
+            failures.append(f"{run_id}:unexpected_backend")
+        if "yang_domain_sequence_recovery_oligo_nofail_v1" not in str(spec.get("strategy", "")):
+            failures.append(f"{run_id}:unexpected_strategy")
+        if str(spec.get("selected_model_policy", "") or "first_output_only") != "first_output_only":
+            failures.append(f"{run_id}:unexpected_selected_model_policy")
+        if not spec_bool(spec.get("use_msa"), default=False):
+            failures.append(f"{run_id}:msa_disabled")
+        if not spec_bool(spec.get("use_default_params"), default=False):
+            failures.append(f"{run_id}:default_params_not_enabled")
+        if str(spec.get("seeds", "")) != "101":
+            failures.append(f"{run_id}:unexpected_seeds")
+        if as_int(spec.get("sample"), default=0) != 1:
+            failures.append(f"{run_id}:unexpected_sample")
+        if as_int(spec.get("candidate_count"), default=0) != 1:
+            failures.append(f"{run_id}:unexpected_candidate_count")
+        if str(spec.get("budget_tier", "")) != "dev_fixed":
+            failures.append(f"{run_id}:unexpected_budget_tier")
+        if not spec_bool(spec.get("rank_eligible"), default=False):
+            failures.append(f"{run_id}:rank_eligible_not_true")
+        if not str(spec.get("references_sha256", "") or ""):
+            failures.append(f"{run_id}:missing_references_sha256")
+
+    missing_targets = sorted(D6A_INPUT_REPAIR_TARGETS - set(source_jobs))
+    if missing_targets:
+        failures.append(f"missing_d6a_input_repair_targets:{','.join(missing_targets)}")
+
+    return {
+        "status": "ok" if not failures else "blocked",
+        "checked_run_ids": len(D6A_RUN_IDS),
+        "target_count": len(source_jobs),
+        "required_input_repair_targets": sorted(D6A_INPUT_REPAIR_TARGETS),
+        "failures": failures[:25],
+        "note": "D6a must stay a single-seed dev-fixed domain input-repair ablation; this guard reads run specs and inputs only.",
+    }
+
+
 POST_P25_BRANCH_READINESS = (
     {
         "branch": "p27b_model_config_diversity",
@@ -504,6 +561,8 @@ def post_p25_branch_readiness(project_root: Path) -> dict[str, Any]:
         variant_guard: dict[str, Any] = {}
         if config["branch"] == "p27b_model_config_diversity":
             variant_guard = p27b_variant_guard(root, specs_by_id)
+        elif config["branch"] == "d6a_domain_sequence_recovery":
+            variant_guard = d6a_variant_guard(root, specs_by_id)
         elif config["branch"] == "o5b_antibody_fv":
             variant_guard = o5b_variant_guard(root, specs_by_id)
         variant_guard_ok = not variant_guard or variant_guard.get("status") == "ok"
