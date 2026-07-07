@@ -235,9 +235,12 @@ Useful strategy hypotheses:
     size-first phase-alias row as a risky O5 branch. It promotes the Fv
     target-lab signal into a sequence-only, predeclared scoreable attack input:
     12 H targets changed, 24 antibody chains trimmed, 74 jobs retained, and
-    141/141 MSA reuse with the target-lab Fv source. Judge it only by fixed-set
-    server scoring after prediction; target-lab DockQ positives are motivation,
-    not leaderboard evidence.
+    141/141 MSA reuse with the target-lab Fv source. The branch is now also
+    split into six target-balanced run specs under
+    `target_shards_scoreable_antibody_fv_size_balanced_v1`, all marked
+    `deferred:base_target_shards_first` and rank-ineligible until explicitly
+    merged. Judge it only by fixed-set server scoring after prediction;
+    target-lab DockQ positives are motivation, not leaderboard evidence.
 19. `target_lab/h1258_interaction_window_v1`: generated a target-lab-only
     public interaction-window input with LRRK2 residues 861-1014 and 14-3-3
     A1B2 stoichiometry. Total length is 648 tokens.

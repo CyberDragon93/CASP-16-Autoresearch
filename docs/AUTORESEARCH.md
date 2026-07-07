@@ -668,6 +668,17 @@ competitive result.
     target-shard status is compatible but not ready: `0/370` candidates across
     74 tasks, recorded in
     `diagnostics/score_probes/target_shards_scoreable_size_balanced_readiness.tsv`.
+34. `2026-07-06 21:13 CDT` prepared the O5 antibody-Fv branch as target
+    shards without submitting more GPU work. The source strategy
+    `scoreable_antibody_fv_oligo_size_first_phase_alias_v1` is now split under
+    `strategies/target_shards_scoreable_antibody_fv_size_balanced_v1/casp16_server_protein_v2_aliasfix/`.
+    Six run specs
+    `server_v2_attack_scoreable_antibody_fv_size_balanced_shard01..06_msa_reuse_protenix5_seed101_105`
+    declare the same five-candidate `protenix_confidence_v1` budget, are
+    `rank_eligible=false`, have complete MSA reuse (`141/141`, 0 missing), and
+    are append-only marked `deferred:base_target_shards_first`. This keeps the
+    O5 winner-recipe branch executable while preserving queue priority for the
+    base target-sharded scoreable attack.
 
 ## Run Discipline
 

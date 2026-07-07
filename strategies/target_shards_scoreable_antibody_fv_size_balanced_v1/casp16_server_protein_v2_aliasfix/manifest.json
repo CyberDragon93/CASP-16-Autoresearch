@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-07-07T02:13:24.499931+00:00",
+  "max_tasks_per_shard": null,
+  "max_token_sum": null,
+  "order": "size-desc",
+  "shard_count": 6,
+  "shard_prefix": "scoreable_antibody_fv_size_balanced",
+  "shard_tasks_tsv": "/scratch/10992/liaorunlong93/casp16-leaderboard/strategies/target_shards_scoreable_antibody_fv_size_balanced_v1/casp16_server_protein_v2_aliasfix/shard_tasks.tsv",
+  "shards_tsv": "/scratch/10992/liaorunlong93/casp16-leaderboard/strategies/target_shards_scoreable_antibody_fv_size_balanced_v1/casp16_server_protein_v2_aliasfix/shards.tsv",
+  "source_input_json": "/scratch/10992/liaorunlong93/casp16-leaderboard/strategies/scoreable_antibody_fv_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json",
+  "source_input_sha256": "285c9e088c0d91bb7dd80920637519a2e3fe103ab28c190a452ee6eb9492bd4c",
+  "task_count": 74,
+  "token_estimate": 66034,
+  "within_shard_order": "input"
+}
