@@ -100,7 +100,9 @@ entrypoint because it calls `finish-shards` with the predeclared
 row. When P25 becomes ready, the wrapper will score the normal
 `protenix_confidence_v1` selector and the no-GPU
 `diversity_confidence_consensus_v1` replay from the same merged predictions
-before any post-P25 branch is selected.
+before any post-P25 branch is selected. It also writes
+`diagnostics/score_probes/server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125.post_p25_readout.json`
+after a successful leaderboard refresh.
 
 Use this queue immediately after the complete P25 score exists:
 

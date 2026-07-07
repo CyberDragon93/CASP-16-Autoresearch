@@ -216,6 +216,7 @@ def finish_prediction_shards(
     replay_selection_qa_output_csv: Path | None = None,
     replay_min_cluster_score: float = 0.5,
     post_p14_readout_output_json: Path | None = None,
+    post_p25_readout_output_json: Path | None = None,
     dry_run: bool = False,
 ) -> dict[str, object]:
     check_summary = check_prediction_shards(
@@ -241,6 +242,7 @@ def finish_prediction_shards(
             "score": {},
             "leaderboard": {},
             "post_p14_readout": {},
+            "post_p25_readout": {},
         }
     if dry_run:
         status_summary = summarize_shard_closeout_status(finish_status="ready_dry_run", check_summary=check_summary)
@@ -253,6 +255,7 @@ def finish_prediction_shards(
             "score": {},
             "leaderboard": {},
             "post_p14_readout": {},
+            "post_p25_readout": {},
         }
     merge_summary = merge_prediction_shards(
         project_root=root,
@@ -309,6 +312,18 @@ def finish_prediction_shards(
         ensure_dir(output_json.parent)
         output_json.write_text(json.dumps(readout_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         readout_summary["output_json"] = str(output_json)
+    post_p25_summary: dict[str, object] = {}
+    if post_p25_readout_output_json:
+        post_p25_summary = post_p25_readout(
+            project_root=root,
+            benchmark=benchmark,
+            run_id=run_id,
+            leaderboard_dir=output_dir,
+        )
+        output_json = post_p25_readout_output_json.resolve()
+        ensure_dir(output_json.parent)
+        output_json.write_text(json.dumps(post_p25_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        post_p25_summary["output_json"] = str(output_json)
     status_summary = summarize_shard_closeout_status(finish_status="finished", check_summary=check_summary)
     return {
         "finish_status": "finished",
@@ -319,6 +334,7 @@ def finish_prediction_shards(
         "score": score_summary,
         "leaderboard": leaderboard_summary,
         "post_p14_readout": readout_summary,
+        "post_p25_readout": post_p25_summary,
     }
 
 
@@ -1053,6 +1069,7 @@ def build_parser() -> argparse.ArgumentParser:
     finish_shards.add_argument("--replay-selection-qa-output-csv", type=Path, default=None)
     finish_shards.add_argument("--replay-min-cluster-score", type=float, default=0.5)
     finish_shards.add_argument("--post-p14-readout-output-json", type=Path, default=None, help="Optional read-only post-P14 branch recommendation JSON written after successful scoring.")
+    finish_shards.add_argument("--post-p25-readout-output-json", type=Path, default=None, help="Optional read-only post-P25 branch recommendation JSON written after successful scoring.")
     finish_shards.add_argument("--dry-run", action="store_true", help="Return ready/not-ready status without merging or scoring.")
 
     collect = subparsers.add_parser("collect", help="Collect local run artifacts into CSV/Markdown.")
@@ -1700,6 +1717,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             replay_selection_qa_output_csv=args.replay_selection_qa_output_csv,
             replay_min_cluster_score=args.replay_min_cluster_score,
             post_p14_readout_output_json=args.post_p14_readout_output_json,
+            post_p25_readout_output_json=args.post_p25_readout_output_json,
             dry_run=args.dry_run,
         )
         print_json(summary)

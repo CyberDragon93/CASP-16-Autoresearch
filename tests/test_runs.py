@@ -853,6 +853,7 @@ def test_finish_shards_can_register_selection_replay_before_scoring(tmp_path, ca
     tm_tool.chmod(0o755)
     qa_csv = tmp_path / "diagnostics" / "selection_qa" / "merged_consensus.selection_qa.csv"
     readout_json = tmp_path / "diagnostics" / "score_probes" / "post_p14_readout.json"
+    post_p25_readout_json = tmp_path / "diagnostics" / "score_probes" / "post_p25_readout.json"
 
     rc = main(
         [
@@ -876,6 +877,8 @@ def test_finish_shards_can_register_selection_replay_before_scoring(tmp_path, ca
             str(qa_csv),
             "--post-p14-readout-output-json",
             str(readout_json),
+            "--post-p25-readout-output-json",
+            str(post_p25_readout_json),
             "--tmscore-bin",
             str(tm_tool),
             "--shard-run-id",
@@ -893,6 +896,9 @@ def test_finish_shards_can_register_selection_replay_before_scoring(tmp_path, ca
     assert payload["post_p14_readout"]["run_id"] == "target_sharded_merged"
     assert payload["post_p14_readout"]["replay_run_id"] == "target_sharded_merged_consensus"
     assert readout_json.exists()
+    assert payload["post_p25_readout"]["run_id"] == "target_sharded_merged"
+    assert payload["post_p25_readout"]["decision_status"] == "baseline_missing"
+    assert post_p25_readout_json.exists()
 
     replay_spec = json.loads((tmp_path / "runs" / "target_sharded_merged_consensus" / "run_spec.json").read_text(encoding="utf-8"))
     assert replay_spec["selection_replay"] is True

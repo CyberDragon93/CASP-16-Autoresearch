@@ -1669,7 +1669,10 @@ competitive result.
      Once all declared candidates exist, the wrapper will merge P25, write
      prediction-only `selection-qa` sidecars, register the
      `diversity_confidence_consensus_v1` replay row, and score both selectors
-     together. This tests QA/model selection before spending another GPU branch.
+     together. It also writes the post-P25 decision JSON under
+     `diagnostics/score_probes/` after the leaderboard refresh, so the selected
+     next branch is captured at closeout time. This tests QA/model selection
+     before spending another GPU branch.
 
 ## Run Discipline
 
