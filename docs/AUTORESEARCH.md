@@ -1777,6 +1777,15 @@ competitive result.
      relaxed RCSB sequence-probe coverage for all 13 Lane F families and all
      35 target rows. Lane F should now move to manual native/provenance plus
      QSglob assembly mapping only; do not run another search-depth-only loop.
+122. `2026-07-07 15:08 CDT` P25 live gate refresh: still not merge-ready.
+     `finish_status=not_ready`, `action=wait_for_declared_candidates`,
+     `ready=false`, `compatible=true`, `1278` observed candidates, `780`
+     shard-level missing candidates, and `710` full 25-candidate slots
+     missing. Complete full-budget tasks remain `1/79`; shard05 seed121-125
+     and all four shard06 seed blocks still have zero output because they are
+     pending behind the `gh` `MaxJobsPU=20` cap. Slurm has 19 P25 jobs running
+     and 5 P25 jobs pending. Keep waiting; do not score P25, launch O5b/P27b,
+     or make a winner-comparison claim from this partial state.
 
 ## Run Discipline
 

@@ -192,6 +192,9 @@ wrote:
 Lane F relaxed RCSB sequence probing is now exhausted across all 13 families
 and 35 target rows. The only candidate rows from the whole Lane F sweep are the
 unverified short `T0257O/T1257O/T2257O` tail-fiber domain/template hits above.
+The final probe used the base protein aliases `T1292`, `T1294V1`, `T0240`,
+`T1240`, and `T2240`, so its `no_hits` result is not the earlier
+score-table-`*O` alias lookup failure.
 Do not run another search-depth-only Lane F loop; the next useful step is
 manual native/provenance search and explicit biological assembly/QSglob
 mapping if a true native candidate appears.
