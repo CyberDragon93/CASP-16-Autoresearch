@@ -170,16 +170,16 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 
 P14 is now historical: it completed, merged, and scored as the five-candidate
 scoreable baseline, then P17 added the five repaired scoreable targets through
-an overlay. The current live launch gate is P25, checked `2026-07-07 12:47
+an overlay. The current live launch gate is P25, checked `2026-07-07 12:52
 CDT`: seed106-125 target-seed shards `812935..812958` are submitted, with 19
 P25 jobs running and 5 pending behind `QOSMaxJobsPerUserLimit`. `check-shards`
-reports `ready=false`, `compatible=true`, `886` observed candidates, `1164`
-shard-level candidates missing, and `1089` full 25-candidate slots missing.
+reports `ready=false`, `compatible=true`, `890` observed candidates, `1160`
+shard-level candidates missing, and `1085` full 25-candidate slots missing.
 Shard05 seed121-125 and all shard06 seed blocks are still zero-output. Error
-scanning remains clean, and the bottleneck is still Protenix forward plus queue
-limits rather than repeated MSA search. Do not merge, score, submit O5b/P27b,
-D6a, or make winner-comparison claims until P25 is complete and merged with the
-P17 seed101-105 overlay.
+scanning remains clean, `run-next --dry-run` reports `no_pending_runs`, and the
+bottleneck is still Protenix forward plus queue limits rather than repeated MSA
+search. Do not merge, score, submit O5b/P27b, D6a, or make winner-comparison
+claims until P25 is complete and merged with the P17 seed101-105 overlay.
 
 The first prepared model/config-diversity successor is
 `attack_budgets/casp16_server_attack_protenix5_defaultparams_model_variant.json`.

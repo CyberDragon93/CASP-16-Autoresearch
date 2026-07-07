@@ -1494,6 +1494,15 @@ competitive result.
     (P27b for flat valid predictions, D6a for domain input-kind/alias zeros,
     O5b for antibody/Fv oligo weakness, or versioned refmap work for reference
     caps). Do not score partial P25 or launch those deferred branches early.
+98. `2026-07-07 12:52 CDT` P25 health check: still `ready=false` and
+    `compatible=true`, now with `890` observed candidates, `1160` shard-level
+    missing candidates, and `1085` full 25-candidate slots missing. Slurm is
+    unchanged at 19 P25 jobs running and 5 P25 jobs pending behind
+    `QOSMaxJobsPerUserLimit`. Error keyword scanning across P25 run logs found
+    no traceback/OOM/file-missing signatures, sampled stderr tails show normal
+    Protenix forward on large scoreable targets, and `run-next --dry-run`
+    reports `no_pending_runs`. This is wait-for-completion time, not a branch
+    selection point.
 
 ## Run Discipline
 
