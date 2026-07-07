@@ -172,6 +172,15 @@ where methods should change.
   still running, and shard plus Slurm log error scans found no
   traceback/OOM/CUDA/killed signatures. Do not launch P15/P25/O5 before P14 is
   merged/scored or explicitly abandoned.
+- `2026-07-07 02:05 CDT` P14 recheck: readiness is still `189/370`, but stderr
+  tails show active seed103 forward passes on large 2285-2535 token complexes
+  (`H0258/H1258/H2258` and `H0272/H1272/H2272` class). Treat this as slow
+  healthy inference, not a stalled job.
+- Post-P14 winner-recipe branch `casp16_server_attack_msa_model_diversity_v1`
+  is now documented as a design gate in `docs/CASP16_WINNER_RECIPES.md`. It
+  captures the MULTICOM4/QA4-style lesson: if P14 is complete and valid but
+  weak, build target-agnostic MSA/model-diversity plus QA with real MSA/template
+  settings instead of disabling MSA or blindly scaling one Protenix input.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and

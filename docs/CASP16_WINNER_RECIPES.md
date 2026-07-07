@@ -20,6 +20,10 @@ per-target oracles.
   https://www.biorxiv.org/content/10.1101/2025.05.29.656875v1.full.pdf
 - AlphaFold3 CASP16 preprint:
   https://www.biorxiv.org/content/10.1101/2025.04.10.648174v1.full-text
+- MULTICOM4 CASP16 paper:
+  https://www.nature.com/articles/s42003-025-08960-6
+- CASP16 abstract book:
+  https://predictioncenter.org/casp16/doc/CASP16_Abstracts.pdf
 
 ## Source-To-Experiment Map
 
@@ -48,6 +52,62 @@ using references or official scores as prediction oracles:
   a target-agnostic transformation. Local reproductions must stay split between
   `dev_fixed`, `server_attack`, and target-lab/manual diagnostics.
 
+## Post-P14 Diversity Branch
+
+If P14 completes with valid predictions and metrics but weak fixed-set scores,
+the next serious winner-recipe branch should not be "more of the same seed"
+unless the evidence points to candidate selection as the bottleneck. Public
+CASP16 clues from MULTICOM4, GuijunLab/QA4, and complex assessment instead
+point at diverse MSA/model generation plus stronger model quality assessment.
+
+Predeclared branch name:
+
+```text
+casp16_server_attack_msa_model_diversity_v1
+```
+
+This is a design gate, not a queued run. It should become an attack-budget JSON
+only after P14 is scored and after the actual variant inputs can be generated
+without target-specific tuning.
+
+Candidate budget sketch:
+
+- benchmark: `casp16_server_protein_v2_aliasfix` or newer explicit server
+  benchmark selected before launch
+- input set: start from the same scoreable size-first phase-alias stack unless
+  P14 proves that stack is broken
+- candidates per target: `4` target-agnostic MSA/model variants times `5`
+  fixed seeds, for `20` declared candidates
+- MSA policy: real MSA on every variant; no no-MSA toy rows
+- template policy: real template/default settings unless a variant documents a
+  target-agnostic template-source change
+- selector: predeclared confidence/consensus/geometry QA only; no references,
+  official scores, or prior target-score rows
+- rank rule: score only after every declared candidate exists, or mark the row
+  partial/unranked
+
+Allowed variant classes:
+
+- existing Protenix full-MSA/template stack as the control variant
+- alternative MSA construction from different search tools/databases or
+  coverage/e-value cutoffs, recorded as a global recipe rather than per-target
+  hand tuning
+- domain-aware MSA construction for long/multidomain proteins using only
+  benchmark metadata and public sequence annotations
+- a second AF3-like backend such as OpenDDE/Protenix variant, if it can run
+  with production MSA/template settings and the same input/selection rules
+
+Stop conditions:
+
+- P14 still has many `missing_prediction`, metric failures, or exact-artifact
+  lookup failures: fix the pipeline first.
+- P14 is mainly reference-limited: launch the v4/P15 refmap row or continue
+  versioned reference recovery instead.
+- P14 is candidate-limited with broad nonzero signal: prefer the prepared
+  `protenix25_scoreable_nofail` row before building a new MSA-variant system.
+- P14 is weak despite valid complete predictions: build this diversity branch
+  rather than spending a larger single-input seed grid.
+
 ## Current Recipe Ladder
 
 This is the active decision ladder for turning winner clues into local
@@ -62,6 +122,7 @@ by how interesting the trick is.
 | G4 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache, but not true MSA-variant or multi-engine generation | not implemented as a ranked branch | Add an explicit MSA/model-variant budget only after current Protenix input repairs stop yielding easy coverage gains |
 | G5 | Complex assessment highlights antibody-antigen difficulty and specialized docking/Fv treatment | O5 antibody-Fv target-lab positives and prepared scoreable Fv target shards | prepared, risky, not submitted | Launch only if P14 exact QSglob shows antibody rows remain a major recoverable weakness |
 | G6 | Reference gaps hide local progress but are not prediction tricks | versioned `refmap` overlays and oligo assembly audit | v4 adds only audited `T1278/T2278`; oligo candidates remain unaccepted | Keep reference recovery opportunistic and versioned; do not let it block runnable prediction experiments |
+| G7 | QA4/MULTICOM-style systems use diverse MSA/model pools plus QA rather than only seed count | `casp16_server_attack_msa_model_diversity_v1` design gate | documented, not queued, no executable budget yet | Build only if P14 is complete/valid but weak and the prepared 25-seed row is not the right next spend |
 
 Default branch after P14:
 
@@ -122,6 +183,7 @@ benchmark target set or inspect references.
 | D6a | V2 nofail domain sequence recovery | reference-gap triage exposed protein-domain inputs that were locally represented as short DNA or empty jobs before scoring could be trusted | `yang_domain_sequence_recovery_oligo_nofail_v1` composes D6 onto the strongest v2 nofail stack, changing 8 domain jobs including the `T1276/T1228V1/T1239V1/T2276` class; `domain_sequence_recovery_msa_warmup_v1` materialized the 4 unique fresh-MSA sequences | single-seed run is MSA-ready but `deferred:await_p14_score`; launch only if post-P14 scoring selects D6a |
 | D7 | Coverage-first stack | realistic attack compute should not be spent on missing-sequence or token-limit hard zeros | `yang_sequence_recovery_large_target_fallback_v1` stacks sequence recovery with the large-target fallback on terminal-tag-cleaned inputs | queue after the component runs or when the queue needs a single combined coverage candidate |
 | D8 | Reference/input registry discipline | server-style domain comparison is only meaningful when native provenance, chain mapping, and crop mapping are explicit | `casp16_server_protein_v3_refmap` and `v4_refmap` add only accepted reference-map rows such as `T1278/T2278 -> 9hav` with chain `A` crop `34-370`; input-kind bugs such as `T1228V1` stay as input-repair work until mapping is strict | create a new benchmark version for accepted mappings; never patch v2/v4 TSVs by hand or use scores to select references |
+| D9 | MSA/model diversity budget | MULTICOM4 and QA4-style CASP16 clues emphasize diverse MSA generation, model sampling, and QA over a single default input | design `casp16_server_attack_msa_model_diversity_v1`: 4 target-agnostic MSA/model variants times 5 fixed seeds, all with real MSA/template settings | build only after P14 proves complete valid predictions are weak and not simply coverage/reference limited |
 
 ## Protein Oligos
 
@@ -161,6 +223,7 @@ wrong assemblies should score poorly on the oligo track.
 | O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
 | O7 | Oversize complex fallback | complex targets can exceed AF3-like token limits, and the baseline lost H0217/H0258/H0272/H1217/H1258/H1272 before any model was produced | `yang_large_target_split_or_fallback_v1` keeps under-budget chain/copy prefixes and records dropped chains | score as coverage recovery until QSglob and assembly mapping are trustworthy |
 | O8 | Scoreable target sharding | realistic complex attacks need multiple candidates, but one 2500-token assembly should not stall every smaller target | P14 uses six target-balanced shards for the 74-job v2 scoreable subset; P15 prepares the same five-candidate budget on the 76-job v4 refmap subset with complete MSA reuse | merge all target shards before scoring; partial shards stay unranked and skipped no-reference targets remain fixed-set zeros |
+| O9 | Diverse MSA/model pool for complexes | CASP16 complex assessment highlights extensive sampling and persistent ranking weakness; MULTICOM4-style systems vary inputs and then rank models | same `casp16_server_attack_msa_model_diversity_v1` design, but oligo success requires exact QSglob artifact mapping before launch | do not launch if P14 oligo rows are mostly missing predictions or scorer failures |
 
 ## AF3-Style Systems
 
@@ -387,3 +450,9 @@ Useful strategy hypotheses:
     matters, or the 25-seed row when
     candidate selection is the bottleneck. If P14 is weak, shift to input
     repair or a smaller target-lab-derived branch before scaling.
+37. `casp16_server_attack_msa_model_diversity_v1`: documented as the next
+    winner-recipe design gate if P14 is complete and valid but broadly weak.
+    It should reproduce the public MSA-diversity plus QA lesson without turning
+    off MSA, without per-target tuning, and without pretending a new backend or
+    MSA variant is free. Do not queue it until P14 has a fixed-set score and
+    the concrete variant inputs can be generated and preflighted.
