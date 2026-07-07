@@ -52,6 +52,51 @@ using references or official scores as prediction oracles:
   a target-agnostic transformation. Local reproductions must stay split between
   `dev_fixed`, `server_attack`, and target-lab/manual diagnostics.
 
+## Official Server Fingerprint
+
+The current server-track comparison artifact
+`leaderboards/casp16_server_protein_v2_aliasfix/official_server_groups.csv`
+aggregates official CASP16 score tables over fixed server target sets. Use this
+only to set global benchmark targets and recipe priorities, never to tune
+individual targets.
+
+Top protein-domain server groups, fixed mean over 71 official domain targets:
+
+| Rank | Group | Fixed mean | Submitted | Missing | Metric |
+| ---: | --- | ---: | ---: | ---: | --- |
+| 1 | `110s` | `0.923321` | 71 | 0 | GDT_TS |
+| 2 | `019s` | `0.908993` | 71 | 0 | GDT_TS |
+| 3 | `147s` | `0.907055` | 71 | 0 | GDT_TS |
+| 4 | `148s` | `0.902406` | 71 | 0 | GDT_TS |
+| 5 | `456s` | `0.901276` | 69 | 2 | GDT_TS |
+
+Top protein-oligo server groups, fixed mean over 104 official oligo targets:
+
+| Rank | Group | Fixed mean | Submitted | Missing | Metric |
+| ---: | --- | ---: | ---: | ---: | --- |
+| 1 | `456s` | `0.582615` | 102 | 2 | QSglob |
+| 2 | `052s` | `0.581712` | 102 | 2 | QSglob |
+| 3 | `110s` | `0.543327` | 104 | 0 | QSglob |
+| 4 | `028s` | `0.537240` | 104 | 0 | QSglob |
+| 5 | `147s` | `0.531269` | 104 | 0 | QSglob |
+
+Actionable read:
+
+- The domain winner profile is broad-coverage and high-accuracy, not a
+  partial-submission trick: the top four domain server groups submitted all 71
+  domain targets.
+- The oligo winner profile tolerates tiny missing coverage only when submitted
+  assemblies are very strong. Local rows with dozens of missing references or
+  missing predictions remain measurement/coverage limited.
+- `110s` and `147s` are top-five in both tracks, so the strongest recipe class
+  is a balanced single/complex pipeline with good model selection, not a
+  domain-only or oligo-only hack.
+- Local best complete v2 attack rows are still far from these means
+  (`0.107690` domain and `0.118933` oligo for the repaired five-candidate
+  overlay), and the v2 local reference cap keeps many full-set rows at zero.
+  Therefore P25 is a scoreable-subset candidate-budget probe, not yet a true
+  claim against official server winners.
+
 ## Post-P14 Diversity Branch
 
 If P14 completes with valid predictions and metrics but weak fixed-set scores,
@@ -134,9 +179,9 @@ by how interesting the trick is.
 | Gate | Winner clue | Local reproduction | Current status | Next decision |
 | --- | --- | --- | --- | --- |
 | G1 | Strong CASP16 systems did careful input preparation before spending sampling budget | v2 nofail scoreable stack plus P17 input repair: protein-oligo sequence recovery, phase-alias stoichiometry, low-complexity cleanup, token fallback, full MSA reuse, and target-agnostic `O`/`Vn`/phase alias repair | P17 overlay completed and scored on 79/79 scoreable targets, improving P14 to domain `0.107690` and oligo `0.118933` | Keep the P17 overlay as seeds101-105 for P25; input coverage is no longer the immediate scoreable-target blocker |
-| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight; latest live gate at `2026-07-07 11:42 CDT` is healthy but incomplete at `751` observed candidates, 19 running jobs, and 5 pending jobs | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row; keep O5b/P27b gated until this score exists |
+| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight; latest live gate at `2026-07-07 12:09 CDT` is healthy but incomplete at `852` observed candidates, 19 running jobs, and 5 pending jobs | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row; keep O5b/P27b gated until this score exists |
 | G3 | First-model QA/ranking can change apparent method quality without more GPU | P16 consensus replay used the same P14 five-candidate pool with `selection-qa` and `diversity_confidence_consensus_v1` | scored but slightly below P14 (`0.102218` domain, `0.115250` oligo) | Do not tune selectors again until P17 removes scoreable missing predictions and shows candidate selection is the limiting factor |
-| G4 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a is MSA-ready but deferred behind P17 | If P17 is weak on domains because inputs are missing/wrong, run D6a before scaling candidates |
+| G4 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a full input is now exact-sequence MSA-cache complete (`276/276`, 0 stale) but deferred behind P25 | If complete P25 still shows domain zeros from input-kind or alias repair classes, run D6a before another seed-scaling spend |
 | G5 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache, P27a for the old 74-job scoreable input, and P27b for the repaired 79-job scoreable input as concrete Protenix model/config variants, but not true MSA-variant or multi-engine generation | P27b prepared/deferred behind P25; broader variants not queued | Add broader MSA/model-variant budgets only after current Protenix input repairs and P25 seed scaling stop yielding easy gains |
 | G6 | Complex assessment highlights antibody-antigen difficulty and specialized docking/Fv treatment | O5 antibody-Fv target-lab positives, old 74-job O5 shards, and repaired-input O5b shards on the P17/P25 79-job scoreable input | O5b prepared/deferred behind P25 with `146/146` MSA reuse | Launch only if P25 exact QSglob shows antibody/Fv rows remain a major recoverable weakness |
 | G7 | Reference gaps hide local progress but are not prediction tricks | versioned `refmap` overlays and oligo assembly audit | v4 adds only audited `T1278/T2278`; `docs/REFERENCE_RECOVERY_V5_PLAN.md` keeps `T1228V1` as the near-term domain audit and leaves H0217/H0267 oligo families blocked on assembly/QSglob mapping | Keep reference recovery opportunistic and versioned; do not let it block runnable prediction experiments |

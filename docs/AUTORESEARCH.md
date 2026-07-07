@@ -1409,6 +1409,19 @@ competitive result.
     `276/276` covered, both with 0 stale index rows. The next bottleneck is
     GPU inference completion and scoring, not fresh MSA generation for these
     two branches.
+91. `2026-07-07 12:09 CDT` P25 live gate: still `ready=false` and
+    `compatible=true`, now with `852` observed candidates, `1198` shard-level
+    candidates missing, and `1123` full 25-candidate slots missing. Queue state
+    is unchanged: 19 P25 jobs running and 5 P25 jobs pending behind
+    `QOSMaxJobsPerUserLimit`. No partial merge or score was run. While waiting,
+    `docs/CASP16_WINNER_RECIPES.md` was refreshed with an official
+    server-only fingerprint from
+    `leaderboards/casp16_server_protein_v2_aliasfix/official_server_groups.csv`:
+    domain winner `110s` has fixed mean `0.923321` over 71/71 targets, and
+    oligo winner `456s` has fixed mean `0.582615` over 102/104 submitted
+    targets. The local repaired five-candidate overlay remains much lower
+    (`0.107690` domain, `0.118933` oligo), so P25 remains a
+    scoreable-subset candidate-budget probe rather than a server-winner claim.
 
 ## Run Discipline
 
