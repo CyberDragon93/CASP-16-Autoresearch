@@ -1284,6 +1284,18 @@ competitive result.
     such as `H0258`, `H2258`, `H1220`, and `H1272`; error scanning remains
     clean for traceback/OOM/killed/disk/timeout signatures. Keep waiting for
     complete P25 readiness; do not launch O5b/P27b or score partial outputs.
+78. `2026-07-07 11:15 CDT` P25 live gate: the repaired P25 grid remains healthy
+    but incomplete. Slurm reports the same launch shape: 19 P25 GH jobs running
+    and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`. `check-shards`
+    reports `ready=false`, `compatible=true`, `639` observed candidates,
+    `1411` shard-level candidates missing, `1336` full 25-candidate slots
+    missing, and `0` full target tasks complete. New artifacts appeared from
+    shard01/shard02, including repaired/scoreable rows such as `H0258`,
+    `T0234`, `T0235`, `H1258`, `T0206`, `T1239V1`, and `T1266`; error scanning
+    still finds no traceback/OOM/CUDA killed/disk/timeout signatures. This
+    confirms the blocker is slow Protenix forward plus queued shard06 jobs, not
+    MSA-cache reuse. The only valid next gate is full P25 merge and scoring
+    after every declared candidate exists; keep O5b/P27b deferred.
 
 ## Run Discipline
 
