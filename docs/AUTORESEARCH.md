@@ -4,6 +4,10 @@ This is the working index for agent-driven CASP16 strategy iteration. The
 benchmark is the protocol; strategy code and run directories are the only place
 where methods should change.
 
+For the short branch-selection control board, start with
+`docs/WINNER_REPRODUCTION_BOARD.md`; this file remains the longer append-only
+truth log.
+
 ## Current Truth
 
 - `casp16_protein_v1` is a local protein-first leaderboard, not the official
@@ -1609,6 +1613,17 @@ competitive result.
      `post-p25-readout` also now has a `score_p17_baseline_before_branching`
      launch plan so a missing baseline score produces executable recovery
      steps instead of a dead-end branch label.
+108. `2026-07-07 14:09 CDT` P25 gate and recipe-board sync: P25 remains
+     incomplete with `ready=false`, `compatible=true`, `1106` observed
+     candidates, `944` shard-level missing candidates, and `874` full
+     25-candidate slots missing. Slurm still shows 19 P25 jobs running and 5
+     P25 jobs pending behind `QOSMaxJobsPerUserLimit`, so the only ranked
+     action is still wait-for-declared-candidates followed by the closeout
+     wrapper. Added `docs/WINNER_REPRODUCTION_BOARD.md` as the short
+     autoresearch control board: it records the official score targets,
+     current P17 local baseline, active P25 gate, winner-clue reproduction
+     ladder, post-P25 decision order, and the file map an agent should read
+     before choosing D6a, O5b, P27b, or refmap work.
 
 ## Run Discipline
 
