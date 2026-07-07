@@ -179,14 +179,15 @@ where `run-next --dry-run` would only inspect one selected run.
    preflights at 141/141 exact-sequence protein-chain MSA paths with 0
    fresh-MSA chains.
 3. The domain-sequence-recovery nofail ablation,
-   `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101`, is the
-   exception that intentionally allows fresh MSA. It reuses 269/276 chains from
-   the global cache and sets `--msa-reuse-min-fraction 0.97` so only the 7
-   repaired protein-domain chains pay new MSA cost. Those 7 chains collapse to
-   4 unique sequences, now isolated by the rank-ineligible
-   `server_v2_domain_sequence_recovery_msa_warmup_seed101` run spec. After that
-   warmup completes, refresh the global MSA cache before recreating or launching
-   the full D6a ablation. The unique missing-sequence audit is
+   `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101`, was the
+   exception that intentionally allowed fresh MSA. It reused 269/276 chains from
+   the global cache, and the 7 repaired protein-domain chains collapsed to
+   4 unique sequences. The rank-ineligible
+   `server_v2_domain_sequence_recovery_msa_warmup_seed101` run completed and
+   refreshed those missing exact-sequence records. Use the recreated
+   `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101`
+   spec for D6a: it preflights with complete MSA reuse (`276/276` protein
+   chains, 0 stale). The unique missing-sequence audit is
    `diagnostics/msa_cache/domain_sequence_recovery_msa_warmup_unique_missing.tsv`.
 4. The older v1 coverage/stoich attack has a cache-reuse successor,
    `server_attack_protenix_coverage_stoich_msa_reuse_seed101_105`, but its

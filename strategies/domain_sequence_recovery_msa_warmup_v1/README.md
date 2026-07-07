@@ -40,8 +40,9 @@ ssh login1 'cd /scratch/10992/liaorunlong93/casp16-leaderboard && \
 Submit only after the active P14 scoreable target shards are handled, or when a
 compute slot is explicitly allocated to D6a input repair.
 
-After the warmup completes, refresh the materialized global cache and recreate
-the full D6a run spec with a complete-MSA guard:
+The warmup completed successfully on `2026-07-06 22:15 CDT` and produced 4/4
+CIFs plus `inputs-update-msa.json`. The materialized global cache was refreshed
+with:
 
 ```bash
 ./casp16 build-msa-cache \
@@ -50,7 +51,11 @@ the full D6a run spec with a complete-MSA guard:
   --output-tsv data/msa_cache/index.tsv \
   --materialize-cache \
   --incremental
+```
 
+The full D6a run spec was then recreated with a complete-MSA guard:
+
+```bash
 ./casp16 run-spec \
   --run-id server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101 \
   --benchmark casp16_server_protein_v2_aliasfix \
@@ -65,4 +70,6 @@ the full D6a run spec with a complete-MSA guard:
   --msa-reuse-require-complete
 ```
 
-Only score the recreated full D6a run, not this warmup.
+Only score the recreated full D6a run, not this warmup. Its preflight is now
+complete: 276/276 protein chains have usable exact-sequence MSA paths and 0 are
+stale.

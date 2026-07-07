@@ -712,6 +712,27 @@ competitive result.
     sequence. This is a cache/materialization step for input repair, not a
     leaderboard row, and `run-next --dry-run` still selects the P14 scoreable
     shard first.
+38. `2026-07-06 22:10 CDT` launched the D6a MSA warmup in a detached
+    `screen` session named `casp16_d6a_warmup` on the current idle GH200
+    allocation (`c610-032`). This avoided adding another queued GH job while
+    the six P14 scoreable target shards remain pending. The run uses full
+    MSA/template/default Protenix settings, is still `rank_eligible=false`, and
+    should only be used to refresh `data/msa_cache/index.tsv` after it
+    completes.
+39. `2026-07-06 22:15 CDT` the D6a warmup completed successfully: 4/4 CIFs,
+    full MSA/template search completed, and `inputs-update-msa.json` was
+    written. `build-msa-cache --materialize-cache --incremental` added the 4
+    missing exact-sequence records, bringing the materialized cache index to
+    109 sequence records. The recreated
+    `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101`
+    run spec now preflights at complete MSA reuse (`276/276` protein chains,
+    0 missing, 0 stale), so D6a is no longer blocked on fresh MSA.
+40. `2026-07-06 22:18 CDT` the six P14 scoreable target shards
+    `812239..812244` started on GH200 nodes. Five shards wrote their
+    `running` status concurrently; shard06's status append was recovered from
+    Slurm/log evidence after exposing a status-file append race. `append_status`
+    now uses a file lock so parallel target-shard starts and finishes do not
+    drop lifecycle rows.
 
 ## Run Discipline
 

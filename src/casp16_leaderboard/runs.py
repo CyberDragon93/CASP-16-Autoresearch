@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import fcntl
 import shlex
 import shutil
 import subprocess
@@ -955,12 +956,17 @@ def append_status(project_root: Path, *, run_id: str, status: str, benchmark: st
     runs_dir = project_root / "runs"
     ensure_dir(runs_dir)
     path = runs_dir / "status.tsv"
-    exists = path.exists()
-    with path.open("a", encoding="utf-8", newline="") as handle:
+    with path.open("a+", encoding="utf-8", newline="") as handle:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        handle.seek(0, os.SEEK_END)
+        needs_header = handle.tell() == 0
         writer = csv.DictWriter(handle, fieldnames=["timestamp", "benchmark", "run_id", "status", "message"], delimiter="\t", lineterminator="\n")
-        if not exists:
+        if needs_header:
             writer.writeheader()
         writer.writerow({"timestamp": datetime.now(timezone.utc).isoformat(), "benchmark": benchmark, "run_id": run_id, "status": status, "message": message})
+        handle.flush()
+        os.fsync(handle.fileno())
+        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 def latest_status_by_run(project_root: Path) -> dict[str, dict[str, str]]:

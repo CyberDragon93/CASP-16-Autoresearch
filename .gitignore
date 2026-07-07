@@ -20,6 +20,7 @@ benchmarks/*/inputs-update-msa.json
 benchmarks/*/inputs-final-updated.json
 
 # Runtime outputs from local predictions.
+logs/
 runs/*/__pycache__/
 runs/*/features
 runs/*/features/
