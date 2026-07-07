@@ -118,11 +118,11 @@ where methods should change.
   warmup spec `server_v2_domain_sequence_recovery_msa_warmup_seed101` now
   isolates `T1239V1`, `T1228V1`, `T1276`, and `T1212` for one-time MSA
   materialization before a full D6a launch.
-  A pending single-seed run spec,
-  `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_seed101`,
-  explicitly allows this 97.46% cache reuse floor. Do not promote it to
-  multi-seed compute until the single-seed coverage score proves the repair is
-  worth the fresh-MSA cost.
+  The warmup has since materialized the missing sequences, and
+  `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101`
+  has complete MSA reuse. It is explicitly `deferred:await_p14_score`, so it
+  cannot be selected by `run-next` before the P14 target-sharded attack is
+  merged/scored and the decision matrix is applied.
 - Multi-candidate work now has a separate policy:
   `docs/SERVER_ATTACK_POLICY.md` and
   `attack_budgets/casp16_server_attack_protenix5.json`.
