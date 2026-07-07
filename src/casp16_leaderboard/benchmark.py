@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import shlex
 import urllib.request
 from collections import defaultdict
 from pathlib import Path
@@ -127,6 +128,25 @@ REFERENCE_CANDIDATE_MANIFEST_FIELDS = [
     "download_status",
     "sha256",
     "bytes",
+    "notes",
+]
+
+REFERENCE_CHAIN_AUDIT_FIELDS = [
+    "target_id",
+    "pdb_id",
+    "status",
+    "domain_ids",
+    "domain_residue_ranges",
+    "chain_id",
+    "auth_chain_id",
+    "entity_id",
+    "observed_label_seq_ranges",
+    "observed_label_seq_count",
+    "domain_residue_coverage",
+    "domain_missing_count",
+    "chain_supports_domain",
+    "reference_path",
+    "sha256",
     "notes",
 ]
 
@@ -317,6 +337,122 @@ def materialize_reference_map_candidates(
     }
 
 
+def audit_reference_candidate_chains(
+    *,
+    project_root: Path,
+    benchmark: str,
+    review_tsv: Path,
+    structures_tsv: Path,
+    output_tsv: Path,
+    statuses: Sequence[str] = ("candidate",),
+) -> dict[str, object]:
+    wanted_statuses = {status.strip().lower() for status in statuses if status.strip()}
+    if not wanted_statuses:
+        raise ValueError("provide at least one reference-map status to audit")
+
+    benchmark_dir = default_benchmark_dir(project_root, benchmark)
+    targets = {row["target_id"]: row for row in read_tsv(benchmark_dir / "targets.tsv")}
+    domain_rows_by_target: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in read_tsv(benchmark_dir / "domain_definitions.tsv"):
+        domain_rows_by_target[row.get("target_id", "")].append(row)
+
+    review_by_key: dict[tuple[str, str], dict[str, str]] = {}
+    for row in read_tsv(review_tsv):
+        row_status = row.get("status", "").strip().lower()
+        if row_status not in wanted_statuses:
+            continue
+        target_id = row.get("target_id", "").strip().upper()
+        for pdb_id in _split_pdb_ids(row.get("pdb_ids", "")):
+            review_by_key[(target_id, pdb_id)] = row
+
+    output_rows: list[dict[str, object]] = []
+    for structure in read_tsv(structures_tsv):
+        target_id = structure.get("target_id", "").strip().upper()
+        pdb_id = structure.get("pdb_id", "").strip().lower()
+        review_row = review_by_key.get((target_id, pdb_id))
+        if review_row is None:
+            continue
+        reference_path = Path(structure.get("reference_path", ""))
+        domain_rows = domain_rows_by_target.get(target_id, [])
+        target = targets.get(target_id, {})
+        domain_ranges = _target_domain_residue_ranges(domain_rows)
+        common = {
+            "target_id": target_id,
+            "pdb_id": pdb_id,
+            "status": review_row.get("status", ""),
+            "domain_ids": target.get("domain_ids", ""),
+            "domain_residue_ranges": _format_ranges(domain_ranges),
+            "reference_path": str(reference_path),
+            "sha256": structure.get("sha256", ""),
+            "notes": review_row.get("notes", ""),
+        }
+        if not reference_path.exists():
+            output_rows.append(
+                {
+                    **common,
+                    "chain_id": "",
+                    "auth_chain_id": "",
+                    "entity_id": "",
+                    "observed_label_seq_ranges": "",
+                    "observed_label_seq_count": "0",
+                    "domain_residue_coverage": "0.000000",
+                    "domain_missing_count": _range_size(domain_ranges),
+                    "chain_supports_domain": "false",
+                    "notes": "reference_path_missing",
+                }
+            )
+            continue
+        chain_rows = _parse_mmcif_atom_site_chains(reference_path)
+        if not chain_rows:
+            output_rows.append(
+                {
+                    **common,
+                    "chain_id": "",
+                    "auth_chain_id": "",
+                    "entity_id": "",
+                    "observed_label_seq_ranges": "",
+                    "observed_label_seq_count": "0",
+                    "domain_residue_coverage": "0.000000",
+                    "domain_missing_count": _range_size(domain_ranges),
+                    "chain_supports_domain": "false",
+                    "notes": "no_atom_site_label_seq_id_rows",
+                }
+            )
+            continue
+        for chain in chain_rows:
+            label_seq_ids = chain["label_seq_ids"]
+            missing = _missing_range_positions(domain_ranges, label_seq_ids)
+            total_domain_positions = _range_size(domain_ranges)
+            observed_domain_positions = total_domain_positions - len(missing)
+            coverage = (observed_domain_positions / total_domain_positions) if total_domain_positions else 0.0
+            output_rows.append(
+                {
+                    **common,
+                    "chain_id": chain["chain_id"],
+                    "auth_chain_id": chain["auth_chain_id"],
+                    "entity_id": chain["entity_id"],
+                    "observed_label_seq_ranges": _format_ranges(_collapse_int_ranges(label_seq_ids)),
+                    "observed_label_seq_count": len(label_seq_ids),
+                    "domain_residue_coverage": f"{coverage:.6f}",
+                    "domain_missing_count": len(missing),
+                    "chain_supports_domain": str(bool(domain_ranges and not missing)).lower(),
+                }
+            )
+
+    write_tsv(output_tsv, output_rows, REFERENCE_CHAIN_AUDIT_FIELDS)
+    return {
+        "benchmark": benchmark,
+        "review_tsv": str(review_tsv),
+        "structures_tsv": str(structures_tsv),
+        "output_tsv": str(output_tsv),
+        "statuses": sorted(wanted_statuses),
+        "rows": len(output_rows),
+        "targets": len({row["target_id"] for row in output_rows}),
+        "candidate_structures": len({(row["target_id"], row["pdb_id"]) for row in output_rows}),
+        "chains_supporting_domain": sum(1 for row in output_rows if row["chain_supports_domain"] == "true"),
+    }
+
+
 def _download_mmcif(pdb_id: str, path: Path, *, force: bool = False) -> str:
     if path.exists() and not force:
         return "cached"
@@ -330,6 +466,142 @@ def _download_mmcif(pdb_id: str, path: Path, *, force: bool = False) -> str:
         return f"download_failed:{type(exc).__name__}"
     path.write_bytes(data)
     return "downloaded"
+
+
+def _parse_mmcif_atom_site_chains(path: Path) -> list[dict[str, object]]:
+    columns: list[str] = []
+    rows_started = False
+    chains: dict[tuple[str, str, str], set[int]] = defaultdict(set)
+    wanted = {
+        "_atom_site.group_PDB",
+        "_atom_site.label_asym_id",
+        "_atom_site.auth_asym_id",
+        "_atom_site.label_entity_id",
+        "_atom_site.label_seq_id",
+    }
+    with path.open(encoding="utf-8", errors="replace") as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if not line:
+                continue
+            if line == "loop_":
+                columns = []
+                rows_started = False
+                continue
+            if line.startswith("_"):
+                if not rows_started:
+                    columns.append(line.split()[0])
+                continue
+            if not columns or not all(column in columns for column in wanted):
+                continue
+            if line.startswith("#"):
+                columns = []
+                rows_started = False
+                continue
+            rows_started = True
+            try:
+                values = shlex.split(line)
+            except ValueError:
+                continue
+            if len(values) < len(columns):
+                continue
+            row = dict(zip(columns, values))
+            group = _clean_cif_value(row.get("_atom_site.group_PDB", ""))
+            if group not in {"ATOM", "HETATM"}:
+                continue
+            label_seq = _parse_int(_clean_cif_value(row.get("_atom_site.label_seq_id", "")))
+            if label_seq is None:
+                continue
+            chain_id = _clean_cif_value(row.get("_atom_site.label_asym_id", ""))
+            auth_chain_id = _clean_cif_value(row.get("_atom_site.auth_asym_id", ""))
+            entity_id = _clean_cif_value(row.get("_atom_site.label_entity_id", ""))
+            if not chain_id:
+                continue
+            chains[(chain_id, auth_chain_id, entity_id)].add(label_seq)
+
+    out: list[dict[str, object]] = []
+    for (chain_id, auth_chain_id, entity_id), label_seq_ids in sorted(chains.items()):
+        out.append(
+            {
+                "chain_id": chain_id,
+                "auth_chain_id": auth_chain_id,
+                "entity_id": entity_id,
+                "label_seq_ids": set(label_seq_ids),
+            }
+        )
+    return out
+
+
+def _clean_cif_value(value: str) -> str:
+    value = str(value or "").strip()
+    if value in {".", "?"}:
+        return ""
+    return value.strip("'\"")
+
+
+def _parse_int(value: str) -> int | None:
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
+def _target_domain_residue_ranges(domain_rows: Sequence[Mapping[str, str]]) -> list[tuple[int, int]]:
+    ranges: list[tuple[int, int]] = []
+    for row in domain_rows:
+        ranges.extend(_parse_residue_ranges(row.get("residue_ranges", "")))
+    return sorted(ranges)
+
+
+def _parse_residue_ranges(value: str) -> list[tuple[int, int]]:
+    ranges: list[tuple[int, int]] = []
+    for part in re.split(r"[,;]\s*", value.strip()):
+        if not part:
+            continue
+        match = re.fullmatch(r"(\d+)\s*-\s*(\d+)", part)
+        if match:
+            start = int(match.group(1))
+            end = int(match.group(2))
+        else:
+            single = re.fullmatch(r"(\d+)", part)
+            if not single:
+                continue
+            start = end = int(single.group(1))
+        if start > end:
+            start, end = end, start
+        ranges.append((start, end))
+    return ranges
+
+
+def _range_size(ranges: Sequence[tuple[int, int]]) -> int:
+    return sum(max(0, end - start + 1) for start, end in ranges)
+
+
+def _missing_range_positions(ranges: Sequence[tuple[int, int]], observed: set[int]) -> set[int]:
+    missing: set[int] = set()
+    for start, end in ranges:
+        missing.update(position for position in range(start, end + 1) if position not in observed)
+    return missing
+
+
+def _collapse_int_ranges(values: set[int]) -> list[tuple[int, int]]:
+    if not values:
+        return []
+    sorted_values = sorted(values)
+    ranges: list[tuple[int, int]] = []
+    start = previous = sorted_values[0]
+    for value in sorted_values[1:]:
+        if value == previous + 1:
+            previous = value
+            continue
+        ranges.append((start, previous))
+        start = previous = value
+    ranges.append((start, previous))
+    return ranges
+
+
+def _format_ranges(ranges: Sequence[tuple[int, int]]) -> str:
+    return ",".join(str(start) if start == end else f"{start}-{end}" for start, end in ranges)
 
 
 def generate_reference_map_audit_report(

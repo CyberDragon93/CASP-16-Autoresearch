@@ -219,6 +219,24 @@ blocked on native provenance plus chain/domain crop confirmation. `T1228V1`
 has full-construct candidates too, but remains harder because the server-domain
 target has four domains and needs explicit crop mapping.
 
+Use `refmap-chain-audit` to convert cached candidate mmCIF atom-site records
+into chain-level domain coverage evidence:
+
+```bash
+./casp16 refmap-chain-audit
+```
+
+The current output is
+`diagnostics/reference_gap/casp16_server_protein_v3_refmap_chain_audit.tsv`.
+It audits 8 candidate structures and 94 chains. For `T1278-D1` residues
+`34-370`, the complete-covering chains are: `9HAV` chain A only, `9HAW` 18
+chains, `9HAX` 12 chains, and `9HAY` 18 chains. This confirms that `T1278`
+has usable chain/domain crop candidates once native provenance is accepted.
+For `T1228V1`, only `9DXK` 4 chains and `9Y66` 1 chain cover the union of the
+current domain ranges in this coarse audit, so it still needs stricter
+multi-domain crop review before promotion. This audit is evidence only; it does
+not install references or change benchmark eligibility.
+
 ## RCSB Exact-Sequence Probe
 
 A follow-up probe on the 40 `prediction_waiting_on_reference` rows queried the

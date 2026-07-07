@@ -10,6 +10,7 @@ from casp16_leaderboard.benchmark import (
     SERVER_ALIASFIX_BENCHMARK_VERSION,
     SERVER_REFMAP_BENCHMARK_NAME,
     SERVER_REFMAP_BENCHMARK_VERSION,
+    audit_reference_candidate_chains,
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
     generate_reference_map_audit_report,
@@ -667,6 +668,91 @@ def test_materialize_reference_map_candidates_uses_cached_files(tmp_path) -> Non
     assert rows[0]["download_status"] == "cached"
     assert rows[0]["sha256"]
     assert rows[0]["bytes"] == str(len("data_9abc\n"))
+
+
+def test_audit_reference_candidate_chains_reports_domain_coverage(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+    build_casp16_server_protein_benchmark(project_root=project_root, official_root=official_root)
+    review = tmp_path / "review.tsv"
+    write_tsv(
+        review,
+        [
+            {
+                "target_id": "T1201",
+                "pdb_ids": "9abc",
+                "status": "candidate",
+                "source": "rcsb_exact_sequence_probe",
+                "native_provenance": "",
+                "construct_coverage": "full_construct_exact_sequence",
+                "chain_mapping": "candidate_entity=1",
+                "scoring_mapping": "candidate_domain=T1201-D1; residue_ranges=1-3; verify_chain_and_crop",
+                "notes": "candidate row",
+                "source_path": "",
+            }
+        ],
+        ["target_id", "pdb_ids", "status", "source", "native_provenance", "construct_coverage", "chain_mapping", "scoring_mapping", "notes", "source_path"],
+    )
+    mmcif_dir = tmp_path / "mmcif"
+    mmcif_dir.mkdir()
+    mmcif = mmcif_dir / "9abc.cif"
+    mmcif.write_text(
+        """data_9abc
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.auth_asym_id
+ATOM 1 A 1 1 X
+ATOM 2 A 1 2 X
+ATOM 3 A 1 3 X
+ATOM 4 B 1 1 Y
+ATOM 5 B 1 3 Y
+#
+""",
+        encoding="utf-8",
+    )
+    structures = tmp_path / "structures.tsv"
+    write_tsv(
+        structures,
+        [
+            {
+                "target_id": "T1201",
+                "pdb_id": "9abc",
+                "status": "candidate",
+                "source": "rcsb_exact_sequence_probe",
+                "reference_path": str(mmcif),
+                "download_status": "cached",
+                "sha256": "0123456789abcdef",
+                "bytes": str(mmcif.stat().st_size),
+                "notes": "candidate row",
+            }
+        ],
+        ["target_id", "pdb_id", "status", "source", "reference_path", "download_status", "sha256", "bytes", "notes"],
+    )
+    output = tmp_path / "chain_audit.tsv"
+
+    summary = audit_reference_candidate_chains(
+        project_root=project_root,
+        benchmark="casp16_server_protein_v1",
+        review_tsv=review,
+        structures_tsv=structures,
+        output_tsv=output,
+    )
+
+    rows = read_tsv(output)
+    assert summary["rows"] == 2
+    chain_a = next(row for row in rows if row["chain_id"] == "A")
+    chain_b = next(row for row in rows if row["chain_id"] == "B")
+    assert chain_a["domain_residue_ranges"] == "1-3"
+    assert chain_a["observed_label_seq_ranges"] == "1-3"
+    assert chain_a["domain_residue_coverage"] == "1.000000"
+    assert chain_a["chain_supports_domain"] == "true"
+    assert chain_b["domain_residue_coverage"] == "0.666667"
+    assert chain_b["domain_missing_count"] == "1"
 
 
 def test_generate_reference_map_audit_report(tmp_path) -> None:

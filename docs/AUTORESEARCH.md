@@ -764,6 +764,15 @@ competitive result.
     because it is single-domain (`T1278-D1`, residues `34-370`) with four
     full-construct candidates; `T1228V1` remains a harder four-domain crop
     mapping problem. No row was promoted to `accepted`.
+45. `2026-07-06 23:03 CDT` added `./casp16 refmap-chain-audit` and generated
+    `diagnostics/reference_gap/casp16_server_protein_v3_refmap_chain_audit.tsv`.
+    The pure-Python mmCIF atom-site audit records chain/auth/entity IDs,
+    observed `label_seq_id` ranges, and domain-range coverage for materialized
+    candidate references. `T1278-D1 34-370` now has concrete crop evidence:
+    `9HAV` chain A covers the domain fully, while `9HAW`, `9HAX`, and `9HAY`
+    have many fully covering chains. This moves `T1278` closer to a guarded v3
+    refmap overlay, but it still needs native provenance and scorer-side domain
+    crop support before it can become rank-eligible.
 
 ## Run Discipline
 
