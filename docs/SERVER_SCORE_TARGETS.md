@@ -139,6 +139,7 @@ P14 score table is inspected.
   --replay-selected-model-policy diversity_confidence_consensus_v1 \
   --replay-strategy scoreable_target_subset_oligo_size_first_phase_alias_v1_consensus_selector_replay \
   --replay-selection-qa-output-csv diagnostics/selection_qa/server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105_consensus_replay.selection_qa.csv \
+  --post-p14-readout-output-json diagnostics/score_probes/post_p14_readout_latest.json \
   --tmscore-bin /scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore \
   --shard-run-id server_v2_attack_scoreable_size_balanced_shard01_msa_reuse_protenix5_seed101_105 \
   --shard-run-id server_v2_attack_scoreable_size_balanced_shard02_msa_reuse_protenix5_seed101_105 \
@@ -149,7 +150,7 @@ P14 score table is inspected.
 ```
 
 After closeout, use the read-only decision helper before opening the next GPU
-branch:
+branch if the `finish-shards` command did not already write it:
 
 ```bash
 ./casp16 post-p14-readout \

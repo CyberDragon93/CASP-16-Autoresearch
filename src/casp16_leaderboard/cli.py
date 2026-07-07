@@ -136,6 +136,7 @@ def finish_prediction_shards(
     replay_rank_eligible: bool | None = None,
     replay_selection_qa_output_csv: Path | None = None,
     replay_min_cluster_score: float = 0.5,
+    post_p14_readout_output_json: Path | None = None,
     dry_run: bool = False,
 ) -> dict[str, object]:
     check_summary = check_prediction_shards(
@@ -158,6 +159,7 @@ def finish_prediction_shards(
             "replay": {},
             "score": {},
             "leaderboard": {},
+            "post_p14_readout": {},
         }
     if dry_run:
         return {
@@ -167,6 +169,7 @@ def finish_prediction_shards(
             "replay": {},
             "score": {},
             "leaderboard": {},
+            "post_p14_readout": {},
         }
     merge_summary = merge_prediction_shards(
         project_root=root,
@@ -209,6 +212,20 @@ def finish_prediction_shards(
         official_root=official_dir,
         top_n=top_n,
     )
+    readout_summary: dict[str, object] = {}
+    if post_p14_readout_output_json:
+        replay_id = replay_run_id or f"{run_id}_consensus_replay"
+        readout_summary = post_p14_readout(
+            project_root=root,
+            benchmark=benchmark,
+            run_id=run_id,
+            replay_run_id=replay_id,
+            leaderboard_dir=output_dir,
+        )
+        output_json = post_p14_readout_output_json.resolve()
+        ensure_dir(output_json.parent)
+        output_json.write_text(json.dumps(readout_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        readout_summary["output_json"] = str(output_json)
     return {
         "finish_status": "finished",
         "check": check_summary,
@@ -216,6 +233,7 @@ def finish_prediction_shards(
         "replay": replay_summary,
         "score": score_summary,
         "leaderboard": leaderboard_summary,
+        "post_p14_readout": readout_summary,
     }
 
 
@@ -902,6 +920,7 @@ def build_parser() -> argparse.ArgumentParser:
     finish_shards.add_argument("--replay-rank-eligible", action=argparse.BooleanOptionalAction, default=None)
     finish_shards.add_argument("--replay-selection-qa-output-csv", type=Path, default=None)
     finish_shards.add_argument("--replay-min-cluster-score", type=float, default=0.5)
+    finish_shards.add_argument("--post-p14-readout-output-json", type=Path, default=None, help="Optional read-only post-P14 branch recommendation JSON written after successful scoring.")
     finish_shards.add_argument("--dry-run", action="store_true", help="Return ready/not-ready status without merging or scoring.")
 
     collect = subparsers.add_parser("collect", help="Collect local run artifacts into CSV/Markdown.")
@@ -1529,6 +1548,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             replay_rank_eligible=args.replay_rank_eligible,
             replay_selection_qa_output_csv=args.replay_selection_qa_output_csv,
             replay_min_cluster_score=args.replay_min_cluster_score,
+            post_p14_readout_output_json=args.post_p14_readout_output_json,
             dry_run=args.dry_run,
         )
         print_json(summary)
