@@ -1484,6 +1484,16 @@ competitive result.
     rows, 2 oligo assembly-mapping rows, 5 input/alias repair rows, and 13
     oligo manual-search rows. Deferred hits are review work only and remain
     non-promotable until provenance and mapping are explicit.
+97. `2026-07-07 12:47 CDT` P25 gate: still incomplete but moving. The safe
+    finish dry-run reports `ready=false`, `compatible=true`, `886` observed
+    candidates, `1164` shard-level missing candidates, and `1089` full
+    25-candidate slots missing. Slurm still shows 19 P25 jobs running and 5
+    P25 jobs pending behind `QOSMaxJobsPerUserLimit`. `docs/CASP16_WINNER_RECIPES.md`
+    now treats P25, not P14/P17, as the active branch-selection gate: after the
+    complete P25 score exists, choose exactly one next branch by evidence
+    (P27b for flat valid predictions, D6a for domain input-kind/alias zeros,
+    O5b for antibody/Fv oligo weakness, or versioned refmap work for reference
+    caps). Do not score partial P25 or launch those deferred branches early.
 
 ## Run Discipline
 

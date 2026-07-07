@@ -97,13 +97,16 @@ Actionable read:
   Therefore P25 is a scoreable-subset candidate-budget probe, not yet a true
   claim against official server winners.
 
-## Post-P14 Diversity Branch
+## Post-P25 Diversity Branch
 
-If P14 completes with valid predictions and metrics but weak fixed-set scores,
-the next serious winner-recipe branch should not be "more of the same seed"
-unless the evidence points to candidate selection as the bottleneck. Public
-CASP16 clues from MULTICOM4, GuijunLab/QA4, and complex assessment instead
-point at diverse MSA/model generation plus stronger model quality assessment.
+P14 and P17 already proved that the repaired scoreable input stack is the
+current useful baseline. P25 is now the active gate: do not choose a new GPU
+branch from a partial P25 row. After the complete P25 score exists, the next
+serious winner-recipe branch should not be "more of the same seed" unless the
+evidence points to candidate selection as the bottleneck. Public CASP16 clues
+from MULTICOM4, GuijunLab/QA4, and complex assessment instead point at diverse
+MSA/model generation plus stronger model quality assessment when seed scaling
+is valid but flat.
 
 Predeclared branch name:
 
@@ -128,6 +131,15 @@ retargets the same default-params probe onto the repaired P17/P25 79-job
 scoreable input. It is prepared and preflight-clean, but remains deferred until
 P25 finishes and shows that model/config diversity is a better next spend than
 more seed scaling or reference recovery.
+
+Current live gate, `2026-07-07 12:47 CDT`: P25 is healthy but incomplete.
+`scripts/finish_p25_scoreable_input_repair.sh --dry-run` reports
+`ready=false`, `compatible=true`, `886` observed candidates, `1164`
+shard-level candidates missing, and `1089` full 25-candidate slots missing.
+Slurm has 19 P25 jobs running and 5 P25 jobs pending behind
+`QOSMaxJobsPerUserLimit`. This is forward progress, not evidence for a new
+strategy choice. Keep O5b, P27b, D6a, and P15/v5 refmap work gated until the
+full declared P25 row is merged and scored.
 
 Candidate budget sketch:
 
@@ -161,14 +173,16 @@ Allowed variant classes:
 
 Stop conditions:
 
-- P14 still has many `missing_prediction`, metric failures, or exact-artifact
-  lookup failures: fix the pipeline first.
-- P14 is mainly reference-limited: launch the v4/P15 refmap row or continue
-  versioned reference recovery instead.
-- P14 is candidate-limited with broad nonzero signal: prefer the prepared
-  `protenix25_scoreable_nofail` row before building a new MSA-variant system.
-- P14 is weak despite valid complete predictions: build this diversity branch
-  rather than spending a larger single-input seed grid.
+- P25 still has `partial_candidates`: wait or repair the execution layer; do
+  not score partial shards.
+- P25 has many `missing_prediction`, metric failures, or exact-artifact lookup
+  failures after completion: fix the pipeline first.
+- P25 is mainly reference-limited: launch the v4/P15 row or continue versioned
+  reference recovery instead of spending more GPU.
+- P25 has broad nonzero signal and improves over P17: analyze target deltas
+  before opening another branch.
+- P25 is weak despite valid complete predictions: build or launch the prepared
+  diversity branch rather than spending a larger single-input seed grid.
 
 ## Current Recipe Ladder
 
@@ -179,7 +193,7 @@ by how interesting the trick is.
 | Gate | Winner clue | Local reproduction | Current status | Next decision |
 | --- | --- | --- | --- | --- |
 | G1 | Strong CASP16 systems did careful input preparation before spending sampling budget | v2 nofail scoreable stack plus P17 input repair: protein-oligo sequence recovery, phase-alias stoichiometry, low-complexity cleanup, token fallback, full MSA reuse, and target-agnostic `O`/`Vn`/phase alias repair | P17 overlay completed and scored on 79/79 scoreable targets, improving P14 to domain `0.107690` and oligo `0.118933` | Keep the P17 overlay as seeds101-105 for P25; input coverage is no longer the immediate scoreable-target blocker |
-| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight; latest live gate at `2026-07-07 12:22 CDT` is healthy but incomplete at `855` observed candidates, 19 running jobs, and 5 pending jobs; active runtime is large-complex inference rather than MSA | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row; keep O5b/P27b gated until this score exists |
+| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight; latest live gate at `2026-07-07 12:47 CDT` is healthy but incomplete at `886` observed candidates, 19 running jobs, and 5 pending jobs; active runtime is large-complex inference rather than MSA | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row; keep O5b/P27b/D6a gated until this score exists |
 | G3 | First-model QA/ranking can change apparent method quality without more GPU | P16 consensus replay used the same P14 five-candidate pool with `selection-qa` and `diversity_confidence_consensus_v1` | scored but slightly below P14 (`0.102218` domain, `0.115250` oligo) | Do not tune selectors again until P17 removes scoreable missing predictions and shows candidate selection is the limiting factor |
 | G4 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a full input is now exact-sequence MSA-cache complete (`276/276`, 0 stale) but deferred behind P25 | If complete P25 still shows domain zeros from input-kind or alias repair classes, run D6a before another seed-scaling spend |
 | G5 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache, P27a for the old 74-job scoreable input, and P27b for the repaired 79-job scoreable input as concrete Protenix model/config variants, but not true MSA-variant or multi-engine generation | P27b prepared/deferred behind P25; broader variants not queued | Add broader MSA/model-variant budgets only after current Protenix input repairs and P25 seed scaling stop yielding easy gains |
@@ -187,30 +201,38 @@ by how interesting the trick is.
 | G7 | Reference gaps hide local progress but are not prediction tricks | versioned `refmap` overlays and oligo assembly audit | v4 adds only audited `T1278/T2278`; `diagnostics/reference_gap/t1228v1_v5_refmap_audit.tsv` now keeps `T1228V1` blocked on native-state provenance despite full-domain-support candidates; H0217/H0267 oligo families remain blocked on assembly/QSglob mapping | Keep reference recovery opportunistic and versioned; do not let it block runnable prediction experiments |
 | G8 | QA4/MULTICOM-style systems use diverse MSA/model pools plus QA rather than only seed count | `casp16_server_attack_msa_model_diversity_v1` design gate plus P27a/P27b default-params model/config probes | P27b prepared/deferred behind P25; full diversity system not queued | Build or launch only if P25 is complete/valid but weak and model/config diversity is the recorded next spend |
 
-Post-P17 branch:
+Post-P25 branch discipline:
 
 - P17 fixed the scoreable missing predictions and scored as a
-  `candidate_limited_signal`, so P25 seed106-125 is now submitted. Do not launch
-  P27a, P27b, O5, or a refmap compute branch until the P25 row finishes or
-  fails with a recorded reason.
+  `candidate_limited_signal`, so P25 seed106-125 is now submitted. Do not
+  launch P27a, P27b, O5/O5b, D6a, or a refmap compute branch until the P25 row
+  finishes or fails with a recorded reason.
+- If P25 finishes and improves broadly, the next action is analysis, not
+  immediate launch. Record target deltas, ok/missing/failed counts, and whether
+  the selector chose different seeds for successful targets.
+- If P25 is flat with valid predictions, use P27b before another seed grid:
+  it is the smallest prepared test of the MULTICOM/QA4 model-config diversity
+  clue on the repaired input.
+- If P25 exposes domain input-kind or alias zeros, use D6a before more attack
+  compute: D6a is already MSA-cache complete and repairs that class.
+- If P25 exposes antibody/Fv oligo weakness while non-antibody QSglob rows have
+  signal, use O5b before broader oligo tinkering.
+- If P25 is capped mostly by `missing_reference`, do versioned reference
+  recovery. Do not burn GPU to chase targets that cannot be scored locally.
 
-Default branch after P17:
+Default branch after complete P25:
 
-- P17 strong and candidate-limited: launch the repaired scoreable 25-seed grid.
-- P17 strong but reference-limited: launch P15 on
-  `casp16_server_protein_v4_refmap` and keep further refmap work versioned.
-- P17 has many `missing_prediction`, `metric_failed`, or exact-oligo lookup
-  failures: fix that class first; do not spend P25 on a broken score path.
-- P17 weak from input coverage/domain mistakes: run D6a single-seed input
-  repair after the rank-ineligible MSA warmup.
-- P17 weak mainly on antibody/Fv oligos: run the prepared O5 scoreable Fv
-  target shards.
-- P17 weak with valid predictions and metrics but no clear input/scoring
-  failure: do not scale Protenix seeds; design a new MSA/model-variant budget
-  instead.
+- P25 improves over P17: inspect deltas before deciding whether to scale budget
+  or strengthen QA.
+- P25 flat but valid: run P27b default-params model/config shards.
+- P25 domain zeros from input modality/aliasing: run D6a single-seed input
+  repair after marking it pending.
+- P25 antibody/Fv QSglob weakness: run repaired O5b shards.
+- P25 reference-capped: run P15/v4 only for the v4 benchmark or continue v5
+  accepted-reference work; never patch v2/v4 in place.
 
-`docs/SERVER_SCORE_TARGETS.md` owns the exact post-P14 readout sequence and
-decision matrix. This file owns the recipe rationale.
+`docs/SERVER_SCORE_TARGETS.md` owns the exact score targets and P25 closeout
+sequence. This file owns the recipe rationale.
 
 ## Protein Domains
 
