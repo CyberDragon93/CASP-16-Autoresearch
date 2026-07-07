@@ -53,7 +53,9 @@ aggregate branch gate before selecting any deferred branch:
 
 On current artifacts this command returns `decision_status=not_scored` and
 `next_branch=finish_or_score_p25`, which is expected because the merged P25 row
-does not exist yet. The current P17 repaired-input baseline is score-path clean
+does not exist yet. It also emits a non-executing `launch_plan` object with
+the selected action, run ids, preflight TSV, target-shard flag, and command
+templates. The current P17 repaired-input baseline is score-path clean
 (`79/79` scoreable targets `ok`) with fixed-set mean `0.114371554` and 96
 no-reference zero rows.
 The readout now also emits predeclared branch diagnostics for D6a input-repair
@@ -98,6 +100,8 @@ ssh login1 'cd /scratch/10992/liaorunlong93/casp16-leaderboard && RUN_ID=<run_id
 For target-disjoint shard branches, submit each selected shard run id with the
 same `RUN_ID=... sbatch` pattern. Do not use `--allow-parallel` unless the
 target-shard manifest has already proven the selected shards are disjoint.
+Prefer the `launch_plan` object from `post-p25-readout` as the machine-readable
+source for selected run ids and preflight files.
 
 ## Next To Run
 

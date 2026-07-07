@@ -16,6 +16,19 @@ DEFAULT_EXACT_DOMAIN_PROBE_FLOOR = 0.099576
 DEFAULT_MIN_EXACT_OLIGO_NONZERO = 2
 
 D6A_INPUT_REPAIR_TARGETS = {"T1276", "T1228V1", "T1239V1", "T2276"}
+D6A_RUN_IDS = ("server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101",)
+P27B_RUN_IDS = tuple(
+    f"server_v2_attack_scoreable_input_repair_defaultparams_shard{shard:02d}_msa_reuse_protenix5_seed101_105"
+    for shard in range(1, 7)
+)
+O5B_RUN_IDS = tuple(
+    f"server_v2_attack_scoreable_input_repair_antibody_fv_shard{shard:02d}_msa_reuse_protenix5_seed101_105"
+    for shard in range(1, 7)
+)
+P15_V4_RUN_IDS = tuple(
+    f"server_v4_attack_scoreable_size_balanced_shard{shard:02d}_msa_reuse_protenix5_seed101_105"
+    for shard in range(1, 7)
+)
 ANTIBODY_FV_TARGETS = {
     "H0222",
     "H1222",
@@ -30,6 +43,123 @@ ANTIBODY_FV_TARGETS = {
     "H1233",
     "H2233",
 }
+
+
+def post_p25_launch_plan(next_branch: str, decision_status: str) -> dict[str, Any]:
+    """Return a non-executing launch plan for the selected post-P25 branch."""
+
+    common_templates = [
+        './casp16 mark-run --run-id <run_id> --status pending --message "selected after complete P25 readout: '
+        f'{decision_status}"',
+        "./casp16 run-one --run-id <run_id> --dry-run",
+        "ssh login1 'cd /scratch/10992/liaorunlong93/casp16-leaderboard && "
+        "RUN_ID=<run_id> sbatch --export=ALL slurm/casp16_run_one_gh200.slurm'",
+    ]
+    plans: dict[str, dict[str, Any]] = {
+        "finish_or_score_p25": {
+            "action": "wait_for_p25_closeout",
+            "run_ids": [],
+            "preflight_tsv": "",
+            "target_disjoint_shards": False,
+            "command_templates": [
+                "scripts/finish_p25_scoreable_input_repair.sh --dry-run --output-tsv /tmp/casp16_p25_readiness_live.tsv",
+                "scripts/finish_p25_scoreable_input_repair.sh",
+                "./casp16 score --benchmark casp16_server_protein_v2_aliasfix",
+                "./casp16 leaderboard --benchmark casp16_server_protein_v2_aliasfix",
+                "./casp16 post-p25-readout --benchmark casp16_server_protein_v2_aliasfix",
+            ],
+            "note": "Do not launch another branch until P25 is merged, scored, and re-read.",
+        },
+        "score_p25_before_decision": {
+            "action": "score_existing_p25_outputs",
+            "run_ids": [],
+            "preflight_tsv": "",
+            "target_disjoint_shards": False,
+            "command_templates": [
+                "./casp16 score --benchmark casp16_server_protein_v2_aliasfix",
+                "./casp16 leaderboard --benchmark casp16_server_protein_v2_aliasfix",
+                "./casp16 post-p25-readout --benchmark casp16_server_protein_v2_aliasfix",
+            ],
+            "note": "P25 has run rows but no target scores yet.",
+        },
+        "finish_or_repair_p25_candidate_grid": {
+            "action": "repair_p25_grid",
+            "run_ids": [],
+            "preflight_tsv": "",
+            "target_disjoint_shards": False,
+            "command_templates": ["scripts/finish_p25_scoreable_input_repair.sh --dry-run"],
+            "note": "Fix missing or partial P25 candidates before any new GPU branch.",
+        },
+        "fix_p25_score_path_before_more_gpu": {
+            "action": "repair_scoring_path",
+            "run_ids": [],
+            "preflight_tsv": "",
+            "target_disjoint_shards": False,
+            "command_templates": ["./casp16 score --benchmark casp16_server_protein_v2_aliasfix"],
+            "note": "Prediction or scorer failures must be fixed before spending more compute.",
+        },
+        "analyze_p25_aggregate_deltas_then_pick_model_variant": {
+            "action": "analyze_complete_p25",
+            "run_ids": [],
+            "preflight_tsv": "",
+            "target_disjoint_shards": False,
+            "command_templates": ["./casp16 post-p25-readout --benchmark casp16_server_protein_v2_aliasfix"],
+            "note": "P25 improved; inspect aggregate deltas before choosing another branch.",
+        },
+        "launch_d6a_domain_sequence_recovery_after_p25": {
+            "action": "launch_d6a_input_repair",
+            "run_ids": list(D6A_RUN_IDS),
+            "preflight_tsv": "diagnostics/msa_cache/domain_sequence_recovery_after_warmup_preflight.tsv",
+            "target_disjoint_shards": False,
+            "command_templates": common_templates,
+            "note": "Single dev-fixed input-repair ablation; use only for predeclared domain input-kind/alias zeros.",
+        },
+        "launch_o5b_antibody_fv_after_p25": {
+            "action": "launch_o5b_antibody_fv_shards",
+            "run_ids": list(O5B_RUN_IDS),
+            "preflight_tsv": "diagnostics/msa_cache/protenix5_input_repair_antibody_fv_preflight.tsv",
+            "target_disjoint_shards": True,
+            "command_templates": common_templates,
+            "note": "Submit only the repaired-input antibody/Fv shards selected by aggregate P25 diagnostics.",
+        },
+        "continue_versioned_refmap_or_score_p15_v4": {
+            "action": "continue_refmap_or_launch_p15_v4",
+            "run_ids": list(P15_V4_RUN_IDS),
+            "preflight_tsv": "diagnostics/msa_cache/protenix5_v4_scoreable_target_run_preflight.tsv",
+            "target_disjoint_shards": True,
+            "command_templates": common_templates,
+            "note": "Use versioned refmap work first if P25 is reference-capped; report P15 as v4, not v2.",
+        },
+        "launch_oligo_or_antibody_fv_model_config_after_p25": {
+            "action": "launch_o5b_or_p27b_after_oligo_regression",
+            "run_ids": list(O5B_RUN_IDS),
+            "alternate_run_ids": list(P27B_RUN_IDS),
+            "preflight_tsv": "diagnostics/msa_cache/protenix5_input_repair_antibody_fv_preflight.tsv",
+            "alternate_preflight_tsv": "diagnostics/msa_cache/protenix5_input_repair_defaultparams_model_variant_preflight.tsv",
+            "target_disjoint_shards": True,
+            "command_templates": common_templates,
+            "note": "Default to O5b if antibody/Fv rows explain the oligo regression; otherwise use P27b.",
+        },
+        "launch_p27b_model_config_diversity_after_p25": {
+            "action": "launch_p27b_defaultparams_shards",
+            "run_ids": list(P27B_RUN_IDS),
+            "preflight_tsv": "diagnostics/msa_cache/protenix5_input_repair_defaultparams_model_variant_preflight.tsv",
+            "target_disjoint_shards": True,
+            "command_templates": common_templates,
+            "note": "Smallest prepared model/config diversity probe on repaired scoreable inputs.",
+        },
+    }
+    return plans.get(
+        next_branch,
+        {
+            "action": "manual_review",
+            "run_ids": [],
+            "preflight_tsv": "",
+            "target_disjoint_shards": False,
+            "command_templates": [],
+            "note": f"No static launch plan is registered for {next_branch}.",
+        },
+    )
 
 
 def read_csv_rows(path: Path) -> list[dict[str, str]]:
@@ -470,6 +600,7 @@ def post_p25_readout(
             "oligo_delta": oligo_delta,
             "scoreable_nonzero_fraction": scoreable_nonzero_fraction,
         },
+        "launch_plan": post_p25_launch_plan(next_branch, decision_status),
         "p25": p25,
         "baseline": baseline,
         "target_sets": {

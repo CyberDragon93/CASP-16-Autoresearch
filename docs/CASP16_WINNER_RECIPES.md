@@ -142,6 +142,9 @@ Slurm has 19 P25 jobs running and 5 P25 jobs pending behind
 large-complex inference, not an MSA-cache problem. This is forward progress,
 not evidence for a new strategy choice. Keep O5b, P27b, D6a, and P15/v5 refmap
 work gated until the full declared P25 row is merged and scored.
+`./casp16 post-p25-readout` now includes a `launch_plan` object so the selected
+post-P25 branch carries its run ids, preflight file, target-shard flag, and
+command templates in JSON rather than relying on manual lookup here.
 
 Post-P25 winner-trick triage:
 

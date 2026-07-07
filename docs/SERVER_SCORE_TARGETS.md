@@ -273,6 +273,10 @@ Prepared branch readiness to revisit after P17:
 | O5 antibody-Fv target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_antibody_fv_target_run_preflight.tsv` |
 | O5b repaired-input antibody-Fv target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_input_repair_antibody_fv_preflight.tsv` |
 
+`./casp16 post-p25-readout` returns a `launch_plan` object for the selected
+post-P25 branch. Treat that object as the machine-readable run-id and preflight
+source after P25 is complete; the tables here are explanatory context.
+
 ## What Counts As Progress
 
 - More scoreable domain targets without lowering the full-set mean.

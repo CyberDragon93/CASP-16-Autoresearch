@@ -504,6 +504,8 @@ def test_post_p25_readout_requires_scored_p25(tmp_path) -> None:
 
     assert summary["decision_status"] == "not_scored"
     assert summary["next_branch"] == "finish_or_score_p25"
+    assert summary["launch_plan"]["action"] == "wait_for_p25_closeout"
+    assert "finish_p25_scoreable_input_repair.sh" in summary["launch_plan"]["command_templates"][0]
 
 
 def test_post_p25_readout_blocks_partial_grid(tmp_path) -> None:
@@ -522,6 +524,7 @@ def test_post_p25_readout_selects_seed_scaling_signal(tmp_path) -> None:
 
     assert summary["decision_status"] == "seed_scaling_signal"
     assert summary["comparison"]["fixed_set_delta"] > 0.01
+    assert summary["launch_plan"]["action"] == "analyze_complete_p25"
 
 
 def test_post_p25_readout_selects_d6a_for_predeclared_domain_input_signal(tmp_path) -> None:
@@ -532,6 +535,9 @@ def test_post_p25_readout_selects_d6a_for_predeclared_domain_input_signal(tmp_pa
     assert summary["decision_status"] == "input_repair_signal"
     assert summary["next_branch"] == "launch_d6a_domain_sequence_recovery_after_p25"
     assert summary["p25"]["diagnostics"]["d6a_problem_targets"] == ["T1239V1"]
+    assert summary["launch_plan"]["run_ids"] == [
+        "server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101"
+    ]
 
 
 def test_post_p25_readout_selects_o5b_for_antibody_fv_signal(tmp_path) -> None:
@@ -543,6 +549,8 @@ def test_post_p25_readout_selects_o5b_for_antibody_fv_signal(tmp_path) -> None:
     assert summary["next_branch"] == "launch_o5b_antibody_fv_after_p25"
     assert summary["p25"]["diagnostics"]["non_antibody_exact_nonzero_oligo_targets"] == ["H1204"]
     assert summary["p25"]["diagnostics"]["antibody_nonzero_targets"] == []
+    assert summary["launch_plan"]["target_disjoint_shards"] is True
+    assert len(summary["launch_plan"]["run_ids"]) == 6
 
 
 def test_post_p25_readout_cli_writes_json(tmp_path, capsys) -> None:
@@ -568,4 +576,5 @@ def test_post_p25_readout_cli_writes_json(tmp_path, capsys) -> None:
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["next_branch"] == "analyze_p25_aggregate_deltas_then_pick_model_variant"
+    assert payload["launch_plan"]["action"] == "analyze_complete_p25"
     assert output_json.exists()

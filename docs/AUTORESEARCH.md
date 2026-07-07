@@ -1580,6 +1580,15 @@ competitive result.
      `0` stale). This is input realism and MSA readiness only; those three
      targets remain `not_reference_ready` until variant/native assembly and
      QSglob mapping proof exist.
+106. `2026-07-07 13:56 CDT` post-P25 readout hardening: while P25 remains
+     `decision_status=not_scored`, `./casp16 post-p25-readout` now emits a
+     non-executing `launch_plan` object. In the current state it points back
+     to the safe closeout sequence: finish dry-run, finish, score, leaderboard,
+     and re-readout. After a complete P25 score, the same field carries the
+     selected branch run ids, preflight TSV, target-shard flag, and command
+     templates for D6a, O5b, P15/v4, or P27b. This keeps the next
+     winner-recipe iteration machine-readable without launching anything
+     before the P25 gate opens.
 
 ## Run Discipline
 
