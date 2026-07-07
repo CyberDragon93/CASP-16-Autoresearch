@@ -2028,6 +2028,19 @@ competitive result.
      `variant_guard.status=ok`, `target_count=169`, and no failures.
      Validation: `python -m pytest tests/test_decisions.py` passed 21 tests,
      and full `python -m pytest` passed 184 tests in the protein env.
+141. `2026-07-07 16:47 CDT` P25 continues to progress but is still not
+     scoreable: `ready=false`, `1530` observed candidates, `536` shard-level
+     missing candidates, `473` full 25-candidate slots missing, and `28/79`
+     full-budget tasks complete. Slurm shows 19 P25 GH jobs running and 5 P25
+     jobs pending behind `QOSMaxJobsPerUserLimit`; the same five zero-output
+     rows are queue-blocked. Error-keyword scanning remains clean, latest
+     prediction writes reached 16:43 CDT, and log tails show slow large-complex
+     forwards (`H0272`, `H1272`, `H1220`, `H2236`) rather than MSA-cache or
+     wrapper failure. `./casp16 post-p25-branch-readiness` still reports
+     P27b, D6a, O5b, and P15/v4 launch-ready after complete P25 selection.
+     Winner-match discipline remains unchanged: no partial P25 score, no new
+     GPU branch, and no claim against the server winners until the full P25
+     pool is merged and scored.
 
 ## Run Discipline
 

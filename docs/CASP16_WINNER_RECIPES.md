@@ -152,21 +152,22 @@ this with a no-MSA speed row. The local environment also needs an explicit
 Protenix-Insta import path at runtime because the bare console script can be
 shadowed by OpenDDE's `runner.batch_inference`.
 
-Current live gate, `2026-07-07 16:05 CDT`: P25 is healthy but incomplete.
+Current live gate, `2026-07-07 16:47 CDT`: P25 is healthy but incomplete.
 `scripts/finish_p25_scoreable_input_repair.sh --dry-run` reports
-`ready=false`, `compatible=true`, `1413` observed candidates, `645`
-shard-level candidates missing, and `580` full 25-candidate slots missing.
+`ready=false`, `compatible=true`, `1530` observed candidates, `536`
+shard-level candidates missing, and `473` full 25-candidate slots missing.
 Slurm has 19 P25 jobs running and 5 P25 jobs pending behind
-`QOSMaxJobsPerUserLimit`; `gh` `MaxJobsPU=20` and one `tacc-vscode` job is
-also running. P25 MSA preflight is still clean (`24/24 ok`, `584/584` protein
-chains covered, `0` stale), so the current wait is queue plus
+`QOSMaxJobsPerUserLimit`, and one `gh` `tacc-vscode` job is also running. P25
+MSA preflight is still clean (`24/24 ok`, `584/584` protein chains covered,
+`0` stale), so the current wait is queue plus
 large-complex inference, not an MSA-cache problem. This is forward progress,
 not evidence for a new strategy choice. Keep O5b, P27b, D6a, and P15/v5 refmap
 work gated until the full declared P25 row is merged and scored.
-Follow-up log health at `2026-07-07 16:05 CDT` is clean: no traceback/OOM/
+Follow-up log health at `2026-07-07 16:47 CDT` is clean: no traceback/OOM/
 killed-process signatures were found in the running P25 shard logs, and recent
-CIF writes reached 16:05 CDT, confirming active inference rather than a stalled
-wrapper.
+CIF writes reached 16:43 CDT, confirming active inference rather than a stalled
+wrapper. The slow tails are large targets such as `H0272`, `H1272`, `H1220`,
+and `H2236`, which is the expected bottleneck for this Protenix seed grid.
 `./casp16 post-p25-readout` now includes a `launch_plan` object so the selected
 post-P25 branch carries its run ids, preflight file, target-shard flag, and
 command templates in JSON rather than relying on manual lookup here.

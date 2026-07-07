@@ -5,14 +5,15 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 ## Post-P25 Fast Decision Queue
 
-Current live P25 gate, checked `2026-07-07 16:05 CDT`: `ready=false`,
-`compatible=true`, `1413` observed candidates, `645` shard-level candidates
-missing, and `580` full 25-candidate slots missing. Six targets are now complete
-at the full 25-candidate budget, but the merged P25 row is not scoreable yet.
+Current live P25 gate, checked `2026-07-07 16:47 CDT`: `ready=false`,
+`compatible=true`, `1530` observed candidates, `536` shard-level candidates
+missing, and `473` full 25-candidate slots missing. Twenty-eight targets are
+now complete at the full 25-candidate budget, but the merged P25 row is not
+scoreable yet.
 Slurm has 19 P25 jobs running and 5 P25 jobs pending behind
-`QOSMaxJobsPerUserLimit`; `qlimits` reports `gh` `MaxJobsPU=20`, and one
-`tacc-vscode` job is also running. Do not submit any branch in this section
-until the complete P25 row is merged and scored.
+`QOSMaxJobsPerUserLimit`, and one `gh` `tacc-vscode` job is also running. Do
+not submit any branch in this section until the complete P25 row is merged and
+scored.
 Current running shards show normal large-complex inference and queue waiting,
 not repeated MSA recomputation. The latest error keyword scan is clean, and
 `run-next --dry-run` reports `no_pending_runs`.
@@ -45,14 +46,14 @@ the same wrapper can be rerun without `--dry-run`. `zero_output_shards` and
 `largest_missing_shards` identify queue-blocked or slow execution shards
 without inspecting partial target scores.
 
-Follow-up health check, `2026-07-07 15:05 CDT`: a keyword scan across the P25
+Follow-up health check, `2026-07-07 16:47 CDT`: a keyword scan across the P25
 Slurm/stderr logs found no traceback, OOM, killed-process, missing-file, or
 RuntimeError signatures. The newest CIF mtimes are still advancing inside
-running shards, with recent writes from shard01 target `H0236`. The five
-zero-output shards in
-the readiness JSON correspond to pending jobs behind the queue limit, not
-observed execution failures. Keep waiting for declared candidates rather than
-scoring partial output.
+running shards, with recent writes through 16:43 CDT. The five zero-output
+shards in the readiness JSON correspond to pending jobs behind the queue limit,
+not observed execution failures. Slow running logs show large targets such as
+`H0272`, `H1272`, `H1220`, and `H2236` consuming long forward passes, so keep
+waiting for declared candidates rather than scoring partial output.
 
 After the wrapper succeeds and the leaderboard is regenerated, run the
 aggregate branch gate before selecting any deferred branch:
@@ -92,10 +93,10 @@ rediscovering prepared artifacts:
 ```
 
 It should report P27b, D6a, O5b, and P15/v4 as launch-ready before any branch
-is selected. Latest audit `2026-07-07 15:53 CDT`: all four are still
+is selected. Latest audit `2026-07-07 16:47 CDT`: all four are still
 launch-ready after complete P25 selection, with no missing run specs and
-`ok` preflights. A stale deferred status label is not itself a blocker;
-missing run specs or non-`ok` preflight rows are blockers.
+`ok` guarded variants/preflights. A stale deferred status label is not itself
+a blocker; missing run specs or non-`ok` preflight rows are blockers.
 
 `scripts/finish_p25_scoreable_input_repair.sh` is now the preferred P25 closeout
 entrypoint because it calls `finish-shards` with the predeclared
