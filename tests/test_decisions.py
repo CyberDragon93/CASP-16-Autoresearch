@@ -201,6 +201,7 @@ def write_p25_readout_fixture(
     include_baseline=True,
     include_p25=True,
     p25_partial=False,
+    p25_actionable_failure=None,
     p25_domain_mean="0.080000",
     p25_oligo_mean="0.050000",
     baseline_domain_mean="0.050000",
@@ -256,7 +257,7 @@ def write_p25_readout_fixture(
                     "eligible_targets": "3",
                     "ok_targets": "2",
                     "partial_candidate_targets": "1" if p25_partial else "0",
-                    "metric_unavailable_targets": "0",
+                    "metric_unavailable_targets": "1" if p25_actionable_failure == "metric_unavailable" else "0",
                 },
                 {
                     "run_id": p25_id,
@@ -335,8 +336,8 @@ def write_p25_readout_fixture(
             ]
         )
     if include_p25:
-        p25_status = "partial_candidates" if p25_partial else "ok"
-        p25_score = "0.000000" if p25_partial else p25_domain_mean
+        p25_status = p25_actionable_failure or ("partial_candidates" if p25_partial else "ok")
+        p25_score = "0.000000" if p25_partial or p25_actionable_failure else p25_domain_mean
         score_rows.extend(
             [
                 {
@@ -345,7 +346,7 @@ def write_p25_readout_fixture(
                     "target_id": "T1",
                     "status": p25_status,
                     "score": p25_score,
-                    "prediction_match_type": "exact" if not p25_partial else "",
+                    "prediction_match_type": "exact" if not p25_partial and not p25_actionable_failure else "",
                     "qsglob": "",
                 },
                 {
@@ -530,6 +531,17 @@ def test_post_p25_readout_blocks_partial_grid(tmp_path) -> None:
     assert summary["decision_status"] == "not_complete"
     assert summary["next_branch"] == "finish_or_repair_p25_candidate_grid"
     assert summary["target_delta_summary"]["valid_for_analysis"] is False
+
+
+def test_post_p25_readout_repairs_score_path_before_more_gpu(tmp_path) -> None:
+    benchmark, p25_id, baseline_id = write_p25_readout_fixture(tmp_path, p25_actionable_failure="metric_failed")
+
+    summary = post_p25_readout(project_root=tmp_path, benchmark=benchmark, run_id=p25_id, baseline_run_id=baseline_id)
+
+    assert summary["decision_status"] == "blocked_by_score_path"
+    assert summary["next_branch"] == "fix_p25_score_path_before_more_gpu"
+    assert summary["p25"]["integrity"]["scoreable_actionable_failures"] == 1
+    assert summary["launch_plan"]["action"] == "repair_scoring_path"
 
 
 def test_post_p25_readout_selects_seed_scaling_signal(tmp_path) -> None:

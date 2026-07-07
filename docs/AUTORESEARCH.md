@@ -1972,6 +1972,18 @@ competitive result.
      env, and full `python -m pytest` passed 178 tests. Keep waiting for
      declared candidates; do not score partial P25 or launch another GPU
      branch.
+137. `2026-07-07 16:26 CDT` P25 is still a healthy wait state, not a branch
+     signal: `ready=false`, `1505` observed candidates, `561` shard-level
+     missing candidates, `498` full 25-candidate slots missing, and `23/79`
+     full-budget tasks complete. Slurm still shows 19 P25 jobs running and 5
+     pending behind `QOSMaxJobsPerUserLimit`, the same five zero-output rows
+     are queue-blocked, error-keyword scanning is clean, and latest
+     predictions reached 16:24 CDT. Hardened the post-P25 selector one more
+     step: a complete P25 with scoreable `metric_failed`/score-path failures
+     now has a direct regression test requiring
+     `fix_p25_score_path_before_more_gpu` rather than launching P27b/O5b.
+     Validation: `python -m pytest tests/test_decisions.py` passed 16 tests,
+     and full `python -m pytest` passed 179 tests in the protein env.
 
 ## Run Discipline
 
