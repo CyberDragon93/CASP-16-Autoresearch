@@ -176,6 +176,11 @@ where methods should change.
   tails show active seed103 forward passes on large 2285-2535 token complexes
   (`H0258/H1258/H2258` and `H0272/H1272/H2272` class). Treat this as slow
   healthy inference, not a stalled job.
+- `2026-07-07 03:15 CDT` P14 recheck: all six Slurm jobs `812239..812244`
+  remain running, and replay-safe `finish-shards` now observes `239/370`
+  expected candidate CIFs with `131` still missing. The row is still
+  `ready=false`, but progress is monotonic and there are no shard-closeout
+  actions to take yet.
 - Post-P14 winner-recipe branch `casp16_server_attack_msa_model_diversity_v1`
   is now documented as a design gate in `docs/CASP16_WINNER_RECIPES.md`. It
   captures the MULTICOM4/QA4-style lesson: if P14 is complete and valid but
@@ -183,6 +188,16 @@ where methods should change.
   settings instead of disabling MSA or blindly scaling one Protenix input. Its
   non-executable budget design is recorded in
   `attack_budgets/casp16_server_attack_msa_model_diversity_v1.json`.
+- First concrete post-P14 model/config diversity branch P27a is prepared as
+  `attack_budgets/casp16_server_attack_protenix5_defaultparams_model_variant.json`
+  plus six deferred target shards
+  `server_v2_attack_scoreable_defaultparams_shard01..06_msa_reuse_protenix5_seed101_105`.
+  It reuses the exact P14 benchmark, scoreable target shards, seeds
+  `101..105`, MSA/template settings, and selector, but flips only
+  `use_default_params:false -> true`. Batch preflight is `6/6 ok` with
+  complete MSA reuse and 0 stale paths. Do not submit it before P14 is
+  merged/scored and the post-P14 decision matrix selects model/config
+  diversity over seed scaling, reference recovery, or input repair.
 - `diversity_confidence_consensus_v1` is now wired as a prediction-only
   selector for future diversity budgets. It extends `protenix_confidence_v1`
   with optional consensus/cluster-support fields from run-local confidence or

@@ -34,6 +34,7 @@ from .runs import (
     DEFAULT_PROTENIX_BIN,
     DEFAULT_PROTENIX_ROOT,
     RUN_PREFLIGHT_FIELDS,
+    append_status,
     create_run_spec,
     list_run_rows,
     load_run_specs,
@@ -43,6 +44,7 @@ from .runs import (
     spec_bool,
     run_next,
     run_one,
+    write_runs_manifest,
 )
 from .scoring import probe_qsglob_targets, resolve_tool, score_benchmark_runs, write_prediction_selection_qa
 from .sharding import SHARD_READINESS_FIELDS, check_prediction_shards, write_input_shards, write_tsv
@@ -907,6 +909,12 @@ def build_parser() -> argparse.ArgumentParser:
     list_runs = subparsers.add_parser("list-runs", help="List run specs with latest append-only status.")
     list_runs.add_argument("--benchmark", default=None)
 
+    mark_run = subparsers.add_parser("mark-run", help="Append a lifecycle status for existing run spec(s) and refresh runs/manifest.tsv.")
+    mark_run.add_argument("--run-id", action="append", required=True, help="Run id(s), repeat or comma-separate.")
+    mark_run.add_argument("--benchmark", default="", help="Defaults to the benchmark in each run spec when available.")
+    mark_run.add_argument("--status", required=True)
+    mark_run.add_argument("--message", default="")
+
     preflight_runs = subparsers.add_parser("preflight-runs", help="Batch-check run specs before launch, including MSA reuse reports.")
     preflight_runs.add_argument("--benchmark", default=None)
     preflight_runs.add_argument("--run-id", action="append", default=None, help="Run id(s), repeat or comma-separate.")
@@ -1524,6 +1532,25 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "list-runs":
         print_json(list_run_rows(root, benchmark=args.benchmark))
+        return 0
+
+    if args.command == "mark-run":
+        specs_by_id = {
+            str(spec.get("run_id", "")): spec
+            for spec in load_run_specs(root / "runs", registered_only=False)
+        }
+        run_ids = split_csv_args(args.run_id)
+        missing = [run_id for run_id in run_ids if run_id not in specs_by_id]
+        if missing:
+            raise FileNotFoundError(f"run spec(s) not found: {', '.join(missing)}")
+        rows: list[dict[str, str]] = []
+        for run_id in run_ids:
+            spec = specs_by_id[run_id]
+            benchmark = args.benchmark or str(spec.get("benchmark_name", ""))
+            append_status(root, run_id=run_id, benchmark=benchmark, status=args.status, message=args.message)
+            rows.append({"run_id": run_id, "benchmark": benchmark, "status": args.status, "message": args.message})
+        manifest = write_runs_manifest(root)
+        print_json({"updated": len(rows), "rows": rows, "manifest": str(manifest)})
         return 0
 
     if args.command == "preflight-runs":

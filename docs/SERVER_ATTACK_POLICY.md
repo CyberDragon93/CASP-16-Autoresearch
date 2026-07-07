@@ -142,8 +142,8 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 `rank_eligible=false` until merged. They were submitted as Slurm jobs
 `812239..812244` with `./casp16 run-one --allow-parallel`.
 
-Current launch gate as of `2026-07-07 03:00 CDT`: those six P14 shards are
-still running and not merge-ready. `finish-shards` observes 225/370 expected
+Current launch gate as of `2026-07-07 03:15 CDT`: those six P14 shards are
+still running and not merge-ready. `finish-shards` observes 239/370 expected
 candidate CIFs and reports `ready=false`. The run is live rather than stalled:
 all shards are continuing to emit candidates, including the same class of
 1929-2535 token complex targets that previously blocked the serial attack. Do
@@ -152,6 +152,15 @@ deferred v4 P15 shards, the 25-seed scoreable grid, or the antibody-Fv
 scoreable branch until P14 is either merged/scored or explicitly abandoned with
 an append-only status reason. The next decision should be based on fixed-set
 server scores, not on a partial shard snapshot.
+
+The first prepared model/config-diversity successor is
+`attack_budgets/casp16_server_attack_protenix5_defaultparams_model_variant.json`.
+It uses the same v2 scoreable target shards, seeds `101..105`, sample count,
+real MSA/template settings, and `protenix_confidence_v1` selector as P14, but
+flips only `use_default_params:false -> true`. Its six shard specs are
+`deferred:await_p14_score`, rank-ineligible, and batch preflight clean with
+complete MSA reuse. Treat it as P27a: launch only if the post-P14 decision
+matrix selects model/config diversity, and keep it as a separate attack row.
 
 The prepared v4 successor uses
 `casp16_server_protein_v4_refmap` and 76 scoreable jobs because audited

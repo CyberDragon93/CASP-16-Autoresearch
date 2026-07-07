@@ -1,0 +1,51 @@
+{
+  "name": "casp16_server_attack_protenix5_defaultparams_model_variant",
+  "tier": "server_attack",
+  "status": "prepared_deferred_await_p14_score",
+  "parent_benchmark": "casp16_server_protein_v2_aliasfix",
+  "source_recipe": "MULTICOM4/QA4-style model/config diversity with real MSA/template settings",
+  "strategy": "target_shards_scoreable_size_balanced_v1_server_attack_protenix5_defaultparams",
+  "base_strategy": "target_shards_scoreable_size_balanced_v1_server_attack_protenix5",
+  "fixed_scoring_targets": 175,
+  "scoreable_jobs_kept": 74,
+  "target_shard_count": 6,
+  "seeds": ["101", "102", "103", "104", "105"],
+  "sample_per_seed": 1,
+  "candidate_count": 5,
+  "selected_model_policy": "protenix_confidence_v1",
+  "model_name": "protenix-v2",
+  "prediction_policy": {
+    "use_msa": true,
+    "use_template": true,
+    "use_default_params": true,
+    "enable_cache": true,
+    "enable_fusion": true,
+    "enable_tf32": true,
+    "msa_reuse": "global exact-sequence cache with require_complete"
+  },
+  "variant_from_p14": {
+    "only_changed_knob": "use_default_params:false -> true",
+    "unchanged": [
+      "benchmark",
+      "scoreable target subset",
+      "target shard partition",
+      "seeds",
+      "sample count",
+      "MSA/template enabled",
+      "candidate selection policy"
+    ]
+  },
+  "forbidden_selection_signals": [
+    "native or reference structures",
+    "official CASP score tables",
+    "previous target_scores.csv values",
+    "leaderboard rows used as a per-target oracle",
+    "manual per-target intervention after seeing scores"
+  ],
+  "launch_gate": [
+    "Do not submit before P14 is merged/scored or explicitly superseded.",
+    "Use only if P14 has valid complete predictions but weak score or model/config diversity is selected by the post-P14 decision matrix.",
+    "Keep this as a separate server_attack row; do not merge it into the original P14 protenix_confidence_v1 row."
+  ],
+  "shard_manifest": "attack_budgets/casp16_server_attack_protenix5_defaultparams_model_variant_shards.tsv"
+}

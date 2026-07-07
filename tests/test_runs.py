@@ -97,6 +97,47 @@ def test_register_run_spec_writes_run_dir(tmp_path) -> None:
     assert rows[0]["run_dir"] == str(run_dir)
 
 
+def test_mark_run_cli_appends_status_and_refreshes_manifest(tmp_path, capsys) -> None:
+    spec = {
+        "run_id": "future_branch",
+        "benchmark_name": "casp16_server_protein_v2_aliasfix",
+        "backend": "protenix",
+        "strategy": "defaultparams_variant",
+        "model_name": "protenix-v2",
+        "seeds": "101,102",
+        "sample": 1,
+        "candidate_count": 2,
+        "rank_eligible": False,
+    }
+    run_dir = tmp_path / "runs" / "future_branch"
+    run_dir.mkdir(parents=True)
+    (run_dir / "run_spec.json").write_text(json.dumps(spec), encoding="utf-8")
+    register_run_spec(tmp_path, spec)
+
+    rc = main(
+        [
+            "--root",
+            str(tmp_path),
+            "mark-run",
+            "--run-id",
+            "future_branch",
+            "--status",
+            "deferred:await_p14_score",
+            "--message",
+            "prepared but gated",
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["updated"] == 1
+    rows = list_run_rows(tmp_path, benchmark="casp16_server_protein_v2_aliasfix")
+    assert rows[0]["status"] == "deferred:await_p14_score"
+    manifest = (tmp_path / "runs" / "manifest.tsv").read_text(encoding="utf-8")
+    assert "future_branch" in manifest
+    assert "deferred:await_p14_score" in manifest
+
+
 def test_register_existing_run_is_diagnostic_not_pending(tmp_path) -> None:
     benchmark_dir = tmp_path / "benchmarks" / "casp16_server_protein_v1"
     benchmark_dir.mkdir(parents=True)
