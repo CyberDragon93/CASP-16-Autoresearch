@@ -142,16 +142,16 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 `rank_eligible=false` until merged. They were submitted as Slurm jobs
 `812239..812244` with `./casp16 run-one --allow-parallel`.
 
-Current launch gate as of `2026-07-07 00:59 CDT`: those six P14 shards are
-still running and not merge-ready. `check-shards` observes 120/370 expected
+Current launch gate as of `2026-07-07 01:18 CDT`: those six P14 shards are
+still running and not merge-ready. `check-shards` observes 137/370 expected
 candidate CIFs and reports `ready=false`. The run is live rather than stalled:
-shard01 finished the slow `H0258 seed102` target after a 2659s forward pass and
-continued to `T1206/T1210`; the remaining shards are blocked on the same class
-of 2285-2535 token targets. Do not submit the deferred v4 P15 shards, the
-25-seed scoreable grid, or the antibody-Fv scoreable branch until P14 is
-either merged/scored or explicitly abandoned with an append-only status reason.
-The next decision should be based on fixed-set server scores, not on a partial
-shard snapshot.
+seed 101 completed on all shards in roughly 5.1k-5.9k seconds, shard03 has
+completed seed 102 and started seed 103, and the slower shards are still
+working through the same class of 2285-2535 token targets. Do not submit the
+deferred v4 P15 shards, the 25-seed scoreable grid, or the antibody-Fv
+scoreable branch until P14 is either merged/scored or explicitly abandoned with
+an append-only status reason. The next decision should be based on fixed-set
+server scores, not on a partial shard snapshot.
 
 The prepared v4 successor uses
 `casp16_server_protein_v4_refmap` and 76 scoreable jobs because audited

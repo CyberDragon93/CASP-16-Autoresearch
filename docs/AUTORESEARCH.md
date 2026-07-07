@@ -159,6 +159,12 @@ where methods should change.
   `protenix_confidence_v1`. All six run specs preflight clean with complete
   MSA reuse. They must remain `deferred:await_p14_score` until the live v2 P14
   row has been merged/scored.
+- `2026-07-07 01:18 CDT` P14 gate: the live v2 target-sharded scoreable
+  Protenix5 attack remains healthy but not merge-ready. `check-shards` sees
+  137/370 expected candidate CIFs, all six Slurm jobs `812239..812244` are
+  still running, and shard03 has started seed 103 while the slower shards are
+  still in seed 102 large-target work. Do not launch P15/P25/O5 before P14 is
+  merged/scored or explicitly abandoned.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and
