@@ -997,6 +997,11 @@ competitive result.
     rows, or manual per-target intervention. It must be registered and
     sidecar-QA generated after P14 merge but before inspecting P14 target
     scores, then scored as a separate `server_attack` row.
+65. `2026-07-07 02:46 CDT` P14 live closeout check: `finish-shards` still
+    returns `finish_status=not_ready`, with 212/370 observed candidates, 158
+    missing candidates, 0/6 complete shards, and all six jobs `812239..812244`
+    still RUNNING at about 4h28m. Error scans across shard and Slurm logs are
+    clean. Continue waiting for full readiness; do not score partial output.
 
 ## Run Discipline
 
