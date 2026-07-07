@@ -1449,6 +1449,18 @@ competitive result.
     pending. `run-next --dry-run` still reports no pending runs, and P27b/O5b
     stay deferred with clean MSA preflight. Do not submit another branch while
     these large target inferences are still consuming the active GH slots.
+95. `2026-07-07 12:26 CDT` P25 gate: still not ready with the same
+    `855/1195/1120` candidate counts and the same 19 running plus 5 pending
+    P25 jobs. While waiting, the v5 reference-recovery audit for `T1228V1` was
+    tightened in `diagnostics/reference_gap/t1228v1_v5_refmap_audit.tsv`.
+    The D6a-style input repair is real (`T1228V1` is now representable as a
+    545-residue `proteinChain`), but the refmap row is still blocked:
+    official CASP M1228v1/M1228v2 pages say the complex has two distinct
+    conformations without mapping variant `v1` to a later PDB state. Therefore
+    `9dxk` and `9y66` remain blocked despite full domain chain support, and
+    `9dxh/9dxj` remain blocked by both native-state ambiguity and two missing
+    N-terminal positions. Do not promote `T1228V1` into v5 until native-state
+    provenance plus explicit chain/domain crop mapping are available.
 
 ## Run Discipline
 

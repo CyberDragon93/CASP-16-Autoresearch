@@ -81,6 +81,16 @@ repair plus native-state/domain-crop mapping are explicit. Do not promote all
 four PDB IDs, and do not choose the one with the best local prediction score or
 best residue coverage.
 
+2026-07-07 follow-up audit:
+`diagnostics/reference_gap/t1228v1_v5_refmap_audit.tsv` records the current
+candidate decision. CASP target pages for `M1228v1` and `M1228v2` state that
+the protein-DNA complex has two distinct conformations and variants should be
+submitted separately, but they do not map variant `v1` or `v2` to the later PDB
+candidate states. Therefore `9dxk` and `9y66` remain blocked despite exact
+domain coverage, while `9dxh/9dxj` remain additionally blocked by the two
+missing N-terminal domain positions. The next proof is native-state provenance
+plus explicit chain/domain crop mapping, not another sequence-search hit.
+
 ### Lane B: Oligo Candidates Blocked By Assembly
 
 The all-gap sequence probe found full-construct candidates for these oligo
