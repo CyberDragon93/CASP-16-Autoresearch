@@ -1524,6 +1524,15 @@ competitive result.
      shard06 seed blocks. Error keyword scanning across P25 logs is clean, so
      this is still normal long-target inference and queue waiting. No partial
      scoring and no deferred P27b/O5b/D6a launch.
+101. `2026-07-07 13:13 CDT` P25 gate: still `ready=false` and
+     `compatible=true`, now with `996` observed candidates, `1054`
+     shard-level missing candidates, and `984` full 25-candidate slots missing.
+     Slurm still has 19 P25 jobs running and 5 P25 jobs pending behind
+     `QOSMaxJobsPerUserLimit`; the pending P25 jobs are still shard05
+     seed121-125 plus all shard06 seed blocks. This is monotonic progress but
+     not a closeout point. `docs/CASP16_WINNER_RECIPES.md` now records a
+     post-P25 winner-trick triage table so the next branch is selected from the
+     complete P25 evidence rather than from a partial shard readout.
 
 ## Run Discipline
 

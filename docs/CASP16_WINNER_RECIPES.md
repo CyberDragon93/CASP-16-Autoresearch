@@ -132,14 +132,25 @@ scoreable input. It is prepared and preflight-clean, but remains deferred until
 P25 finishes and shows that model/config diversity is a better next spend than
 more seed scaling or reference recovery.
 
-Current live gate, `2026-07-07 12:52 CDT`: P25 is healthy but incomplete.
+Current live gate, `2026-07-07 13:13 CDT`: P25 is healthy but incomplete.
 `scripts/finish_p25_scoreable_input_repair.sh --dry-run` reports
-`ready=false`, `compatible=true`, `890` observed candidates, `1160`
-shard-level candidates missing, and `1085` full 25-candidate slots missing.
+`ready=false`, `compatible=true`, `996` observed candidates, `1054`
+shard-level candidates missing, and `984` full 25-candidate slots missing.
 Slurm has 19 P25 jobs running and 5 P25 jobs pending behind
 `QOSMaxJobsPerUserLimit`. This is forward progress, not evidence for a new
 strategy choice. Keep O5b, P27b, D6a, and P15/v5 refmap work gated until the
 full declared P25 row is merged and scored.
+
+Post-P25 winner-trick triage:
+
+| Observed complete P25 signal | Winner clue to reproduce next | Next branch | Do not do |
+| --- | --- | --- | --- |
+| Broad domain/oligo improvement over P17 with valid metrics | candidate budget and confidence selection matter | analyze P25 target deltas, selected seeds, and nonzero coverage before spending more GPU | immediately launch another larger seed grid without checking what P25 selected |
+| Flat versus P17, but predictions and metrics are complete | MULTICOM/QA-style model/config diversity can beat more seeds on one input | P27b repaired-input default-params model/config shards | retune selector weights from target scores |
+| Domain zeros/failures cluster around input-kind or alias classes | Yang-style input/construct repair beats blind sampling | D6a domain sequence recovery single-seed ablation | spend more multi-seed budget on known-bad domain inputs |
+| Oligo weakness clusters on antibody/Fv rows while other QSglob rows have signal | antibody/antigen systems may need specialized Fv-style handling | O5b repaired-input antibody/Fv shards | use target-lab DockQ as a leaderboard score |
+| Main cap is `missing_reference` or unresolved QSglob mapping | measurement coverage is blocking comparison, not prediction compute | v5 refmap or oligo assembly mapping work | patch v2/v4 references in place or fill scores from official tables |
+| Metric/tool failures dominate | server-compatible scoring is still broken | fix scorer/mapping, then rescore the same completed predictions | launch a new GPU branch to hide scorer failures |
 
 Candidate budget sketch:
 
@@ -193,7 +204,7 @@ by how interesting the trick is.
 | Gate | Winner clue | Local reproduction | Current status | Next decision |
 | --- | --- | --- | --- | --- |
 | G1 | Strong CASP16 systems did careful input preparation before spending sampling budget | v2 nofail scoreable stack plus P17 input repair: protein-oligo sequence recovery, phase-alias stoichiometry, low-complexity cleanup, token fallback, full MSA reuse, and target-agnostic `O`/`Vn`/phase alias repair | P17 overlay completed and scored on 79/79 scoreable targets, improving P14 to domain `0.107690` and oligo `0.118933` | Keep the P17 overlay as seeds101-105 for P25; input coverage is no longer the immediate scoreable-target blocker |
-| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight; latest live gate at `2026-07-07 12:52 CDT` is healthy but incomplete at `890` observed candidates, 19 running jobs, and 5 pending jobs; active runtime is large-complex inference rather than MSA | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row; keep O5b/P27b/D6a gated until this score exists |
+| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` seed106-125 shards were submitted as Slurm jobs `812935..812958` after `24/24 ok` preflight; latest live gate at `2026-07-07 13:13 CDT` is healthy but incomplete at `996` observed candidates, 19 running jobs, and 5 pending jobs; active runtime is large-complex inference rather than MSA | Wait for all P25 jobs, merge with the P17 overlay, then score/leaderboard the complete 25-candidate row; keep O5b/P27b/D6a gated until this score exists |
 | G3 | First-model QA/ranking can change apparent method quality without more GPU | P16 consensus replay used the same P14 five-candidate pool with `selection-qa` and `diversity_confidence_consensus_v1` | scored but slightly below P14 (`0.102218` domain, `0.115250` oligo) | Do not tune selectors again until P17 removes scoreable missing predictions and shows candidate selection is the limiting factor |
 | G4 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a full input is now exact-sequence MSA-cache complete (`276/276`, 0 stale) but deferred behind P25 | If complete P25 still shows domain zeros from input-kind or alias repair classes, run D6a before another seed-scaling spend |
 | G5 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache, P27a for the old 74-job scoreable input, and P27b for the repaired 79-job scoreable input as concrete Protenix model/config variants, but not true MSA-variant or multi-engine generation | P27b prepared/deferred behind P25; broader variants not queued | Add broader MSA/model-variant budgets only after current Protenix input repairs and P25 seed scaling stop yielding easy gains |
