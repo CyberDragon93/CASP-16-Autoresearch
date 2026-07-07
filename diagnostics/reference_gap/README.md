@@ -97,6 +97,16 @@ rows total, but still only 8 full-construct exact candidates across `T1228V1`
 and `T1278`. Additional `T1278` hits are alignment-unverified diagnostics, not
 reference-map promotions.
 
+`rcsb_exact_sequence_probe_latest_all_missing_references.tsv`,
+`rcsb_exact_sequence_probe_latest_all_candidates.tsv`, and
+`casp16_server_protein_latest_all_refmap_review.tsv` extend the probe to all 96
+v2 missing-reference rows. The `2026-07-07 00:23 CDT` all-gap scan found 20
+targets with hits, 204 candidate rows, and 81 full-construct exact candidate
+rows. The newly useful exact rows are mostly oligo reference-registry gaps
+(`H0217/H1217/H2217` and `H0267/H1267/H2267`), so they require biological
+assembly, chain stoichiometry, and interface mapping before a new benchmark
+version can accept them.
+
 `candidate_ref_tmscore_probe.tsv` scores existing local predictions for the two
 full-construct candidate target classes against the candidate references. It
 does not install those references into any benchmark. Best observed diagnostic

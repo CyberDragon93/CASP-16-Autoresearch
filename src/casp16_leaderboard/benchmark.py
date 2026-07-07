@@ -569,7 +569,8 @@ def generate_reference_map_review(
         for row in read_tsv(domain_path):
             target_id = row.get("target_id", "").upper()
             if target_id:
-                domains_by_target[target_id].append(row)
+                for lookup_id in target_lookup_aliases(target_id):
+                    domains_by_target[lookup_id].append(row)
 
     rows: list[dict[str, object]] = []
     for candidate in read_tsv(candidate_tsv):

@@ -876,11 +876,28 @@ competitive result.
     full-construct exact entity candidates: the same `T1228V1` and `T1278`
     classes as before. The extra new `T1278` hits are alignment-unverified
     local/partial sequence hits, not immediate refmap promotions.
-55. `2026-07-07 00:15 CDT` P14 readiness check: all six shard jobs are still
-    RUNNING on GH200 nodes. `check-shards` sees 112/370 candidates, 258 missing
+55. `2026-07-07 00:25 CDT` P14 readiness check: all six shard jobs are still
+    RUNNING on GH200 nodes. `check-shards` sees 115/370 candidates, 255 missing
     candidates, 0/6 complete shards, and 74 incomplete target tasks. Error
     scans across shard logs remain clean. Keep waiting for full readiness before
     merge/score; do not launch P15/P25 while P14 is still unscored.
+56. `2026-07-07 00:23 CDT` live `refmap-probe` was expanded from the 40
+    `prediction_waiting_on_reference` rows to all 96 v2 missing-reference rows.
+    It wrote
+    `diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_all_missing_references.tsv`
+    and
+    `diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_all_candidates.tsv`.
+    The all-gap scan found 20 targets with hits, 204 candidate rows, and 81
+    full-construct exact candidate rows. Newly useful exact candidates are
+    mostly oligo reference-registry gaps: `H0217/H1217/H2217` and
+    `H0267/H1267/H2267`; these need biological assembly, chain stoichiometry,
+    and QSglob interface mapping before any benchmark version can accept them.
+57. `2026-07-07 00:23 CDT` generated
+    `diagnostics/reference_gap/casp16_server_protein_latest_all_refmap_review.tsv`
+    from the all-gap candidate TSV. It now keeps 81 `candidate`, 94 `deferred`,
+    and 29 `rejected` rows. `refmap-review` was also made phase-alias aware for
+    domain definitions, so `T2278` review rows inherit the audited `T1278-D1`
+    crop mapping instead of falling back to `protein_domain_requires_domain_definition`.
 
 ## Run Discipline
 

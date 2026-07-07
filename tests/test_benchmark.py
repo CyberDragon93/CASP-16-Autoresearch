@@ -623,6 +623,69 @@ def test_generate_reference_map_review_from_rcsb_candidates(tmp_path) -> None:
     assert rows[1]["status"] == "rejected"
 
 
+def test_generate_reference_map_review_uses_domain_aliases(tmp_path) -> None:
+    project_root = tmp_path / "project"
+    benchmark_dir = project_root / "benchmarks" / "casp16_server_protein_v1"
+    benchmark_dir.mkdir(parents=True)
+    write_tsv(
+        benchmark_dir / "targets.tsv",
+        [{"target_id": "T2201", "track": "protein_domain"}],
+        ["target_id", "track"],
+    )
+    write_tsv(
+        benchmark_dir / "domain_definitions.tsv",
+        [{"target_id": "T1201", "domain_id": "T1201-D1", "residue_ranges": "34-370"}],
+        ["target_id", "domain_id", "residue_ranges"],
+    )
+    candidate_tsv = tmp_path / "candidates.tsv"
+    write_tsv(
+        candidate_tsv,
+        [
+            {
+                "target_id": "T2201",
+                "track": "protein_domain",
+                "sequence_lookup_id": "T2201",
+                "hit": "9abc_1",
+                "pdb_id": "9ABC",
+                "entity_id": "1",
+                "entry_title": "phase alias candidate",
+                "release_date": "2026-01-01",
+                "experimental_method": "X-RAY DIFFRACTION",
+                "asym_ids": "A",
+                "auth_asym_ids": "A",
+                "target_sequence_equals_entity": "true",
+                "target_sequence_contained_in_entity": "true",
+                "entity_sequence_contained_in_target": "true",
+                "candidate_status": "full_construct_exact_candidate_needs_native_provenance_and_mapping",
+            }
+        ],
+        [
+            "target_id",
+            "track",
+            "sequence_lookup_id",
+            "hit",
+            "pdb_id",
+            "entity_id",
+            "entry_title",
+            "release_date",
+            "experimental_method",
+            "asym_ids",
+            "auth_asym_ids",
+            "target_sequence_equals_entity",
+            "target_sequence_contained_in_entity",
+            "entity_sequence_contained_in_target",
+            "candidate_status",
+        ],
+    )
+    output_tsv = tmp_path / "review.tsv"
+
+    generate_reference_map_review(project_root=project_root, benchmark="casp16_server_protein_v1", candidate_tsv=candidate_tsv, output_tsv=output_tsv)
+
+    rows = read_tsv(output_tsv)
+    assert rows[0]["status"] == "candidate"
+    assert rows[0]["scoring_mapping"] == "candidate_domain=T1201-D1; residue_ranges=34-370; verify_chain_and_crop"
+
+
 def test_generate_rcsb_exact_sequence_probe_writes_full_construct_candidates(tmp_path, monkeypatch) -> None:
     project_root = tmp_path / "project"
     official_root = project_root / "data" / "official"

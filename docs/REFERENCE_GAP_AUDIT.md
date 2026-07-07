@@ -346,6 +346,35 @@ alignment-unverified `T1278` hits (`13MO..13NC` class), but these are not
 accepted references; they remain diagnostics until native provenance and exact
 construct/domain mapping are explicit.
 
+The probe was then expanded to all 96 v2 missing-reference rows:
+
+```bash
+./casp16 refmap-probe \
+  --max-hits 25 \
+  --output-targets-tsv diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_all_missing_references.tsv \
+  --output-candidates-tsv diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_all_candidates.tsv
+
+./casp16 refmap-review \
+  --candidate-tsv diagnostics/reference_gap/rcsb_exact_sequence_probe_latest_all_candidates.tsv \
+  --output-tsv diagnostics/reference_gap/casp16_server_protein_latest_all_refmap_review.tsv
+```
+
+The `2026-07-07 00:23 CDT` all-gap scan found:
+
+- 96 probed missing-reference rows
+- 20 targets with RCSB hits
+- 204 candidate rows
+- 81 full-construct exact candidate rows
+- 9 candidate target classes after review:
+  `T1228V1`, `T1278`, `T2278`, `H0217/H1217/H2217`, and
+  `H0267/H1267/H2267`
+
+`T1278/T2278` already have an accepted domain path in v4. The new likely
+scoreability unlocks are the H0217 and H0267 oligo alias groups, but they
+remain candidate references only: accepted promotion requires biological
+assembly provenance, chain/entity stoichiometry, and explicit QSglob interface
+mapping. Do not promote these from sequence identity alone.
+
 A small TMscore probe against existing predictions is recorded in
 `diagnostics/reference_gap/candidate_ref_tmscore_probe.tsv`. It confirms the
 candidate references can be used by the local metric tooling, but the current
