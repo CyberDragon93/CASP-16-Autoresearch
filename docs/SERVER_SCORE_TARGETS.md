@@ -80,14 +80,16 @@ and produced a `candidate_limited_signal`. The active gate is now P25:
 wait for the submitted seed106-125 target-seed shards, merge them with the
 seed101-105 overlay, then score the complete 25-candidate row.
 
-Latest live checkpoint, `2026-07-07 12:19 CDT`: P25 is still not merge-ready.
+Latest live checkpoint, `2026-07-07 12:22 CDT`: P25 is still not merge-ready.
 `finish_p25_scoreable_input_repair.sh --dry-run` reports `ready=false`,
 `compatible=true`, `855` observed candidates, `1195` shard-level candidates
 missing, and `1120` full
 25-candidate slots missing. Slurm still has 19 P25 jobs running and 5 P25 jobs
 pending behind `QOSMaxJobsPerUserLimit`; shard05 seed121-125 and all shard06
 seed blocks remain pending. Do not use a partial P25 row for score comparisons
-or for launching O5b/P27b.
+or for launching O5b/P27b. Log tails show normal large-complex inference on
+`H0258`, `H1258`, `H2258`, `H0272`, and `H1272`; this is not an MSA-cache
+miss or a silent failure class.
 
 Current P25 closeout command:
 

@@ -1439,6 +1439,16 @@ competitive result.
     plus all submitted seed106-125 target shards. The wrapper returns
     `finish_status=not_ready` while incomplete, so it can be dry-run safely
     without producing a partial score.
+94. `2026-07-07 12:22 CDT` P25 runtime diagnostic: readiness is unchanged
+    (`ready=false`, `compatible=true`, `855` observed, `1195` shard-level
+    missing, `1120` full-slot missing) and Slurm still shows 19 P25 jobs
+    running plus 5 pending. Log tails show the running jobs are alive and
+    spending time on large complex targets, not redoing MSA: shard01 is on
+    `H0258`, shard02 on `H1258`, shard03 on `H2258`, shard04 on `H0272`, and
+    shard05 on `H1272`; shard05 seed121-125 and all shard06 blocks remain
+    pending. `run-next --dry-run` still reports no pending runs, and P27b/O5b
+    stay deferred with clean MSA preflight. Do not submit another branch while
+    these large target inferences are still consuming the active GH slots.
 
 ## Run Discipline
 
