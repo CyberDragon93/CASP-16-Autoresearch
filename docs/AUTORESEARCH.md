@@ -92,6 +92,13 @@ where methods should change.
   and `.tsv`. Current v4 cap is still severe: domain `28/71` references
   available, oligo `53/104` references available, and only 7 missing-reference
   targets have candidate rows from the latest all-gap review.
+- `2026-07-07` expanded RCSB exact-sequence probe: raising the all-gap search
+  cap from `--max-hits 25` to `--max-hits 50` returned 304 candidate rows and
+  156 deferred rows, but still only 81 full-construct exact candidates. It did
+  not add any new promotable target class beyond `T1228V1`, already accepted
+  `T1278/T2278`, and the unresolved H0217/H0267 oligo alias groups. Do not
+  spend another loop on search-depth-only refmap probing unless the worklist or
+  acceptance rule changes.
 - `2026-07-06 18:57 CDT` reference-gap audit update: several high-priority
   `missing_reference` rows first need input-kind repair, not native hunting.
   `T1276`, `T1228V1`, and `T2276` were locally represented as short DNA jobs
@@ -159,12 +166,12 @@ where methods should change.
   `protenix_confidence_v1`. All six run specs preflight clean with complete
   MSA reuse. They must remain `deferred:await_p14_score` until the live v2 P14
   row has been merged/scored.
-- `2026-07-07 01:18 CDT` P14 gate: the live v2 target-sharded scoreable
+- `2026-07-07 01:33 CDT` P14 gate: the live v2 target-sharded scoreable
   Protenix5 attack remains healthy but not merge-ready. `check-shards` sees
-  137/370 expected candidate CIFs, all six Slurm jobs `812239..812244` are
-  still running, and shard03 has started seed 103 while the slower shards are
-  still in seed 102 large-target work. Do not launch P15/P25/O5 before P14 is
-  merged/scored or explicitly abandoned.
+  160/370 expected candidate CIFs, all six Slurm jobs `812239..812244` are
+  still running, and a log error scan found no traceback/OOM/CUDA/killed
+  signatures. Do not launch P15/P25/O5 before P14 is merged/scored or
+  explicitly abandoned.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and
