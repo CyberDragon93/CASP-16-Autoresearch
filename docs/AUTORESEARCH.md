@@ -1545,6 +1545,16 @@ competitive result.
      wait is queue plus large-complex inference, not repeated MSA work. Do not
      add more MSA-cache plumbing or launch P27b/O5b/D6a until the complete P25
      row can be merged and scored.
+103. `2026-07-07 13:37 CDT` P25 gate: still `ready=false` and
+     `compatible=true`, now with `1091` observed candidates, `959`
+     shard-level missing candidates, and `889` full 25-candidate slots
+     missing. One target is complete at the full 25-candidate budget, but the
+     merged P25 row is still absent from `runs.csv` and must not be scored.
+     Slurm remains 19 running P25 jobs plus 5 pending P25 jobs behind
+     `QOSMaxJobsPerUserLimit`; the pending P25 jobs are shard05 seed121-125
+     and all shard06 seed blocks. Error keyword scanning across P25 logs is
+     clean. This confirms the bottleneck is still large-complex inference plus
+     queue limits, not MSA cache, scorer failure, or a branch-selection point.
 
 ## Run Discipline
 
