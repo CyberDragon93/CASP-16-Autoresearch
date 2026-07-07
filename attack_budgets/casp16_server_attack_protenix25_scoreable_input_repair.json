@@ -91,16 +91,24 @@
     }
   },
   "p25_live_readiness_latest": {
-    "checked_at": "2026-07-07 10:08 CDT",
+    "checked_at": "2026-07-07 10:14 CDT",
     "ready": false,
     "compatible": true,
-    "observed_candidate_count": 521,
-    "missing_candidate_count": 1529,
+    "observed_candidate_count": 574,
+    "missing_candidate_count": 1476,
     "full_complete_task_count": 0,
     "full_task_count": 79,
-    "full_missing_candidate_count": 1454,
+    "full_missing_candidate_count": 1401,
     "complete_shard_count": 1,
     "shard_count": 25,
+    "slurm_status": "19 running, 5 pending behind QOSMaxJobsPerUserLimit",
+    "log_error_scan": "clean: no traceback/OOM/killed/disk/timeout signatures",
+    "msa_cache_incremental_refresh": {
+      "index_sha256": "cf571ccd43cdda8d27fbb0165b92e05a1ff78a59de9be26dcc00b508622315e1",
+      "existing_index_records": 109,
+      "records_added_from_sources": 0,
+      "existing_index_stale_rows": 0
+    },
     "readiness_tsv": "diagnostics/score_probes/protenix25_scoreable_input_repair_target_seed_readiness.tsv"
   },
   "prepared_additional_seed_shard_specs": 24,

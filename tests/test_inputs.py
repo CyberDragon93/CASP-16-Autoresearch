@@ -201,6 +201,8 @@ def test_check_prediction_shards_reports_missing_and_merge_command(tmp_path) -> 
     assert ready["ready"] is True
     assert ready["complete_task_count"] == 2
     assert ready["missing_candidate_count"] == 0
+    assert ready["rows"][0]["missing_tasks"] == "none"
+    assert ready["rows"][1]["missing_tasks"] == "none"
     assert ready["merge_command"][:7] == [
         "./casp16",
         "merge-shards",

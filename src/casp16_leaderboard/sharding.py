@@ -410,7 +410,7 @@ def check_prediction_shards(
                 "expected_candidate_count": expected_candidates,
                 "observed_candidate_count": observed_candidate_count,
                 "missing_candidate_count": missing_candidate_count,
-                "missing_tasks": ",".join(missing_tasks),
+                "missing_tasks": ",".join(missing_tasks) if missing_tasks else "none",
             }
         )
 

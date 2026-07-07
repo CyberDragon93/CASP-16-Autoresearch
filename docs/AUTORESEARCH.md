@@ -1216,6 +1216,17 @@ competitive result.
     `input_manifest.tsv` hash, while the P25 shards correctly use the repaired
     strategy manifest. Updating the overlay run spec to the repaired manifest
     makes the next `check-shards` report `compatible=true`.
+74. `2026-07-07 10:14 CDT` P25 follow-up: `check-shards` remains
+    `ready=false` and `compatible=true`, now with `574` observed candidates,
+    `1476` shard-level candidates missing, and `1401` full 25-candidate slots
+    still missing across the fixed 79 scoreable tasks. Slurm still reports
+    19 running and 5 pending behind `QOSMaxJobsPerUserLimit`; log scanning is
+    clean for traceback/OOM/killed/disk/timeout signatures. A global
+    `build-msa-cache --materialize-cache --incremental` refresh found
+    109 existing records, 0 stale rows, and 0 newly added records, confirming
+    this wait is inference/shard completion, not repeated MSA work. The
+    readiness TSV is now generated with `missing_tasks=none` for complete
+    shards, so polling no longer needs hand cleanup.
 
 ## Run Discipline
 
