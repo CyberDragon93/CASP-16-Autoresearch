@@ -88,3 +88,14 @@ Companion metadata lives in
 `candidate_reference` diagnostics only. A future `casp16_server_protein_v3_refmap`
 can accept a candidate only after native provenance, full construct coverage,
 and domain/assembly chain mapping are explicit.
+
+`candidate_ref_tmscore_probe.tsv` scores existing local predictions for the two
+full-construct candidate target classes against the candidate references. It
+does not install those references into any benchmark. Best observed diagnostic
+scores are low:
+
+- `T1228V1`: best `GDT_TS_norm=0.012100`
+- `T1278`: best `GDT_TS_norm=0.106100`
+
+So these candidates are useful for refmap validation, but they do not by
+themselves reveal hidden winner-level predictions in the current runs.

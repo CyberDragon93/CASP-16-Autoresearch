@@ -280,6 +280,13 @@ where methods should change.
   `T1270/T0270` are marked non-promotable. Keep this as
   `casp16_server_protein_v3_refmap` groundwork; it should not block the
   current scoreable attack line or mutate v2.
+- Candidate-ref TMscore probe:
+  `diagnostics/reference_gap/candidate_ref_tmscore_probe.tsv` tested existing
+  predictions for those two candidate target classes against the candidate
+  references. The candidates are metric-runnable, but current predictions are
+  weak: best `GDT_TS_norm` is `0.012100` for `T1228V1` and `0.106100` for
+  `T1278`. Do not expect reference recovery alone to create a hidden large
+  score jump on these rows.
 - Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   produced 39/165 CIFs and then spent extended GPU time on `T1295`, which is

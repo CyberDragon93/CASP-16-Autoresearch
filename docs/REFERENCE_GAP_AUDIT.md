@@ -163,3 +163,11 @@ Other hits are explicitly marked non-promotable without mapping. For example,
 the `T1278` `13MI..13MN` rows are local sequence-search hits rather than full
 construct matches. None of these candidates should be written into v2. They are
 the first concrete worklist for a possible `casp16_server_protein_v3_refmap`.
+
+A small TMscore probe against existing predictions is recorded in
+`diagnostics/reference_gap/candidate_ref_tmscore_probe.tsv`. It confirms the
+candidate references can be used by the local metric tooling, but the current
+models are weak on these targets: best observed `GDT_TS_norm` is `0.012100` for
+`T1228V1` and `0.106100` for `T1278`. Reference recovery remains important for
+fair measurement, but these two target classes do not look like hidden
+near-winner predictions.
