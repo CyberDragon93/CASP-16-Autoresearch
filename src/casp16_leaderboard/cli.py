@@ -84,6 +84,30 @@ def resolve_msa_source_jsons(root: Path, explicit_paths: Sequence[Path] | None, 
     return sources
 
 
+def selection_qa_targets_from_input_json(input_json: Path) -> list[str]:
+    payload = json.loads(input_json.read_text(encoding="utf-8"))
+    if not isinstance(payload, list):
+        raise ValueError(f"selection QA input JSON must contain a task list: {input_json}")
+    targets: list[str] = []
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name", "") or "").strip()
+        if name and name not in targets:
+            targets.append(name)
+    return targets
+
+
+def selection_qa_context_from_run_id(root: Path, run_id: str) -> dict[str, object]:
+    run_spec = root / "runs" / run_id / "run_spec.json"
+    if not run_spec.exists():
+        raise FileNotFoundError(f"run spec not found for selection QA: {run_spec}")
+    payload = json.loads(run_spec.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"run spec must be a JSON object: {run_spec}")
+    return payload
+
+
 def _spec_bool(value: object, *, default: bool = False) -> bool:
     if isinstance(value, bool):
         return value
@@ -696,8 +720,10 @@ def build_parser() -> argparse.ArgumentParser:
     score.add_argument("--qsglob-bin", type=Path, default=None)
 
     selection_qa = subparsers.add_parser("selection-qa", help="Write prediction-only consensus QA sidecars for model selection.")
-    selection_qa.add_argument("--output-dir", type=Path, required=True, help="Prediction output directory to scan.")
-    selection_qa.add_argument("--target", action="append", required=True, help="Target id(s) to annotate; repeat or comma-separate.")
+    selection_qa.add_argument("--run-id", default="", help="Infer output dir and targets from runs/<run_id>/run_spec.json.")
+    selection_qa.add_argument("--output-dir", type=Path, default=None, help="Prediction output directory to scan. Defaults to the run spec output_dir with --run-id.")
+    selection_qa.add_argument("--input-json", type=Path, default=None, help="Read target names from this Protenix input JSON.")
+    selection_qa.add_argument("--target", action="append", default=None, help="Target id(s) to annotate; repeat or comma-separate. Appended to --input-json targets.")
     selection_qa.add_argument("--tmscore-bin", type=Path, default=None, help="TMscore/USalign-compatible binary for prediction-vs-prediction consensus.")
     selection_qa.add_argument("--output-csv", type=Path, default=None, help="Defaults to diagnostics/selection_qa/<output-dir-name>.selection_qa.csv.")
     selection_qa.add_argument("--min-cluster-score", type=float, default=0.5, help="Pairwise TM/GDT threshold for cluster-support fraction.")
@@ -1276,20 +1302,35 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.command == "selection-qa":
-        output_dir = args.output_dir.resolve()
+        run_context = selection_qa_context_from_run_id(root, args.run_id) if args.run_id else {}
+        output_dir_value = args.output_dir or (Path(str(run_context.get("output_dir", ""))) if run_context.get("output_dir") else None)
+        if output_dir_value is None:
+            raise ValueError("selection-qa requires --output-dir or --run-id with output_dir")
+        output_dir = output_dir_value.resolve()
+        input_json_value = args.input_json or (Path(str(run_context.get("input_json", ""))) if run_context.get("input_json") else None)
+        target_ids = split_csv_args(args.target)
+        if input_json_value is not None:
+            target_ids = selection_qa_targets_from_input_json(input_json_value.resolve()) + target_ids
+        target_ids = list(dict.fromkeys(target_ids))
+        if not target_ids:
+            raise ValueError("selection-qa requires --target, --input-json, or --run-id with input_json")
         output_csv = (
             args.output_csv.resolve()
             if args.output_csv
-            else (root / "diagnostics" / "selection_qa" / f"{output_dir.name}.selection_qa.csv").resolve()
+            else (root / "diagnostics" / "selection_qa" / f"{args.run_id or output_dir.name}.selection_qa.csv").resolve()
         )
         tm_tool = resolve_tool(args.tmscore_bin or DEFAULT_TMSCORE_BIN, ["TMscore", "USalign"])
         summary = write_prediction_selection_qa(
             output_dir=output_dir,
-            target_ids=split_csv_args(args.target),
+            target_ids=target_ids,
             tm_tool=tm_tool,
             output_csv=output_csv,
             min_cluster_score=args.min_cluster_score,
         )
+        if args.run_id:
+            summary["run_id"] = args.run_id
+        if input_json_value is not None:
+            summary["input_json"] = str(input_json_value.resolve())
         print_json(summary)
         return 0
 

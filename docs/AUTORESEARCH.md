@@ -942,12 +942,33 @@ competitive result.
     mostly oligo reference-registry gaps: `H0217/H1217/H2217` and
     `H0267/H1267/H2267`; these need biological assembly, chain stoichiometry,
     and QSglob interface mapping before any benchmark version can accept them.
-57. `2026-07-07 00:23 CDT` generated
+58. `2026-07-07 00:23 CDT` generated
     `diagnostics/reference_gap/casp16_server_protein_latest_all_refmap_review.tsv`
     from the all-gap candidate TSV. It now keeps 81 `candidate`, 94 `deferred`,
     and 29 `rejected` rows. `refmap-review` was also made phase-alias aware for
     domain definitions, so `T2278` review rows inherit the audited `T1278-D1`
     crop mapping instead of falling back to `protein_domain_requires_domain_definition`.
+59. `2026-07-07 02:28 CDT` reference-gap decision checkpoint:
+    `missing_reference` must be fixed before claiming full CASP16 server-track
+    local evaluation, because `casp16_server_protein_v4_refmap` still has only
+    28/71 domain references and 53/104 oligo references. With missing targets
+    scored as zero, the local score caps are `0.394366` domain and `0.509615`
+    oligo, below the server winners `110s=0.923321` and `456s=0.582615`.
+    The fix remains benchmark-versioned reference registry work, not a
+    prediction strategy knob: accepted rows need native provenance plus
+    chain/domain crop mapping or biological-assembly/QSglob mapping, followed
+    by a new `server-benchmark --reference-map` version.
+60. `2026-07-07 02:28 CDT` P14 live status: Slurm jobs `812239..812244` are
+    still RUNNING on six GH200 nodes at roughly 4h09m. `check-shards` sees
+    191/370 candidates, 179 missing candidates, 0/6 complete shards, and 74
+    incomplete target tasks. Error scans across shard and Slurm logs remain
+    clean. Continue waiting for readiness before merge/score.
+61. `2026-07-07 02:28 CDT` tightened the future diversity attack workflow:
+    `./casp16 selection-qa --run-id <run_id>` can infer prediction output,
+    target names, and default diagnostic CSV path from the run spec/input JSON,
+    so a full multi-target diversity run can generate prediction-only consensus
+    sidecars without manually enumerating targets. The MSA/model-diversity
+    budget now records this run-id based command.
 
 ## Run Discipline
 

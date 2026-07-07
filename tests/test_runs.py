@@ -788,3 +788,64 @@ def test_preflight_runs_cli_reads_attack_tsv(tmp_path, capsys) -> None:
         rows = {row["run_id"]: row for row in csv.DictReader(handle, delimiter="\t")}
     assert rows["cached_ok"]["result"] == "ok"
     assert rows["missing_run"]["result"] == "missing_run"
+
+
+def test_selection_qa_cli_can_infer_run_context(tmp_path, capsys) -> None:
+    output_dir = tmp_path / "runs" / "diverse_run" / "predictions" / "protenix-v2"
+    prediction_dir = output_dir / "T1234" / "seed_101" / "predictions"
+    prediction_dir.mkdir(parents=True)
+    prediction = prediction_dir / "T1234_sample_0.cif"
+    confidence = prediction_dir / "T1234_summary_confidence_sample_0.json"
+    prediction.write_text("data_prediction\n", encoding="utf-8")
+    confidence.write_text('{"plddt": 80.0, "ptm": 0.50, "iptm": 0.10}\n', encoding="utf-8")
+
+    input_json = tmp_path / "runs" / "diverse_run" / "inputs" / "inputs.json"
+    input_json.parent.mkdir(parents=True)
+    input_json.write_text(
+        json.dumps(
+            [
+                {"name": "T1234", "sequences": []},
+                {"name": "T1234", "sequences": []},
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    run_dir = tmp_path / "runs" / "diverse_run"
+    (run_dir / "run_spec.json").write_text(
+        json.dumps(
+            {
+                "run_id": "diverse_run",
+                "benchmark_name": "bench_v1",
+                "output_dir": str(output_dir),
+                "input_json": str(input_json),
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    tm_tool = tmp_path / "TMscore"
+    tm_tool.write_text("#!/usr/bin/env bash\necho 'TM-score = 1.000'\n", encoding="utf-8")
+
+    rc = main(
+        [
+            "--root",
+            str(tmp_path),
+            "selection-qa",
+            "--run-id",
+            "diverse_run",
+            "--tmscore-bin",
+            str(tm_tool),
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    output_csv = tmp_path / "diagnostics" / "selection_qa" / "diverse_run.selection_qa.csv"
+    sidecar = prediction_dir / "T1234_summary_confidence_sample_0.selection_qa.json"
+    assert payload["run_id"] == "diverse_run"
+    assert payload["targets"] == 1
+    assert payload["ok_rows"] == 1
+    assert payload["input_json"] == str(input_json.resolve())
+    assert output_csv.exists()
+    assert json.loads(sidecar.read_text(encoding="utf-8"))["consensus_score"] == 1.0
