@@ -180,6 +180,25 @@ REFERENCE_OLIGO_AUDIT_FIELDS = [
     "notes",
 ]
 
+REFERENCE_GAP_REPORT_FIELDS = [
+    "track",
+    "target_id",
+    "reference_status",
+    "input_status",
+    "skip_reason",
+    "total_len",
+    "domain_count",
+    "domain_ids",
+    "oligo_state",
+    "server_best_score",
+    "candidate_rows",
+    "candidate_pdb_ids",
+    "candidate_statuses",
+    "oligo_audit_rows",
+    "oligo_assembly_matches",
+    "next_action",
+]
+
 RCSB_SEQUENCE_PROBE_TARGET_FIELDS = [
     "priority",
     "target_id",
@@ -1256,6 +1275,243 @@ def generate_reference_map_audit_report(
         "candidate": sum(1 for row in review_rows if row.get("status") == "candidate"),
         "rejected": sum(1 for row in review_rows if row.get("status") == "rejected"),
     }
+
+
+def generate_reference_gap_report(
+    *,
+    project_root: Path,
+    benchmark: str,
+    output_md: Path,
+    output_tsv: Path,
+    review_tsv: Path | None = None,
+    oligo_audit_tsv: Path | None = None,
+    top_missing: int = 30,
+) -> dict[str, object]:
+    benchmark_dir = default_benchmark_dir(project_root, benchmark)
+    target_rows = [row for row in read_tsv(benchmark_dir / "targets.tsv") if row.get("rank_eligible", "").lower() == "true"]
+    official_groups_path = benchmark_dir / "official_server_groups.tsv"
+    official_winners = _official_server_winners_by_track(official_groups_path) if official_groups_path.exists() else {}
+    accepted_refmap_rows = 0
+    reference_map_path = benchmark_dir / "reference_map.tsv"
+    if reference_map_path.exists():
+        accepted_refmap_rows = sum(1 for row in read_tsv(reference_map_path) if row.get("status", "").strip().lower() == "accepted")
+
+    candidates_by_target: dict[str, list[dict[str, str]]] = defaultdict(list)
+    if review_tsv and review_tsv.exists():
+        for row in read_tsv(review_tsv):
+            status = row.get("status", "").strip().lower()
+            if status in {"candidate", "accepted"}:
+                candidates_by_target[row.get("target_id", "").strip().upper()].append(row)
+
+    oligo_audit_by_target: dict[str, list[dict[str, str]]] = defaultdict(list)
+    if oligo_audit_tsv and oligo_audit_tsv.exists():
+        for row in read_tsv(oligo_audit_tsv):
+            oligo_audit_by_target[row.get("target_id", "").strip().upper()].append(row)
+
+    by_track: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in target_rows:
+        by_track[row.get("track", "")].append(row)
+
+    missing_rows = [row for row in target_rows if row.get("reference_status", "") != "available"]
+    report_rows: list[dict[str, object]] = []
+    for target in sorted(missing_rows, key=_reference_gap_priority_key):
+        target_id = target.get("target_id", "").strip().upper()
+        candidates = candidates_by_target.get(target_id, [])
+        oligo_audit_rows = oligo_audit_by_target.get(target_id, [])
+        matching_assemblies = sum(
+            1
+            for row in oligo_audit_rows
+            if row.get("assembly_matches_target_chain_count", "").strip().lower() == "true"
+        )
+        report_rows.append(
+            {
+                "track": target.get("track", ""),
+                "target_id": target_id,
+                "reference_status": target.get("reference_status", ""),
+                "input_status": target.get("input_status", ""),
+                "skip_reason": target.get("skip_reason", ""),
+                "total_len": target.get("total_len", ""),
+                "domain_count": target.get("domain_count", ""),
+                "domain_ids": target.get("domain_ids", ""),
+                "oligo_state": target.get("oligo_state", ""),
+                "server_best_score": target.get("server_best_score", ""),
+                "candidate_rows": len(candidates),
+                "candidate_pdb_ids": ",".join(sorted({_split_pdb_ids(row.get("pdb_ids", ""))[0] for row in candidates if _split_pdb_ids(row.get("pdb_ids", ""))})),
+                "candidate_statuses": ",".join(sorted({row.get("status", "") for row in candidates})),
+                "oligo_audit_rows": len(oligo_audit_rows),
+                "oligo_assembly_matches": matching_assemblies,
+                "next_action": _reference_gap_next_action(target, candidates, oligo_audit_rows, matching_assemblies),
+            }
+        )
+
+    output_tsv.parent.mkdir(parents=True, exist_ok=True)
+    write_tsv(output_tsv, report_rows, REFERENCE_GAP_REPORT_FIELDS)
+    output_md.parent.mkdir(parents=True, exist_ok=True)
+    output_md.write_text(
+        "\n".join(
+            _reference_gap_markdown_lines(
+                benchmark=benchmark,
+                target_rows=target_rows,
+                by_track=by_track,
+                official_winners=official_winners,
+                accepted_refmap_rows=accepted_refmap_rows,
+                review_tsv=review_tsv,
+                oligo_audit_tsv=oligo_audit_tsv,
+                output_tsv=output_tsv,
+                report_rows=report_rows,
+                top_missing=top_missing,
+            )
+        ),
+        encoding="utf-8",
+    )
+
+    return {
+        "benchmark": benchmark,
+        "output_md": str(output_md),
+        "output_tsv": str(output_tsv),
+        "ranked_targets": len(target_rows),
+        "available_references": sum(1 for row in target_rows if row.get("reference_status", "") == "available"),
+        "missing_references": len(report_rows),
+        "accepted_refmap_rows": accepted_refmap_rows,
+        "targets_with_candidates": sum(1 for row in report_rows if int(row["candidate_rows"]) > 0),
+    }
+
+
+def _official_server_winners_by_track(path: Path) -> dict[str, dict[str, str]]:
+    categories = {"prot_domains": "protein_domain", "prot_oligo": "protein_oligo"}
+    winners: dict[str, dict[str, str]] = {}
+    for row in read_tsv(path):
+        if row.get("rank") != "1":
+            continue
+        track = categories.get(row.get("category", ""))
+        if track:
+            winners[track] = row
+    return winners
+
+
+def _reference_gap_priority_key(row: Mapping[str, str]) -> tuple[str, float, int, str]:
+    return (
+        row.get("track", ""),
+        -_float_or_zero(row.get("server_best_score", "")),
+        int(_float_or_zero(row.get("total_len", ""))),
+        row.get("target_id", ""),
+    )
+
+
+def _float_or_zero(value: object) -> float:
+    return parse_float(value) or 0.0
+
+
+def _reference_gap_next_action(
+    target: Mapping[str, str],
+    candidates: Sequence[Mapping[str, str]],
+    oligo_audit_rows: Sequence[Mapping[str, str]],
+    matching_assemblies: int,
+) -> str:
+    skip_reason = target.get("skip_reason", "")
+    input_status = target.get("input_status", "")
+    if input_status != "ok" or "no_sequence" in skip_reason:
+        return "repair_input_or_sequence_alias_before_reference"
+    if not candidates:
+        return "probe_or_manual_native_reference_search"
+    track = target.get("track", "")
+    mappings = " ".join(row.get("scoring_mapping", "") for row in candidates)
+    if track == "protein_oligo":
+        if matching_assemblies:
+            return "verify_native_provenance_plus_qsglob_chain_interface_mapping"
+        if oligo_audit_rows:
+            return "resolve_biological_assembly_stoichiometry_before_accepting"
+        return "run_oligo_assembly_audit_then_map_qsglob_interfaces"
+    if "multi_domain_target" in mappings:
+        return "verify_native_provenance_plus_explicit_domain_crop_mapping"
+    return "verify_native_provenance_plus_chain_crop_then_new_benchmark_version"
+
+
+def _reference_gap_markdown_lines(
+    *,
+    benchmark: str,
+    target_rows: Sequence[Mapping[str, str]],
+    by_track: Mapping[str, Sequence[Mapping[str, str]]],
+    official_winners: Mapping[str, Mapping[str, str]],
+    accepted_refmap_rows: int,
+    review_tsv: Path | None,
+    oligo_audit_tsv: Path | None,
+    output_tsv: Path,
+    report_rows: Sequence[Mapping[str, object]],
+    top_missing: int,
+) -> list[str]:
+    lines = [
+        "# CASP16 Server Reference Gap Report",
+        "",
+        "This is an evaluation-infrastructure report. It does not promote",
+        "references, change benchmark eligibility, or score predictions.",
+        "",
+        f"- benchmark: `{benchmark}`",
+        f"- ranked targets: {len(target_rows)}",
+        f"- accepted reference-map rows in benchmark: {accepted_refmap_rows}",
+        f"- review TSV: `{review_tsv}`" if review_tsv else "- review TSV: `not provided`",
+        f"- oligo audit TSV: `{oligo_audit_tsv}`" if oligo_audit_tsv else "- oligo audit TSV: `not provided`",
+        f"- detail TSV: `{output_tsv}`",
+        "",
+        "## Score Cap",
+        "",
+        "| track | available refs | missing refs | max local mean with missing=0 | official server winner | winner mean |",
+        "| --- | ---: | ---: | ---: | --- | ---: |",
+    ]
+    for track in sorted(by_track):
+        rows = by_track[track]
+        available = sum(1 for row in rows if row.get("reference_status", "") == "available")
+        total = len(rows)
+        winner = official_winners.get(track, {})
+        lines.append(
+            "| "
+            f"`{track}` | "
+            f"{available}/{total} | "
+            f"{total - available} | "
+            f"{available / total if total else 0.0:.6f} | "
+            f"`{_md_cell(winner.get('group', ''))}` | "
+            f"{_float_or_zero(winner.get('mean_fixed_score', '')):.6f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Next Reference Work",
+            "",
+        ]
+    )
+    rows_by_track: dict[str, list[Mapping[str, object]]] = defaultdict(list)
+    for row in report_rows:
+        rows_by_track[str(row.get("track", ""))].append(row)
+    for track in sorted(rows_by_track):
+        lines.extend(
+            [
+                f"### {track}",
+                "",
+                "| target | best server score | candidates | oligo assembly matches | next action |",
+                "| --- | ---: | ---: | ---: | --- |",
+            ]
+        )
+        for row in rows_by_track[track][:top_missing]:
+            lines.append(
+                "| "
+                f"`{_md_cell(row.get('target_id', ''))}` | "
+                f"{_float_or_zero(row.get('server_best_score', '')):.6f} | "
+                f"{row.get('candidate_rows', 0)} | "
+                f"{row.get('oligo_assembly_matches', 0)} | "
+                f"`{_md_cell(row.get('next_action', ''))}` |"
+            )
+        lines.append("")
+    lines.extend(
+        [
+            "## Rule",
+            "",
+            "Accepted rows must go through a new benchmark version. Do not hand-edit",
+            "locked benchmark TSVs, and do not use prediction scores or leaderboard",
+            "rows to choose per-target references.",
+            "",
+        ]
+    )
+    return lines
 
 
 def _reference_audit_next_action(candidate_rows: Sequence[Mapping[str, str]], rejected_rows: Sequence[Mapping[str, str]]) -> str:

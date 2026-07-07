@@ -278,6 +278,20 @@ The `T2278` row inherits the already accepted `T1278` chain/crop evidence; no
 prediction score, leaderboard row, or official score value was used to choose
 the reference.
 
+Use `reference-gap-report` to summarize the current score cap and missing
+reference worklist without changing any benchmark artifacts:
+
+```bash
+./casp16 reference-gap-report --benchmark casp16_server_protein_v4_refmap
+```
+
+The current report is
+`diagnostics/reference_gap/casp16_server_protein_v4_refmap_reference_gap_report.md`
+with details in the sibling `.tsv`. It records that v4 has 81/175 references
+available, with domain capped at 28/71 and oligo capped at 53/104 if missing
+references score `0`. This is a triage report only; accepted rows still require
+a versioned reference-map overlay.
+
 Use `refmap-chain-audit` to convert cached candidate mmCIF atom-site records
 into chain-level domain coverage evidence:
 

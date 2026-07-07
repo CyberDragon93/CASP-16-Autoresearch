@@ -188,6 +188,18 @@ target metadata. Passing this audit is still not sufficient by itself:
 accepted oligo rows also need native provenance and explicit
 scoring-chain/interface mapping.
 
+The score cap and next reference actions can be rendered without changing the
+benchmark:
+
+```bash
+./casp16 reference-gap-report --benchmark casp16_server_protein_v4_refmap
+```
+
+This writes
+`diagnostics/reference_gap/casp16_server_protein_v4_refmap_reference_gap_report.md`
+and `.tsv`. Use it to decide whether reference recovery is worth parallel
+attention, not to promote rows automatically.
+
 The first accepted overlay is
 `diagnostics/reference_gap/casp16_server_protein_v3_refmap_accepted_reference_map.tsv`.
 It promotes only `T1278 -> 9hav` with chain `A` and domain crop `34-370`.

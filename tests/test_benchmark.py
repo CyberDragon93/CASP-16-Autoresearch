@@ -15,6 +15,7 @@ from casp16_leaderboard.benchmark import (
     audit_reference_candidate_oligo_assemblies,
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
+    generate_reference_gap_report,
     generate_reference_map_audit_report,
     generate_reference_map_review,
     generate_rcsb_exact_sequence_probe,
@@ -1096,3 +1097,114 @@ def test_generate_reference_map_audit_report(tmp_path) -> None:
     assert "verify_native_provenance_then_chain_and_domain_crop_mapping" in text
     assert "`0123456789ab`" in text
     assert "rejected row" in text
+
+
+def test_generate_reference_gap_report(tmp_path) -> None:
+    project_root = tmp_path / "project"
+    benchmark = "casp16_server_test_refmap"
+    benchmark_dir = project_root / "benchmarks" / benchmark
+    benchmark_dir.mkdir(parents=True)
+    write_tsv(
+        benchmark_dir / "targets.tsv",
+        [
+            {
+                "target_id": "T1201",
+                "track": "protein_domain",
+                "reference_status": "available",
+                "rank_eligible": "true",
+                "input_status": "ok",
+                "skip_reason": "",
+                "total_len": "100",
+                "domain_count": "1",
+                "domain_ids": "T1201-D1",
+                "oligo_state": "A1",
+                "server_best_score": "0.900000",
+            },
+            {
+                "target_id": "T1202",
+                "track": "protein_domain",
+                "reference_status": "no_reference_pdb",
+                "rank_eligible": "true",
+                "input_status": "ok",
+                "skip_reason": "no_reference_pdb",
+                "total_len": "120",
+                "domain_count": "2",
+                "domain_ids": "T1202-D1,T1202-D2",
+                "oligo_state": "A1",
+                "server_best_score": "0.950000",
+            },
+            {
+                "target_id": "H1203",
+                "track": "protein_oligo",
+                "reference_status": "no_reference_pdb",
+                "rank_eligible": "true",
+                "input_status": "ok",
+                "skip_reason": "no_reference_pdb",
+                "total_len": "300",
+                "domain_count": "0",
+                "domain_ids": "",
+                "oligo_state": "A1B1",
+                "server_best_score": "0.700000",
+            },
+        ],
+        ["target_id", "track", "reference_status", "rank_eligible", "input_status", "skip_reason", "total_len", "domain_count", "domain_ids", "oligo_state", "server_best_score"],
+    )
+    write_tsv(
+        benchmark_dir / "official_server_groups.tsv",
+        [
+            {"category": "prot_domains", "rank": "1", "group": "110s", "mean_fixed_score": "0.923321"},
+            {"category": "prot_oligo", "rank": "1", "group": "456s", "mean_fixed_score": "0.582615"},
+        ],
+        ["category", "rank", "group", "mean_fixed_score"],
+    )
+    write_tsv(
+        benchmark_dir / "reference_map.tsv",
+        [{"target_id": "T1201", "pdb_ids": "9aaa", "status": "accepted"}],
+        ["target_id", "pdb_ids", "status"],
+    )
+    review = tmp_path / "review.tsv"
+    write_tsv(
+        review,
+        [
+            {
+                "target_id": "T1202",
+                "pdb_ids": "9abc",
+                "status": "candidate",
+                "scoring_mapping": "multi_domain_target=T1202-D1,T1202-D2; requires_explicit_domain_crop_mapping",
+            },
+            {
+                "target_id": "H1203",
+                "pdb_ids": "9def",
+                "status": "candidate",
+                "scoring_mapping": "protein_oligo; requires_qsglob_interface_mapping",
+            },
+        ],
+        ["target_id", "pdb_ids", "status", "scoring_mapping"],
+    )
+    oligo_audit = tmp_path / "oligo.tsv"
+    write_tsv(
+        oligo_audit,
+        [{"target_id": "H1203", "pdb_id": "9def", "assembly_matches_target_chain_count": "false"}],
+        ["target_id", "pdb_id", "assembly_matches_target_chain_count"],
+    )
+    output_md = tmp_path / "report.md"
+    output_tsv = tmp_path / "report.tsv"
+
+    summary = generate_reference_gap_report(
+        project_root=project_root,
+        benchmark=benchmark,
+        review_tsv=review,
+        oligo_audit_tsv=oligo_audit,
+        output_md=output_md,
+        output_tsv=output_tsv,
+    )
+
+    rows = {row["target_id"]: row for row in read_tsv(output_tsv)}
+    text = output_md.read_text(encoding="utf-8")
+    assert summary["missing_references"] == 2
+    assert summary["available_references"] == 1
+    assert summary["targets_with_candidates"] == 2
+    assert "1/2" in text
+    assert "`110s`" in text
+    assert rows["T1202"]["next_action"] == "verify_native_provenance_plus_explicit_domain_crop_mapping"
+    assert rows["H1203"]["next_action"] == "resolve_biological_assembly_stoichiometry_before_accepting"

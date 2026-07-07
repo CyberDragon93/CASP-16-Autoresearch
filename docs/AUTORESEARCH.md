@@ -86,6 +86,12 @@ where methods should change.
   metadata. These rows remain useful reference-map candidates, not accepted
   benchmark references. Do not promote them without native assembly provenance
   plus explicit QSglob chain/interface mapping.
+- `./casp16 reference-gap-report --benchmark casp16_server_protein_v4_refmap`
+  writes the current score-cap and refmap-priority diagnostic to
+  `diagnostics/reference_gap/casp16_server_protein_v4_refmap_reference_gap_report.md`
+  and `.tsv`. Current v4 cap is still severe: domain `28/71` references
+  available, oligo `53/104` references available, and only 7 missing-reference
+  targets have candidate rows from the latest all-gap review.
 - `2026-07-06 18:57 CDT` reference-gap audit update: several high-priority
   `missing_reference` rows first need input-kind repair, not native hunting.
   `T1276`, `T1228V1`, and `T2276` were locally represented as short DNA jobs

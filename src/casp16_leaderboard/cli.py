@@ -18,6 +18,7 @@ from .benchmark import (
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
     default_benchmark_dir,
+    generate_reference_gap_report,
     generate_reference_map_audit_report,
     generate_reference_map_review,
     generate_rcsb_exact_sequence_probe,
@@ -470,6 +471,34 @@ def build_parser() -> argparse.ArgumentParser:
     )
     refmap_oligo_audit.add_argument("--status", action="append", default=None, help="Reference-map status to audit. Defaults to candidate. Repeat or comma-separate.")
 
+    reference_gap_report = subparsers.add_parser("reference-gap-report", help="Write a reference-gap score-cap and refmap-priority report.")
+    reference_gap_report.add_argument("--benchmark", default="casp16_server_protein_v4_refmap", help="Benchmark to inspect. Defaults to casp16_server_protein_v4_refmap.")
+    reference_gap_report.add_argument(
+        "--review-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_latest_all_refmap_review.tsv.",
+    )
+    reference_gap_report.add_argument(
+        "--oligo-audit-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_latest_oligo_assembly_audit.tsv.",
+    )
+    reference_gap_report.add_argument(
+        "--output-md",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/<benchmark>_reference_gap_report.md.",
+    )
+    reference_gap_report.add_argument(
+        "--output-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/<benchmark>_reference_gap_report.tsv.",
+    )
+    reference_gap_report.add_argument("--top-missing", type=int, default=30, help="Maximum missing-reference rows to show in Markdown.")
+
     make_inputs = subparsers.add_parser("make-inputs", help="Generate Protenix input JSON from CASP16 sequence records.")
     make_inputs.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
     make_inputs.add_argument("--output-json", type=Path, default=None, help="Defaults to <root>/data/inputs/casp16_all.json.")
@@ -788,6 +817,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             structures_tsv=(args.structures_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_latest_all_candidate_structures.tsv")).resolve(),
             output_tsv=(args.output_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_latest_oligo_assembly_audit.tsv")).resolve(),
             statuses=split_csv_args(args.status) or ["candidate"],
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "reference-gap-report":
+        report_dir = root / "diagnostics" / "reference_gap"
+        summary = generate_reference_gap_report(
+            project_root=root,
+            benchmark=args.benchmark,
+            review_tsv=(args.review_tsv or (report_dir / "casp16_server_protein_latest_all_refmap_review.tsv")).resolve(),
+            oligo_audit_tsv=(args.oligo_audit_tsv or (report_dir / "casp16_server_protein_latest_oligo_assembly_audit.tsv")).resolve(),
+            output_md=(args.output_md or (report_dir / f"{args.benchmark}_reference_gap_report.md")).resolve(),
+            output_tsv=(args.output_tsv or (report_dir / f"{args.benchmark}_reference_gap_report.tsv")).resolve(),
+            top_missing=args.top_missing,
         )
         print_json(summary)
         return 0
