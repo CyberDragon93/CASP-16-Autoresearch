@@ -237,6 +237,15 @@ current domain ranges in this coarse audit, so it still needs stricter
 multi-domain crop review before promotion. This audit is evidence only; it does
 not install references or change benchmark eligibility.
 
+The scorer now applies domain crops for server-domain benchmarks when an
+accepted benchmark `reference_map.tsv` row supplies explicit scoring mapping.
+`score_benchmark_runs` reads accepted `reference_map.tsv` rows, parses
+`residue_ranges=...`, optionally filters the reference to explicit
+`reference_chain=...`, writes temporary cropped mmCIF files, and runs
+GDT_TS/TMscore on those cropped inputs. This does not promote any candidate by
+itself; `T1278` still needs native provenance and an accepted v3 reference-map
+row before it can move from `missing_reference` to ranked scoring.
+
 ## RCSB Exact-Sequence Probe
 
 A follow-up probe on the 40 `prediction_waiting_on_reference` rows queried the

@@ -4,6 +4,7 @@ import json
 import math
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -12,7 +13,7 @@ from typing import Any, Mapping, Sequence
 
 from .benchmark import BENCHMARK_NAME, default_benchmark_dir, is_server_protein_benchmark, read_benchmark_references, read_benchmark_targets
 from .leaderboard import write_csv
-from .official import ensure_dir, parse_float
+from .official import ensure_dir, parse_float, read_tsv
 from .runs import DEFAULT_DOCKQ_BIN, DEFAULT_QSGLOB_BIN, DEFAULT_TMSCORE_BIN, DEFAULT_USALIGN_BIN, candidate_count, effective_budget_tier, explicit_candidate_count, infer_budget_tier, load_run_specs, spec_bool
 
 
@@ -407,6 +408,192 @@ def run_openstructure_qsglob(tool: str, prediction_path: Path, reference_path: P
         return code, parse_ost_qs_json(text), diagnostics
 
 
+def load_domain_residue_ranges(project_root: Path, benchmark: str) -> dict[str, str]:
+    domains_path = default_benchmark_dir(project_root, benchmark) / "domain_definitions.tsv"
+    if not domains_path.exists():
+        return {}
+    ranges_by_target: dict[str, list[tuple[int, int]]] = {}
+    for row in read_tsv(domains_path):
+        target_id = row.get("target_id", "").strip()
+        if not target_id:
+            continue
+        ranges_by_target.setdefault(target_id, []).extend(parse_residue_ranges(row.get("residue_ranges", "")))
+    return {target_id: format_residue_ranges(sorted(ranges)) for target_id, ranges in ranges_by_target.items() if ranges}
+
+
+def load_reference_map_scoring_mappings(project_root: Path, benchmark: str) -> dict[str, dict[str, str]]:
+    reference_map_path = default_benchmark_dir(project_root, benchmark) / "reference_map.tsv"
+    if not reference_map_path.exists():
+        return {}
+    mappings: dict[str, dict[str, str]] = {}
+    for row in read_tsv(reference_map_path):
+        if row.get("status", "").strip().lower() != "accepted":
+            continue
+        target_id = row.get("target_id", "").strip()
+        if not target_id:
+            continue
+        mappings[target_id] = {
+            "chain_mapping": row.get("chain_mapping", ""),
+            "scoring_mapping": row.get("scoring_mapping", ""),
+        }
+    return mappings
+
+
+def parse_residue_ranges(value: str) -> list[tuple[int, int]]:
+    ranges: list[tuple[int, int]] = []
+    for part in re.split(r"[,;]\s*", str(value or "").strip()):
+        if not part:
+            continue
+        match = re.fullmatch(r"(\d+)\s*-\s*(\d+)", part)
+        if match:
+            start = int(match.group(1))
+            end = int(match.group(2))
+        else:
+            single = re.fullmatch(r"(\d+)", part)
+            if not single:
+                continue
+            start = end = int(single.group(1))
+        if start > end:
+            start, end = end, start
+        ranges.append((start, end))
+    return ranges
+
+
+def format_residue_ranges(ranges: Sequence[tuple[int, int]]) -> str:
+    return ",".join(str(start) if start == end else f"{start}-{end}" for start, end in ranges)
+
+
+def domain_crop_ranges_for_target(target: Mapping[str, str]) -> list[tuple[int, int]]:
+    scoring_mapping = str(target.get("reference_scoring_mapping", "") or target.get("scoring_mapping", ""))
+    match = re.search(r"residue_ranges?\s*=\s*([0-9,\-;\s]+)", scoring_mapping)
+    if match:
+        ranges = parse_residue_ranges(match.group(1))
+        if ranges:
+            return ranges
+    return parse_residue_ranges(str(target.get("domain_residue_ranges", "") or ""))
+
+
+def reference_chain_filter_for_target(target: Mapping[str, str]) -> set[str]:
+    mapping = " ".join(
+        str(target.get(key, "") or "")
+        for key in ("reference_chain_mapping", "chain_mapping", "reference_scoring_mapping", "scoring_mapping")
+    )
+    chain_ids: set[str] = set()
+    for pattern in (
+        r"\breference_(?:label_)?(?:asym_)?chains?\s*=\s*([A-Za-z0-9_,]+)",
+        r"\breference_(?:label_)?(?:asym_)?chain\s+([A-Za-z0-9_]+)",
+        r"\bref_(?:label_)?(?:asym_)?chains?\s*=\s*([A-Za-z0-9_,]+)",
+        r"\bref_(?:label_)?(?:asym_)?chain\s+([A-Za-z0-9_]+)",
+    ):
+        for match in re.finditer(pattern, mapping, flags=re.IGNORECASE):
+            chain_ids.update(item for item in match.group(1).split(",") if item)
+    return chain_ids
+
+
+def prepare_domain_metric_inputs(
+    prediction_path: Path,
+    reference_path: Path,
+    target: Mapping[str, str],
+    work_dir: Path,
+) -> tuple[Path, Path, str]:
+    ranges = domain_crop_ranges_for_target(target)
+    if not ranges:
+        return prediction_path, reference_path, ""
+    reference_chains = reference_chain_filter_for_target(target)
+    prediction_cropped = work_dir / f"{prediction_path.stem}.domain.cif"
+    reference_cropped = work_dir / f"{reference_path.stem}.domain.cif"
+    prediction_atoms = crop_structure_by_label_seq_id(prediction_path, prediction_cropped, ranges, chain_ids=set())
+    reference_atoms = crop_structure_by_label_seq_id(reference_path, reference_cropped, ranges, chain_ids=reference_chains)
+    message = f"domain_crop:{format_residue_ranges(ranges)};prediction_atoms:{prediction_atoms};reference_atoms:{reference_atoms}"
+    if reference_chains:
+        message += ";reference_chains:" + ",".join(sorted(reference_chains))
+    if prediction_atoms <= 0 or reference_atoms <= 0:
+        raise ValueError(message)
+    return prediction_cropped, reference_cropped, message
+
+
+def crop_structure_by_label_seq_id(path: Path, output_path: Path, ranges: Sequence[tuple[int, int]], *, chain_ids: set[str] | None = None) -> int:
+    if path.suffix.lower() not in {".cif", ".mmcif"}:
+        raise ValueError(f"domain_crop_unsupported_format:{path.suffix}")
+    keep_positions = {
+        position
+        for start, end in ranges
+        for position in range(start, end + 1)
+    }
+    wanted_chains = {chain for chain in (chain_ids or set()) if chain}
+    output_lines: list[str] = []
+    atom_columns: list[str] = []
+    atom_indices: dict[str, int] = {}
+    in_atom_site_loop = False
+    atom_rows = 0
+
+    with path.open(encoding="utf-8", errors="replace") as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if line == "loop_":
+                in_atom_site_loop = False
+                atom_columns = []
+                atom_indices = {}
+                output_lines.append(raw_line)
+                continue
+            if line.startswith("_atom_site."):
+                in_atom_site_loop = True
+                atom_columns.append(line.split()[0])
+                atom_indices = {column: index for index, column in enumerate(atom_columns)}
+                output_lines.append(raw_line)
+                continue
+            if in_atom_site_loop:
+                if line.startswith("_"):
+                    in_atom_site_loop = False
+                    atom_columns = []
+                    atom_indices = {}
+                    output_lines.append(raw_line)
+                    continue
+                if line.startswith("#"):
+                    output_lines.append(raw_line)
+                    in_atom_site_loop = False
+                    atom_columns = []
+                    atom_indices = {}
+                    continue
+                try:
+                    values = shlex.split(line)
+                except ValueError:
+                    continue
+                if len(values) < len(atom_columns):
+                    continue
+                label_seq_index = atom_indices.get("_atom_site.label_seq_id")
+                label_chain_index = atom_indices.get("_atom_site.label_asym_id")
+                auth_chain_index = atom_indices.get("_atom_site.auth_asym_id")
+                if label_seq_index is None:
+                    continue
+                try:
+                    label_seq_id = int(_clean_cif_value(values[label_seq_index]))
+                except ValueError:
+                    continue
+                if label_seq_id not in keep_positions:
+                    continue
+                if wanted_chains:
+                    label_chain = _clean_cif_value(values[label_chain_index]) if label_chain_index is not None else ""
+                    auth_chain = _clean_cif_value(values[auth_chain_index]) if auth_chain_index is not None else ""
+                    if label_chain not in wanted_chains and auth_chain not in wanted_chains:
+                        continue
+                output_lines.append(raw_line)
+                atom_rows += 1
+                continue
+            output_lines.append(raw_line)
+
+    ensure_dir(output_path.parent)
+    output_path.write_text("".join(output_lines), encoding="utf-8")
+    return atom_rows
+
+
+def _clean_cif_value(value: str) -> str:
+    value = str(value or "").strip()
+    if value in {".", "?"}:
+        return ""
+    return value.strip("'\"")
+
+
 def score_benchmark_runs(
     *,
     project_root: Path,
@@ -420,6 +607,8 @@ def score_benchmark_runs(
     output_dir = (output_dir or (project_root / "leaderboards" / benchmark)).resolve()
     targets = read_benchmark_targets(project_root, benchmark)
     references = {row["target_id"]: row for row in read_benchmark_references(project_root, benchmark)}
+    domain_ranges_by_target = load_domain_residue_ranges(project_root, benchmark)
+    reference_mappings = load_reference_map_scoring_mappings(project_root, benchmark)
     specs = [
         spec
         for spec in load_run_specs(project_root / "runs", registered_only=True)
@@ -447,10 +636,17 @@ def score_benchmark_runs(
         output_path = Path(str(spec.get("output_dir", "")))
         candidates_by_target = prediction_candidate_index_for_targets(output_path, scored_targets)
         for target in scored_targets:
+            target_for_score = dict(target)
+            reference_mapping = reference_mappings.get(target["target_id"], {})
+            if reference_mapping:
+                target_for_score["reference_chain_mapping"] = reference_mapping.get("chain_mapping", "")
+                target_for_score["reference_scoring_mapping"] = reference_mapping.get("scoring_mapping", "")
+                if target["target_id"] in domain_ranges_by_target:
+                    target_for_score["domain_residue_ranges"] = domain_ranges_by_target[target["target_id"]]
             rows.append(
                 score_target(
                     spec,
-                    target,
+                    target_for_score,
                     references.get(target["target_id"], {}),
                     benchmark=benchmark,
                     tm_tool=tm_tool,
@@ -647,7 +843,20 @@ def score_target(
         requires_gdt_ts = requires_official_gdt_ts(benchmark, target)
         if not tm_tool:
             return {**base, "metric": "GDT_TS" if requires_gdt_ts else "TMscore/GDT_TS", "status": "metric_unavailable", "message": "TMscore_or_USalign_not_found"}
-        code, stdout, stderr = run_metric([tm_tool, str(prediction_path), str(reference_path)])
+        metric_prediction_path = prediction_path
+        metric_reference_path = reference_path
+        crop_message = ""
+        try:
+            with tempfile.TemporaryDirectory(prefix="casp16_domain_crop_") as tmp_dir:
+                metric_prediction_path, metric_reference_path, crop_message = prepare_domain_metric_inputs(
+                    prediction_path,
+                    reference_path,
+                    target,
+                    Path(tmp_dir),
+                )
+                code, stdout, stderr = run_metric([tm_tool, str(metric_prediction_path), str(metric_reference_path)])
+        except ValueError as exc:
+            return {**base, "metric": "GDT_TS" if requires_gdt_ts else "TMscore/GDT_TS", "status": "metric_failed", "message": f"domain_crop_failed:{exc}"[:240]}
         if code != 0:
             return {**base, "metric": "GDT_TS" if requires_gdt_ts else "TMscore/GDT_TS", "status": "metric_failed", "message": stderr.strip()[:240]}
         parsed = parse_tmscore_output(stdout)
@@ -663,6 +872,7 @@ def score_target(
             "gdt_ts_norm": _fmt(parsed.get("gdt_ts_norm")),
             "tm_score": _fmt(parsed.get("tm_score")),
             "status": "ok",
+            "message": crop_message,
         }
 
     if target.get("track") == "protein_oligo":

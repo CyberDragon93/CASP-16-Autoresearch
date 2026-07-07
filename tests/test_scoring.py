@@ -66,6 +66,20 @@ def _write_fake_tool(path, output: str, *, exit_code: int = 0) -> str:
     return str(path)
 
 
+def _write_fake_tm_capture(path, output: str, capture_prediction, capture_reference) -> str:
+    path.write_text(
+        "#!/usr/bin/env bash\n"
+        f"cp \"$1\" \"{capture_prediction}\"\n"
+        f"cp \"$2\" \"{capture_reference}\"\n"
+        "cat <<'OUT'\n"
+        f"{output}\n"
+        "OUT\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
+    return str(path)
+
+
 def _write_fake_ost(path, qsglob: float) -> str:
     path.write_text(
         "#!/usr/bin/env bash\n"
@@ -108,6 +122,22 @@ def _write_prediction_and_reference(tmp_path, target_id: str) -> tuple[str, str]
     prediction.write_text("data_pred\n", encoding="utf-8")
     reference.write_text("data_ref\n", encoding="utf-8")
     return str(tmp_path / "preds"), str(reference)
+
+
+def _minimal_atom_site_cif(rows: list[tuple[str, str, int]]) -> str:
+    lines = [
+        "data_test\n",
+        "loop_\n",
+        "_atom_site.group_PDB\n",
+        "_atom_site.label_asym_id\n",
+        "_atom_site.auth_asym_id\n",
+        "_atom_site.label_seq_id\n",
+        "_atom_site.label_atom_id\n",
+    ]
+    for label_chain, auth_chain, label_seq_id in rows:
+        lines.append(f"ATOM {label_chain} {auth_chain} {label_seq_id} CA\n")
+    lines.append("#\n")
+    return "".join(lines)
 
 
 def test_missing_prediction_scores_zero(tmp_path) -> None:
@@ -173,6 +203,68 @@ def test_aliasfix_server_domain_requires_gdt_ts_not_tm_fallback(tmp_path) -> Non
     assert row["metric"] == "GDT_TS"
     assert row["status"] == "metric_unparseable"
     assert row["message"] == "no_GDT_TS"
+
+
+def test_server_domain_uses_reference_map_domain_crop_before_gdt(tmp_path) -> None:
+    output_dir = tmp_path / "predictions"
+    pred_dir = output_dir / "T1278" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    prediction = pred_dir / "T1278_sample_0.cif"
+    prediction.write_text(
+        _minimal_atom_site_cif([
+            ("A", "A", 33),
+            ("A", "A", 34),
+            ("A", "A", 35),
+            ("A", "A", 36),
+        ]),
+        encoding="utf-8",
+    )
+    reference = tmp_path / "ref.cif"
+    reference.write_text(
+        _minimal_atom_site_cif([
+            ("A", "A", 34),
+            ("A", "A", 35),
+            ("B", "B", 34),
+            ("B", "B", 35),
+            ("A", "A", 36),
+        ]),
+        encoding="utf-8",
+    )
+    captured_prediction = tmp_path / "captured_prediction.cif"
+    captured_reference = tmp_path / "captured_reference.cif"
+    tm = _write_fake_tm_capture(tmp_path / "tm_capture.sh", "GDT-TS-score= 88.00", captured_prediction, captured_reference)
+
+    row = score_target(
+        {"run_id": "r1", "output_dir": str(output_dir)},
+        {
+            "target_id": "T1278",
+            "track": "protein_domain",
+            "rank_eligible": "true",
+            "official_metric": "GDT_TS",
+            "domain_residue_ranges": "34-35",
+            "reference_chain_mapping": "reference_chain=A",
+            "reference_scoring_mapping": "candidate_domain=T1278-D1; residue_ranges=34-35; reference_chain=A",
+        },
+        {"reference_path": str(reference)},
+        benchmark="casp16_server_protein_v3_refmap",
+        tm_tool=tm,
+        dockq_tool="",
+    )
+
+    assert row["status"] == "ok"
+    assert row["score"] == "0.880000"
+    assert "domain_crop:34-35" in row["message"]
+    assert "reference_chains:A" in row["message"]
+    captured_prediction_text = captured_prediction.read_text(encoding="utf-8")
+    captured_reference_text = captured_reference.read_text(encoding="utf-8")
+    assert "ATOM A A 34 CA" in captured_prediction_text
+    assert "ATOM A A 35 CA" in captured_prediction_text
+    assert "ATOM A A 33 CA" not in captured_prediction_text
+    assert "ATOM A A 36 CA" not in captured_prediction_text
+    assert "ATOM A A 34 CA" in captured_reference_text
+    assert "ATOM A A 35 CA" in captured_reference_text
+    assert "ATOM B B 34 CA" not in captured_reference_text
+    assert "ATOM A A 36 CA" not in captured_reference_text
 
 
 def test_local_domain_can_fallback_to_tmscore(tmp_path) -> None:
@@ -502,6 +594,89 @@ def test_score_benchmark_runs_filters_requested_run_ids(tmp_path) -> None:
     assert "wanted_run,bench_filter,protein_oligo,H1202" in rows[1]
     assert "other_run" not in rows[1]
     assert "0.456000" in rows[1]
+
+
+def test_score_benchmark_runs_applies_accepted_reference_map_domain_crop(tmp_path) -> None:
+    benchmark = "casp16_server_protein_v3_refmap"
+    benchmark_dir = tmp_path / "benchmarks" / benchmark
+    benchmark_dir.mkdir(parents=True)
+    (benchmark_dir / "targets.tsv").write_text(
+        "target_id\ttrack\trank_eligible\tofficial_metric\n"
+        "T1278\tprotein_domain\ttrue\tGDT_TS\n",
+        encoding="utf-8",
+    )
+    (benchmark_dir / "domain_definitions.tsv").write_text(
+        "target_id\ttarget_len\tdomain_id\tresidue_ranges\tdomain_len\tdifficulty\tpdb_ids\tsource\n"
+        "T1278\t380\tT1278-D1\t34-35\t2\teasy\t9hav\tdomains_summary.cgi\n",
+        encoding="utf-8",
+    )
+    reference = tmp_path / "ref.cif"
+    reference.write_text(
+        _minimal_atom_site_cif([
+            ("A", "A", 34),
+            ("A", "A", 35),
+            ("B", "B", 34),
+            ("A", "A", 36),
+        ]),
+        encoding="utf-8",
+    )
+    (benchmark_dir / "references.tsv").write_text(
+        "target_id\ttrack\treference_path\treference_status\n"
+        f"T1278\tprotein_domain\t{reference}\tavailable\n",
+        encoding="utf-8",
+    )
+    (benchmark_dir / "reference_map.tsv").write_text(
+        "target_id\tpdb_ids\tstatus\tsource\tnative_provenance\tconstruct_coverage\tchain_mapping\tscoring_mapping\tnotes\tsource_path\n"
+        "T1278\t9hav\taccepted\tmanual_review\tCASP_native\tfull_construct_exact_sequence\treference_chain=A\tcandidate_domain=T1278-D1; residue_ranges=34-35; reference_chain=A\tfixture\t\n",
+        encoding="utf-8",
+    )
+    pred_dir = tmp_path / "runs" / "domain_run" / "predictions" / "protenix-v2" / "T1278" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    (pred_dir / "T1278_sample_0.cif").write_text(
+        _minimal_atom_site_cif([
+            ("A", "A", 33),
+            ("A", "A", 34),
+            ("A", "A", 35),
+            ("A", "A", 36),
+        ]),
+        encoding="utf-8",
+    )
+    run_dir = tmp_path / "runs" / "domain_run"
+    (run_dir / "run_spec.json").write_text(
+        (
+            "{"
+            '"run_id":"domain_run",'
+            f'"benchmark_name":"{benchmark}",'
+            f'"output_dir":"{tmp_path / "runs" / "domain_run" / "predictions" / "protenix-v2"}",'
+            '"backend":"protenix",'
+            '"model_name":"protenix-v2"'
+            "}\n"
+        ),
+        encoding="utf-8",
+    )
+    captured_prediction = tmp_path / "captured_prediction.cif"
+    captured_reference = tmp_path / "captured_reference.cif"
+    tm = _write_fake_tm_capture(tmp_path / "tm_capture.sh", "GDT-TS-score= 91.00", captured_prediction, captured_reference)
+    output_dir = tmp_path / "leaderboards" / benchmark
+
+    summary = score_benchmark_runs(
+        project_root=tmp_path,
+        benchmark=benchmark,
+        output_dir=output_dir,
+        tmscore_bin=tmp_path / "tm_capture.sh",
+    )
+
+    assert summary["target_scores"] == 1
+    score_rows = (output_dir / "target_scores.csv").read_text(encoding="utf-8").splitlines()
+    assert "domain_run,casp16_server_protein_v3_refmap,protein_domain,T1278" in score_rows[1]
+    assert "0.910000" in score_rows[1]
+    captured_prediction_text = captured_prediction.read_text(encoding="utf-8")
+    captured_reference_text = captured_reference.read_text(encoding="utf-8")
+    assert "ATOM A A 34 CA" in captured_prediction_text
+    assert "ATOM A A 35 CA" in captured_prediction_text
+    assert "ATOM A A 33 CA" not in captured_prediction_text
+    assert "ATOM A A 36 CA" not in captured_prediction_text
+    assert "ATOM B B 34 CA" not in captured_reference_text
 
 
 def test_prediction_lookup_does_not_fallback_to_other_target(tmp_path) -> None:

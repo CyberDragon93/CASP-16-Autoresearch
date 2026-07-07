@@ -289,9 +289,11 @@ whole target set.
    `inputs.json`, `input_manifest.tsv`, and `scoring_policy.md`.
 2. Done: derive ranked target sets directly from the official `prot_domains` and
    `prot_oligo` score tables instead of the current local eligibility filter.
-3. Partial: domain scoring now requires parsed `GDT_TS` and uses the configured
-   TMscore/USalign path by default. Next, add explicit domain cropping and
-   chain/residue mapping.
+3. Partial: domain scoring now requires parsed `GDT_TS`, uses the configured
+   TMscore/USalign path by default, and applies temporary mmCIF domain crops
+   when an accepted refmap row supplies `residue_ranges=...` plus optional
+   `reference_chain=...`. Next, promote only provenance-backed reference-map
+   rows in a new benchmark version; do not hand-edit v1/v2.
 4. Partial: oligo scoring now requires a `QSglob` scorer, refuses DockQ as a
    ranked substitute, and can parse OpenStructure `ost compare-structures
    --qs-score` JSON. OpenStructure 2.11.1 is installed in

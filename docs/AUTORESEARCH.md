@@ -773,6 +773,13 @@ competitive result.
     have many fully covering chains. This moves `T1278` closer to a guarded v3
     refmap overlay, but it still needs native provenance and scorer-side domain
     crop support before it can become rank-eligible.
+46. `2026-07-06 23:12 CDT` added scorer-side server-domain cropping for future
+    accepted refmap benchmarks. `score_benchmark_runs` now reads accepted
+    `reference_map.tsv` rows, parses `residue_ranges=...`, optionally filters
+    the reference by `reference_chain=...`, writes temporary cropped mmCIF
+    inputs, and runs GDT_TS/TMscore on the cropped structures. This removes the
+    scorer-side blocker for a guarded `T1278` v3 overlay; the remaining blocker
+    is native provenance plus an accepted reference-map row, not metric plumbing.
 
 ## Run Discipline
 
