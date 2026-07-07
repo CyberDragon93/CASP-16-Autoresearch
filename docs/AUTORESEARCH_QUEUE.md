@@ -24,6 +24,14 @@ scripts/finish_p25_scoreable_input_repair.sh --dry-run
 scripts/finish_p25_scoreable_input_repair.sh
 ```
 
+For frequent live polling, override the dry-run TSV path so a read-only check
+does not dirty the tracked readiness file:
+
+```bash
+scripts/finish_p25_scoreable_input_repair.sh --dry-run \
+  --output-tsv /tmp/casp16_p25_readiness_live.tsv
+```
+
 The wrapper calls `finish-shards` with the seed101-105 overlay plus every
 submitted seed106-125 target-shard run id, `--candidate-count 5`,
 `--merged-candidate-count 25`, `--allow-target-shards`, the scoreable repaired
