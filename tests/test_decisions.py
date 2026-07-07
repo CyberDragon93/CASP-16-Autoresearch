@@ -4,7 +4,7 @@ import csv
 import json
 
 from casp16_leaderboard.cli import main
-from casp16_leaderboard.decisions import D6A_RUN_IDS, post_p14_readout, post_p25_readout
+from casp16_leaderboard.decisions import D6A_RUN_IDS, post_p14_readout, post_p25_branch_readiness, post_p25_readout
 
 
 def write_csv(path, rows, fields):
@@ -676,6 +676,100 @@ def test_post_p25_readout_enriches_launch_plan_run_specs_and_preflight(tmp_path)
     assert plan["preflight"]["row_count"] == 1
     assert plan["preflight"]["ok_rows"] == 1
     assert plan["preflight"]["result_counts"] == {"ok": 1}
+
+
+def test_post_p25_branch_readiness_audits_prepared_branches_without_launching(tmp_path) -> None:
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    run_id = D6A_RUN_IDS[0]
+    run_dir = tmp_path / "runs" / run_id
+    run_dir.mkdir(parents=True)
+    (run_dir / "run_spec.json").write_text(
+        json.dumps(
+            {
+                "run_id": run_id,
+                "benchmark_name": benchmark,
+                "backend": "protenix",
+                "strategy": "yang_domain_sequence_recovery_oligo_nofail_v1",
+                "model_name": "protenix",
+                "seeds": "101",
+                "sample": 1,
+                "candidate_count": 1,
+                "budget_tier": "dev_fixed",
+                "fixed_budget": True,
+                "rank_eligible": True,
+                "selected_model_policy": "first_output_only",
+                "use_msa": True,
+                "input_json": str(run_dir / "inputs" / "inputs.msa-reuse.json"),
+                "output_dir": str(run_dir / "predictions" / "protenix-v2"),
+                "stdout_path": str(run_dir / "stdout.txt"),
+                "stderr_path": str(run_dir / "stderr.txt"),
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    write_tsv(
+        tmp_path / "runs" / "status.tsv",
+        [
+            {
+                "timestamp": "2026-07-07T19:00:00+00:00",
+                "benchmark": benchmark,
+                "run_id": run_id,
+                "status": "deferred:await_p25_score",
+                "message": "fixture",
+            }
+        ],
+        ["timestamp", "benchmark", "run_id", "status", "message"],
+    )
+    write_tsv(
+        tmp_path / "diagnostics" / "msa_cache" / "domain_sequence_recovery_after_warmup_preflight.tsv",
+        [
+            {
+                "run_id": run_id,
+                "benchmark": benchmark,
+                "status": "deferred:await_p25_score",
+                "result": "ok",
+                "message": "",
+                "budget_tier": "dev_fixed",
+                "candidate_count": "1",
+                "rank_eligible": "True",
+                "use_msa": "true",
+                "msa_checked": "true",
+                "msa_protein_chains": "276",
+                "msa_usable_covered": "276",
+                "msa_stale_covered": "0",
+                "msa_coverage_fraction": "1.0",
+                "run_dir": str(run_dir),
+            }
+        ],
+        [
+            "run_id",
+            "benchmark",
+            "status",
+            "result",
+            "message",
+            "budget_tier",
+            "candidate_count",
+            "rank_eligible",
+            "use_msa",
+            "msa_checked",
+            "msa_protein_chains",
+            "msa_usable_covered",
+            "msa_stale_covered",
+            "msa_coverage_fraction",
+            "run_dir",
+        ],
+    )
+
+    audit = post_p25_branch_readiness(tmp_path)
+
+    branches = {branch["branch"]: branch for branch in audit["branches"]}
+    assert audit["status"] == "ok"
+    assert branches["d6a_domain_sequence_recovery"]["launch_ready_after_p25_selection"] is True
+    assert branches["d6a_domain_sequence_recovery"]["preflight"]["result_counts"] == {"ok": 1}
+    assert branches["d6a_domain_sequence_recovery"]["status_counts"] == {"deferred:await_p25_score": 1}
+    assert branches["p27b_model_config_diversity"]["launch_ready_after_p25_selection"] is False
+    assert branches["p27b_model_config_diversity"]["missing_run_specs"]
 
 
 def test_post_p25_readout_selects_o5b_for_antibody_fv_signal(tmp_path) -> None:

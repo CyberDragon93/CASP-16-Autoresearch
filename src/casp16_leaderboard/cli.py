@@ -31,6 +31,7 @@ from .decisions import (
     DEFAULT_P17_RUN_ID,
     DEFAULT_P25_RUN_ID,
     post_p14_readout,
+    post_p25_branch_readiness,
     post_p25_readout,
 )
 from .inputs import generate_protenix_inputs
@@ -1093,6 +1094,12 @@ def build_parser() -> argparse.ArgumentParser:
     post_p25.add_argument("--min-track-delta", type=float, default=0.02)
     post_p25.add_argument("--strong-scoreable-nonzero-fraction", type=float, default=0.40)
 
+    post_p25_branches = subparsers.add_parser(
+        "post-p25-branch-readiness",
+        help="Read-only audit of prepared post-P25 branch run specs and preflight files.",
+    )
+    post_p25_branches.add_argument("--output-json", type=Path, default=None, help="Optional JSON copy of the audit.")
+
     run_next_parser = subparsers.add_parser("run-next", help="Run the next pending run spec.")
     run_next_parser.add_argument("--benchmark", default=None)
     run_next_parser.add_argument("--dry-run", action="store_true")
@@ -1774,6 +1781,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             min_track_delta=args.min_track_delta,
             strong_scoreable_nonzero_fraction=args.strong_scoreable_nonzero_fraction,
         )
+        if args.output_json:
+            ensure_dir(args.output_json.resolve().parent)
+            args.output_json.resolve().write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            summary["output_json"] = str(args.output_json.resolve())
+        print_json(summary)
+        return 0
+
+    if args.command == "post-p25-branch-readiness":
+        summary = post_p25_branch_readiness(root)
         if args.output_json:
             ensure_dir(args.output_json.resolve().parent)
             args.output_json.resolve().write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -83,6 +83,17 @@ counts plus status transitions. It reports `status: incomplete` and
 target scores. Treat the `status: ok` digest as a post-score explanation
 layer, not a permission slip for per-target tuning.
 
+While P25 is still running, use this read-only branch readiness audit to avoid
+rediscovering prepared artifacts:
+
+```bash
+./casp16 post-p25-branch-readiness
+```
+
+It should report P27b, D6a, O5b, and P15/v4 as launch-ready before any branch
+is selected. A stale deferred status label is not itself a blocker; missing run
+specs or non-`ok` preflight rows are blockers.
+
 Use this queue immediately after the complete P25 score exists:
 
 | Priority | Trigger After P25 | Branch | Why This Beats Waiting | Launch Gate |

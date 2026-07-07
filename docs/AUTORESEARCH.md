@@ -1646,6 +1646,15 @@ competitive result.
      why the aggregate branch chooser selected analysis, D6a, O5b, P27b, or
      refmap work, but do not use target deltas for per-target prediction
      tuning.
+111. `2026-07-07 14:27 CDT` post-P25 branch readiness audit:
+     Added `./casp16 post-p25-branch-readiness`, a read-only audit of the
+     prepared P27b, D6a, O5b, and P15/v4 branch artifacts. It summarizes local
+     run specs, lifecycle status counts, preflight TSV result counts, and
+     whether each branch is launch-ready after complete P25 selection. Current
+     audit says all four deferred branches are launch-ready: P27b and O5b have
+     `deferred:await_p25_score` lifecycle rows, while D6a and P15/v4 still
+     carry older `deferred:await_p14_score` labels but have complete run specs
+     and `ok` preflights. This command does not submit jobs or inspect scores.
 
 ## Run Discipline
 

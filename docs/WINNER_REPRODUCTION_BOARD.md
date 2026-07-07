@@ -26,16 +26,16 @@ per-target scores during prediction.
 
 ## Active Gate
 
-Checked `2026-07-07 14:23 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 14:27 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1137` |
-| shard-level missing candidates | `913` |
-| full 25-candidate slots still missing | `843` |
+| observed candidates | `1142` |
+| shard-level missing candidates | `908` |
+| full 25-candidate slots still missing | `838` |
 | complete full-budget tasks | `1 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit` |
 | health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes still advancing |
@@ -63,6 +63,7 @@ scripts/finish_p25_scoreable_input_repair.sh --dry-run \
   --output-tsv /tmp/casp16_p25_readiness_live.tsv
 scripts/finish_p25_scoreable_input_repair.sh
 ./casp16 post-p25-readout --benchmark casp16_server_protein_v2_aliasfix
+./casp16 post-p25-branch-readiness
 ```
 
 Decision order:
@@ -89,6 +90,12 @@ incomplete` until both the baseline and P25 have complete scoreable
 `target_scores.csv` rows. After P25 is scored, use the `status: ok` summary to
 explain aggregate gains/losses and selector behavior; do not use those target
 deltas to tune prediction inputs target by target.
+Use `./casp16 post-p25-branch-readiness` while P25 is still running to verify
+that all deferred branch artifacts remain launch-clean. Latest read-only audit:
+P27b, D6a, O5b, and P15/v4 are all launch-ready after P25 selection; P27b and
+O5b lifecycle rows already say `deferred:await_p25_score`, while D6a and P15/v4
+still carry older `deferred:await_p14_score` status text but have complete
+run specs and `ok` preflights.
 
 | Branch | Trigger | Budget or manifest | Preflight | Launch shape |
 | --- | --- | --- | --- | --- |

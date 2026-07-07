@@ -250,6 +250,85 @@ def enrich_launch_plan(project_root: Path, plan: Mapping[str, Any]) -> dict[str,
     return enriched
 
 
+POST_P25_BRANCH_READINESS = (
+    {
+        "branch": "p27b_model_config_diversity",
+        "next_branch": "launch_p27b_model_config_diversity_after_p25",
+        "trigger": "complete P25 is valid but flat; candidate count alone is not the next lever",
+    },
+    {
+        "branch": "d6a_domain_sequence_recovery",
+        "next_branch": "launch_d6a_domain_sequence_recovery_after_p25",
+        "trigger": "complete P25 leaves predeclared domain input-kind or alias targets missing or zero",
+    },
+    {
+        "branch": "o5b_antibody_fv",
+        "next_branch": "launch_o5b_antibody_fv_after_p25",
+        "trigger": "complete P25 has non-antibody oligo signal while antibody/Fv rows remain zero",
+    },
+    {
+        "branch": "p15_v4_scoreable_refmap",
+        "next_branch": "continue_versioned_refmap_or_score_p15_v4",
+        "trigger": "complete P25 is mostly reference-capped and v4 comparison is explicitly chosen",
+    },
+)
+
+
+def post_p25_branch_readiness(project_root: Path) -> dict[str, Any]:
+    """Return a read-only readiness audit for all prepared post-P25 branches."""
+
+    root = project_root.resolve()
+    branches: list[dict[str, Any]] = []
+    for config in POST_P25_BRANCH_READINESS:
+        plan = enrich_launch_plan(root, post_p25_launch_plan(config["next_branch"], "post_p25_branch_readiness"))
+        run_specs = plan.get("run_specs") or []
+        alternate_run_specs = plan.get("alternate_run_specs") or []
+        all_specs = list(run_specs) + list(alternate_run_specs)
+        preflight = plan.get("preflight") or {}
+        alternate_preflight = plan.get("alternate_preflight") or {}
+        preflight_ok = bool(preflight.get("exists")) and int(preflight.get("row_count", 0) or 0) > 0 and int(
+            preflight.get("blocked_rows", 0) or 0
+        ) == 0 and preflight.get("result_counts") == {"ok": int(preflight.get("row_count", 0) or 0)}
+        alternate_preflight_ok = True
+        if "alternate_preflight" in plan:
+            alternate_preflight_ok = bool(alternate_preflight.get("exists")) and int(
+                alternate_preflight.get("row_count", 0) or 0
+            ) > 0 and int(alternate_preflight.get("blocked_rows", 0) or 0) == 0 and alternate_preflight.get(
+                "result_counts"
+            ) == {"ok": int(alternate_preflight.get("row_count", 0) or 0)}
+        missing_run_specs = [row.get("run_id", "") for row in all_specs if not row.get("run_spec_exists")]
+        status_counts = Counter(str(row.get("status", "") or "unknown") for row in all_specs)
+        launch_ready = not missing_run_specs and preflight_ok and alternate_preflight_ok
+        branches.append(
+            {
+                "branch": config["branch"],
+                "next_branch": config["next_branch"],
+                "trigger": config["trigger"],
+                "action": plan.get("action", ""),
+                "launch_ready_after_p25_selection": launch_ready,
+                "run_spec_count": len(run_specs),
+                "alternate_run_spec_count": len(alternate_run_specs),
+                "missing_run_specs": missing_run_specs,
+                "status_counts": dict(sorted(status_counts.items())),
+                "preflight": preflight,
+                "alternate_preflight": alternate_preflight if "alternate_preflight" in plan else {},
+                "target_disjoint_shards": bool(plan.get("target_disjoint_shards")),
+                "note": plan.get("note", ""),
+            }
+        )
+
+    return {
+        "status": "ok",
+        "note": "Read-only audit; launch only after complete scored P25 selects the branch.",
+        "branches": branches,
+        "summary": {
+            "branch_count": len(branches),
+            "launch_ready_count": sum(1 for branch in branches if branch["launch_ready_after_p25_selection"]),
+            "not_ready_count": sum(1 for branch in branches if not branch["launch_ready_after_p25_selection"]),
+        },
+    }
+
+
 def read_csv_rows(path: Path) -> list[dict[str, str]]:
     with path.open(encoding="utf-8", newline="") as handle:
         return list(csv.DictReader(handle))
