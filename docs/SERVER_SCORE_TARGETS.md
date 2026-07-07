@@ -161,7 +161,7 @@ failure mode, not by impatience to spend more GPU time.
 | Many scoreable rows are still `missing_prediction`, `metric_failed`, or exact oligo rows are not found | This is a pipeline/input/scorer failure, not a sampling failure | Fix the failure class before launching P25 |
 | Domain score is weak because input-kind or sequence-alias repairs are missing | More seeds will repeat bad inputs | Run D6a single-seed domain sequence recovery after MSA warmup |
 | Exact QSglob remains weak mainly on antibody/Fv rows after phase-alias stoichiometry is fixed | Oligo branch may need Fv/docking-inspired input handling | Launch the prepared O5 antibody-Fv target shards |
-| Predictions and metrics are valid but the five-candidate attack is broadly weak | Current Protenix recipe is not enough; scaling seeds alone is low leverage | Design a new MSA/model-variant budget before spending winner-scale compute |
+| Predictions and metrics are valid but the five-candidate attack is broadly weak | Current Protenix recipe is not enough; scaling seeds alone is low leverage | Launch the prepared P27a default-params model/config variant first; if that is also weak, build the broader MSA/model-variant budget before spending winner-scale compute |
 
 ## What Counts As Progress
 

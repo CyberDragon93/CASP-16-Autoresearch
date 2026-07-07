@@ -181,6 +181,12 @@ where methods should change.
   expected candidate CIFs with `131` still missing. The row is still
   `ready=false`, but progress is monotonic and there are no shard-closeout
   actions to take yet.
+- `2026-07-07 03:21 CDT` P14 health check: all six shard jobs are still
+  running and replay-safe `finish-shards` observes `255/370` candidates with
+  `115` missing. Error scan across shard logs found no traceback/OOM/CUDA
+  failure signatures. The active stderr tails show seed104 forward passes on
+  the expected 1304-2535 token protein-complex targets, so this is still slow
+  healthy inference rather than a stalled run.
 - Post-P14 winner-recipe branch `casp16_server_attack_msa_model_diversity_v1`
   is now documented as a design gate in `docs/CASP16_WINNER_RECIPES.md`. It
   captures the MULTICOM4/QA4-style lesson: if P14 is complete and valid but
