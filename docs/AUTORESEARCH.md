@@ -1716,6 +1716,20 @@ competitive result.
      logs remains clean, recent CIF/log writes reached 14:55 CDT, and
      `run-next --dry-run` returns `no_pending_runs`. Continue waiting for
      declared candidates; no partial P25 score or post-P25 GPU branch launch.
+117. `2026-07-07 14:58 CDT` Lane F oligo reference probe while P25 waits:
+     created
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_high_value_oligo_worklist.tsv`
+     and ran `./casp16 refmap-probe` at identity `0.90` over 15 high-value
+     oligo rows from Lane F. Outputs are
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_high_value_oligo_targets.tsv`
+     and
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_high_value_oligo_candidates.tsv`.
+     Only the `T0257O/T1257O/T2257O` family produced hits (`5AQ5`, `4UW7`,
+     `4UW8`), and all are shorter bacteriophage T5 tail-fiber domain/template
+     hits marked `sequence_search_hit_alignment_unverified`; they are not
+     accepted references. The other probed Lane F families returned `no_hits`,
+     so the next work is manual native/provenance plus QSglob assembly mapping,
+     not another search-depth-only RCSB loop.
 
 ## Run Discipline
 

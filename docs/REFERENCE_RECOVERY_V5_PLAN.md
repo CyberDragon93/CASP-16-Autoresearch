@@ -140,6 +140,29 @@ These are not low-priority forever; they can unlock high-value QSglob rows.
 But they are unsafe to accept until assembly and QSglob chain mapping are
 audited.
 
+### Lane F: Manual Oligo Native Search
+
+2026-07-07 14:58 CDT follow-up: a focused relaxed RCSB sequence probe covered
+the first five high-value Lane F oligo families:
+`H0245/H1245/H2245`, `T0257O/T1257O/T2257O`,
+`H0208/H1208/H2208`, `H0230/H1230/H2230`, and
+`T0237O/T1237O/T2237O`. It used `identity_cutoff=0.90` and `max_hits=25`,
+checked 15 rows, and wrote:
+
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_high_value_oligo_worklist.tsv`
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_high_value_oligo_targets.tsv`
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_high_value_oligo_candidates.tsv`
+
+The only hits were for the `T0257O/T1257O/T2257O` phase family:
+`5AQ5`, `4UW7`, and `4UW8`. They are shorter bacteriophage T5 tail-fiber
+C-terminal domain/template hits, not full CASP target constructs
+(`294..427` residues versus target length `1263`), and every candidate row is
+`sequence_search_hit_alignment_unverified`. They must not be promoted to
+accepted references without separate native/reference provenance and explicit
+oligo assembly/QSglob mapping. The other four probed Lane F families returned
+`no_hits`, so they should move to manual native/provenance search rather than
+another search-depth-only RCSB loop.
+
 ### Lane C: Input Or Alias Repair Before Reference
 
 These rows are not primarily reference-map work yet:

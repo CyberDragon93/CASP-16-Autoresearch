@@ -129,6 +129,14 @@ The Lane C input-alias details are now split out in
 `yang_protein_oligo_sequence_recovery_v1` with complete MSA-cache coverage.
 All five Lane C rows remain `not_reference_ready` until explicit native/domain
 or assembly/QSglob mapping proof exists.
+The first high-value Lane F relaxed RCSB probe is also recorded:
+`diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_high_value_oligo_targets.tsv`
+and its candidate TSV show `15` oligo rows checked at identity `0.90`.
+Only the `T0257O/T1257O/T2257O` family produced hits (`5AQ5`, `4UW7`, `4UW8`),
+and all are shorter tail-fiber domain/template hits marked
+`sequence_search_hit_alignment_unverified`, so no accepted reference is added.
+The remaining probed Lane F families returned `no_hits`; keep them in manual
+native/provenance search, not another blind RCSB loop.
 
 For a selected deferred run, record the decision before launch:
 

@@ -1,0 +1,16 @@
+priority	target_id	track	blocker_class	sequence_lookup_id	source_alias	sequence_kind	length	hit_count	hits
+33	T1237O	protein_oligo	prediction_waiting_on_reference	T1237	T1237	proteinChain	488	0	no_hits
+34	T0237O	protein_oligo	prediction_waiting_on_reference	T0237	T0237	proteinChain	488	0	no_hits
+39	T1257O	protein_oligo	prediction_waiting_on_reference	T1257	T1257	proteinChain	1263	3	5AQ5_1,4UW7_1,4UW8_1
+40	T0257O	protein_oligo	prediction_waiting_on_reference	T0257	T0257	proteinChain	1263	3	5AQ5_1,4UW7_1,4UW8_1
+62	H1245	protein_oligo	reference_registry_gap	H1245	H1245	proteinChain	183	0	no_hits
+63	H0245	protein_oligo	reference_registry_gap	H0245	H0245	proteinChain	183	0	no_hits
+64	H2245	protein_oligo	reference_registry_gap	H2245	H2245	proteinChain	183	0	no_hits
+72	T2237O	protein_oligo	reference_registry_gap	T2237	T2237	proteinChain	488	0	no_hits
+73	H1208	protein_oligo	reference_registry_gap	H1208	H1208	proteinChain	328	0	no_hits
+74	H0208	protein_oligo	reference_registry_gap	H0208	H0208	proteinChain	328	0	no_hits
+75	H2208	protein_oligo	reference_registry_gap	H2208	H2208	proteinChain	328	0	no_hits
+80	H1230	protein_oligo	reference_registry_gap	H1230	H1230	proteinChain	788	0	no_hits
+81	H0230	protein_oligo	reference_registry_gap	H0230	H0230	proteinChain	788	0	no_hits
+82	H2230	protein_oligo	reference_registry_gap	H2230	H2230	proteinChain	788	0	no_hits
+87	T2257O	protein_oligo	reference_registry_gap	T2257	T2257	proteinChain	1263	3	5AQ5_1,4UW7_1,4UW8_1
