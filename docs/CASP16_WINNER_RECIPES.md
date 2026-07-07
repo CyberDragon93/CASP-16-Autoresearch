@@ -127,27 +127,32 @@ by how interesting the trick is.
 
 | Gate | Winner clue | Local reproduction | Current status | Next decision |
 | --- | --- | --- | --- | --- |
-| G1 | Strong CASP16 systems did careful input preparation before spending sampling budget | v2 nofail scoreable stack: protein-oligo sequence recovery, phase-alias stoichiometry, low-complexity cleanup, token fallback, full MSA reuse | P14 six target shards are running as the first full five-candidate scoreable attack; `2026-07-07 05:18 CDT` readiness is 337/370 candidates, 33 missing, 41/74 complete target tasks, `ready=false`, with forward-time rather than MSA as the active bottleneck | Wait for `check-shards ready=true`, merge, register P16, score, and only then decide the next GPU wave |
-| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and prepared `protenix25_scoreable_nofail` budgets with `protenix_confidence_v1` | `protenix25` is prepared, not launched | Launch 25 seeds only if P14 has broad fixed-set signal and failures are mostly selection/sampling, not missing references or wrong inputs |
-| G3 | First-model QA/ranking can change apparent method quality without more GPU | P16 consensus replay uses the same P14 five-candidate pool with `selection-qa` and `diversity_confidence_consensus_v1` | predeclared in `attack_budgets/casp16_server_attack_protenix5_consensus_selector_replay.json`, not scored | After P14 merge and before inspecting target scores, register the replay row, run selection QA, and score it as a separate attack row |
-| G4 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a is MSA-ready but deferred behind P14 | If P14 is weak on domains because inputs are missing/wrong, run D6a before scaling candidates |
+| G1 | Strong CASP16 systems did careful input preparation before spending sampling budget | v2 nofail scoreable stack plus P17 input repair: protein-oligo sequence recovery, phase-alias stoichiometry, low-complexity cleanup, token fallback, full MSA reuse, and target-agnostic `O`/`Vn`/phase alias repair | P14 completed all 370 candidates and scored, but exposed 5 locally scoreable `missing_prediction` targets; P17 repaired input covers 79/79 scoreable targets and six GH200 shards `812765..812770` are running | Merge/score P17 before any candidate-count scale-up; input coverage remains the live bottleneck |
+| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and prepared `protenix25_scoreable_nofail` budgets with `protenix_confidence_v1` | `protenix25` is prepared, not launched | Launch 25 seeds only if P17 has broad fixed-set signal and failures are mostly selection/sampling, not missing references or wrong inputs |
+| G3 | First-model QA/ranking can change apparent method quality without more GPU | P16 consensus replay used the same P14 five-candidate pool with `selection-qa` and `diversity_confidence_consensus_v1` | scored but slightly below P14 (`0.102218` domain, `0.115250` oligo) | Do not tune selectors again until P17 removes scoreable missing predictions and shows candidate selection is the limiting factor |
+| G4 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a is MSA-ready but deferred behind P17 | If P17 is weak on domains because inputs are missing/wrong, run D6a before scaling candidates |
 | G5 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache and P27a as the first concrete Protenix model/config variant, but not true MSA-variant or multi-engine generation | P27a prepared/deferred; broader variants not queued | Add broader MSA/model-variant budgets only after current Protenix input repairs stop yielding easy coverage gains |
-| G6 | Complex assessment highlights antibody-antigen difficulty and specialized docking/Fv treatment | O5 antibody-Fv target-lab positives and prepared scoreable Fv target shards | prepared, risky, not submitted | Launch only if P14 exact QSglob shows antibody rows remain a major recoverable weakness |
+| G6 | Complex assessment highlights antibody-antigen difficulty and specialized docking/Fv treatment | O5 antibody-Fv target-lab positives and prepared scoreable Fv target shards | prepared, risky, not submitted | Launch only if P17 exact QSglob shows antibody rows remain a major recoverable weakness |
 | G7 | Reference gaps hide local progress but are not prediction tricks | versioned `refmap` overlays and oligo assembly audit | v4 adds only audited `T1278/T2278`; `docs/REFERENCE_RECOVERY_V5_PLAN.md` keeps `T1228V1` as the near-term domain audit and leaves H0217/H0267 oligo families blocked on assembly/QSglob mapping | Keep reference recovery opportunistic and versioned; do not let it block runnable prediction experiments |
-| G8 | QA4/MULTICOM-style systems use diverse MSA/model pools plus QA rather than only seed count | `casp16_server_attack_msa_model_diversity_v1` design gate plus P27a default-params model/config probe | P27a prepared/deferred; full diversity system not queued | Build or launch only if P14 is complete/valid but weak and the prepared 25-seed row is not the right next spend |
+| G8 | QA4/MULTICOM-style systems use diverse MSA/model pools plus QA rather than only seed count | `casp16_server_attack_msa_model_diversity_v1` design gate plus P27a default-params model/config probe | P27a prepared/deferred; full diversity system not queued | Build or launch only if P17 is complete/valid but weak and the prepared 25-seed row is not the right next spend |
 
-Default branch after P14:
+Post-P14 branch:
 
-- P14 strong and candidate-limited: launch the scoreable 25-seed grid.
-- P14 strong but reference-limited: launch P15 on
+- P14 exposed scoreable missing predictions, so P17 input repair is now active.
+  Do not launch P25, P27a, or O5 until P17 is merged/scored.
+
+Default branch after P17:
+
+- P17 strong and candidate-limited: launch the scoreable 25-seed grid.
+- P17 strong but reference-limited: launch P15 on
   `casp16_server_protein_v4_refmap` and keep further refmap work versioned.
-- P14 has many `missing_prediction`, `metric_failed`, or exact-oligo lookup
+- P17 has many `missing_prediction`, `metric_failed`, or exact-oligo lookup
   failures: fix that class first; do not spend P25 on a broken score path.
-- P14 weak from input coverage/domain mistakes: run D6a single-seed input
+- P17 weak from input coverage/domain mistakes: run D6a single-seed input
   repair after the rank-ineligible MSA warmup.
-- P14 weak mainly on antibody/Fv oligos: run the prepared O5 scoreable Fv
+- P17 weak mainly on antibody/Fv oligos: run the prepared O5 scoreable Fv
   target shards.
-- P14 weak with valid predictions and metrics but no clear input/scoring
+- P17 weak with valid predictions and metrics but no clear input/scoring
   failure: do not scale Protenix seeds; design a new MSA/model-variant budget
   instead.
 

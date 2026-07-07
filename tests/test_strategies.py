@@ -1509,3 +1509,95 @@ def test_oligo_stoichiometry_token_safe_skips_oversize_recovery(tmp_path) -> Non
     assert h1258["status"] == "unchanged"
     assert h1258["skip_reason"] == "oversize_after_recovery"
     assert h1258["rules"] == "would_recover_official_oligo_state,benchmark_state_was_unknown,skip_oversize_after_recovery:2560"
+
+
+def test_scoreable_input_repair_adds_missing_available_reference_targets(tmp_path) -> None:
+    input_json = tmp_path / "scoreable_subset" / "inputs.json"
+    output_json = tmp_path / "repair" / "inputs.json"
+    manifest = tmp_path / "repair" / "manifest.tsv"
+    targets = tmp_path / "targets.tsv"
+    sequences = tmp_path / "sequences.tsv"
+
+    input_json.parent.mkdir()
+    input_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": "T1201",
+                    "sequences": [{"proteinChain": {"sequence": "A" * 60, "count": 1, "id": ["A"]}}],
+                    "covalent_bonds": [],
+                }
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    targets.write_text(
+        "\n".join(
+            [
+                "\t".join(["target_id", "track", "oligo_state", "reference_status", "rank_eligible", "sequence_lookup_id", "official_target_id"]),
+                "\t".join(["T1201", "protein_domain", "A1", "available", "true", "T1201", "T1201"]),
+                "\t".join(["T1212", "protein_domain", "A1", "available", "true", "T1212", "T1212"]),
+                "\t".join(["T1239V2", "protein_domain", "A1", "available", "true", "T1239V2", "T1239V2"]),
+                "\t".join(["T1249V2O", "protein_oligo", "A3", "available", "true", "T1249V2", "T1249V2O"]),
+                "\t".join(["T1269V1O", "protein_oligo", "An", "available", "true", "T1269V1", "T1269V1O"]),
+                "\t".join(["T2249V2O", "protein_oligo", "A3", "available", "true", "T2249V2", "T2249V2O"]),
+                "\t".join(["T1295", "protein_domain", "A8", "no_reference_pdb", "true", "T1295", "T1295"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    protein_1212 = "PKSIYVPNKDLKISKWIPTPKKEFTEIETNSWYEHRK"
+    protein_1239 = "MELKNIVNSYNITNILGYLRRSRQDMEREKRTGEDTLTEQKEL"
+    protein_1249 = "MGQLFSFFEEVPNIIHEAINIALIAVSLIAALKGMINLWKS"
+    protein_1269 = "PAHNGRVCSTWGSFHYKTFDGDVFRFPGLCNYVFSEHCGAAY"
+    sequences.write_text(
+        "\n".join(
+            [
+                "\t".join(["record_id", "target_ids", "sequence_family", "sequence_kind", "length", "sequence", "header", "source_file"]),
+                "\t".join(["T1212", "T1212", "T", "rnaSequence", str(len(protein_1212)), protein_1212, "T1212 misleading sequence-kind subunit", "seq"]),
+                "\t".join(["T1212s1", "M1212,T1212,T1212S1", "RDM", "proteinChain", str(len(protein_1212)), protein_1212, "T1212s1 protein subunit", "seq"]),
+                "\t".join(["T1239v1", "T1239V1", "T", "dnaSequence", str(len(protein_1239)), protein_1239, "T1239v1 protein subunit", "seq"]),
+                "\t".join(["T1249v1", "T1249V1", "T", "proteinChain", str(len(protein_1249)), protein_1249, "T1249v1 protein", "seq"]),
+                "\t".join(["T1269", "T1269", "T", "proteinChain", str(len(protein_1269)), protein_1269, "T1269 protein", "seq"]),
+                "\t".join(["T1295", "T1295", "T", "proteinChain", "60", "C" * 60, "no reference protein", "seq"]),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = derive_strategy_inputs(
+        input_json=input_json,
+        output_json=output_json,
+        manifest_path=manifest,
+        strategy="scoreable_target_subset_input_repair_v1",
+        targets_path=targets,
+        official_sequences_path=sequences,
+    )
+
+    assert summary["original_jobs"] == 1
+    assert summary["jobs"] == 6
+    assert summary["scoreable_targets"] == 6
+    assert summary["covered_targets"] == 6
+    assert summary["added_targets"] == 5
+    optimized = {job["name"]: job for job in json.loads(output_json.read_text(encoding="utf-8"))}
+    assert set(optimized) == {"T1201", "T1212", "T1239V2", "T1249V2O", "T1269V1O", "T2249V2O"}
+    assert optimized["T1212"]["sequences"][0]["proteinChain"]["sequence"] == protein_1212
+    assert optimized["T1249V2O"]["sequences"][0]["proteinChain"]["count"] == 3
+    assert optimized["T1249V2O"]["sequences"][0]["proteinChain"]["id"] == ["A", "B", "C"]
+    assert optimized["T1269V1O"]["sequences"][0]["proteinChain"]["count"] == 1
+    assert optimized["T2249V2O"]["sequences"][0]["proteinChain"]["sequence"] == protein_1249
+
+    with manifest.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle, delimiter="\t"))
+    by_target = {row["target_id"]: row for row in rows}
+    assert by_target["T1201"]["status"] == "already_covered"
+    assert by_target["T1212"]["source_record_ids"] == "T1212s1"
+    assert by_target["T1239V2"]["source_lookup_id"] == "T1239V1"
+    assert by_target["T1239V2"]["rules"] == "scoreable_input_repair,recast_sequence_kind:dnaSequence,alias_fallback:T1239V1"
+    assert by_target["T1249V2O"]["source_lookup_id"] == "T1249V1"
+    assert by_target["T1269V1O"]["source_lookup_id"] == "T1269"
+    assert by_target["T1269V1O"]["rules"] == "scoreable_input_repair,alias_fallback:T1269,unparsed_oligo_state:An"
+    assert "T1295" not in by_target

@@ -35,6 +35,7 @@ STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_STOICH_TOKEN_SAFE = "yang_protein_oligo_seq
 STRATEGY_SCOREABLE_TARGET_SUBSET = "scoreable_target_subset_v1"
 STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_FIRST = "scoreable_target_subset_oligo_first_v1"
 STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_SIZE_FIRST = "scoreable_target_subset_oligo_size_first_v1"
+STRATEGY_SCOREABLE_TARGET_SUBSET_INPUT_REPAIR = "scoreable_target_subset_input_repair_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
@@ -56,6 +57,7 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_SCOREABLE_TARGET_SUBSET,
     STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_FIRST,
     STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_SIZE_FIRST,
+    STRATEGY_SCOREABLE_TARGET_SUBSET_INPUT_REPAIR,
 )
 PROTENIX_TOKEN_LIMIT = 2560
 MIN_REMAINING_PROTEIN_LENGTH = 30
@@ -197,6 +199,20 @@ SCOREABLE_TARGET_SUBSET_MANIFEST_FIELDS = [
     "status",
     "kept_for_targets",
     "skipped_target_refs",
+    "rules",
+]
+SCOREABLE_INPUT_REPAIR_MANIFEST_FIELDS = [
+    "target_id",
+    "track",
+    "status",
+    "skip_reason",
+    "source_lookup_id",
+    "source_record_ids",
+    "source_target_ids",
+    "oligo_state",
+    "entity_count",
+    "chain_count",
+    "total_len",
     "rules",
 ]
 ANTIBODY_HEAVY_PREFIXES = ("QVQL", "EVQL", "QLQL", "QVHL", "QVQLK")
@@ -522,6 +538,18 @@ def derive_strategy_inputs(
             strategy_name=strategy,
             oligo_first=(strategy in {STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_FIRST, STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_SIZE_FIRST}),
             oligo_size_first=(strategy == STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_SIZE_FIRST),
+        )
+    if strategy == STRATEGY_SCOREABLE_TARGET_SUBSET_INPUT_REPAIR:
+        if targets_path is None:
+            raise ValueError("targets_path is required for scoreable input repair strategy")
+        if official_sequences_path is None:
+            raise ValueError("official_sequences_path is required for scoreable input repair strategy")
+        return derive_scoreable_target_subset_input_repair_inputs(
+            input_json=input_json,
+            output_json=output_json,
+            manifest_path=manifest_path,
+            targets_path=targets_path,
+            official_sequences_path=official_sequences_path,
         )
 
     with input_json.open(encoding="utf-8") as handle:
@@ -864,6 +892,165 @@ def derive_scoreable_target_subset_inputs(
     }
 
 
+def derive_scoreable_target_subset_input_repair_inputs(
+    *,
+    input_json: Path,
+    output_json: Path,
+    manifest_path: Path,
+    targets_path: Path,
+    official_sequences_path: Path,
+    token_limit: int = PROTENIX_TOKEN_LIMIT,
+) -> dict[str, object]:
+    with input_json.open(encoding="utf-8") as handle:
+        jobs = json.load(handle)
+
+    target_rows = [row for row in load_target_rows(targets_path) if is_locally_scoreable_target(row)]
+    sequence_index = sequence_rows_by_alias(load_sequence_rows(official_sequences_path))
+    scoreable_by_alias = scoreable_target_alias_index(target_rows)
+
+    covered_targets: set[str] = set()
+    existing_names = {normalized_strategy_target_id(job.get("name", "")) for job in jobs}
+    for job in jobs:
+        for alias in job_target_aliases(str(job.get("name", ""))):
+            covered_targets.update(scoreable_by_alias.get(alias.upper(), set()))
+
+    repaired_jobs: list[dict[str, Any]] = [_copy_json_dict(job) for job in jobs]
+    manifest_rows: list[dict[str, str]] = []
+    added_targets: set[str] = set()
+    skipped_targets: set[str] = set()
+
+    for target in target_rows:
+        target_id = normalized_strategy_target_id(target.get("target_id", ""))
+        track = str(target.get("track", ""))
+        if target_id in covered_targets or target_id in existing_names:
+            entity_count, chain_count, total_len = job_entity_chain_count_and_len(next((job for job in jobs if normalized_strategy_target_id(job.get("name", "")) == target_id), None))
+            manifest_rows.append(
+                {
+                    "target_id": target_id,
+                    "track": track,
+                    "status": "already_covered",
+                    "skip_reason": "none",
+                    "source_lookup_id": "none",
+                    "source_record_ids": "none",
+                    "source_target_ids": "none",
+                    "oligo_state": str(target.get("oligo_state", "")) or "none",
+                    "entity_count": str(entity_count),
+                    "chain_count": str(chain_count),
+                    "total_len": str(total_len),
+                    "rules": "existing_input_covers_scoreable_target",
+                }
+            )
+            continue
+
+        records, source_lookup_id, rules = resolve_scoreable_input_repair_records(target, sequence_index)
+        if not records:
+            skipped_targets.add(target_id)
+            manifest_rows.append(
+                {
+                    "target_id": target_id,
+                    "track": track,
+                    "status": "skipped",
+                    "skip_reason": "no_recoverable_protein_sequence",
+                    "source_lookup_id": source_lookup_id or "none",
+                    "source_record_ids": "none",
+                    "source_target_ids": "none",
+                    "oligo_state": str(target.get("oligo_state", "")) or "none",
+                    "entity_count": "0",
+                    "chain_count": "0",
+                    "total_len": "0",
+                    "rules": ",".join(rules) if rules else "none",
+                }
+            )
+            continue
+
+        oligo_state = str(target.get("oligo_state", ""))
+        if is_informative_oligo_state(oligo_state) and parse_oligo_state_counts(oligo_state, len(records)) is None:
+            rules.append(f"unparsed_oligo_state:{oligo_state}")
+        try:
+            repaired_job = build_recovered_protein_job(target_id, records, oligo_state=oligo_state)
+        except ValueError as exc:
+            skipped_targets.add(target_id)
+            manifest_rows.append(
+                {
+                    "target_id": target_id,
+                    "track": track,
+                    "status": "skipped",
+                    "skip_reason": f"build_failed:{exc}",
+                    "source_lookup_id": source_lookup_id or "none",
+                    "source_record_ids": ",".join(str(row.get("record_id", "")) for row in records) or "none",
+                    "source_target_ids": ",".join(sorted({str(row.get("target_ids", "")) for row in records if row.get("target_ids")})) or "none",
+                    "oligo_state": oligo_state or "none",
+                    "entity_count": "0",
+                    "chain_count": "0",
+                    "total_len": "0",
+                    "rules": ",".join(rules) if rules else "none",
+                }
+            )
+            continue
+
+        entity_count, chain_count, total_len = job_entity_chain_count_and_len(repaired_job)
+        if total_len > token_limit:
+            skipped_targets.add(target_id)
+            manifest_rows.append(
+                {
+                    "target_id": target_id,
+                    "track": track,
+                    "status": "skipped",
+                    "skip_reason": f"oversize_after_repair:{token_limit}",
+                    "source_lookup_id": source_lookup_id or "none",
+                    "source_record_ids": ",".join(str(row.get("record_id", "")) for row in records) or "none",
+                    "source_target_ids": ",".join(sorted({str(row.get("target_ids", "")) for row in records if row.get("target_ids")})) or "none",
+                    "oligo_state": oligo_state or "none",
+                    "entity_count": str(entity_count),
+                    "chain_count": str(chain_count),
+                    "total_len": str(total_len),
+                    "rules": ",".join(rules) if rules else "none",
+                }
+            )
+            continue
+
+        repaired_jobs.append(repaired_job)
+        covered_targets.add(target_id)
+        added_targets.add(target_id)
+        manifest_rows.append(
+            {
+                "target_id": target_id,
+                "track": track,
+                "status": "added",
+                "skip_reason": "none",
+                "source_lookup_id": source_lookup_id or "none",
+                "source_record_ids": ",".join(str(row.get("record_id", "")) for row in records) or "none",
+                "source_target_ids": ",".join(sorted({str(row.get("target_ids", "")) for row in records if row.get("target_ids")})) or "none",
+                "oligo_state": oligo_state or "none",
+                "entity_count": str(entity_count),
+                "chain_count": str(chain_count),
+                "total_len": str(total_len),
+                "rules": ",".join(rules) if rules else "scoreable_input_repair",
+            }
+        )
+
+    ensure_dir(output_json.parent)
+    output_json.write_text(json.dumps(repaired_jobs, indent=2) + "\n", encoding="utf-8")
+    write_manifest(manifest_path, manifest_rows, SCOREABLE_INPUT_REPAIR_MANIFEST_FIELDS)
+    return {
+        "strategy": STRATEGY_SCOREABLE_TARGET_SUBSET_INPUT_REPAIR,
+        "input_json": str(input_json),
+        "output_json": str(output_json),
+        "manifest": str(manifest_path),
+        "targets": str(targets_path),
+        "official_sequences": str(official_sequences_path),
+        "input_sha256": file_sha256(input_json),
+        "output_sha256": file_sha256(output_json),
+        "jobs": len(repaired_jobs),
+        "original_jobs": len(jobs),
+        "scoreable_targets": len(target_rows),
+        "covered_targets": len(covered_targets),
+        "added_targets": len(added_targets),
+        "skipped_targets": len(skipped_targets),
+        "token_limit": token_limit,
+    }
+
+
 def scoreable_subset_job_priority(
     *,
     job_name: str,
@@ -929,6 +1116,101 @@ def job_target_aliases(target_id: str) -> list[str]:
     else:
         aliases.append(f"{target_id}O")
     return list(dict.fromkeys(alias for alias in aliases if alias))
+
+
+def is_locally_scoreable_target(row: Mapping[str, str]) -> bool:
+    if str(row.get("reference_status", "")) != "available":
+        return False
+    rank_eligible = str(row.get("rank_eligible", "true")).strip().lower()
+    if rank_eligible in {"false", "0", "no"}:
+        return False
+    return bool(str(row.get("target_id", "")).strip())
+
+
+def resolve_scoreable_input_repair_records(
+    target: Mapping[str, str],
+    sequence_index: Mapping[str, Sequence[Mapping[str, str]]],
+) -> tuple[list[dict[str, str]], str, list[str]]:
+    rules = ["scoreable_input_repair"]
+    for alias in scoreable_input_repair_aliases(target):
+        raw_rows = list(sequence_index.get(alias, ()))
+        if not raw_rows:
+            continue
+        protein_like = [row for row in raw_rows if is_protein_recovery_sequence(row)]
+        if not protein_like:
+            continue
+        explicit_protein = [row for row in protein_like if row.get("sequence_kind") == "proteinChain"]
+        selected_rows = explicit_protein or protein_like
+        recovered: list[dict[str, str]] = []
+        seen_sequences: set[str] = set()
+        for row in selected_rows:
+            sequence = re.sub(r"\s+", "", str(row.get("sequence", "")).upper())
+            if sequence in seen_sequences:
+                continue
+            seen_sequences.add(sequence)
+            recovered_row = dict(row)
+            if recovered_row.get("sequence_kind") != "proteinChain":
+                rules.append(f"recast_sequence_kind:{recovered_row.get('sequence_kind', 'unknown')}")
+            recovered_row["sequence_kind"] = "proteinChain"
+            recovered_row["_source_alias"] = alias
+            recovered.append(recovered_row)
+        if recovered:
+            target_id = normalized_strategy_target_id(target.get("target_id", ""))
+            lookup_id = normalized_strategy_target_id(target.get("sequence_lookup_id", ""))
+            if alias not in {target_id, lookup_id}:
+                rules.append(f"alias_fallback:{alias}")
+            return recovered, alias, list(dict.fromkeys(rules))
+    return [], "", rules
+
+
+def scoreable_input_repair_aliases(target: Mapping[str, str]) -> list[str]:
+    seeds = [
+        str(target.get("target_id", "")),
+        str(target.get("sequence_lookup_id", "")),
+        str(target.get("official_target_id", "")),
+    ]
+    aliases: list[str] = []
+    for seed in seeds:
+        for alias in expanded_scoreable_sequence_aliases(seed):
+            if alias and alias not in aliases:
+                aliases.append(alias)
+    return aliases
+
+
+def expanded_scoreable_sequence_aliases(seed: str) -> list[str]:
+    seed = str(seed or "").strip().upper()
+    if not seed:
+        return []
+
+    pending: list[str] = [seed]
+    if seed.endswith("O"):
+        pending.append(seed[:-1])
+
+    for item in list(pending):
+        version_match = re.match(r"^(.*)V(\d+)(O?)$", item)
+        if not version_match:
+            continue
+        base, version, oligo_suffix = version_match.groups()
+        if version != "1":
+            pending.append(f"{base}V1{oligo_suffix}")
+        pending.append(f"{base}{oligo_suffix}")
+        if oligo_suffix:
+            if version != "1":
+                pending.append(f"{base}V1")
+            pending.append(base)
+
+    expanded: list[str] = []
+    for item in pending:
+        if item not in expanded:
+            expanded.append(item)
+        if item.endswith("O"):
+            stripped = item[:-1]
+            if stripped and stripped not in expanded:
+                expanded.append(stripped)
+        for alias in recovery_aliases(item):
+            if alias not in expanded:
+                expanded.append(alias)
+    return expanded
 
 
 def derive_oversize_domain_monomer_fallback_inputs(
@@ -1749,6 +2031,24 @@ def job_entity_count_and_len(job: Mapping[str, Any] | None) -> tuple[int, int]:
                 count_entities += 1
                 total_len += len(str(payload.get("sequence", ""))) * _positive_count(payload.get("count", 1))
     return count_entities, total_len
+
+
+def job_entity_chain_count_and_len(job: Mapping[str, Any] | None) -> tuple[int, int, int]:
+    if not job:
+        return 0, 0, 0
+    count_entities = 0
+    chain_count = 0
+    total_len = 0
+    for entity in job.get("sequences", []):
+        if not isinstance(entity, dict):
+            continue
+        for payload in entity.values():
+            if isinstance(payload, dict):
+                count = _positive_count(payload.get("count", 1))
+                count_entities += 1
+                chain_count += count
+                total_len += len(str(payload.get("sequence", ""))) * count
+    return count_entities, chain_count, total_len
 
 
 def load_target_tracks(path: Path) -> dict[str, str]:

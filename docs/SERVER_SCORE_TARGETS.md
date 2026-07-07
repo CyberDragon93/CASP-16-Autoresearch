@@ -73,7 +73,13 @@ scored as `missing_reference`.
 
 ## Active Score Gates
 
-1. Finish and score the live P14 target-sharded five-candidate attack:
+Post-P14 update, `2026-07-07`: P14 completed and scored with all 370 declared
+candidates, but still had 5 locally scoreable targets as `missing_prediction`.
+P16 consensus replay did not improve the score. The active gate is now P17:
+run, merge, and score the repaired 79-target input
+`scoreable_target_subset_input_repair_v1` before launching any 25-seed budget.
+
+1. Historical P14 closeout command sequence, now complete:
    `server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105`.
    The six execution shards are rank-ineligible until every one has all five
    declared candidates for its target subset and has been merged with
@@ -110,6 +116,24 @@ scored as `missing_reference`.
    ./casp16 score --benchmark casp16_server_protein_v2_aliasfix \
      --run-id server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105
    ./casp16 leaderboard --benchmark casp16_server_protein_v2_aliasfix
+   ```
+   P17 closeout should use the repaired full input and the six P17 shards:
+
+   ```bash
+   ./casp16 finish-shards \
+     --benchmark casp16_server_protein_v2_aliasfix \
+     --run-id server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix5_seed101_105 \
+     --merged-input-json strategies/scoreable_target_subset_input_repair_v1/casp16_server_protein_v2_aliasfix/inputs.json \
+     --allow-target-shards \
+     --candidate-count 5 \
+     --output-tsv diagnostics/score_probes/target_shards_scoreable_input_repair_size_balanced_readiness.tsv \
+     --tmscore-bin /scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore \
+     --shard-run-id server_v2_attack_scoreable_input_repair_size_balanced_shard01_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_input_repair_size_balanced_shard02_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_input_repair_size_balanced_shard03_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_input_repair_size_balanced_shard04_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_input_repair_size_balanced_shard05_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_input_repair_size_balanced_shard06_msa_reuse_protenix5_seed101_105
    ```
 2. Compare only `dev_fixed` to `dev_fixed`. A single-seed row can prove that an
    input strategy is worth more compute, but it is not winner-comparable.
@@ -164,48 +188,44 @@ This helper reads only `runs.csv`, `target_scores.csv`, and benchmark target
 metadata. It does not read native structures, official per-target score tables,
 or prediction outputs, and it does not submit jobs.
 
-Current live P14 status, checked `2026-07-07 04:51 CDT`: all six shard jobs
-`812239..812244` are still running, replay-safe `finish-shards` reports
-`311/370` candidates with `59` missing, `21/74` target tasks complete, `0/6`
-shards complete, and `ready=false`. Error scans remain clean, and the current
-bottleneck is Protenix forward on large targets rather than repeated MSA
-search. Do not launch a next GPU branch or inspect partial P14 target scores
-before P14 merge plus P16 replay closeout.
+Current live P17 status, checked `2026-07-07`: six repaired-input GH200 shard
+jobs `812765..812770` are running. They cover 79/79 locally scoreable targets,
+have complete exact-sequence MSA reuse, and are rank-ineligible until merged.
+Do not launch P15, P18/P25, P27a, D6a, or O5 before P17 merge plus scoring.
 
-## Post-P14 Decision Matrix
+## Post-P17 Decision Matrix
 
-After P14 is merged and scored, inspect `runs.csv`, `target_scores.csv`, and
+After P17 is merged and scored, inspect `runs.csv`, `target_scores.csv`, and
 `coverage.md` for the merged run. The next branch should be selected by the
 failure mode, not by impatience to spend more GPU time.
 
 Readout order:
 
-1. Verify closeout integrity first: merged P14 and P16 replay rows exist,
-   `candidate_count=5`, `partial_candidate_targets=0`, no metric-unavailable
-   rows, and the leaderboard was regenerated after the replay row was
-   registered.
+1. Verify closeout integrity first: merged P17 exists, `candidate_count=5`,
+   `partial_candidate_targets=0`, no metric-unavailable rows, no scoreable
+   `missing_prediction` rows, and the leaderboard was regenerated after merge.
 2. Separate expected fixed-set zeros from true failures. No-reference targets
    still score `0`; the actionable failures are scoreable-input
    `missing_prediction`, `metric_failed`, exact-artifact lookup misses, and
    newly exposed input-kind mistakes.
-3. Compare P14 against the current v2 diagnostic floor, not against a partial
+3. Compare P17 against the current v2 diagnostic floor and P14, not against a partial
    shard snapshot: domain fixed mean `0.049685`, exact-domain partial probe
-   mean `0.099576`, and exact protein-oligo QSglob positives currently at
-   zero after the exact-artifact gate.
+   mean `0.099576`, P14 domain mean `0.102777`, and P14 oligo mean
+   `0.116923`.
 4. Pick one next GPU branch. Do not launch P15, P18/P25, P27a, D6a, and O5 in
    parallel unless a later score readout records why the extra spend is worth
    it.
 
-| P14 observation | Interpretation | Next branch |
+| P17 observation | Interpretation | Next branch |
 | --- | --- | --- |
-| Domain fixed mean clears the exact-domain partial probe (`>0.099576`) and exact protein-oligo rows include several nonzero QSglob scores | Five candidates plus the scoreable input stack have real signal; candidate budget and selector are plausible bottlenecks | Launch the deferred 25-candidate scoreable target+seed grid |
-| P14 has good scoreable-target signal but most full-set zeros are still no-reference rows | Reference recovery can unlock more local measurement without changing the prediction recipe | Launch P15 on `casp16_server_protein_v4_refmap`, and keep broader refmap work versioned |
-| Scoreable rows are still `missing_prediction`, `metric_failed`, exact oligo rows are not found, or P16 replay cannot be registered before scoring | This is a pipeline/input/scorer failure, not a sampling failure | Fix the failure class before launching P25 |
+| Domain and/or oligo fixed means improve over P14 and exact protein-oligo rows include broad nonzero QSglob scores | Five candidates plus the repaired scoreable input stack have real signal; candidate budget and selector are plausible bottlenecks | Retarget and launch a repaired-input 25-candidate scoreable target+seed grid |
+| P17 has good scoreable-target signal but most full-set zeros are still no-reference rows | Reference recovery can unlock more local measurement without changing the prediction recipe | Launch/refresh P15 on a versioned refmap benchmark, and keep broader refmap work versioned |
+| Scoreable rows are still `missing_prediction`, `metric_failed`, or exact oligo rows are not found | This is a pipeline/input/scorer failure, not a sampling failure | Fix the failure class before launching P25 |
 | Domain zeros concentrate on known input-kind or sequence-alias repair classes such as `T1276/T1228V1/T1239V1/T2276` | More seeds will repeat bad inputs | Run D6a single-seed domain sequence recovery after MSA warmup |
 | Exact QSglob remains weak mainly on antibody/Fv rows after phase-alias stoichiometry is fixed, while non-antibody exact oligos are no longer all zero | Oligo branch may need Fv/docking-inspired input handling | Launch the prepared O5 antibody-Fv target shards |
-| Predictions and metrics are valid, but P14 remains near the v2 diagnostic floor and exact oligo QSglob is mostly zero | Current Protenix recipe is not enough; scaling seeds alone is low leverage | Launch the prepared P27a default-params model/config variant first; if that is also weak, build the broader MSA/model-variant budget before spending winner-scale compute |
+| Predictions and metrics are valid, but P17 remains near P14 and exact oligo QSglob is mostly zero | Current Protenix recipe is not enough; scaling seeds alone is low leverage | Retarget P27a/default-params or build the broader MSA/model-variant budget before spending winner-scale compute |
 
-Current post-P14 launch readiness, refreshed `2026-07-07 04:34 CDT`:
+Prepared branch readiness to revisit after P17:
 
 | Branch | Preflight | Evidence |
 | --- | --- | --- |

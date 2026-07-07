@@ -123,6 +123,28 @@ where methods should change.
   `9DXH/9DXJ` miss two N-terminal domain positions. This is not an accepted
   refmap row: `T1228V1` still needs D6a input-kind repair plus native-state
   provenance before a future v5 benchmark can promote it.
+- `2026-07-07` post-P14 score readout: the merged five-candidate scoreable
+  attack
+  `server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105`
+  completed 370/370 candidates and scored, but still exposed 5 available-
+  reference targets as `missing_prediction` (`T1212`, `T1239V2`, `T1249V2O`,
+  `T1269V1O`, `T2249V2O`). Fixed-set means are still far below server leaders:
+  domain `0.102777` and oligo `0.116923`. The P16 consensus replay did not
+  improve the row (`0.102218` domain, `0.115250` oligo), so the next branch is
+  pipeline/input coverage, not selector tuning or a 25-seed scale-up.
+- `2026-07-07` P17 input-repair branch:
+  `scoreable_target_subset_input_repair_v1` adds exactly those 5 scoreable
+  targets without mutating the locked benchmark. It recovers explicit
+  `proteinChain` records when sequence-kind is ambiguous, falls back
+  target-agnostically through `O`, `Vn -> V1/base`, and phase aliases, and
+  records every fallback in
+  `strategies/scoreable_target_subset_input_repair_v1/casp16_server_protein_v2_aliasfix/manifest.tsv`.
+  The repaired input is 79/79 covered, `skipped_targets=0`, and exact-sequence
+  MSA reuse is complete (`146/146` protein chains, 0 missing, 0 stale).
+  Six P17 GH200 shards
+  `server_v2_attack_scoreable_input_repair_size_balanced_shard01..06_msa_reuse_protenix5_seed101_105`
+  were submitted as Slurm jobs `812765..812770` and are rank-ineligible until
+  merged against the full repaired 79-job input.
 - `2026-07-06 18:57 CDT` reference-gap audit update: several high-priority
   `missing_reference` rows first need input-kind repair, not native hunting.
   `T1276`, `T1228V1`, and `T2276` were locally represented as short DNA jobs
