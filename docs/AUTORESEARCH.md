@@ -166,9 +166,9 @@ where methods should change.
   `protenix_confidence_v1`. All six run specs preflight clean with complete
   MSA reuse. They must remain `deferred:await_p14_score` until the live v2 P14
   row has been merged/scored.
-- `2026-07-07 01:49 CDT` P14 gate: the live v2 target-sharded scoreable
+- `2026-07-07 01:53 CDT` P14 gate: the live v2 target-sharded scoreable
   Protenix5 attack remains healthy but not merge-ready. `check-shards` sees
-  184/370 expected candidate CIFs, all six Slurm jobs `812239..812244` are
+  187/370 expected candidate CIFs, all six Slurm jobs `812239..812244` are
   still running, and shard plus Slurm log error scans found no
   traceback/OOM/CUDA/killed signatures. Do not launch P15/P25/O5 before P14 is
   merged/scored or explicitly abandoned.
@@ -902,8 +902,8 @@ competitive result.
     full-construct exact entity candidates: the same `T1228V1` and `T1278`
     classes as before. The extra new `T1278` hits are alignment-unverified
     local/partial sequence hits, not immediate refmap promotions.
-55. `2026-07-07 01:49 CDT` P14 readiness check: all six shard jobs are still
-    RUNNING on GH200 nodes. `check-shards` sees 184/370 candidates, 186 missing
+55. `2026-07-07 01:53 CDT` P14 readiness check: all six shard jobs are still
+    RUNNING on GH200 nodes. `check-shards` sees 187/370 candidates, 183 missing
     candidates, 0/6 complete shards, and 74 incomplete target tasks. Error
     scans across shard and Slurm logs remain clean. Keep waiting for full
     readiness before merge/score; do not launch P15/P25/O5 while P14 is still

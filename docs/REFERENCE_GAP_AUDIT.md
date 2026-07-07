@@ -441,3 +441,13 @@ models are weak on these targets: best observed `GDT_TS_norm` is `0.012100` for
 `T1228V1` and `0.106100` for `T1278`. Reference recovery remains important for
 fair measurement, but these two target classes do not look like hidden
 near-winner predictions.
+
+`T1228V1` should stay out of the next refmap promotion despite exact-sequence
+candidate chains. The current server benchmark input is a 121-token
+misclassified record, while the official T target and domain summary describe a
+545-residue protein with four domains. Candidate structures such as `9DXK` and
+`9Y66` can cover the domain residue ranges, but accepting them against the
+locked v4 input would mix reference recovery with an input-kind repair. Treat
+this as D6a input recovery first; only a later benchmark version with the
+545-residue protein input and explicit chain/domain mapping should consider
+promoting the native reference.
