@@ -2052,6 +2052,21 @@ competitive result.
      This is a global progress readout only; it reads generated `runs.csv` and
      `official_server_groups.csv` and must not be used for per-target tuning.
      Validation: `python -m pytest tests/test_decisions.py` passed 23 tests.
+143. `2026-07-07 16:57 CDT` P25 is still a healthy wait state:
+     `ready=false`, `1552` observed candidates, `514` shard-level missing
+     candidates, `453` full 25-candidate slots missing, and `30/79`
+     full-budget tasks complete. Slurm still shows 19 P25 GH jobs running and
+     5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; error scan remains
+     clean and latest prediction writes reached 16:55 CDT. Added a P28a
+     future-design guard to `post-p25-branch-readiness`: the
+     ColabFold/MMseqs MSA-mode probe must stay design-only until complete P25
+     and P27b evidence exist, must keep `use_msa=true` and `use_template=true`,
+     must use global `msa_server_mode=colabfold` or equivalent precomputed A3M
+     paths, and must not become a no-MSA shortcut. Real repo audit reports
+     P28a `future_designs[0].status=ok` and
+     `launch_ready_after_p25_selection=false`; P27b, D6a, O5b, and P15/v4
+     remain launch-ready after complete P25 selection. Validation:
+     `python -m pytest tests/test_decisions.py` passed 25 tests.
 
 ## Run Discipline
 

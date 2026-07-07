@@ -100,6 +100,12 @@ is selected. Latest audit `2026-07-07 16:47 CDT`: all four are still
 launch-ready after complete P25 selection, with no missing run specs and
 `ok` guarded variants/preflights. A stale deferred status label is not itself
 a blocker; missing run specs or non-`ok` preflight rows are blockers.
+The same audit now reports P28a as a `future_designs` guard, not a launchable
+branch: `p28a_colabfold_msa_server_mode_probe` must remain design-only until
+complete scored P25 and P27b evidence exist, and it must use real MSA/template
+with global `msa_server_mode=colabfold` or equivalent precomputed
+ColabFold/MMseqs A3M paths. This guard is there to prevent a no-MSA shortcut
+from being mistaken for the MULTICOM-style MSA-diversity recipe.
 
 `scripts/finish_p25_scoreable_input_repair.sh` is now the preferred P25 closeout
 entrypoint because it calls `finish-shards` with the predeclared

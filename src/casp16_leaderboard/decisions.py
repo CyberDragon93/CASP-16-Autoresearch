@@ -32,6 +32,7 @@ O5B_RUN_IDS = tuple(
     f"server_v2_attack_scoreable_input_repair_antibody_fv_shard{shard:02d}_msa_reuse_protenix5_seed101_105"
     for shard in range(1, 7)
 )
+P28A_DESIGN_PATH = Path("attack_budgets/casp16_server_attack_msa_model_diversity_v1.json")
 P15_V4_RUN_IDS = tuple(
     f"server_v4_attack_scoreable_size_balanced_shard{shard:02d}_msa_reuse_protenix5_seed101_105"
     for shard in range(1, 7)
@@ -511,6 +512,86 @@ def d6a_variant_guard(project_root: Path, specs_by_id: Mapping[str, Mapping[str,
     }
 
 
+def p28a_design_guard(project_root: Path) -> dict[str, Any]:
+    """Validate that the future P28a MSA-diversity branch remains real-MSA only."""
+
+    root = project_root.resolve()
+    path = root / P28A_DESIGN_PATH
+    failures: list[str] = []
+    payload: dict[str, Any] = {}
+    if not path.exists():
+        failures.append("missing_design_json")
+    else:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(loaded, dict):
+            payload = loaded
+        else:
+            failures.append("design_json_not_object")
+
+    prediction_policy = payload.get("prediction_policy", {}) if isinstance(payload.get("prediction_policy"), dict) else {}
+    candidate_budget = payload.get("candidate_budget", {}) if isinstance(payload.get("candidate_budget"), dict) else {}
+    forbidden_toy_settings = {
+        str(item) for item in prediction_policy.get("forbidden_toy_settings", []) if str(item)
+    }
+    if payload and str(payload.get("status", "")) not in {"design_with_prepared_child", "design_only"}:
+        failures.append("unexpected_design_status")
+    if bool(prediction_policy.get("use_msa")) is not True:
+        failures.append("use_msa_not_true")
+    if bool(prediction_policy.get("use_template")) is not True:
+        failures.append("use_template_not_true")
+    if "no_msa_for_speed" not in forbidden_toy_settings:
+        failures.append("missing_no_msa_for_speed_forbidden_rule")
+    if as_int(candidate_budget.get("variant_count")) != 4:
+        failures.append("unexpected_variant_count")
+    if as_int(candidate_budget.get("seeds_per_variant")) != 5:
+        failures.append("unexpected_seeds_per_variant")
+    if as_int(candidate_budget.get("sample_per_seed")) != 1:
+        failures.append("unexpected_sample_per_seed")
+    if as_int(candidate_budget.get("total_candidates_per_target")) != 20:
+        failures.append("unexpected_total_candidates_per_target")
+
+    prepared_children = payload.get("prepared_children", []) if isinstance(payload.get("prepared_children"), list) else []
+    p28a_rows = [row for row in prepared_children if isinstance(row, dict) and row.get("name") == "p28a_colabfold_msa_server_mode_probe"]
+    p28a = p28a_rows[0] if p28a_rows else {}
+    entrypoint = str(p28a.get("entrypoint", ""))
+    budget = str(p28a.get("budget", ""))
+    if not p28a:
+        failures.append("missing_p28a_design_child")
+    elif str(p28a.get("status", "")) != "design_only_after_p25_p27b":
+        failures.append("p28a_not_design_only_after_p25_p27b")
+    if "--msa-server-mode colabfold" not in entrypoint:
+        failures.append("entrypoint_missing_colabfold_msa_mode")
+    if "--use-msa" not in entrypoint:
+        failures.append("entrypoint_missing_use_msa")
+    if "--use-template" not in entrypoint:
+        failures.append("entrypoint_missing_use_template")
+    if "real MSA/template" not in budget:
+        failures.append("budget_missing_real_msa_template_rule")
+
+    launch_gate = [str(item) for item in payload.get("launch_gate", []) if str(item)]
+    launch_gate_text = "\n".join(launch_gate)
+    if "Launch prepared P27b before building true MSA variants" not in launch_gate_text:
+        failures.append("missing_p27b_before_p28a_gate")
+    if "records msa_server_mode=colabfold" not in launch_gate_text:
+        failures.append("missing_colabfold_recording_gate")
+
+    return {
+        "name": "p28a_colabfold_msa_server_mode_probe",
+        "status": "ok" if not failures else "blocked",
+        "design_json": str(path),
+        "launch_ready_after_p25_selection": False,
+        "requires": [
+            "complete scored P25",
+            "P27b selected/launched/scored first if P25 is flat but valid",
+            "real use_msa=true and use_template=true",
+            "global msa_server_mode=colabfold or equivalent precomputed ColabFold/MMseqs A3M paths",
+            "complete MSA path preflight before any GPU launch",
+        ],
+        "failures": failures[:25],
+        "note": "Future design guard only; P28a must not become a no-MSA shortcut or launch before P25/P27b evidence.",
+    }
+
+
 POST_P25_BRANCH_READINESS = (
     {
         "branch": "p27b_model_config_diversity",
@@ -594,6 +675,7 @@ def post_p25_branch_readiness(project_root: Path) -> dict[str, Any]:
         "status": "ok",
         "note": "Read-only audit; launch only after complete scored P25 selects the branch.",
         "branches": branches,
+        "future_designs": [p28a_design_guard(root)],
         "summary": {
             "branch_count": len(branches),
             "launch_ready_count": sum(1 for branch in branches if branch["launch_ready_after_p25_selection"]),

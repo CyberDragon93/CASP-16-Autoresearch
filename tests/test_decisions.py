@@ -9,6 +9,7 @@ from casp16_leaderboard.decisions import (
     D6A_INPUT_REPAIR_TARGETS,
     D6A_RUN_IDS,
     O5B_RUN_IDS,
+    P28A_DESIGN_PATH,
     P27B_RUN_IDS,
     post_p14_readout,
     post_p25_branch_readiness,
@@ -1084,6 +1085,69 @@ def test_post_p25_branch_readiness_blocks_d6a_candidate_budget_drift(tmp_path) -
     assert d6a["launch_ready_after_p25_selection"] is False
     assert d6a["variant_guard"]["status"] == "blocked"
     assert any("unexpected_candidate_count" in failure for failure in d6a["variant_guard"]["failures"])
+
+
+def write_p28a_design_fixture(tmp_path, *, omit_use_msa=False) -> None:
+    path = tmp_path / P28A_DESIGN_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    entrypoint_parts = ["./casp16", "run-spec", "--msa-server-mode", "colabfold", "--use-template"]
+    if not omit_use_msa:
+        entrypoint_parts.append("--use-msa")
+    path.write_text(
+        json.dumps(
+            {
+                "name": "casp16_server_attack_msa_model_diversity_v1",
+                "status": "design_with_prepared_child",
+                "candidate_budget": {
+                    "variant_count": 4,
+                    "seeds_per_variant": 5,
+                    "sample_per_seed": 1,
+                    "total_candidates_per_target": 20,
+                },
+                "prediction_policy": {
+                    "use_msa": True,
+                    "use_template": True,
+                    "forbidden_toy_settings": ["no_msa_for_speed"],
+                },
+                "prepared_children": [
+                    {
+                        "name": "p28a_colabfold_msa_server_mode_probe",
+                        "status": "design_only_after_p25_p27b",
+                        "budget": "same repaired input, real MSA/template, seeds101-105",
+                        "entrypoint": " ".join(entrypoint_parts),
+                    }
+                ],
+                "launch_gate": [
+                    "Launch prepared P27b before building true MSA variants.",
+                    "Before any ColabFold/MMseqs MSA variant launch, prove run_spec records msa_server_mode=colabfold.",
+                ],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def test_post_p25_branch_readiness_reports_p28a_design_guard(tmp_path) -> None:
+    write_p28a_design_fixture(tmp_path)
+
+    audit = post_p25_branch_readiness(tmp_path)
+
+    p28a = audit["future_designs"][0]
+    assert p28a["name"] == "p28a_colabfold_msa_server_mode_probe"
+    assert p28a["status"] == "ok"
+    assert p28a["launch_ready_after_p25_selection"] is False
+    assert "real use_msa=true and use_template=true" in p28a["requires"]
+
+
+def test_post_p25_branch_readiness_blocks_p28a_no_msa_design_drift(tmp_path) -> None:
+    write_p28a_design_fixture(tmp_path, omit_use_msa=True)
+
+    audit = post_p25_branch_readiness(tmp_path)
+
+    p28a = audit["future_designs"][0]
+    assert p28a["status"] == "blocked"
+    assert "entrypoint_missing_use_msa" in p28a["failures"]
 
 
 def write_p27b_variant_readiness_fixture(tmp_path, *, break_default_params=False) -> None:
