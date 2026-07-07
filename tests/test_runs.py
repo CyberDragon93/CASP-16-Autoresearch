@@ -574,6 +574,91 @@ def test_merge_prediction_target_shards_uses_full_input_json(tmp_path) -> None:
     assert (Path(str(summary["output_dir"])) / "H1202" / "seed_101" / "predictions" / "H1202_sample_0.cif").is_symlink()
 
 
+def test_finish_shards_cli_dry_run_checks_without_merging(tmp_path, capsys) -> None:
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    benchmark_dir = tmp_path / "benchmarks" / benchmark
+    benchmark_dir.mkdir(parents=True)
+    full_input_json = benchmark_dir / "inputs.full.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    full_input_json.write_text('[{"name":"T1234","sequences":[]},{"name":"H1202","sequences":[]}]\n', encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\nT1234\tok\nH1202\tok\n", encoding="utf-8")
+    references.write_text("target_id\treference_path\n", encoding="utf-8")
+
+    shard_rows = [
+        ("target_shard_small", "T1234", "subset-input-small"),
+        ("target_shard_large", "H1202", "subset-input-large"),
+    ]
+    for shard_id, target_id, input_hash in shard_rows:
+        run_dir = tmp_path / "runs" / shard_id
+        subset_input = run_dir / "inputs" / "inputs.json"
+        subset_input.parent.mkdir(parents=True)
+        subset_input.write_text(f'[{{"name":"{target_id}","sequences":[]}}]\n', encoding="utf-8")
+        pred_dir = run_dir / "predictions" / "protenix-v2" / target_id / "seed_101" / "predictions"
+        pred_dir.mkdir(parents=True)
+        (pred_dir / f"{target_id}_sample_0.cif").write_text(f"data_{target_id}\n", encoding="utf-8")
+        (pred_dir / f"{target_id}_summary_confidence_sample_0.json").write_text('{"plddt": 80.0, "ptm": 0.5, "iptm": 0.1}\n', encoding="utf-8")
+        spec = {
+            "run_id": shard_id,
+            "backend": "protenix",
+            "strategy": "target_shard",
+            "benchmark_name": benchmark,
+            "benchmark_version": "2",
+            "benchmark_dir": str(benchmark_dir),
+            "model_name": "protenix-v2",
+            "input_json": str(subset_input),
+            "input_manifest": str(input_manifest),
+            "input_sha256": input_hash,
+            "input_manifest_sha256": "same-manifest",
+            "references_manifest": str(references),
+            "references_sha256": "same-references",
+            "output_dir": str(run_dir / "predictions" / "protenix-v2"),
+            "seeds": "101",
+            "sample": 1,
+            "candidate_count": 1,
+            "budget_tier": "server_attack",
+            "fixed_budget": True,
+            "selected_model_policy": "protenix_confidence_v1",
+            "rank_eligible": False,
+            "use_msa": True,
+            "use_template": True,
+        }
+        (run_dir / "run_spec.json").write_text(json.dumps(spec), encoding="utf-8")
+
+    output_tsv = tmp_path / "readiness.tsv"
+    rc = main(
+        [
+            "--root",
+            str(tmp_path),
+            "finish-shards",
+            "--run-id",
+            "target_sharded_merged",
+            "--benchmark",
+            benchmark,
+            "--merged-input-json",
+            str(full_input_json),
+            "--allow-target-shards",
+            "--candidate-count",
+            "1",
+            "--output-tsv",
+            str(output_tsv),
+            "--dry-run",
+            "--shard-run-id",
+            "target_shard_small",
+            "--shard-run-id",
+            "target_shard_large",
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["finish_status"] == "ready_dry_run"
+    assert payload["check"]["ready"] is True
+    assert payload["check"]["merge_command"][0:2] == ["./casp16", "merge-shards"]
+    assert output_tsv.exists()
+    assert not (tmp_path / "runs" / "target_sharded_merged" / "run_spec.json").exists()
+
+
 def test_run_next_blocks_pending_when_benchmark_run_is_running(tmp_path) -> None:
     running_spec = {
         "run_id": "server_full",

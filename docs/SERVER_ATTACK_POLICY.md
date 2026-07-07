@@ -180,6 +180,11 @@ prediction candidates, writes a per-shard TSV when requested, and emits the
 exact `merge-shards --allow-target-shards` command only when every target has
 the declared candidate count.
 
+Use `finish-shards` when the desired behavior is "check now, and if ready,
+merge plus refresh scoring/leaderboard." It shares the same readiness checks as
+`check-shards`; while not ready, it only returns `finish_status=not_ready` and
+does not merge or score.
+
 For a larger run that combines target-size shards with seed-block shards, keep
 `--candidate-count` equal to the expected candidates in each execution shard
 and pass the final per-target budget with `--merged-candidate-count`. For

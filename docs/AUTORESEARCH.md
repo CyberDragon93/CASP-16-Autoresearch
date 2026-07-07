@@ -978,6 +978,14 @@ competitive result.
     target shards preflight `6/6 ok`, and D6a domain-sequence recovery
     preflight `1/1 ok`, all with complete MSA reuse and 0 stale paths. Do not
     launch them until P14 is merged/scored or explicitly abandoned.
+63. `2026-07-07 02:37 CDT` added `./casp16 finish-shards`, a safe closeout
+    command for target/seed shard attacks. It first runs the same readiness
+    checks as `check-shards`; when not ready it returns
+    `finish_status=not_ready` without merging or scoring, and when ready it
+    performs `merge_prediction_shards`, full benchmark scoring refresh, and
+    leaderboard refresh. A live P14 dry-run with this command reports 203/370
+    candidates, 167 missing, 0/6 complete shards, and `ready=false`, so the
+    correct action remains to wait rather than score partial output.
 
 ## Run Discipline
 

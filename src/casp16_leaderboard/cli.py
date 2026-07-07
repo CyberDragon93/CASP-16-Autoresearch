@@ -108,6 +108,88 @@ def selection_qa_context_from_run_id(root: Path, run_id: str) -> dict[str, objec
     return payload
 
 
+def finish_prediction_shards(
+    *,
+    root: Path,
+    benchmark: str,
+    run_id: str,
+    shard_run_ids: Sequence[str],
+    merged_input_json: Path,
+    candidate_count: int | None,
+    merged_candidate_count: int | None,
+    allow_target_shards: bool,
+    rank_eligible: bool,
+    output_tsv: Path | None,
+    output_dir: Path,
+    official_dir: Path,
+    top_n: int,
+    tmscore_bin: Path | None,
+    dockq_bin: Path | None,
+    qsglob_bin: Path | None,
+    dry_run: bool = False,
+) -> dict[str, object]:
+    check_summary = check_prediction_shards(
+        project_root=root,
+        shard_run_ids=shard_run_ids,
+        benchmark_name=benchmark,
+        merged_run_id=run_id,
+        merged_input_json=merged_input_json.resolve(),
+        candidate_count_override=candidate_count,
+        merged_candidate_count_override=merged_candidate_count,
+    )
+    if output_tsv:
+        write_tsv(output_tsv.resolve(), check_summary["rows"], SHARD_READINESS_FIELDS)
+        check_summary["output_tsv"] = str(output_tsv.resolve())
+    if not check_summary["ready"]:
+        return {
+            "finish_status": "not_ready",
+            "check": check_summary,
+            "merge": {},
+            "score": {},
+            "leaderboard": {},
+        }
+    if dry_run:
+        return {
+            "finish_status": "ready_dry_run",
+            "check": check_summary,
+            "merge": {},
+            "score": {},
+            "leaderboard": {},
+        }
+    merge_summary = merge_prediction_shards(
+        project_root=root,
+        run_id=run_id,
+        benchmark_name=benchmark,
+        shard_run_ids=shard_run_ids,
+        candidate_count_override=merged_candidate_count or candidate_count,
+        rank_eligible=rank_eligible,
+        merged_input_json=merged_input_json.resolve(),
+        allow_target_shards=allow_target_shards,
+    )
+    score_summary = score_benchmark_runs(
+        project_root=root,
+        benchmark=benchmark,
+        output_dir=output_dir,
+        tmscore_bin=tmscore_bin,
+        dockq_bin=dockq_bin,
+        qsglob_bin=qsglob_bin,
+    )
+    leaderboard_summary = generate_benchmark_leaderboard(
+        project_root=root,
+        benchmark=benchmark,
+        output_dir=output_dir,
+        official_root=official_dir,
+        top_n=top_n,
+    )
+    return {
+        "finish_status": "finished",
+        "check": check_summary,
+        "merge": merge_summary,
+        "score": score_summary,
+        "leaderboard": leaderboard_summary,
+    }
+
+
 def _spec_bool(value: object, *, default: bool = False) -> bool:
     if isinstance(value, bool):
         return value
@@ -687,6 +769,24 @@ def build_parser() -> argparse.ArgumentParser:
     check_shards.add_argument("--candidate-count", type=int, default=None, help="Override expected candidates per task.")
     check_shards.add_argument("--merged-candidate-count", type=int, default=None, help="Final merged candidates expected per full-input task; useful for seed-block plus target-shard attacks.")
     check_shards.add_argument("--output-tsv", type=Path, default=None, help="Optional per-shard readiness TSV.")
+
+    finish_shards = subparsers.add_parser("finish-shards", help="Check completed shards, then merge, score, and refresh the benchmark leaderboard when ready.")
+    finish_shards.add_argument("--run-id", required=True, help="Merged run id to register when shards are ready.")
+    finish_shards.add_argument("--benchmark", required=True)
+    finish_shards.add_argument("--shard-run-id", action="append", required=True, help="Shard run id; repeat in merge order.")
+    finish_shards.add_argument("--merged-input-json", type=Path, required=True, help="Full input JSON to attach to the merged run.")
+    finish_shards.add_argument("--candidate-count", type=int, default=None, help="Expected candidates per execution shard task.")
+    finish_shards.add_argument("--merged-candidate-count", type=int, default=None, help="Final merged candidates expected per full-input task.")
+    finish_shards.add_argument("--allow-target-shards", action="store_true", help="Allow shards with different subset input JSON hashes.")
+    finish_shards.add_argument("--rank-eligible", action=argparse.BooleanOptionalAction, default=True)
+    finish_shards.add_argument("--output-tsv", type=Path, default=None, help="Optional per-shard readiness TSV.")
+    finish_shards.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards/<benchmark>.")
+    finish_shards.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
+    finish_shards.add_argument("--top-n", type=int, default=25)
+    finish_shards.add_argument("--tmscore-bin", type=Path, default=None)
+    finish_shards.add_argument("--dockq-bin", type=Path, default=None)
+    finish_shards.add_argument("--qsglob-bin", type=Path, default=None)
+    finish_shards.add_argument("--dry-run", action="store_true", help="Return ready/not-ready status without merging or scoring.")
 
     collect = subparsers.add_parser("collect", help="Collect local run artifacts into CSV/Markdown.")
     collect.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards.")
@@ -1269,6 +1369,31 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.output_tsv:
             write_tsv(args.output_tsv.resolve(), summary["rows"], SHARD_READINESS_FIELDS)
             summary["output_tsv"] = str(args.output_tsv.resolve())
+        print_json(summary)
+        return 0
+
+    if args.command == "finish-shards":
+        output_dir = (args.output_dir or (root / "leaderboards" / args.benchmark)).resolve()
+        official_dir = (args.official_dir or (root / "data" / "official")).resolve()
+        summary = finish_prediction_shards(
+            root=root,
+            benchmark=args.benchmark,
+            run_id=args.run_id,
+            shard_run_ids=split_csv_args(args.shard_run_id),
+            merged_input_json=args.merged_input_json,
+            candidate_count=args.candidate_count,
+            merged_candidate_count=args.merged_candidate_count,
+            allow_target_shards=args.allow_target_shards,
+            rank_eligible=args.rank_eligible,
+            output_tsv=args.output_tsv,
+            output_dir=output_dir,
+            official_dir=official_dir,
+            top_n=args.top_n,
+            tmscore_bin=args.tmscore_bin,
+            dockq_bin=args.dockq_bin or None,
+            qsglob_bin=args.qsglob_bin,
+            dry_run=args.dry_run,
+        )
         print_json(summary)
         return 0
 

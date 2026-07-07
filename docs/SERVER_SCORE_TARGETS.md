@@ -119,6 +119,28 @@ scored as `missing_reference`.
 4. For official server comparison, domains use `GDT_TS`; oligos use `QSglob`.
    DockQ and confidence are diagnostics only.
 
+The preferred shard closeout command is `finish-shards`. It is intentionally
+safe to run while shards are still live: if readiness is false, it only writes
+the readiness report and returns `finish_status=not_ready`. Once readiness is
+true, it performs the merge, full benchmark scoring refresh, and leaderboard
+refresh in one audited step.
+
+```bash
+./casp16 finish-shards \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --run-id server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105 \
+  --merged-input-json strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json \
+  --allow-target-shards \
+  --candidate-count 5 \
+  --output-tsv diagnostics/score_probes/target_shards_scoreable_size_balanced_readiness.tsv \
+  --shard-run-id server_v2_attack_scoreable_size_balanced_shard01_msa_reuse_protenix5_seed101_105 \
+  --shard-run-id server_v2_attack_scoreable_size_balanced_shard02_msa_reuse_protenix5_seed101_105 \
+  --shard-run-id server_v2_attack_scoreable_size_balanced_shard03_msa_reuse_protenix5_seed101_105 \
+  --shard-run-id server_v2_attack_scoreable_size_balanced_shard04_msa_reuse_protenix5_seed101_105 \
+  --shard-run-id server_v2_attack_scoreable_size_balanced_shard05_msa_reuse_protenix5_seed101_105 \
+  --shard-run-id server_v2_attack_scoreable_size_balanced_shard06_msa_reuse_protenix5_seed101_105
+```
+
 ## Post-P14 Decision Matrix
 
 After P14 is merged and scored, inspect `runs.csv`, `target_scores.csv`, and
