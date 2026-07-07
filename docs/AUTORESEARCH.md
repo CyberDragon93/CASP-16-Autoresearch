@@ -139,6 +139,13 @@ where methods should change.
   reusable protein chains against `data/msa_cache/index.tsv`. Treat it as the
   next P15-style input after the running v2 P14 row is scored; do not mix its
   result into v2 leaderboards without naming the v4 benchmark.
+- P15 v4 scoreable target shards are prepared but deliberately deferred in
+  `attack_budgets/casp16_server_attack_protenix5_v4_scoreable_target_shards.tsv`.
+  They split the 76-job v4 scoreable subset into 6 target-balanced GH200 shards
+  using seeds `101..105`, `sample=1`, `candidate_count=5`, and
+  `protenix_confidence_v1`. All six run specs preflight clean with complete
+  MSA reuse. They must remain `deferred:await_p14_score` until the live v2 P14
+  row has been merged/scored.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and
@@ -824,6 +831,16 @@ competitive result.
     MSA cache coverage with no stale rows. This is queued-for-decision
     preparation only; the live P14 shards remain v2 and should finish before
     new GPU submission.
+50. `2026-07-06 23:41 CDT` prepared P15 v4 target-shard run specs:
+    `server_v4_attack_scoreable_size_balanced_shard01..06_msa_reuse_protenix5_seed101_105`.
+    The shard split is stored under
+    `strategies/target_shards_scoreable_size_balanced_v1/casp16_server_protein_v4_refmap/`;
+    the launch manifest is
+    `attack_budgets/casp16_server_attack_protenix5_v4_scoreable_target_shards.tsv`.
+    `./casp16 preflight-runs` reports 6/6 ok, with per-shard MSA coverage
+    `1.0` and zero stale rows. These specs are explicitly marked
+    `deferred:await_p14_score` to prevent accidental `run-next` launch before
+    P14 has a real score.
 
 ## Run Discipline
 
