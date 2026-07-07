@@ -163,6 +163,22 @@ oligo assembly/QSglob mapping. The other four probed Lane F families returned
 `no_hits`, so they should move to manual native/provenance search rather than
 another search-depth-only RCSB loop.
 
+2026-07-07 15:03 CDT follow-up: a second relaxed RCSB probe covered the next
+five Lane F oligo families:
+`H0229/H1229/H2229`, `H0244/H1244/H2244`,
+`T0218O/T1218O/T2218O`, `T0259O/T1259O/T2259O`, and
+`H0265/H1265/H2265`. It used the same `identity_cutoff=0.90` and
+`max_hits=25`, checked 15 rows, found 0 hits, and wrote:
+
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_second_oligo_worklist.tsv`
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_second_oligo_targets.tsv`
+- `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_second_oligo_candidates.tsv`
+
+These families now have automated relaxed sequence-search exhaustion evidence.
+Do not spend another pass on RCSB sequence depth alone; the next useful work is
+manual native/provenance search and, for any candidate that appears, explicit
+biological assembly plus QSglob chain/interface mapping.
+
 ### Lane C: Input Or Alias Repair Before Reference
 
 These rows are not primarily reference-map work yet:

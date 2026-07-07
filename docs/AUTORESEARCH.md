@@ -1730,6 +1730,33 @@ competitive result.
      accepted references. The other probed Lane F families returned `no_hits`,
      so the next work is manual native/provenance plus QSglob assembly mapping,
      not another search-depth-only RCSB loop.
+118. `2026-07-07 15:00 CDT` P25 live gate refresh: still
+     `finish_status=not_ready` with
+     `status_summary.action=wait_for_declared_candidates`. The wrapper reports
+     `ready=false`, `compatible=true`, `1267` observed candidates, `791`
+     shard-level missing candidates, and `721` full 25-candidate slots
+     missing. Complete full-budget tasks remain `1/79`; the 5 zero-output rows
+     are unchanged: shard05 seed121-125 plus all four shard06 seed blocks.
+     Slurm still shows 19 P25 jobs running and 5 P25 jobs pending behind
+     `QOSMaxJobsPerUserLimit`. Error-keyword scanning is clean, and recent
+     CIF/log writes reached 15:00 CDT on shard05 targets such as `H1220` and
+     `T1235`. `post-p25-branch-readiness` reports all four deferred branches
+     still launch-ready after complete P25 selection, while
+     `post-p25-readout` remains `decision_status=not_scored` and
+     `next_branch=finish_or_score_p25`. Do not score or branch from this
+     partial state.
+119. `2026-07-07 15:03 CDT` Lane F second oligo reference probe:
+     created
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_second_oligo_worklist.tsv`
+     and ran `./casp16 refmap-probe` at identity `0.90` over 15 additional
+     Lane F oligo rows: ORF61/A3A, BJCNb48, Cry26Aa, AZI86_00190, and
+     TLR4/MAL families. Outputs are
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_second_oligo_targets.tsv`
+     and
+     `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_second_oligo_candidates.tsv`.
+     The probe found `0` hits and `0` candidate rows, so these families should
+     move to manual native/provenance search plus biological assembly/QSglob
+     mapping instead of another search-depth-only RCSB loop.
 
 ## Run Discipline
 
