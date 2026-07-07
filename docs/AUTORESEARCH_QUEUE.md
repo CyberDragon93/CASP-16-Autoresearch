@@ -63,8 +63,12 @@ aggregate branch gate before selecting any deferred branch:
 On current artifacts this command returns `decision_status=not_scored` and
 `next_branch=finish_or_score_p25`, which is expected because the merged P25 row
 does not exist yet. It also emits a non-executing `launch_plan` object with
-the selected action, run ids, preflight TSV, target-shard flag, and command
-templates. The current P17 repaired-input baseline is score-path clean
+the selected action, run ids, preflight TSV, target-shard flag, command
+templates, read-only run-spec summaries, and read-only preflight summaries.
+When the chosen branch has run ids, `run_specs` reports whether each
+`run_spec.json` exists, its latest lifecycle status from `runs/status.tsv`,
+budget tier, candidate count, rank eligibility, input/output paths, and MSA
+reuse summary. The current P17 repaired-input baseline is score-path clean
 (`79/79` scoreable targets `ok`) with fixed-set mean `0.114371554` and 96
 no-reference zero rows.
 The readout now also emits predeclared branch diagnostics for D6a input-repair

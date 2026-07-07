@@ -5,6 +5,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from .runs import latest_status_by_run, load_run_specs, run_row_from_spec
+
 
 DEFAULT_P14_RUN_ID = "server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105"
 DEFAULT_P16_REPLAY_RUN_ID = f"{DEFAULT_P14_RUN_ID}_consensus_replay"
@@ -172,6 +174,80 @@ def post_p25_launch_plan(next_branch: str, decision_status: str) -> dict[str, An
             "note": f"No static launch plan is registered for {next_branch}.",
         },
     )
+
+
+def preflight_summary(project_root: Path, path_text: object) -> dict[str, Any]:
+    """Summarize an existing preflight TSV without running any launch checks."""
+
+    text = str(path_text or "").strip()
+    if not text:
+        return {"path": "", "exists": False}
+    path = Path(text)
+    if not path.is_absolute():
+        path = project_root / path
+    payload: dict[str, Any] = {"path": str(path), "exists": path.exists()}
+    if not path.exists():
+        return payload
+    rows = read_tsv_rows(path)
+    result_counts = Counter(str(row.get("result", "") or "unknown") for row in rows)
+    status_counts = Counter(str(row.get("status", "") or "unknown") for row in rows)
+    payload.update(
+        {
+            "row_count": len(rows),
+            "ok_rows": sum(1 for row in rows if row.get("result") == "ok"),
+            "blocked_rows": sum(1 for row in rows if str(row.get("result", "")).startswith("blocked")),
+            "result_counts": dict(sorted(result_counts.items())),
+            "status_counts": dict(sorted(status_counts.items())),
+        }
+    )
+    return payload
+
+
+def enrich_launch_plan(project_root: Path, plan: Mapping[str, Any]) -> dict[str, Any]:
+    """Attach local run-spec and preflight summaries to a launch plan.
+
+    This is intentionally read-only. It lets the post-P25 decision output show
+    whether the selected branch is already prepared/deferred/pending without
+    invoking preflight or touching run lifecycle files.
+    """
+
+    root = project_root.resolve()
+    enriched = dict(plan)
+    status_by_run = latest_status_by_run(root)
+    specs_by_id = {
+        str(spec.get("run_id", "")): spec for spec in load_run_specs(root / "runs", registered_only=False)
+    }
+
+    def summarize_run_ids(run_ids: Sequence[object]) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
+        for raw_run_id in run_ids:
+            run_id = str(raw_run_id or "").strip()
+            if not run_id:
+                continue
+            spec = specs_by_id.get(run_id)
+            if spec is None:
+                rows.append({"run_id": run_id, "run_spec_exists": False, "status": "missing_run_spec"})
+                continue
+            row = run_row_from_spec(spec, status_by_run)
+            row.update(
+                {
+                    "run_spec_exists": True,
+                    "input_json": str(spec.get("input_json", "") or ""),
+                    "output_dir": str(spec.get("output_dir", "") or ""),
+                    "stdout_path": str(spec.get("stdout_path", "") or ""),
+                    "stderr_path": str(spec.get("stderr_path", "") or ""),
+                }
+            )
+            rows.append(row)
+        return rows
+
+    enriched["run_specs"] = summarize_run_ids(enriched.get("run_ids") or [])
+    if "alternate_run_ids" in enriched:
+        enriched["alternate_run_specs"] = summarize_run_ids(enriched.get("alternate_run_ids") or [])
+    enriched["preflight"] = preflight_summary(root, enriched.get("preflight_tsv"))
+    if "alternate_preflight_tsv" in enriched:
+        enriched["alternate_preflight"] = preflight_summary(root, enriched.get("alternate_preflight_tsv"))
+    return enriched
 
 
 def read_csv_rows(path: Path) -> list[dict[str, str]]:
@@ -612,7 +688,7 @@ def post_p25_readout(
             "oligo_delta": oligo_delta,
             "scoreable_nonzero_fraction": scoreable_nonzero_fraction,
         },
-        "launch_plan": post_p25_launch_plan(next_branch, decision_status),
+        "launch_plan": enrich_launch_plan(root, post_p25_launch_plan(next_branch, decision_status)),
         "p25": p25,
         "baseline": baseline,
         "target_sets": {

@@ -1624,6 +1624,16 @@ competitive result.
      current P17 local baseline, active P25 gate, winner-clue reproduction
      ladder, post-P25 decision order, and the file map an agent should read
      before choosing D6a, O5b, P27b, or refmap work.
+109. `2026-07-07 14:16 CDT` post-P25 launch-plan enrichment:
+     `./casp16 post-p25-readout` now attaches read-only `run_specs`,
+     `alternate_run_specs`, `preflight`, and `alternate_preflight` summaries
+     to the selected `launch_plan`. These fields read local `run_spec.json`,
+     `runs/status.tsv`, and existing preflight TSVs only; they do not run
+     preflight, submit Slurm jobs, or inspect native structures. The goal is to
+     make the first post-P25 branch launch auditable: once the complete P25
+     row selects D6a/O5b/P27b/P15, the JSON will show whether the selected run
+     specs exist, their latest lifecycle status, budget tier, candidate count,
+     and whether the prepared MSA preflight artifact is all `ok`.
 
 ## Run Discipline
 

@@ -74,6 +74,35 @@ Decision order:
 4. P25 oligo failures cluster on antibody/Fv rows: launch O5b.
 5. P25 is mostly reference-capped: continue versioned refmap work, not GPU.
 
+## Deferred Branch Artifacts
+
+`./casp16 post-p25-readout` is the machine-readable source of truth for which
+branch is selected; its `launch_plan` includes read-only `run_specs` and
+`preflight` summaries for the selected branch. This table is the human index
+for the prepared artifacts so the next agent does not rediscover them after
+P25 finishes.
+Those summaries are generated from local `run_spec.json`, `runs/status.tsv`,
+and existing preflight TSVs only; they are safe to read before launch and do
+not run GPU work.
+
+| Branch | Trigger | Budget or manifest | Preflight | Launch shape |
+| --- | --- | --- | --- | --- |
+| P27b model/config diversity | P25 complete, valid, and flat versus P17 | `attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant.json`; shards in `attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant_shards.tsv` | `diagnostics/msa_cache/protenix5_input_repair_defaultparams_model_variant_preflight.tsv`, `6/6 ok`, `146/146` chains reused | six target-disjoint GH200 shards, seeds `101..105`, real MSA/template, only `use_default_params=true` differs |
+| D6a domain input repair | P25 domain zeros/failures cluster on the predeclared input-kind/alias class | run spec `runs/server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101/run_spec.json` | `diagnostics/msa_cache/domain_sequence_recovery_after_warmup_preflight.tsv`, `1/1 ok`, `276/276` chains reused | one `dev_fixed` GH200 run; do not scale before the ablation scores |
+| O5b antibody/Fv | P25 exact oligo signal exists, but antibody/Fv rows remain the dominant weakness | `attack_budgets/casp16_server_attack_protenix5_input_repair_antibody_fv.json`; shards in `attack_budgets/casp16_server_attack_protenix5_input_repair_antibody_fv_shards.tsv` | `diagnostics/msa_cache/protenix5_input_repair_antibody_fv_preflight.tsv`, `6/6 ok`, `146/146` chains reused | six target-disjoint GH200 shards; keep separate from P25/P27b |
+| P15/v4 scoreable refmap | P25 is mostly measurement/reference capped and v4 comparison is explicitly chosen | `attack_budgets/casp16_server_attack_protenix5_v4_scoreable_target_shards.tsv` | `diagnostics/msa_cache/protenix5_v4_scoreable_target_run_preflight.tsv`, `6/6 ok`, `143/143` chains reused | six target-disjoint GH200 shards on `casp16_server_protein_v4_refmap`; report only as v4 |
+| v5 refmap work | P25 cannot be fairly compared because missing references or QSglob mapping dominate | `diagnostics/reference_gap/casp16_server_protein_v5_refmap_recovery_queue.tsv` | no GPU preflight; acceptance requires native/domain or assembly/QSglob proof | versioned benchmark work only; never patch v2/v4 in place |
+
+For a selected GPU branch, first mark only the selected run ids pending, then
+dry-run the run spec and submit through a login node:
+
+```bash
+./casp16 mark-run --run-id <run_id> --status pending \
+  --message "selected after complete P25 readout: <decision_status>"
+./casp16 run-one --run-id <run_id> --dry-run
+ssh login1 'cd /scratch/10992/liaorunlong93/casp16-leaderboard && RUN_ID=<run_id> sbatch --export=ALL slurm/casp16_run_one_gh200.slurm'
+```
+
 ## File Map
 
 | File | Role |
