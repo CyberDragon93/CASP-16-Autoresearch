@@ -1239,6 +1239,24 @@ the rule is sequence-derived and predeclared; it remains risky because the
 previous full-set antibody cleanup was negative on the domain track and DockQ
 target-lab positives are not server QSglob wins.
 
+### 2026-07-06 MSA Cache Audit For Active Scoreable Attacks
+
+Decision: stop looking for additional MSA-cache fixes for the active P13/P14
+scoreable attack specs.
+
+Evidence: both
+`server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`
+and
+`server_v2_attack_scoreable_oligo_size_first_phase_alias_msa_reuse_protenix5_seed101_105`
+contain 74 Protenix jobs and 141 protein chains in
+`inputs/inputs.msa-reuse.json`; all 141 chains already have MSA paths. Their
+`inputs/msa_reuse.tsv` rows are all exact-sequence `reused`.
+
+Interpretation: current wall time is dominated by model forward on large
+oligo assemblies, not repeated MSA generation. The practical next levers are
+size-first ordering, scoreable-subset seed shards, or changing the assembly
+strategy; more MSA-cache plumbing is low value for these rows.
+
 ### 2026-07-06 Terminal Tag Cleanup Result
 
 Decision: keep `yang_terminal_tag_cleanup_v1` as a weak positive construct

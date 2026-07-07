@@ -625,6 +625,15 @@ competitive result.
     winner-scale successor if the running scoreable `protenix5` row is
     positive. Keep the older 165-job `protenix25_nofail` as a full-input
     ablation until references are recovered.
+29. `2026-07-06 20:36 CDT` MSA cache audit: both active scoreable attack specs,
+    `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`
+    and
+    `server_v2_attack_scoreable_oligo_size_first_phase_alias_msa_reuse_protenix5_seed101_105`,
+    have 141/141 protein chains backed by precomputed MSA paths in their
+    `inputs/inputs.msa-reuse.json` files. Do not spend more time trying to
+    optimize MSA reuse for these rows; the current wall-time bottleneck is
+    large oligo forward passes such as `H1220`/`H0258`, so the useful levers
+    are size-first scheduling, scoreable shards, or token/assembly strategy.
 
 ## Run Discipline
 
