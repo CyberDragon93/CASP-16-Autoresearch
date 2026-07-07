@@ -1921,6 +1921,18 @@ competitive result.
      not score P25, launch O5b/P27b/D6a, or claim winner comparison until the
      declared P25 candidates are complete and the server-style leaderboard is
      regenerated.
+133. `2026-07-07 16:05 CDT` P25 and runbook refresh: P25 remains active and
+     incomplete, with `ready=false`, `compatible=true`, `1413` observed
+     candidates, `645` shard-level missing candidates, `580` full
+     25-candidate slots missing, and `6/79` full-budget tasks complete. Slurm
+     still shows 19 P25 jobs running and 5 P25 jobs pending behind
+     `QOSMaxJobsPerUserLimit`; the same five zero-output shard rows are
+     queue-blocked. Error-keyword scanning over P25 logs is clean, and latest
+     prediction writes reached 16:05 CDT. Added
+     `docs/WINNER_MATCH_RUNBOOK.md` as the short operational checklist for P25
+     closeout and post-P25 branch selection. `./casp16 post-p25-branch-readiness`
+     reports all four deferred branch families
+     launch-ready after complete P25 selection: P27b, D6a, O5b, and P15/v4.
 
 ## Run Discipline
 

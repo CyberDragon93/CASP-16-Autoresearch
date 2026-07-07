@@ -53,19 +53,19 @@ infrastructure. It is:
 
 ## Active Gate
 
-Checked `2026-07-07 16:02 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 16:05 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1409` |
-| shard-level missing candidates | `649` |
-| full 25-candidate slots still missing | `584` |
+| observed candidates | `1413` |
+| shard-level missing candidates | `645` |
+| full 25-candidate slots still missing | `580` |
 | complete full-budget tasks | `6 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; `gh` `MaxJobsPU=20` and one `tacc-vscode` job is also running |
-| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 16:02 CDT |
+| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 16:05 CDT |
 | action | wait for declared candidates, then run the P25 closeout wrapper |
 
 Do not score the P25 row or launch O5b/P27b/D6a from partial outputs. The
@@ -176,6 +176,7 @@ ssh login1 'cd /scratch/10992/liaorunlong93/casp16-leaderboard && RUN_ID=<run_id
 | `docs/CASP16_WINNER_RECIPES.md` | Long recipe rationale and source-to-experiment mapping |
 | `docs/AUTORESEARCH.md` | Append-only current truth and experiment history |
 | `docs/AUTORESEARCH_QUEUE.md` | Executable queue and branch gates |
+| `docs/WINNER_MATCH_RUNBOOK.md` | Short operational checklist for P25 closeout and post-P25 branch launch |
 | `docs/SERVER_SCORE_TARGETS.md` | Exact score targets, active closeout commands, and comparator rules |
 | `docs/MSA_CACHE_PLAN.md` | MSA reuse policy and launch hygiene |
 | `docs/REFERENCE_RECOVERY_V5_PLAN.md` | Versioned reference-recovery plan |

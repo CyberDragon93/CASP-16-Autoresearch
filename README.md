@@ -31,8 +31,9 @@ Agents and humans making leaderboard-facing strategy changes must start with
 `docs/CASP16_SERVER_BENCHMARK.md`, autoresearch notes are in
 `docs/AUTORESEARCH.md`, the live experiment queue is in
 `docs/EXPERIMENTS.md`, winner-inspired strategy cards are in
-`docs/CASP16_WINNER_RECIPES.md`, the multi-candidate server budget is in
-`docs/SERVER_ATTACK_POLICY.md`, exact-sequence MSA reuse is in
+`docs/CASP16_WINNER_RECIPES.md`, the short P25 closeout and branch-selection
+runbook is in `docs/WINNER_MATCH_RUNBOOK.md`, the multi-candidate server
+budget is in `docs/SERVER_ATTACK_POLICY.md`, exact-sequence MSA reuse is in
 `docs/MSA_CACHE_PLAN.md`, the installed QSglob scorer notes are in
 `docs/QSGLOB_SCORER.md`, and new strategy notes should use
 `docs/STRATEGY_TEMPLATE.md`.
