@@ -1207,6 +1207,15 @@ competitive result.
     unscoreable/rank-ineligible until the 24 submitted jobs finish, all
     target-seed shards are merged with the overlay, and the leaderboard is
     regenerated.
+73. `2026-07-07 10:08 CDT` P25 live readiness check: 19 P25 jobs were running
+    and 5 were pending behind `QOSMaxJobsPerUserLimit`. Early outputs show
+    `521` observed candidates total, including the completed P17 overlay,
+    with `1529` shard-level candidates still missing; full 25-candidate
+    readiness remains `ready=false`. A merge blocker was fixed before it could
+    bite later: the P17 overlay run spec had inherited the benchmark
+    `input_manifest.tsv` hash, while the P25 shards correctly use the repaired
+    strategy manifest. Updating the overlay run spec to the repaired manifest
+    makes the next `check-shards` report `compatible=true`.
 
 ## Run Discipline
 

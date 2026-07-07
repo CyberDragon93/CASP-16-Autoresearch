@@ -2,7 +2,7 @@
   "name": "casp16_server_attack_protenix25_scoreable_input_repair",
   "parent_benchmark": "casp16_server_protein_v2_aliasfix",
   "tier": "server_attack",
-  "status": "ready_to_launch_seed106_125_after_p17_overlay",
+  "status": "seed106_125_submitted_running",
   "active_run_id": "server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105",
   "backend": "protenix",
   "model_name": "protenix-v2",
@@ -89,6 +89,19 @@
       "ok_targets": 53,
       "missing_targets": 51
     }
+  },
+  "p25_live_readiness_latest": {
+    "checked_at": "2026-07-07 10:08 CDT",
+    "ready": false,
+    "compatible": true,
+    "observed_candidate_count": 521,
+    "missing_candidate_count": 1529,
+    "full_complete_task_count": 0,
+    "full_task_count": 79,
+    "full_missing_candidate_count": 1454,
+    "complete_shard_count": 1,
+    "shard_count": 25,
+    "readiness_tsv": "diagnostics/score_probes/protenix25_scoreable_input_repair_target_seed_readiness.tsv"
   },
   "prepared_additional_seed_shard_specs": 24,
   "selected_model_policy": "protenix_confidence_v1",
