@@ -1323,6 +1323,15 @@ competitive result.
     behind `QOSMaxJobsPerUserLimit`; shard06 remains queued with zero observed
     candidates. This is progress, not a scoring point. Keep O5b/P27b deferred
     and do not use a partial P25 row.
+82. `2026-07-07 11:29 CDT` P25 live gate: still `ready=false` and
+    `compatible=true`. Shard01 now has 13 observed candidates in each seed
+    block, and shard03 has started adding `H2258` candidates beyond seed106.
+    Readiness is now `observed_candidate_count=665`,
+    `missing_candidate_count=1385`, and `full_missing_candidate_count=1310`.
+    Slurm remains at 19 P25 jobs running and 5 P25 jobs pending behind
+    `QOSMaxJobsPerUserLimit`; shard05 seed121-125 and all shard06 seed blocks
+    are still queued with zero observed candidates. No runtime error signatures
+    were found. Keep waiting for full P25 readiness before merge/score.
 
 ## Run Discipline
 
