@@ -260,6 +260,12 @@ where methods should change.
   keeps 74 scoreable jobs, trims antibody constant regions on
   `H0222/H0223/H0225/H0233` phase families, preflights at 141/141 MSA reuse,
   and remains behind the size-first phase-alias row.
+- Queued auto-advance wrapper: Slurm job `812202` runs
+  `slurm/casp16_server_v2_aliasfix_run_next_gh200.slurm` with
+  `afterany:811751`. It should call `run-next` only after the running P13
+  wrapper exits, so P14 can start without manual queue babysitting. This is
+  scheduling glue only; it does not change benchmark eligibility, budget, or
+  scoring.
 - Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   produced 39/165 CIFs and then spent extended GPU time on `T1295`, which is
