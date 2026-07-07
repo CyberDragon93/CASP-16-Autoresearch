@@ -130,7 +130,7 @@ overlay:
 ./casp16 server-benchmark \
   --benchmark casp16_server_protein_v3_refmap \
   --benchmark-version 3 \
-  --reference-map diagnostics/reference_gap/accepted_reference_map.tsv \
+  --reference-map diagnostics/reference_gap/casp16_server_protein_v3_refmap_accepted_reference_map.tsv \
   --download-references
 ```
 
@@ -172,6 +172,13 @@ The current candidate worklist can be rendered with:
 This writes
 `diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_audit.md`
 and should be read before changing any reference-map row to `accepted`.
+
+The current accepted overlay is
+`diagnostics/reference_gap/casp16_server_protein_v3_refmap_accepted_reference_map.tsv`.
+It promotes only `T1278 -> 9hav` with chain `A` and domain crop `34-370`.
+Regenerating `casp16_server_protein_v3_refmap` from that overlay raises local
+reference coverage from 79 to 80 of the fixed 175 server-protein targets while
+leaving `casp16_server_protein_v2_aliasfix` unchanged.
 
 `docs/REFERENCE_GAP_AUDIT.md` records a high-impact alias issue: CASP phase
 ids such as `T2201` and `H2202` should be allowed to inherit metadata and PDB
@@ -292,8 +299,10 @@ whole target set.
 3. Partial: domain scoring now requires parsed `GDT_TS`, uses the configured
    TMscore/USalign path by default, and applies temporary mmCIF domain crops
    when an accepted refmap row supplies `residue_ranges=...` plus optional
-   `reference_chain=...`. Next, promote only provenance-backed reference-map
-   rows in a new benchmark version; do not hand-edit v1/v2.
+   `reference_chain=...`. The first provenance-backed row, `T1278 -> 9hav`
+   chain `A` crop `34-370`, is materialized in
+   `casp16_server_protein_v3_refmap`. Continue promoting only audited rows in
+   new benchmark versions; do not hand-edit v1/v2.
 4. Partial: oligo scoring now requires a `QSglob` scorer, refuses DockQ as a
    ranked substitute, and can parse OpenStructure `ost compare-structures
    --qs-score` JSON. OpenStructure 2.11.1 is installed in

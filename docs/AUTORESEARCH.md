@@ -22,6 +22,12 @@ where methods should change.
   targets, 163 Protenix jobs, 79 cached references, 67/71 domain inputs ok,
   and 96/104 oligo inputs ok. It is the default benchmark for future
   winner-comparison claims.
+- `casp16_server_protein_v3_refmap` is a versioned reference-map expansion of
+  v2, not a new prediction strategy. It currently adds one accepted
+  provenance-backed reference row, `T1278 -> 9hav` chain `A` with domain crop
+  `34-370`, raising local reference coverage from 79 to 80 of the fixed 175
+  server-protein targets. Keep v2 as the locked alias-fix baseline and use v3
+  only when explicitly testing reference-map coverage recovery.
 - v2 alias-fixed scoring now resolves prediction artifacts through
   `sequence_lookup_id` as well as `target_id`. This matters for official oligo
   rows such as `T0206O` and `T1249V1O`, whose Protenix jobs are named `T0206`
@@ -294,6 +300,13 @@ where methods should change.
   `T1270/T0270` are marked non-promotable. Keep this as
   `casp16_server_protein_v3_refmap` groundwork; it should not block the
   current scoreable attack line or mutate v2.
+- `2026-07-06 23:21 CDT` v3 refmap materialization: accepted the first audited
+  reference-map row for `T1278`, using `9hav` chain `A` and the official
+  domain crop `34-370`. The generated benchmark
+  `benchmarks/casp16_server_protein_v3_refmap/` now has 80 available local
+  references and 95 remaining reference gaps across the same fixed 175
+  server-protein targets. This improves scoreability for future diagnostics but
+  does not change the active v2 scoreable attack or any prediction recipe.
 - Candidate-ref TMscore probe:
   `diagnostics/reference_gap/candidate_ref_tmscore_probe.tsv` tested existing
   predictions for those two candidate target classes against the candidate

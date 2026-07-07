@@ -1,0 +1,74 @@
+{
+  "budget": {
+    "backend": "protenix",
+    "sample": 1,
+    "seed": "101",
+    "selected_model_policy": "first_output_only"
+  },
+  "description": "CASP16 protein server-track comparison benchmark derived from official score tables.",
+  "files": {
+    "domain_definitions": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v3_refmap/domain_definitions.tsv",
+      "sha256": "ef404b6d98b50cfe79358c444fb45c638b8ec5b7142652d002d93f9f94156cb9"
+    },
+    "input_manifest": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v3_refmap/input_manifest.tsv",
+      "sha256": "0831180c355e9c7fdda79148721f18920315dce557a2782b91b4232ca1c87bea"
+    },
+    "inputs": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v3_refmap/inputs.json",
+      "sha256": "114584e679371882f5a3f123c49b72b8691a530a27514e390be5d0e57fa3e0c9"
+    },
+    "official_all_groups": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v3_refmap/official_all_groups.tsv",
+      "sha256": "a9563e70517d4cdf12d3004b339ec13379052dbed9f9d073a8677737d3c12428"
+    },
+    "official_server_groups": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v3_refmap/official_server_groups.tsv",
+      "sha256": "4b82a34b81684ec206c401bd2e9ede69b16110669821eeef2ed796767a03927d"
+    },
+    "reference_map": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v3_refmap/reference_map.tsv",
+      "sha256": "f4b1b7add5fc679f2842acdf4c2b006112e381f97e2d6de9e14480d42351aa73"
+    },
+    "references": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v3_refmap/references.tsv",
+      "sha256": "08a9de85cd33e9c9071dfa93a7c38439dedb74a0b9fc7464343fc436cc5a4dfb"
+    },
+    "scoring_policy": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v3_refmap/scoring_policy.md",
+      "sha256": "dc018af0cc26bce402339f73ab0de41a3456635cfc9eb0de76675ad0c1ce0848"
+    },
+    "targets": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v3_refmap/targets.tsv",
+      "sha256": "25cec6d73fcf00393f816bbc840fc53391f0e0d64cc1a09178f07d5e8dfcbcd1"
+    },
+    "unresolved_official_targets": {
+      "path": "/scratch/10992/liaorunlong93/casp16-leaderboard/benchmarks/casp16_server_protein_v3_refmap/unresolved_official_targets.tsv",
+      "sha256": "e3767184635eddca6baa8f24576ef959c69e294923dc15a8b90a23c80238c04d"
+    }
+  },
+  "missing_target_score": 0.0,
+  "name": "casp16_server_protein_v3_refmap",
+  "official_metrics": {
+    "prot_domains": "GDT_TS",
+    "prot_oligo": "QSglob"
+  },
+  "official_target_sets": {
+    "prot_domains": 71,
+    "prot_oligo": 104
+  },
+  "ranked_tracks": [
+    "protein_domain",
+    "protein_oligo"
+  ],
+  "reference_map_policy": "Optional overlay. Only status=accepted rows with provenance, construct coverage, chain mapping, and scoring mapping are applied; candidates are audit-only.",
+  "server_group_rule": "group id ends with 's'",
+  "source_urls": {
+    "domain_summary": "https://predictioncenter.org/casp16/domains_summary.cgi",
+    "download_area": "https://predictioncenter.org/download_area/CASP16",
+    "score_tables": "https://predictioncenter.org/download_area/CASP16/results/tables/",
+    "target_list": "https://predictioncenter.org/casp16/targetlist.cgi?type=csv"
+  },
+  "version": "3"
+}

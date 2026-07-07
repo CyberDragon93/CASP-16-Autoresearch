@@ -1,0 +1,176 @@
+target_id	track	pdb_ids	selected_pdb_id	reference_status	reference_path	sha256
+T0206	protein_domain	9cp0	9cp0	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cp0.cif	df23020b70f589ed3eb2996235e3d986bd2bd19d77da5448cc2cc84f7f10c1b4
+T0218	protein_domain			no_reference_pdb		
+T0234	protein_domain	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T0235	protein_domain	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T0237	protein_domain			no_reference_pdb		
+T0240	protein_domain			no_reference_pdb		
+T0246	protein_domain			no_reference_pdb		
+T0257	protein_domain			no_reference_pdb		
+T0259	protein_domain			no_reference_pdb		
+T0270	protein_domain			no_reference_pdb		
+T1201	protein_domain	8bwd	8bwd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8bwd.cif	a88f3c84e4d10b8824323d71a2ce265ff9f0777b28661a732cd59c96ed7ff322
+T1206	protein_domain	9cp0	9cp0	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cp0.cif	df23020b70f589ed3eb2996235e3d986bd2bd19d77da5448cc2cc84f7f10c1b4
+T1207	protein_domain			no_reference_pdb		
+T1210	protein_domain	9enr	9enr	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9enr.cif	c54a4839bb0f3499c52f48014f9c4c7f098ba32ada356e0b1cd326756d0680ec
+T1212	protein_domain	9b0l	9b0l	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9b0l.cif	cdd7994a73e1fd52b101782b5dd1628a13e5e1108ed807865d239c988302f3e1
+T1218	protein_domain			no_reference_pdb		
+T1226	protein_domain			no_reference_pdb		
+T1228V1	protein_domain			no_reference_pdb		
+T1228V2	protein_domain			no_reference_pdb		
+T1231	protein_domain			no_reference_pdb		
+T1234	protein_domain	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T1235	protein_domain	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T1237	protein_domain			no_reference_pdb		
+T1239V1	protein_domain	9dxd	9dxd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9dxd.cif	2c8c750520ccf5911e77040ba98337f934e5443369a093404e11f06b8fe4b44b
+T1239V2	protein_domain	9dxd	9dxd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9dxd.cif	2c8c750520ccf5911e77040ba98337f934e5443369a093404e11f06b8fe4b44b
+T1240	protein_domain			no_reference_pdb		
+T1243	protein_domain			no_reference_pdb		
+T1246	protein_domain			no_reference_pdb		
+T1249V1	protein_domain	9fya	9fya	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fya.cif	e12d14f4b0d003ebdd6c4e2181580fcc9698ec375bd50133269d3b3aa3c9efd9
+T1257	protein_domain			no_reference_pdb		
+T1259	protein_domain			no_reference_pdb		
+T1266	protein_domain	8qfb	8qfb	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qfb.cif	9ecce73052a6004bcb8ff5e1dd35d59a6be44c58e3161b0d32f5f234b9aaedce
+T1269	protein_domain	9gvq	9gvq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9gvq.cif	6b3ebfbc5bf8a52361fa22238bca473be90ca06e7b2d58531c7a578fcf3d649e
+T1270	protein_domain			no_reference_pdb		
+T1274	protein_domain			no_reference_pdb		
+T1276	protein_domain			no_reference_pdb		
+T1278	protein_domain	9hav	9hav	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9hav.cif	4883f756bc6db3c32b1ea09001e16ab3580252ec592d986276ab30a5d09f2b88
+T1279	protein_domain			no_reference_pdb		
+T1280	protein_domain	9f5m	9f5m	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9f5m.cif	a06fad70d0d88f17349c0f7ef9b47e29aa9bf8f2948ebf5497ca45d54f7d3f47
+T1284	protein_domain			no_reference_pdb		
+T1292	protein_domain			no_reference_pdb		
+T1294V1	protein_domain			no_reference_pdb		
+T1294V2	protein_domain			no_reference_pdb		
+T1295	protein_domain			no_reference_pdb		
+T1298	protein_domain	9sfa	9sfa	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9sfa.cif	da796f4dece791204eb35abd0d73ae085838df2d2c379d0aea104c02e294c817
+T1299	protein_domain	9fjl	9fjl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fjl.cif	c205f3ee908806729dce8162350aca38f656a8edc0946a59be71cc97228521cb
+T2201	protein_domain	8bwd	8bwd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8bwd.cif	a88f3c84e4d10b8824323d71a2ce265ff9f0777b28661a732cd59c96ed7ff322
+T2206	protein_domain	9cp0	9cp0	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cp0.cif	df23020b70f589ed3eb2996235e3d986bd2bd19d77da5448cc2cc84f7f10c1b4
+T2207	protein_domain			no_reference_pdb		
+T2210	protein_domain	9enr	9enr	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9enr.cif	c54a4839bb0f3499c52f48014f9c4c7f098ba32ada356e0b1cd326756d0680ec
+T2218	protein_domain			no_reference_pdb		
+T2226	protein_domain			no_reference_pdb		
+T2231	protein_domain			no_reference_pdb		
+T2234	protein_domain	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T2235	protein_domain	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T2237	protein_domain			no_reference_pdb		
+T2240	protein_domain			no_reference_pdb		
+T2243	protein_domain			no_reference_pdb		
+T2246	protein_domain			no_reference_pdb		
+T2249V1	protein_domain	9fya	9fya	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fya.cif	e12d14f4b0d003ebdd6c4e2181580fcc9698ec375bd50133269d3b3aa3c9efd9
+T2257	protein_domain			no_reference_pdb		
+T2259	protein_domain			no_reference_pdb		
+T2266	protein_domain	8qfb	8qfb	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qfb.cif	9ecce73052a6004bcb8ff5e1dd35d59a6be44c58e3161b0d32f5f234b9aaedce
+T2269	protein_domain	9gvq	9gvq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9gvq.cif	6b3ebfbc5bf8a52361fa22238bca473be90ca06e7b2d58531c7a578fcf3d649e
+T2270	protein_domain			no_reference_pdb		
+T2274	protein_domain			no_reference_pdb		
+T2276	protein_domain			no_reference_pdb		
+T2278	protein_domain			no_reference_pdb		
+T2279	protein_domain			no_reference_pdb		
+T2280	protein_domain	9f5m	9f5m	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9f5m.cif	a06fad70d0d88f17349c0f7ef9b47e29aa9bf8f2948ebf5497ca45d54f7d3f47
+T2284	protein_domain			no_reference_pdb		
+H0208	protein_oligo			no_reference_pdb		
+H0215	protein_oligo			no_reference_pdb		
+H0217	protein_oligo			no_reference_pdb		
+H0220	protein_oligo	9h1g	9h1g	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9h1g.cif	1211732f986a68bda07efff646d0767181c9cd3dcf6ebe8444e6bbe0075189ef
+H0222	protein_oligo	2b11,9cqd	9cqd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqd.cif	0c82141e18d135a0adc38f59dbbd48ac07d23aaf6093bf95c0d73a664f37f06c
+H0223	protein_oligo	9cqb	9cqb	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqb.cif	f0c342334eccf37d9fd032371e6679f950a88ddb4d5a07bf3c76812c53a15c4f
+H0225	protein_oligo	9cqa	9cqa	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqa.cif	171356e160afe2b688504add06162ac6ad4963636b972a3dc29cdea77f56a76f
+H0227	protein_oligo	9n8w	9n8w	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9n8w.cif	1030cecebfcf328bedb56a8bdbc0e47fc7f01dcad56673d594a1b25ac3a976a7
+H0229	protein_oligo			no_reference_pdb		
+H0230	protein_oligo			no_reference_pdb		
+H0232	protein_oligo	9cn2	9cn2	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cn2.cif	e2c789b28756904f096772ace254d2d1d810111cbb1b4657e2a1c96e4fa90929
+H0233	protein_oligo	9cbn	9cbn	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cbn.cif	0b0358dbf7a31c5b2bdab9936cc9cf4012998026122efac23269488c895785fb
+H0236	protein_oligo	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+H0244	protein_oligo			no_reference_pdb		
+H0245	protein_oligo			no_reference_pdb		
+H0258	protein_oligo	9ci3	9ci3	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9ci3.cif	eab4e450bf4078eda0490b9ba9347547144e3566383040f8c857c7b1a715dfb0
+H0265	protein_oligo			no_reference_pdb		
+H0267	protein_oligo			no_reference_pdb		
+H0272	protein_oligo	9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	e357bc467bb44b508b4885ec13d40ca5ff7ba4f79319c238dd48d1cb118efc27
+H1202	protein_oligo	8bwl	8bwl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8bwl.cif	f523bc0717e0e3524bef9001e7207f45ab95c2a52fe4243338b58fba2f7e3719
+H1204	protein_oligo	8vyl	8vyl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8vyl.cif	fc325effd6773787e27976f981daf448d7e53fcfaa8a4c45bfe68af8afdb8fa3
+H1208	protein_oligo			no_reference_pdb		
+H1213	protein_oligo	9nb9	9nb9	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9nb9.cif	17f87fe90e33331afbdd592f3304ec1633b42a184b8d79407f29d29b559bf956
+H1215	protein_oligo			no_reference_pdb		
+H1217	protein_oligo			no_reference_pdb		
+H1220	protein_oligo	9h1g	9h1g	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9h1g.cif	1211732f986a68bda07efff646d0767181c9cd3dcf6ebe8444e6bbe0075189ef
+H1222	protein_oligo	2b11,9cqd	9cqd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqd.cif	0c82141e18d135a0adc38f59dbbd48ac07d23aaf6093bf95c0d73a664f37f06c
+H1223	protein_oligo	9cqb	9cqb	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqb.cif	f0c342334eccf37d9fd032371e6679f950a88ddb4d5a07bf3c76812c53a15c4f
+H1225	protein_oligo	9cqa	9cqa	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqa.cif	171356e160afe2b688504add06162ac6ad4963636b972a3dc29cdea77f56a76f
+H1227	protein_oligo	9n8w	9n8w	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9n8w.cif	1030cecebfcf328bedb56a8bdbc0e47fc7f01dcad56673d594a1b25ac3a976a7
+H1229	protein_oligo			no_reference_pdb		
+H1230	protein_oligo			no_reference_pdb		
+H1232	protein_oligo	9cn2	9cn2	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cn2.cif	e2c789b28756904f096772ace254d2d1d810111cbb1b4657e2a1c96e4fa90929
+H1233	protein_oligo	9cbn	9cbn	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cbn.cif	0b0358dbf7a31c5b2bdab9936cc9cf4012998026122efac23269488c895785fb
+H1236	protein_oligo	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+H1244	protein_oligo			no_reference_pdb		
+H1245	protein_oligo			no_reference_pdb		
+H1258	protein_oligo	9ci3	9ci3	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9ci3.cif	eab4e450bf4078eda0490b9ba9347547144e3566383040f8c857c7b1a715dfb0
+H1265	protein_oligo			no_reference_pdb		
+H1265_V1	protein_oligo			no_reference_pdb		
+H1265_V2	protein_oligo			no_reference_pdb		
+H1265_V3	protein_oligo			no_reference_pdb		
+H1267	protein_oligo			no_reference_pdb		
+H1272	protein_oligo	9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	e357bc467bb44b508b4885ec13d40ca5ff7ba4f79319c238dd48d1cb118efc27
+H2202	protein_oligo	8bwl	8bwl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8bwl.cif	f523bc0717e0e3524bef9001e7207f45ab95c2a52fe4243338b58fba2f7e3719
+H2204	protein_oligo	8vyl	8vyl	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8vyl.cif	fc325effd6773787e27976f981daf448d7e53fcfaa8a4c45bfe68af8afdb8fa3
+H2208	protein_oligo			no_reference_pdb		
+H2213	protein_oligo	9nb9	9nb9	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9nb9.cif	17f87fe90e33331afbdd592f3304ec1633b42a184b8d79407f29d29b559bf956
+H2215	protein_oligo			no_reference_pdb		
+H2217	protein_oligo			no_reference_pdb		
+H2220	protein_oligo	9h1g	9h1g	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9h1g.cif	1211732f986a68bda07efff646d0767181c9cd3dcf6ebe8444e6bbe0075189ef
+H2222	protein_oligo	2b11,9cqd	9cqd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqd.cif	0c82141e18d135a0adc38f59dbbd48ac07d23aaf6093bf95c0d73a664f37f06c
+H2223	protein_oligo	9cqb	9cqb	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqb.cif	f0c342334eccf37d9fd032371e6679f950a88ddb4d5a07bf3c76812c53a15c4f
+H2225	protein_oligo	9cqa	9cqa	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cqa.cif	171356e160afe2b688504add06162ac6ad4963636b972a3dc29cdea77f56a76f
+H2227	protein_oligo	9n8w	9n8w	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9n8w.cif	1030cecebfcf328bedb56a8bdbc0e47fc7f01dcad56673d594a1b25ac3a976a7
+H2229	protein_oligo			no_reference_pdb		
+H2230	protein_oligo			no_reference_pdb		
+H2232	protein_oligo	9cn2	9cn2	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cn2.cif	e2c789b28756904f096772ace254d2d1d810111cbb1b4657e2a1c96e4fa90929
+H2233	protein_oligo	9cbn	9cbn	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cbn.cif	0b0358dbf7a31c5b2bdab9936cc9cf4012998026122efac23269488c895785fb
+H2236	protein_oligo	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+H2244	protein_oligo			no_reference_pdb		
+H2245	protein_oligo			no_reference_pdb		
+H2258	protein_oligo	9ci3	9ci3	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9ci3.cif	eab4e450bf4078eda0490b9ba9347547144e3566383040f8c857c7b1a715dfb0
+H2265	protein_oligo			no_reference_pdb		
+H2267	protein_oligo			no_reference_pdb		
+H2272	protein_oligo	9c3c	9c3c	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9c3c.cif	e357bc467bb44b508b4885ec13d40ca5ff7ba4f79319c238dd48d1cb118efc27
+T0206O	protein_oligo	9cp0	9cp0	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cp0.cif	df23020b70f589ed3eb2996235e3d986bd2bd19d77da5448cc2cc84f7f10c1b4
+T0218O	protein_oligo			no_reference_pdb		
+T0234O	protein_oligo	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T0235O	protein_oligo	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T0237O	protein_oligo			no_reference_pdb		
+T0240O	protein_oligo			no_reference_pdb		
+T0257O	protein_oligo			no_reference_pdb		
+T0259O	protein_oligo			no_reference_pdb		
+T0270O	protein_oligo			no_reference_pdb		
+T1201O	protein_oligo	8bwd	8bwd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8bwd.cif	a88f3c84e4d10b8824323d71a2ce265ff9f0777b28661a732cd59c96ed7ff322
+T1206O	protein_oligo	9cp0	9cp0	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cp0.cif	df23020b70f589ed3eb2996235e3d986bd2bd19d77da5448cc2cc84f7f10c1b4
+T1218O	protein_oligo			no_reference_pdb		
+T1234O	protein_oligo	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T1235O	protein_oligo	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T1237O	protein_oligo			no_reference_pdb		
+T1240O	protein_oligo			no_reference_pdb		
+T1249V1O	protein_oligo	9fya	9fya	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fya.cif	e12d14f4b0d003ebdd6c4e2181580fcc9698ec375bd50133269d3b3aa3c9efd9
+T1249V2O	protein_oligo	9fyg	9fyg	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fyg.cif	700ad5b90c383dbfc39612b26abea3ebf658277d3f174278106bd7abb76143c3
+T1257O	protein_oligo			no_reference_pdb		
+T1259O	protein_oligo			no_reference_pdb		
+T1269V1O	protein_oligo	9gvq	9gvq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9gvq.cif	6b3ebfbc5bf8a52361fa22238bca473be90ca06e7b2d58531c7a578fcf3d649e
+T1270O	protein_oligo			no_reference_pdb		
+T1292O	protein_oligo			no_reference_pdb		
+T1294V1O	protein_oligo			no_reference_pdb		
+T1295O	protein_oligo			no_reference_pdb		
+T1298O	protein_oligo	9sfa	9sfa	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9sfa.cif	da796f4dece791204eb35abd0d73ae085838df2d2c379d0aea104c02e294c817
+T2201O	protein_oligo	8bwd	8bwd	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8bwd.cif	a88f3c84e4d10b8824323d71a2ce265ff9f0777b28661a732cd59c96ed7ff322
+T2206O	protein_oligo	9cp0	9cp0	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9cp0.cif	df23020b70f589ed3eb2996235e3d986bd2bd19d77da5448cc2cc84f7f10c1b4
+T2218O	protein_oligo			no_reference_pdb		
+T2234O	protein_oligo	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T2235O	protein_oligo	8qpq	8qpq	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/8qpq.cif	ea043385ef3d1bf64ff640334333773e39fa1dee0f71347772f68648c2cacfec
+T2237O	protein_oligo			no_reference_pdb		
+T2240O	protein_oligo			no_reference_pdb		
+T2249V1O	protein_oligo	9fya	9fya	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fya.cif	e12d14f4b0d003ebdd6c4e2181580fcc9698ec375bd50133269d3b3aa3c9efd9
+T2249V2O	protein_oligo	9fyg	9fyg	available	/scratch/10992/liaorunlong93/casp16-leaderboard/data/official/references/mmcif/9fyg.cif	700ad5b90c383dbfc39612b26abea3ebf658277d3f174278106bd7abb76143c3
+T2257O	protein_oligo			no_reference_pdb		
+T2259O	protein_oligo			no_reference_pdb		
+T2270O	protein_oligo			no_reference_pdb		

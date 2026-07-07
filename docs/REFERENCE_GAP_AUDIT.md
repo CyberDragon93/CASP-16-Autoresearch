@@ -169,7 +169,7 @@ Example generation command:
 ./casp16 server-benchmark \
   --benchmark casp16_server_protein_v3_refmap \
   --benchmark-version 3 \
-  --reference-map diagnostics/reference_gap/accepted_reference_map.tsv \
+  --reference-map diagnostics/reference_gap/casp16_server_protein_v3_refmap_accepted_reference_map.tsv \
   --download-references
 ```
 
@@ -214,10 +214,43 @@ into a compact Markdown worklist:
 
 The current report is
 `diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_audit.md`.
-It identifies `T1278` as the nearest single-domain candidate class, still
-blocked on native provenance plus chain/domain crop confirmation. `T1228V1`
-has full-construct candidates too, but remains harder because the server-domain
-target has four domains and needs explicit crop mapping.
+It identified `T1278` as the nearest single-domain candidate class and
+`T1228V1` as a harder multi-domain candidate class.
+
+## Accepted T1278 Refmap Row
+
+The first accepted reference-map overlay row promotes `T1278` only. The row is
+stored in
+`diagnostics/reference_gap/casp16_server_protein_v3_refmap_accepted_reference_map.tsv`
+and was generated from target-page provenance, exact-sequence RCSB review, and
+the chain/domain coverage audit.
+
+Accepted mapping:
+
+- target: `T1278`
+- PDB: `9hav`
+- reference chain: `A`
+- domain crop: `T1278-D1`, residues `34-370`
+- selection rule: deterministic lowest PDB id among full-construct exact
+  sequence candidates, not a prediction-score or leaderboard-based choice
+
+Regenerated benchmark:
+
+```text
+casp16_server_protein_v3_refmap
+```
+
+Current generated v3 state:
+
+- ranked targets: 175
+- local references available: 80
+- ranked targets without an available reference: 95
+- generated Protenix jobs: 165
+- accepted reference-map rows: 1
+
+The v2 alias-fixed benchmark remains locked at 79 available references and 96
+missing references. Continue adding accepted reference-map rows in versioned
+benchmarks; do not rewrite v2 or hand-edit generated benchmark TSVs.
 
 Use `refmap-chain-audit` to convert cached candidate mmCIF atom-site records
 into chain-level domain coverage evidence:
