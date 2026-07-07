@@ -187,6 +187,15 @@ where methods should change.
   failure signatures. The active stderr tails show seed104 forward passes on
   the expected 1304-2535 token protein-complex targets, so this is still slow
   healthy inference rather than a stalled run.
+- `2026-07-07 04:04 CDT` P14 health check: all six shard jobs `812239..812244`
+  remain running, and replay-safe `finish-shards` observes `277/370`
+  candidates with `93` missing, `5/74` target tasks complete, and
+  `ready=false`. Error scans remain clean. A short monitor window confirmed
+  monotonic output growth from the large-target seed104 forwards; one measured
+  bottleneck was `H2258 [seed:104]`, which needed `2660.01s` of model forward
+  time. The active bottleneck is Protenix forward on 1304-2535 token targets,
+  not repeated MSA search. Keep P15/P18/P25/P27a/O5/D6a gated until P14 is
+  merged/scored or explicitly abandoned.
 - Post-P14 winner-recipe branch `casp16_server_attack_msa_model_diversity_v1`
   is now documented as a design gate in `docs/CASP16_WINNER_RECIPES.md`. It
   captures the MULTICOM4/QA4-style lesson: if P14 is complete and valid but
@@ -1038,6 +1047,14 @@ competitive result.
     `merge`, `replay`, `score`, and `leaderboard` empty and did not create the
     P16 replay run spec. The action remains to wait for complete shards before
     using the same replay-safe closeout command.
+67. `2026-07-07 04:04 CDT` P14 live status: six Slurm jobs `812239..812244`
+    are still RUNNING at about 5h46m. The safe closeout path reports
+    `finish_status=not_ready`, now with 277/370 observed candidates, 93
+    missing candidates, 0/6 complete shards, and 5/74 target tasks complete.
+    No traceback/OOM/CUDA/killed signatures were found. The useful lesson for
+    the next agent is that MSA reuse is working; current wall time is dominated
+    by Protenix forward on large scoreable targets. Continue waiting for full
+    readiness instead of opening another GPU branch from a partial snapshot.
 
 ## Run Discipline
 
