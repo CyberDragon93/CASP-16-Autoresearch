@@ -27,6 +27,8 @@ SERVER_BENCHMARK_NAME = "casp16_server_protein_v1"
 SERVER_BENCHMARK_VERSION = "1"
 SERVER_ALIASFIX_BENCHMARK_NAME = "casp16_server_protein_v2_aliasfix"
 SERVER_ALIASFIX_BENCHMARK_VERSION = "2"
+SERVER_REFMAP_BENCHMARK_NAME = "casp16_server_protein_v3_refmap"
+SERVER_REFMAP_BENCHMARK_VERSION = "3"
 RCSB_MMCIF_URL = "https://files.rcsb.org/download/{pdb_id}.cif"
 PDB_ID_RE = re.compile(r"\b([0-9](?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{3})\b")
 
@@ -103,6 +105,19 @@ UNRESOLVED_OFFICIAL_FIELDS = [
     "reason",
 ]
 
+REFERENCE_MAP_FIELDS = [
+    "target_id",
+    "pdb_ids",
+    "status",
+    "source",
+    "native_provenance",
+    "construct_coverage",
+    "chain_mapping",
+    "scoring_mapping",
+    "notes",
+    "source_path",
+]
+
 
 def default_benchmark_dir(project_root: Path, benchmark: str = BENCHMARK_NAME) -> Path:
     return project_root / "benchmarks" / benchmark
@@ -145,6 +160,50 @@ def file_manifest(paths: Mapping[str, Path]) -> dict[str, dict[str, str]]:
 
 def pdb_ids_from_text(text: str) -> list[str]:
     return sorted({match.lower() for match in PDB_ID_RE.findall(text or "")})
+
+
+def _split_pdb_ids(value: str) -> list[str]:
+    ids: set[str] = set()
+    for item in re.split(r"[,;\s]+", value or ""):
+        item = item.strip().lower()
+        if not item:
+            continue
+        if not PDB_ID_RE.fullmatch(item):
+            raise ValueError(f"invalid PDB id in reference map: {item!r}")
+        ids.add(item)
+    return sorted(ids)
+
+
+def read_reference_map_overlays(reference_map_paths: Sequence[Path] | None) -> tuple[dict[str, set[str]], list[dict[str, str]]]:
+    pdbs_by_target: dict[str, set[str]] = {}
+    normalized_rows: list[dict[str, str]] = []
+    allowed_status = {"accepted", "candidate", "rejected", "deferred"}
+    required_accepted_fields = ["source", "native_provenance", "construct_coverage", "chain_mapping", "scoring_mapping"]
+    for path in reference_map_paths or []:
+        rows = read_tsv(path)
+        for index, row in enumerate(rows, start=2):
+            target_id = row.get("target_id", "").strip().upper()
+            status = row.get("status", "").strip().lower()
+            if not target_id:
+                raise ValueError(f"{path}:{index}: reference map row is missing target_id")
+            if status not in allowed_status:
+                raise ValueError(f"{path}:{index}: reference map status must be one of {sorted(allowed_status)}")
+            pdb_ids = _split_pdb_ids(row.get("pdb_ids", ""))
+            normalized = {field: row.get(field, "").strip() for field in REFERENCE_MAP_FIELDS}
+            normalized["target_id"] = target_id
+            normalized["pdb_ids"] = ",".join(pdb_ids)
+            normalized["status"] = status
+            normalized["source_path"] = str(path)
+            normalized_rows.append(normalized)
+            if status != "accepted":
+                continue
+            if not pdb_ids:
+                raise ValueError(f"{path}:{index}: accepted reference map row is missing pdb_ids")
+            missing_fields = [field for field in required_accepted_fields if not normalized[field]]
+            if missing_fields:
+                raise ValueError(f"{path}:{index}: accepted reference map row is missing {', '.join(missing_fields)}")
+            pdbs_by_target.setdefault(target_id, set()).update(pdb_ids)
+    return pdbs_by_target, normalized_rows
 
 
 def build_casp16_protein_benchmark(
@@ -303,7 +362,10 @@ def build_casp16_server_protein_benchmark(
     benchmark_version: str = SERVER_BENCHMARK_VERSION,
     download_references: bool = False,
     force_references: bool = False,
+    reference_map_paths: Sequence[Path] | None = None,
 ) -> dict[str, object]:
+    if reference_map_paths and benchmark_name in {SERVER_BENCHMARK_NAME, SERVER_ALIASFIX_BENCHMARK_NAME}:
+        raise ValueError("reference maps require a new server benchmark name; do not overwrite v1/v2")
     official_root = (official_root or (project_root / "data" / "official")).resolve()
     benchmark_dir = (benchmark_dir or default_benchmark_dir(project_root, benchmark_name)).resolve()
     paths = OfficialPaths(official_root)
@@ -312,6 +374,7 @@ def build_casp16_server_protein_benchmark(
     domain_rows = read_tsv(paths.domains_tsv) if paths.domains_tsv.exists() else []
     target_reference_rows = read_tsv(paths.target_references_tsv) if paths.target_references_tsv.exists() else []
     score_rows = read_tsv(paths.scores_tsv)
+    refmap_pdbs_by_target, reference_map_rows = read_reference_map_overlays(reference_map_paths)
 
     official_records, unresolved_rows = server_official_records(score_rows)
     target_stats = server_target_stats(official_records)
@@ -350,6 +413,7 @@ def build_casp16_server_protein_benchmark(
                 by_target=by_target,
                 domains_by_target=domains_by_target,
                 explicit_pdbs_by_target=explicit_pdbs_by_target,
+                refmap_pdbs_by_target=refmap_pdbs_by_target,
                 target_stats=target_stats,
                 paths=paths,
                 download_references=download_references,
@@ -398,6 +462,7 @@ def build_casp16_server_protein_benchmark(
     all_groups_path = benchmark_dir / "official_all_groups.tsv"
     server_groups_path = benchmark_dir / "official_server_groups.tsv"
     unresolved_path = benchmark_dir / "unresolved_official_targets.tsv"
+    reference_map_path = benchmark_dir / "reference_map.tsv"
     benchmark_json_path = benchmark_dir / "benchmark.json"
 
     inputs_path.write_text(json.dumps(jobs, indent=2, sort_keys=False) + "\n", encoding="utf-8")
@@ -425,12 +490,28 @@ def build_casp16_server_protein_benchmark(
     write_tsv(all_groups_path, summarize_server_official_groups(official_records, server_only=False), OFFICIAL_GROUP_FIELDS)
     write_tsv(server_groups_path, summarize_server_official_groups(official_records, server_only=True), OFFICIAL_GROUP_FIELDS)
     write_tsv(unresolved_path, unresolved_rows, UNRESOLVED_OFFICIAL_FIELDS)
+    if reference_map_rows:
+        write_tsv(reference_map_path, reference_map_rows, REFERENCE_MAP_FIELDS)
     policy_path.write_text(server_scoring_policy_text(benchmark_name), encoding="utf-8")
 
     target_set_counts = {
         "prot_domains": len(target_ids_by_category.get("prot_domains", set())),
         "prot_oligo": len(target_ids_by_category.get("prot_oligo", set())),
     }
+    manifest_files = {
+        "targets": targets_path,
+        "domain_definitions": domains_path,
+        "references": references_path,
+        "inputs": inputs_path,
+        "input_manifest": manifest_path,
+        "scoring_policy": policy_path,
+        "official_all_groups": all_groups_path,
+        "official_server_groups": server_groups_path,
+        "unresolved_official_targets": unresolved_path,
+    }
+    if reference_map_rows:
+        manifest_files["reference_map"] = reference_map_path
+
     benchmark_payload = {
         "name": benchmark_name,
         "version": benchmark_version,
@@ -452,19 +533,8 @@ def build_casp16_server_protein_benchmark(
             "domain_summary": DOMAINS_SUMMARY_URL,
             "score_tables": f"{BASE_DOWNLOAD_URL}/results/tables/",
         },
-        "files": file_manifest(
-            {
-                "targets": targets_path,
-                "domain_definitions": domains_path,
-                "references": references_path,
-                "inputs": inputs_path,
-                "input_manifest": manifest_path,
-                "scoring_policy": policy_path,
-                "official_all_groups": all_groups_path,
-                "official_server_groups": server_groups_path,
-                "unresolved_official_targets": unresolved_path,
-            }
-        ),
+        "reference_map_policy": "Optional overlay. Only status=accepted rows with provenance, construct coverage, chain mapping, and scoring mapping are applied; candidates are audit-only.",
+        "files": file_manifest(manifest_files),
     }
     benchmark_json_path.write_text(json.dumps(benchmark_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
@@ -477,6 +547,8 @@ def build_casp16_server_protein_benchmark(
         "input_jobs": len(jobs),
         "references": len(references_out),
         "reference_available": sum(1 for row in references_out if row["reference_status"] == "available"),
+        "reference_map_rows": len(reference_map_rows),
+        "reference_map_accepted": sum(1 for row in reference_map_rows if row["status"] == "accepted"),
         "unresolved_official_targets": len(unresolved_rows),
     }
 
@@ -705,6 +777,7 @@ def server_benchmark_target_row(
     by_target: Mapping[str, list[dict[str, str]]],
     domains_by_target: Mapping[str, list[dict[str, str]]],
     explicit_pdbs_by_target: Mapping[str, set[str]],
+    refmap_pdbs_by_target: Mapping[str, set[str]],
     target_stats: Mapping[tuple[str, str], Mapping[str, object]],
     paths: OfficialPaths,
     download_references: bool,
@@ -721,8 +794,9 @@ def server_benchmark_target_row(
     domain_rows = list(domains_by_target.get(sequence_lookup_id, []))
     description_pdb_ids = set(pdb_ids_from_text(description))
     explicit_pdb_ids = set(explicit_pdbs_by_target.get(sequence_lookup_id, set())) | set(explicit_pdbs_by_target.get(target_id, set()))
-    pdb_ids = description_pdb_ids | explicit_pdb_ids
-    selected_pdb = sorted(explicit_pdb_ids or description_pdb_ids)[0] if pdb_ids else ""
+    refmap_pdb_ids = set(refmap_pdbs_by_target.get(sequence_lookup_id, set())) | set(refmap_pdbs_by_target.get(target_id, set()))
+    pdb_ids = description_pdb_ids | explicit_pdb_ids | refmap_pdb_ids
+    selected_pdb = sorted(refmap_pdb_ids or explicit_pdb_ids or description_pdb_ids)[0] if pdb_ids else ""
     reference_path, reference_status = reference_for_pdb(paths, selected_pdb, download_references=download_references, force=force_references)
 
     input_status = "skipped"

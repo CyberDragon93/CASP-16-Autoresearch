@@ -3,7 +3,16 @@ from __future__ import annotations
 import csv
 import json
 
-from casp16_leaderboard.benchmark import SERVER_ALIASFIX_BENCHMARK_NAME, SERVER_ALIASFIX_BENCHMARK_VERSION, build_casp16_protein_benchmark, build_casp16_server_protein_benchmark
+import pytest
+
+from casp16_leaderboard.benchmark import (
+    SERVER_ALIASFIX_BENCHMARK_NAME,
+    SERVER_ALIASFIX_BENCHMARK_VERSION,
+    SERVER_REFMAP_BENCHMARK_NAME,
+    SERVER_REFMAP_BENCHMARK_VERSION,
+    build_casp16_protein_benchmark,
+    build_casp16_server_protein_benchmark,
+)
 from casp16_leaderboard.leaderboard import generate_benchmark_leaderboard
 from casp16_leaderboard.official import OfficialPaths, read_tsv, write_tsv
 
@@ -389,3 +398,142 @@ def test_server_benchmark_uses_phase_2_reference_aliases(tmp_path) -> None:
     assert targets["H2202"]["sequence_lookup_id"] == "H2202"
     assert targets["H2202"]["selected_pdb_id"] == "8bwl"
     assert targets["H2202"]["reference_path"].endswith("8bwl.cif")
+
+
+def test_server_benchmark_reference_map_overlay_requires_new_version(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+    refmap = tmp_path / "reference_map.tsv"
+    write_tsv(
+        refmap,
+        [
+            {
+                "target_id": "T1226",
+                "pdb_ids": "9abc",
+                "status": "accepted",
+                "source": "manual_audit",
+                "native_provenance": "native release audited",
+                "construct_coverage": "full_construct_exact_sequence",
+                "chain_mapping": "target_entity_1:chain_A",
+                "scoring_mapping": "domain T1226-D1 residues 1-3 chain A",
+                "notes": "",
+            }
+        ],
+        ["target_id", "pdb_ids", "status", "source", "native_provenance", "construct_coverage", "chain_mapping", "scoring_mapping", "notes"],
+    )
+
+    with pytest.raises(ValueError, match="require a new server benchmark name"):
+        build_casp16_server_protein_benchmark(
+            project_root=project_root,
+            official_root=official_root,
+            benchmark_name=SERVER_ALIASFIX_BENCHMARK_NAME,
+            benchmark_version=SERVER_ALIASFIX_BENCHMARK_VERSION,
+            reference_map_paths=[refmap],
+        )
+
+
+def test_server_refmap_benchmark_applies_accepted_reference_overlay(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+    paths = OfficialPaths(official_root)
+
+    target_rows = read_tsv(paths.targets_tsv)
+    target_rows.append(
+        {
+            "target_id": "T1226",
+            "target_prefix": "T",
+            "Target": "T1226",
+            "Type": "All groups",
+            "Res": "123",
+            "Oligo.State": "A1",
+            "Entry Date": "",
+            "Server Exp.": "",
+            "Human Exp.": "",
+            "QA Exp.": "",
+            "Cancellation Date": "-",
+            "Description": "unreleased native",
+        }
+    )
+    write_tsv(
+        paths.targets_tsv,
+        target_rows,
+        ["target_id", "target_prefix", "Target", "Type", "Res", "Oligo.State", "Entry Date", "Server Exp.", "Human Exp.", "QA Exp.", "Cancellation Date", "Description"],
+    )
+    sequence_rows = read_tsv(paths.sequences_tsv)
+    sequence_rows.append({"record_id": "T1226", "target_ids": "T1226", "sequence_family": "T", "sequence_kind": "proteinChain", "length": "3", "sequence": "XYZ", "header": "", "source_file": ""})
+    write_tsv(paths.sequences_tsv, sequence_rows, ["record_id", "target_ids", "sequence_family", "sequence_kind", "length", "sequence", "header", "source_file"])
+    domain_rows = read_tsv(paths.domains_tsv)
+    domain_rows.append({"target_id": "T1226", "target_len": "123", "domain_id": "T1226-D1", "residue_ranges": "1-3", "domain_len": "3", "difficulty": "hard", "pdb_ids": "", "source": ""})
+    write_tsv(paths.domains_tsv, domain_rows, ["target_id", "target_len", "domain_id", "residue_ranges", "domain_len", "difficulty", "pdb_ids", "source"])
+    score_rows = read_tsv(paths.scores_tsv)
+    score_rows.append(
+        {
+            "category": "prot_domains",
+            "table": "domains.csv",
+            "target_id": "T1226",
+            "model": "T1226TS110_1-D1",
+            "group": "110s",
+            "submitted_model_rank": "1",
+            "primary_metric": "GDT_TS",
+            "primary_score": "88.000000",
+            "metric_json": "{}",
+            "source_path": "domains.csv",
+        }
+    )
+    write_tsv(
+        paths.scores_tsv,
+        score_rows,
+        ["category", "table", "target_id", "model", "group", "submitted_model_rank", "primary_metric", "primary_score", "metric_json", "source_path"],
+    )
+    (paths.references_dir / "mmcif" / "9abc.cif").write_text("data_9abc\n", encoding="utf-8")
+    refmap = tmp_path / "reference_map.tsv"
+    write_tsv(
+        refmap,
+        [
+            {
+                "target_id": "T1226",
+                "pdb_ids": "9abc",
+                "status": "accepted",
+                "source": "manual_audit",
+                "native_provenance": "native release audited",
+                "construct_coverage": "full_construct_exact_sequence",
+                "chain_mapping": "target_entity_1:chain_A",
+                "scoring_mapping": "domain T1226-D1 residues 1-3 chain A",
+                "notes": "",
+            },
+            {
+                "target_id": "T1231",
+                "pdb_ids": "9def",
+                "status": "candidate",
+                "source": "sequence_search",
+                "native_provenance": "",
+                "construct_coverage": "",
+                "chain_mapping": "",
+                "scoring_mapping": "",
+                "notes": "audit only",
+            },
+        ],
+        ["target_id", "pdb_ids", "status", "source", "native_provenance", "construct_coverage", "chain_mapping", "scoring_mapping", "notes"],
+    )
+
+    summary = build_casp16_server_protein_benchmark(
+        project_root=project_root,
+        official_root=official_root,
+        benchmark_name=SERVER_REFMAP_BENCHMARK_NAME,
+        benchmark_version=SERVER_REFMAP_BENCHMARK_VERSION,
+        reference_map_paths=[refmap],
+    )
+
+    assert summary["benchmark"] == SERVER_REFMAP_BENCHMARK_NAME
+    assert summary["reference_map_rows"] == 2
+    assert summary["reference_map_accepted"] == 1
+    benchmark_dir = project_root / "benchmarks" / SERVER_REFMAP_BENCHMARK_NAME
+    targets = {row["target_id"]: row for row in read_tsv(benchmark_dir / "targets.tsv")}
+    assert targets["T1226"]["selected_pdb_id"] == "9abc"
+    assert targets["T1226"]["reference_status"] == "available"
+    assert targets["T1226"]["reference_path"].endswith("9abc.cif")
+    payload = json.loads((benchmark_dir / "benchmark.json").read_text(encoding="utf-8"))
+    assert "reference_map" in payload["files"]
+    assert (benchmark_dir / "reference_map.tsv").exists()

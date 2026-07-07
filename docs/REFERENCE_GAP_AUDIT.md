@@ -143,6 +143,41 @@ Rule for future reference recovery:
 - create a new benchmark version such as `casp16_server_protein_v3_refmap`
   for any accepted reference-registry expansion; do not mutate v2 in place
 
+## Reference-Map Overlay
+
+`./casp16 server-benchmark` now supports a repeatable `--reference-map` TSV
+overlay for audited reference recovery. This is the intended path for
+`casp16_server_protein_v3_refmap`; it is deliberately rejected for the locked
+`casp16_server_protein_v1` and `casp16_server_protein_v2_aliasfix` benchmark
+names.
+
+Reference-map rows may keep `candidate`, `rejected`, or `deferred` entries for
+audit history, but only `status=accepted` rows affect generated benchmark
+references. Accepted rows must include:
+
+- `target_id`
+- `pdb_ids`
+- `source`
+- `native_provenance`
+- `construct_coverage`
+- `chain_mapping`
+- `scoring_mapping`
+
+Example generation command:
+
+```bash
+./casp16 server-benchmark \
+  --benchmark casp16_server_protein_v3_refmap \
+  --benchmark-version 3 \
+  --reference-map diagnostics/reference_gap/accepted_reference_map.tsv \
+  --download-references
+```
+
+The generated benchmark copies the normalized overlay to
+`benchmarks/casp16_server_protein_v3_refmap/reference_map.tsv` and records it in
+`benchmark.json`. This keeps native-reference recovery auditable without
+allowing a strategy run or an agent to hand-edit locked benchmark TSV files.
+
 ## RCSB Exact-Sequence Probe
 
 A follow-up probe on the 40 `prediction_waiting_on_reference` rows queried the

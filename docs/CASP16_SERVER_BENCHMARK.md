@@ -122,6 +122,24 @@ parsed domain-subtarget diagnostics. Missing references or unresolved mappings
 remain in the fixed denominator and score `0` for local runs until the
 reference registry is improved.
 
+Reference recovery must create a new benchmark version rather than rewriting
+the alias-fixed v2 artifacts. The supported path is an audited reference-map
+overlay:
+
+```bash
+./casp16 server-benchmark \
+  --benchmark casp16_server_protein_v3_refmap \
+  --benchmark-version 3 \
+  --reference-map diagnostics/reference_gap/accepted_reference_map.tsv \
+  --download-references
+```
+
+Only `status=accepted` reference-map rows with native provenance, construct
+coverage, chain mapping, and scoring mapping are applied. Candidate rows may be
+kept in the overlay for audit history, but they do not affect generated
+references. Passing `--reference-map` with `casp16_server_protein_v1` or
+`casp16_server_protein_v2_aliasfix` is rejected by the CLI.
+
 `docs/REFERENCE_GAP_AUDIT.md` records a high-impact alias issue: CASP phase
 ids such as `T2201` and `H2202` should be allowed to inherit metadata and PDB
 references from matching `T1201`/`H1202` rows. A temporary rebuild with

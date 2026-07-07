@@ -11,6 +11,8 @@ from .benchmark import (
     BENCHMARK_NAME,
     SERVER_ALIASFIX_BENCHMARK_NAME,
     SERVER_ALIASFIX_BENCHMARK_VERSION,
+    SERVER_REFMAP_BENCHMARK_NAME,
+    SERVER_REFMAP_BENCHMARK_VERSION,
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
     default_benchmark_dir,
@@ -336,6 +338,13 @@ def build_parser() -> argparse.ArgumentParser:
     server_benchmark.add_argument("--benchmark-dir", type=Path, default=None, help="Defaults to <root>/benchmarks/<benchmark>.")
     server_benchmark.add_argument("--download-references", action="store_true", help="Download/cache RCSB mmCIF references where possible.")
     server_benchmark.add_argument("--force-references", action="store_true", help="Re-download cached references.")
+    server_benchmark.add_argument(
+        "--reference-map",
+        type=Path,
+        action="append",
+        default=None,
+        help=f"Accepted reference overlay TSV for a new benchmark version, e.g. {SERVER_REFMAP_BENCHMARK_NAME} version {SERVER_REFMAP_BENCHMARK_VERSION}. Repeatable.",
+    )
 
     make_inputs = subparsers.add_parser("make-inputs", help="Generate Protenix input JSON from CASP16 sequence records.")
     make_inputs.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
@@ -580,6 +589,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             benchmark_version=args.benchmark_version,
             download_references=args.download_references,
             force_references=args.force_references,
+            reference_map_paths=args.reference_map,
         )
         print_json(summary)
         return 0

@@ -733,6 +733,15 @@ competitive result.
     Slurm/log evidence after exposing a status-file append race. `append_status`
     now uses a file lock so parallel target-shard starts and finishes do not
     drop lifecycle rows.
+41. `2026-07-06 22:37 CDT` added a guarded reference-map overlay path for the
+    next server benchmark version. `./casp16 server-benchmark --reference-map`
+    now accepts audited `status=accepted` target-to-PDB rows only when the
+    caller generates a new benchmark name such as
+    `casp16_server_protein_v3_refmap`; it refuses to overwrite locked v1/v2.
+    Accepted rows must carry native provenance, construct coverage, chain
+    mapping, and scoring mapping. This is the correct route to shrink the
+    96-target v2 `missing_reference` cap without using official scores or
+    hand-editing benchmark TSVs.
 
 ## Run Discipline
 
