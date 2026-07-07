@@ -5,7 +5,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from .runs import latest_status_by_run, load_run_specs, run_row_from_spec
+from .runs import latest_status_by_run, load_run_specs, run_row_from_spec, spec_bool
 
 
 DEFAULT_P14_RUN_ID = "server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105"
@@ -250,6 +250,98 @@ def enrich_launch_plan(project_root: Path, plan: Mapping[str, Any]) -> dict[str,
     return enriched
 
 
+def _normalized_spec_path(project_root: Path, spec: Mapping[str, Any], key: str) -> str:
+    text = str(spec.get(key, "") or "").strip()
+    if not text:
+        return ""
+    path = Path(text)
+    if not path.is_absolute():
+        path = project_root / path
+    return str(path.resolve())
+
+
+def p27b_variant_guard(project_root: Path, specs_by_id: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+    """Validate that P27b is a narrow default-params variant of P25 inputs."""
+
+    root = project_root.resolve()
+    p25_specs = [
+        spec
+        for run_id, spec in specs_by_id.items()
+        if run_id.startswith("server_v2_attack_scoreable_input_repair_size_balanced_shard")
+        and "_msa_reuse_protenix25_seed" in run_id
+    ]
+    p25_by_source: dict[str, list[Mapping[str, Any]]] = {}
+    for spec in p25_specs:
+        source = _normalized_spec_path(root, spec, "source_input_json")
+        if source:
+            p25_by_source.setdefault(source, []).append(spec)
+
+    failures: list[str] = []
+    matched_p25_specs = 0
+    checked_sources: set[str] = set()
+    for run_id in P27B_RUN_IDS:
+        spec = specs_by_id.get(run_id)
+        if spec is None:
+            failures.append(f"{run_id}:missing_run_spec")
+            continue
+        source = _normalized_spec_path(root, spec, "source_input_json")
+        checked_sources.add(source)
+        if not source:
+            failures.append(f"{run_id}:missing_source_input_json")
+        elif not Path(source).exists():
+            failures.append(f"{run_id}:source_input_json_missing_on_disk")
+        matches = p25_by_source.get(source, [])
+        if not matches:
+            failures.append(f"{run_id}:no_matching_p25_source_input")
+        matched_p25_specs += len(matches)
+
+        if str(spec.get("benchmark_name", "")) != "casp16_server_protein_v2_aliasfix":
+            failures.append(f"{run_id}:unexpected_benchmark")
+        if str(spec.get("backend", "")) != "protenix":
+            failures.append(f"{run_id}:unexpected_backend")
+        if str(spec.get("selected_model_policy", "") or "first_output_only") != "protenix_confidence_v1":
+            failures.append(f"{run_id}:unexpected_selected_model_policy")
+        if not spec_bool(spec.get("use_msa"), default=False):
+            failures.append(f"{run_id}:msa_disabled")
+        if not spec_bool(spec.get("use_default_params"), default=False):
+            failures.append(f"{run_id}:default_params_not_enabled")
+        if str(spec.get("seeds", "")) != "101,102,103,104,105":
+            failures.append(f"{run_id}:unexpected_seeds")
+        if as_int(spec.get("sample"), default=0) != 1:
+            failures.append(f"{run_id}:unexpected_sample")
+        if as_int(spec.get("candidate_count"), default=0) != 5:
+            failures.append(f"{run_id}:unexpected_candidate_count")
+        if str(spec.get("budget_tier", "")) != "server_attack":
+            failures.append(f"{run_id}:unexpected_budget_tier")
+
+        for match in matches:
+            p25_run_id = str(match.get("run_id", "p25_match"))
+            if spec_bool(match.get("use_default_params"), default=True):
+                failures.append(f"{run_id}:{p25_run_id}:p25_default_params_enabled")
+            for key in ("input_manifest_sha256", "references_sha256"):
+                if str(spec.get(key, "") or "") != str(match.get(key, "") or ""):
+                    failures.append(f"{run_id}:{p25_run_id}:{key}_mismatch")
+            for key in ("benchmark_name", "selected_model_policy"):
+                if str(spec.get(key, "") or "") != str(match.get(key, "") or ""):
+                    failures.append(f"{run_id}:{p25_run_id}:{key}_mismatch")
+            if spec_bool(spec.get("use_msa"), default=False) != spec_bool(match.get("use_msa"), default=False):
+                failures.append(f"{run_id}:{p25_run_id}:use_msa_mismatch")
+            if as_int(spec.get("sample"), default=0) != as_int(match.get("sample"), default=0):
+                failures.append(f"{run_id}:{p25_run_id}:sample_mismatch")
+            if as_int(match.get("candidate_count"), default=0) != 5:
+                failures.append(f"{run_id}:{p25_run_id}:p25_candidate_count_not_five")
+
+    return {
+        "status": "ok" if not failures else "blocked",
+        "checked_run_ids": len(P27B_RUN_IDS),
+        "p25_comparator_specs": len(p25_specs),
+        "matched_p25_specs": matched_p25_specs,
+        "source_input_count": len({source for source in checked_sources if source}),
+        "failures": failures[:25],
+        "note": "P27b must stay a repaired-input default-params variant; this guard reads run specs only.",
+    }
+
+
 POST_P25_BRANCH_READINESS = (
     {
         "branch": "p27b_model_config_diversity",
@@ -278,6 +370,9 @@ def post_p25_branch_readiness(project_root: Path) -> dict[str, Any]:
     """Return a read-only readiness audit for all prepared post-P25 branches."""
 
     root = project_root.resolve()
+    specs_by_id = {
+        str(spec.get("run_id", "")): spec for spec in load_run_specs(root / "runs", registered_only=False)
+    }
     branches: list[dict[str, Any]] = []
     for config in POST_P25_BRANCH_READINESS:
         plan = enrich_launch_plan(root, post_p25_launch_plan(config["next_branch"], "post_p25_branch_readiness"))
@@ -298,7 +393,11 @@ def post_p25_branch_readiness(project_root: Path) -> dict[str, Any]:
             ) == {"ok": int(alternate_preflight.get("row_count", 0) or 0)}
         missing_run_specs = [row.get("run_id", "") for row in all_specs if not row.get("run_spec_exists")]
         status_counts = Counter(str(row.get("status", "") or "unknown") for row in all_specs)
-        launch_ready = not missing_run_specs and preflight_ok and alternate_preflight_ok
+        variant_guard: dict[str, Any] = {}
+        if config["branch"] == "p27b_model_config_diversity":
+            variant_guard = p27b_variant_guard(root, specs_by_id)
+        variant_guard_ok = not variant_guard or variant_guard.get("status") == "ok"
+        launch_ready = not missing_run_specs and preflight_ok and alternate_preflight_ok and variant_guard_ok
         branches.append(
             {
                 "branch": config["branch"],
@@ -312,6 +411,7 @@ def post_p25_branch_readiness(project_root: Path) -> dict[str, Any]:
                 "status_counts": dict(sorted(status_counts.items())),
                 "preflight": preflight,
                 "alternate_preflight": alternate_preflight if "alternate_preflight" in plan else {},
+                "variant_guard": variant_guard,
                 "target_disjoint_shards": bool(plan.get("target_disjoint_shards")),
                 "note": plan.get("note", ""),
             }

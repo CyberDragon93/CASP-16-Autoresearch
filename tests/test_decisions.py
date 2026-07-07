@@ -4,7 +4,13 @@ import csv
 import json
 
 from casp16_leaderboard.cli import main
-from casp16_leaderboard.decisions import D6A_RUN_IDS, post_p14_readout, post_p25_branch_readiness, post_p25_readout
+from casp16_leaderboard.decisions import (
+    D6A_RUN_IDS,
+    P27B_RUN_IDS,
+    post_p14_readout,
+    post_p25_branch_readiness,
+    post_p25_readout,
+)
 
 
 def write_csv(path, rows, fields):
@@ -821,6 +827,128 @@ def test_post_p25_branch_readiness_audits_prepared_branches_without_launching(tm
     assert branches["d6a_domain_sequence_recovery"]["status_counts"] == {"deferred:await_p25_score": 1}
     assert branches["p27b_model_config_diversity"]["launch_ready_after_p25_selection"] is False
     assert branches["p27b_model_config_diversity"]["missing_run_specs"]
+
+
+def write_p27b_variant_readiness_fixture(tmp_path, *, break_default_params=False) -> None:
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    status_rows = []
+    preflight_rows = []
+    for shard, p27b_run_id in enumerate(P27B_RUN_IDS, 1):
+        source_input = (
+            tmp_path
+            / "strategies"
+            / "target_shards_scoreable_input_repair_size_balanced_v1"
+            / benchmark
+            / f"scoreable_input_repair_size_balanced_{shard:02d}.inputs.json"
+        )
+        source_input.parent.mkdir(parents=True, exist_ok=True)
+        source_input.write_text("[]\n", encoding="utf-8")
+        common = {
+            "benchmark_name": benchmark,
+            "backend": "protenix",
+            "model_name": "protenix-v2",
+            "sample": 1,
+            "candidate_count": 5,
+            "fixed_budget": True,
+            "selected_model_policy": "protenix_confidence_v1",
+            "use_msa": True,
+            "source_input_json": str(source_input),
+            "input_manifest_sha256": "manifest-sha",
+            "references_sha256": "reference-sha",
+        }
+        p27b_run_dir = tmp_path / "runs" / p27b_run_id
+        p27b_run_dir.mkdir(parents=True)
+        (p27b_run_dir / "run_spec.json").write_text(
+            json.dumps(
+                {
+                    **common,
+                    "run_id": p27b_run_id,
+                    "strategy": "target_shards_scoreable_input_repair_size_balanced_v1_server_attack_protenix5_defaultparams",
+                    "seeds": "101,102,103,104,105",
+                    "budget_tier": "server_attack",
+                    "rank_eligible": False,
+                    "use_default_params": False if break_default_params and shard == 1 else True,
+                    "input_json": str(p27b_run_dir / "inputs" / "inputs.msa-reuse.json"),
+                    "output_dir": str(p27b_run_dir / "predictions" / "protenix-v2"),
+                    "stdout_path": str(p27b_run_dir / "stdout.txt"),
+                    "stderr_path": str(p27b_run_dir / "stderr.txt"),
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        p25_run_id = (
+            f"server_v2_attack_scoreable_input_repair_size_balanced_shard{shard:02d}"
+            "_msa_reuse_protenix25_seed106_110"
+        )
+        p25_run_dir = tmp_path / "runs" / p25_run_id
+        p25_run_dir.mkdir(parents=True)
+        (p25_run_dir / "run_spec.json").write_text(
+            json.dumps(
+                {
+                    **common,
+                    "run_id": p25_run_id,
+                    "strategy": "target_shards_scoreable_input_repair_size_balanced_v1_server_attack_protenix25",
+                    "seeds": "106,107,108,109,110",
+                    "budget_tier": "server_attack",
+                    "rank_eligible": False,
+                    "use_default_params": False,
+                    "input_json": str(p25_run_dir / "inputs" / "inputs.msa-reuse.json"),
+                    "output_dir": str(p25_run_dir / "predictions" / "protenix-v2"),
+                    "stdout_path": str(p25_run_dir / "stdout.txt"),
+                    "stderr_path": str(p25_run_dir / "stderr.txt"),
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        status_rows.append(
+            {
+                "timestamp": "2026-07-07T19:00:00+00:00",
+                "benchmark": benchmark,
+                "run_id": p27b_run_id,
+                "status": "deferred:await_p25_score",
+                "message": "fixture",
+            }
+        )
+        preflight_rows.append(
+            {
+                "run_id": p27b_run_id,
+                "benchmark": benchmark,
+                "status": "deferred:await_p25_score",
+                "result": "ok",
+                "message": "",
+            }
+        )
+    write_tsv(tmp_path / "runs" / "status.tsv", status_rows, ["timestamp", "benchmark", "run_id", "status", "message"])
+    write_tsv(
+        tmp_path / "diagnostics" / "msa_cache" / "protenix5_input_repair_defaultparams_model_variant_preflight.tsv",
+        preflight_rows,
+        ["run_id", "benchmark", "status", "result", "message"],
+    )
+
+
+def test_post_p25_branch_readiness_accepts_p27b_narrow_defaultparams_variant(tmp_path) -> None:
+    write_p27b_variant_readiness_fixture(tmp_path)
+
+    audit = post_p25_branch_readiness(tmp_path)
+
+    p27b = {branch["branch"]: branch for branch in audit["branches"]}["p27b_model_config_diversity"]
+    assert p27b["launch_ready_after_p25_selection"] is True
+    assert p27b["variant_guard"]["status"] == "ok"
+    assert p27b["variant_guard"]["matched_p25_specs"] == 6
+    assert p27b["variant_guard"]["failures"] == []
+
+
+def test_post_p25_branch_readiness_blocks_p27b_variant_drift(tmp_path) -> None:
+    write_p27b_variant_readiness_fixture(tmp_path, break_default_params=True)
+
+    audit = post_p25_branch_readiness(tmp_path)
+
+    p27b = {branch["branch"]: branch for branch in audit["branches"]}["p27b_model_config_diversity"]
+    assert p27b["launch_ready_after_p25_selection"] is False
+    assert p27b["variant_guard"]["status"] == "blocked"
+    assert any("default_params_not_enabled" in failure for failure in p27b["variant_guard"]["failures"])
 
 
 def test_post_p25_readout_selects_o5b_for_antibody_fv_signal(tmp_path) -> None:

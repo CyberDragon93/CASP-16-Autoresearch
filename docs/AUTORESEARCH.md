@@ -1984,6 +1984,21 @@ competitive result.
      `fix_p25_score_path_before_more_gpu` rather than launching P27b/O5b.
      Validation: `python -m pytest tests/test_decisions.py` passed 16 tests,
      and full `python -m pytest` passed 179 tests in the protein env.
+138. `2026-07-07 16:32 CDT` P25 remains incomplete but healthy:
+     `ready=false`, `1512` observed candidates, `554` shard-level missing
+     candidates, `491` full 25-candidate slots missing, and `25/79`
+     full-budget tasks complete. Slurm still shows 19 running P25 jobs and 5
+     pending queue-capped jobs; error-keyword scanning is clean, latest
+     predictions reached 16:25 CDT, and `post-p25-branch-readiness` reports
+     `4/4` deferred branch families launch-ready after complete P25 selection.
+     Added a read-only P27b variant guard to branch readiness: the six
+     repaired-input default-params run specs must match P25 shard input
+     sources, manifest/reference hashes, MSA/selector/sample/candidate
+     invariants, and differ by `use_default_params=true` only. The real repo
+     audit now reports P27b `variant_guard.status=ok`, `6` checked run ids,
+     `24` matched P25 comparator specs, and no failures. Validation:
+     `python -m pytest tests/test_decisions.py` passed 18 tests, and full
+     `python -m pytest` passed 181 tests in the protein env.
 
 ## Run Discipline
 
