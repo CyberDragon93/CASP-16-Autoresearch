@@ -148,6 +148,21 @@ P14 score table is inspected.
   --shard-run-id server_v2_attack_scoreable_size_balanced_shard06_msa_reuse_protenix5_seed101_105
 ```
 
+After closeout, use the read-only decision helper before opening the next GPU
+branch:
+
+```bash
+./casp16 post-p14-readout \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --run-id server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105 \
+  --replay-run-id server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105_consensus_replay \
+  --output-json diagnostics/score_probes/post_p14_readout_latest.json
+```
+
+This helper reads only `runs.csv`, `target_scores.csv`, and benchmark target
+metadata. It does not read native structures, official per-target score tables,
+or prediction outputs, and it does not submit jobs.
+
 ## Post-P14 Decision Matrix
 
 After P14 is merged and scored, inspect `runs.csv`, `target_scores.csv`, and
