@@ -80,6 +80,13 @@ and produced a `candidate_limited_signal`. The active gate is now P25:
 wait for the submitted seed106-125 target-seed shards, merge them with the
 seed101-105 overlay, then score the complete 25-candidate row.
 
+Latest live checkpoint, `2026-07-07 11:25 CDT`: P25 is still not merge-ready.
+`check-shards` reports `ready=false`, `compatible=true`, `647` observed
+candidates, `1403` shard-level candidates missing, and `1328` full
+25-candidate slots missing. Slurm still has 19 P25 jobs running and 5 P25 jobs
+pending behind `QOSMaxJobsPerUserLimit`; error scanning is clean. Do not use a
+partial P25 row for score comparisons or for launching O5b/P27b.
+
 1. Historical P14 closeout command sequence, now complete:
    `server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105`.
    The six execution shards are rank-ineligible until every one has all five

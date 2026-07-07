@@ -1304,6 +1304,16 @@ competitive result.
     and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; error scanning
     remains clean. Do not score partial P25 or launch O5b/P27b from this
     incremental progress.
+80. `2026-07-07 11:25 CDT` P25 live gate: the same gate remains active and
+    still blocks scoring. Fresh shard03 seed106 artifacts appeared for
+    `H2258`, `T1234`, and `T1280`, plus one shard01 seed106 `T1210` artifact,
+    raising readiness to `observed_candidate_count=647`,
+    `missing_candidate_count=1403`, and `full_missing_candidate_count=1328`.
+    Slurm still shows 19 P25 jobs running and 5 P25 jobs pending behind
+    `QOSMaxJobsPerUserLimit`; shard06 has not started producing candidates yet.
+    Error scanning remains clean for traceback/OOM/CUDA killed/disk/timeout
+    signatures. Keep waiting for complete P25 readiness; do not partial-score,
+    merge, or launch O5b/P27b.
 
 ## Run Discipline
 
