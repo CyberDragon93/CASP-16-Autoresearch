@@ -1879,6 +1879,19 @@ competitive result.
      blocker and must stay versioned through v5 rather than patching v2/v4 in
      place. Keep waiting for complete declared candidates; do not score a
      partial P25 row or launch O5b/P27b/D6a yet.
+130. `2026-07-07 15:53 CDT` P25 gate remains healthy and incomplete:
+     `ready=false`, `1370` observed candidates, `688` shard-level missing,
+     and `618` full merged candidate slots missing. Slurm is unchanged at 19
+     running P25 jobs plus 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`.
+     Error-keyword scanning is still clean, and recent predictions reached
+     15:53 CDT on `H0258`, `H1258`, `H2258`, and `T1234` seed blocks. The
+     read-only `post-p25-branch-readiness` audit reports all four deferred
+     branch families launch-ready after P25 selection: P27b, D6a, O5b, and
+     P15/v4 have complete run specs and `ok` preflights. Added an explicit
+     winner-match gap to the control board: the best complete local row is
+     `0.107690` vs domain winner `0.923321` and `0.118933` vs oligo winner
+     `0.582615`, so only server-style fixed-set, missing-as-zero comparisons
+     count as winner-comparison points. Keep P25 as the active gate.
 
 ## Run Discipline
 

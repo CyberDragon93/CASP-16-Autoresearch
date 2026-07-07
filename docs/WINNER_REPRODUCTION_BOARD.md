@@ -24,21 +24,48 @@ This is not close to the winners yet. The immediate goal is to raise valid
 scoreable-target signal and coverage without using references or official
 per-target scores during prediction.
 
+## Winner-Match Gap
+
+The current complete local row is still a reproduction scaffold, not a
+champion-level method:
+
+| Track | Best complete local | Server winner | Absolute gap | Relative level |
+| --- | ---: | ---: | ---: | ---: |
+| protein domain | `0.107690` | `0.923321` | `0.815631` | `11.7%` of winner |
+| protein oligo | `0.118933` | `0.582615` | `0.463682` | `20.4%` of winner |
+
+To call a run "winner-matching", it must be scored on the server-style fixed
+target sets, with the same missing-as-zero rule, and be compared to
+server-only groups in `official_server_groups.csv`. A `target_lab` result,
+DockQ-only result, small `casp16_protein_v1` result, partial shard, or
+unmerged P25 row is not a winner-comparison point.
+
+The fastest honest route to matching the winner is not to add random
+infrastructure. It is:
+
+1. Finish P25 and test whether a 25-candidate pool plus predeclared selector
+   materially improves the repaired P17 baseline.
+2. If P25 is flat but complete, launch P27b to test model/config diversity.
+3. If P25 exposes a predeclared input failure class, launch D6a or O5b as
+   selected by the aggregate post-P25 readout.
+4. If scoring is reference-capped, continue only versioned refmap work before
+   spending more GPU.
+
 ## Active Gate
 
-Checked `2026-07-07 15:50 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 15:53 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1363` |
-| shard-level missing candidates | `695` |
-| full 25-candidate slots still missing | `625` |
+| observed candidates | `1370` |
+| shard-level missing candidates | `688` |
+| full 25-candidate slots still missing | `618` |
 | complete full-budget tasks | `1 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; `gh` `MaxJobsPU=20` and one `tacc-vscode` job is also running |
-| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 15:50 CDT |
+| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 15:53 CDT |
 | action | wait for declared candidates, then run the P25 closeout wrapper |
 
 Do not score the P25 row or launch O5b/P27b/D6a from partial outputs. The
