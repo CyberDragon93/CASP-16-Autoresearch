@@ -389,6 +389,28 @@ remain candidate references only: accepted promotion requires biological
 assembly provenance, chain/entity stoichiometry, and explicit QSglob interface
 mapping. Do not promote these from sequence identity alone.
 
+A follow-up scan on `2026-07-07` raised the RCSB search cap to
+`--max-hits 50`:
+
+```bash
+./casp16 refmap-probe \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --max-hits 50 \
+  --output-targets-tsv diagnostics/reference_gap/rcsb_exact_sequence_probe_20260707_all_missing_references.tsv \
+  --output-candidates-tsv diagnostics/reference_gap/rcsb_exact_sequence_probe_20260707_all_candidates.tsv
+
+./casp16 refmap-review \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --candidate-tsv diagnostics/reference_gap/rcsb_exact_sequence_probe_20260707_all_candidates.tsv \
+  --output-tsv diagnostics/reference_gap/casp16_server_protein_20260707_refmap_review.tsv
+```
+
+This returned 304 candidate rows and 156 deferred rows, but still only 81
+full-construct exact candidates. It did not add any new promotable target class:
+candidate rows remain limited to `T1228V1`, accepted `T1278/T2278`, and the
+H0217/H0267 oligo alias groups. The extra rows are therefore search-depth
+diagnostics, not a reason to create a new refmap benchmark version.
+
 The oligo candidates are now materialized and audited separately:
 
 ```bash
