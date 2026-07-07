@@ -82,6 +82,18 @@ def post_p25_launch_plan(next_branch: str, decision_status: str) -> dict[str, An
             ],
             "note": "P25 has run rows but no target scores yet.",
         },
+        "score_p17_baseline_before_branching": {
+            "action": "score_p17_baseline",
+            "run_ids": [DEFAULT_P17_RUN_ID],
+            "preflight_tsv": "",
+            "target_disjoint_shards": False,
+            "command_templates": [
+                "./casp16 score --benchmark casp16_server_protein_v2_aliasfix",
+                "./casp16 leaderboard --benchmark casp16_server_protein_v2_aliasfix",
+                "./casp16 post-p25-readout --benchmark casp16_server_protein_v2_aliasfix",
+            ],
+            "note": "Score the P17 repaired-input baseline before selecting a post-P25 branch.",
+        },
         "finish_or_repair_p25_candidate_grid": {
             "action": "repair_p25_grid",
             "run_ids": [],

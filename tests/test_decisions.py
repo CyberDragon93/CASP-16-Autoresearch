@@ -198,6 +198,7 @@ def test_post_p14_readout_cli_writes_json(tmp_path, capsys) -> None:
 def write_p25_readout_fixture(
     tmp_path,
     *,
+    include_baseline=True,
     include_p25=True,
     p25_partial=False,
     p25_domain_mean="0.080000",
@@ -221,26 +222,30 @@ def write_p25_readout_fixture(
         ],
         ["target_id", "track", "rank_eligible", "reference_status"],
     )
-    run_rows = [
-        {
-            "run_id": baseline_id,
-            "track": "protein_domain",
-            "mean_score": baseline_domain_mean,
-            "eligible_targets": "3",
-            "ok_targets": "2",
-            "partial_candidate_targets": "0",
-            "metric_unavailable_targets": "0",
-        },
-        {
-            "run_id": baseline_id,
-            "track": "protein_oligo",
-            "mean_score": baseline_oligo_mean,
-            "eligible_targets": "2",
-            "ok_targets": "2",
-            "partial_candidate_targets": "0",
-            "metric_unavailable_targets": "0",
-        },
-    ]
+    run_rows = []
+    if include_baseline:
+        run_rows.extend(
+            [
+                {
+                    "run_id": baseline_id,
+                    "track": "protein_domain",
+                    "mean_score": baseline_domain_mean,
+                    "eligible_targets": "3",
+                    "ok_targets": "2",
+                    "partial_candidate_targets": "0",
+                    "metric_unavailable_targets": "0",
+                },
+                {
+                    "run_id": baseline_id,
+                    "track": "protein_oligo",
+                    "mean_score": baseline_oligo_mean,
+                    "eligible_targets": "2",
+                    "ok_targets": "2",
+                    "partial_candidate_targets": "0",
+                    "metric_unavailable_targets": "0",
+                },
+            ]
+        )
     if include_p25:
         run_rows.extend(
             [
@@ -278,53 +283,57 @@ def write_p25_readout_fixture(
         ],
     )
 
-    score_rows = [
-        {
-            "run_id": baseline_id,
-            "track": "protein_domain",
-            "target_id": "T1",
-            "status": "ok",
-            "score": baseline_domain_mean,
-            "prediction_match_type": "exact",
-            "qsglob": "",
-        },
-        {
-            "run_id": baseline_id,
-            "track": "protein_domain",
-            "target_id": "T2",
-            "status": "ok",
-            "score": baseline_domain_mean,
-            "prediction_match_type": "exact",
-            "qsglob": "",
-        },
-        {
-            "run_id": baseline_id,
-            "track": "protein_oligo",
-            "target_id": "H1",
-            "status": "ok",
-            "score": baseline_oligo_mean,
-            "prediction_match_type": "exact",
-            "qsglob": baseline_oligo_mean,
-        },
-        {
-            "run_id": baseline_id,
-            "track": "protein_oligo",
-            "target_id": "H2",
-            "status": "ok",
-            "score": baseline_oligo_mean,
-            "prediction_match_type": "exact",
-            "qsglob": baseline_oligo_mean,
-        },
-        {
-            "run_id": baseline_id,
-            "track": "protein_domain",
-            "target_id": "T3",
-            "status": "missing_reference",
-            "score": "0.000000",
-            "prediction_match_type": "",
-            "qsglob": "",
-        },
-    ]
+    score_rows = []
+    if include_baseline:
+        score_rows.extend(
+            [
+                {
+                    "run_id": baseline_id,
+                    "track": "protein_domain",
+                    "target_id": "T1",
+                    "status": "ok",
+                    "score": baseline_domain_mean,
+                    "prediction_match_type": "exact",
+                    "qsglob": "",
+                },
+                {
+                    "run_id": baseline_id,
+                    "track": "protein_domain",
+                    "target_id": "T2",
+                    "status": "ok",
+                    "score": baseline_domain_mean,
+                    "prediction_match_type": "exact",
+                    "qsglob": "",
+                },
+                {
+                    "run_id": baseline_id,
+                    "track": "protein_oligo",
+                    "target_id": "H1",
+                    "status": "ok",
+                    "score": baseline_oligo_mean,
+                    "prediction_match_type": "exact",
+                    "qsglob": baseline_oligo_mean,
+                },
+                {
+                    "run_id": baseline_id,
+                    "track": "protein_oligo",
+                    "target_id": "H2",
+                    "status": "ok",
+                    "score": baseline_oligo_mean,
+                    "prediction_match_type": "exact",
+                    "qsglob": baseline_oligo_mean,
+                },
+                {
+                    "run_id": baseline_id,
+                    "track": "protein_domain",
+                    "target_id": "T3",
+                    "status": "missing_reference",
+                    "score": "0.000000",
+                    "prediction_match_type": "",
+                    "qsglob": "",
+                },
+            ]
+        )
     if include_p25:
         p25_status = "partial_candidates" if p25_partial else "ok"
         p25_score = "0.000000" if p25_partial else p25_domain_mean
@@ -525,6 +534,17 @@ def test_post_p25_readout_selects_seed_scaling_signal(tmp_path) -> None:
     assert summary["decision_status"] == "seed_scaling_signal"
     assert summary["comparison"]["fixed_set_delta"] > 0.01
     assert summary["launch_plan"]["action"] == "analyze_complete_p25"
+
+
+def test_post_p25_readout_requires_p17_baseline_before_branching(tmp_path) -> None:
+    benchmark, p25_id, baseline_id = write_p25_readout_fixture(tmp_path, include_baseline=False)
+
+    summary = post_p25_readout(project_root=tmp_path, benchmark=benchmark, run_id=p25_id, baseline_run_id=baseline_id)
+
+    assert summary["decision_status"] == "baseline_missing"
+    assert summary["next_branch"] == "score_p17_baseline_before_branching"
+    assert summary["launch_plan"]["action"] == "score_p17_baseline"
+    assert summary["launch_plan"]["run_ids"] == ["server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105"]
 
 
 def test_post_p25_readout_selects_d6a_for_predeclared_domain_input_signal(tmp_path) -> None:
