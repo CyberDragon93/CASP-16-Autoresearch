@@ -39,6 +39,18 @@ ACGTACGT
     assert "M1212" in by_id["D1212s3"]["target_ids"].split(",")
 
 
+def test_parse_fasta_text_prefers_protein_content_over_dna_label() -> None:
+    text = """>T1228v1 SPbeta_int_DNA, Bacillus subtilis, subunit 1, 545 residues
+MELKNIVNSYNITNILGYLRRSRQDMEREKRTGEDTLTEQKELMNKILTAIEIPYELKMEIGS
+>D1228s3, M1228 subunit 3, DNA 121 residues
+NNNTNGTGTTNTAGGGCGAATGAGNTNATTGATAAGGAGNTANNGNGTAATNTGNTAN
+"""
+    rows = parse_fasta_text(text, "fixture.seq.txt")
+    by_id = {row["record_id"]: row for row in rows}
+    assert by_id["T1228v1"]["sequence_kind"] == "proteinChain"
+    assert by_id["D1228s3"]["sequence_kind"] == "dnaSequence"
+
+
 def test_parse_score_table_protein_domain() -> None:
     text = """#    Model               GR#     GDT_TS   NP_P    RANK  LDDT    TMscore
 1    T0206TS304_4-D1     304s    99.67    100.00  1     0.942   0.993

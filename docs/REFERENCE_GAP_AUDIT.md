@@ -473,3 +473,11 @@ conformation. Treat this as D6a input recovery first; only a later benchmark
 version with the 545-residue protein input, explicit native-state provenance,
 and explicit chain/domain mapping should consider promoting the native
 reference.
+
+Parser hygiene update on `2026-07-07`: the official FASTA parser now prefers
+clear protein sequence content over misleading `DNA` text in a record header.
+This fixes future input generation for targets such as `T1228V1`, `T1239V1`,
+and `T1276`, but it is deliberately not a reference promotion. Existing
+`missing_reference` rows remain zero-scored until a new benchmark version
+installs accepted reference-map rows with provenance, chain/domain or assembly
+mapping, and cached structure hashes.

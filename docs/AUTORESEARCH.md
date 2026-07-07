@@ -1390,6 +1390,13 @@ competitive result.
     reuse (`276/276` protein chains, 0 stale) but no predictions yet. Keep D6
     as a post-P25 branch if the complete P25 score still shows domain zeros
     from input-kind or alias repair classes.
+89. `2026-07-07` Reference-gap hygiene: fixed the official FASTA sequence
+    classifier so protein-like records with misleading `DNA` text in the record
+    id or header are parsed as `proteinChain` by sequence content. This keeps
+    future regenerated inputs from repeating the `T1228V1`/`T1276`-class
+    input-kind bug. It does not promote any native reference, does not change
+    locked benchmark eligibility in place, and does not make current
+    `missing_reference` rows scoreable without a versioned refmap benchmark.
 
 ## Run Discipline
 

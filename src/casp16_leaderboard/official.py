@@ -36,6 +36,8 @@ MODEL_TARGET_RE = re.compile(r"\b([A-Z]\d{4}(?:v\d+)?)TS", re.IGNORECASE)
 FLOAT_RE = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?")
 DOMAIN_DEF_RE = re.compile(r"\b([A-Z]\d{4}(?:S\d+|V\d+)?-D\d+)\s*:\s*(.+)$", re.IGNORECASE)
 PDB_ID_RE = re.compile(r"\b([0-9](?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{3})\b")
+NUCLEIC_SEQUENCE_ALPHABET = set("ACGTUN")
+PROTEIN_SEQUENCE_ALPHABET = set("ABCDEFGHIKLMNPQRSTVWXYZ")
 
 PRIMARY_METRIC_CANDIDATES = {
     "prot_domains": ("GDT_TS", "LDDT", "TMscore"),
@@ -333,6 +335,10 @@ def base_target_id(target_id: str) -> str:
 
 
 def classify_sequence(record_id: str, header: str, sequence: str) -> str:
+    content_kind = classify_sequence_content(sequence)
+    if content_kind == "proteinChain":
+        return content_kind
+
     low = f"{record_id} {header}".lower()
     if "rna" in low:
         return "rnaSequence"
@@ -348,9 +354,24 @@ def classify_sequence(record_id: str, header: str, sequence: str) -> str:
     if prefix == "D":
         return "dnaSequence"
     alphabet = set(sequence.upper())
-    if alphabet <= set("ACGUN"):
+    if alphabet <= NUCLEIC_SEQUENCE_ALPHABET:
         return "rnaSequence" if "U" in alphabet else "dnaSequence"
     return "proteinChain"
+
+
+def classify_sequence_content(sequence: str) -> str:
+    compact = re.sub(r"\s+", "", sequence.upper())
+    if not compact:
+        return ""
+    alphabet = set(compact)
+    if alphabet <= NUCLEIC_SEQUENCE_ALPHABET:
+        return "rnaSequence" if "U" in alphabet else "dnaSequence"
+    if not alphabet <= PROTEIN_SEQUENCE_ALPHABET:
+        return ""
+    non_nucleic = sum(1 for char in compact if char not in NUCLEIC_SEQUENCE_ALPHABET)
+    if len(compact) >= 30 and (non_nucleic / len(compact)) >= 0.10:
+        return "proteinChain"
+    return ""
 
 
 def parse_score_table_text(text: str, category: str, source_name: str) -> list[dict[str, str]]:
