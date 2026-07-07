@@ -1422,6 +1422,13 @@ competitive result.
     targets. The local repaired five-candidate overlay remains much lower
     (`0.107690` domain, `0.118933` oligo), so P25 remains a
     scoreable-subset candidate-budget probe rather than a server-winner claim.
+92. `2026-07-07 12:12 CDT` P25 live gate: unchanged at `ready=false`,
+    `compatible=true`, `852` observed candidates, `1198` shard-level missing,
+    and `1123` full candidate slots missing. The post-P25 execution queue was
+    tightened in `docs/AUTORESEARCH_QUEUE.md`: after P25 completes, choose
+    exactly one branch by failure mode: P27b for flat valid predictions, D6a
+    for domain input-kind/alias zeros, O5b for antibody/Fv oligo weakness, or
+    versioned refmap work for reference caps. No new Slurm jobs were submitted.
 
 ## Run Discipline
 

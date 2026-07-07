@@ -3,6 +3,36 @@
 This queue turns winner-recipe notes into executable full-benchmark attempts.
 The queue is allowed to change quickly; benchmark definitions are not.
 
+## Post-P25 Fast Decision Queue
+
+Current live P25 gate, checked `2026-07-07 12:12 CDT`: `ready=false`,
+`compatible=true`, `852` observed candidates, `1198` shard-level candidates
+missing, and `1123` full 25-candidate slots missing. Slurm has 19 P25 jobs
+running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`. Do not submit
+any branch in this section until the complete P25 row is merged and scored.
+
+Use this queue immediately after the complete P25 score exists:
+
+| Priority | Trigger After P25 | Branch | Why This Beats Waiting | Launch Gate |
+| --- | --- | --- | --- | --- |
+| 1 | P25 has broad nonzero scoreable rows and improves over P17 | No new branch; analyze P25 target deltas and selection failures first | The 25-candidate budget is then the first serious signal for whether Protenix seed scaling helps | Record exact domain/oligo means, ok/missing/failed counts, and only then choose P27b/O5b/D6a |
+| 2 | P25 is flat versus P17 while predictions and metrics are valid | P27b repaired-input default-params model/config variant | Reproduces the winner clue that model/config diversity can matter more than more seeds on one input | Run only the six `server_v2_attack_scoreable_input_repair_defaultparams_shard*` specs; preflight is `6/6 ok`, MSA `146/146`, 0 stale |
+| 3 | P25 domain zeros or failures concentrate on `T1276/T1228V1/T1239V1/T2276`-class input-kind/alias repairs | D6a domain sequence recovery full run | More seeds repeat bad inputs; the D6a input is now cache-complete and repairs the sequence modality class | Mark `server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101` pending, dry-run it, then run a single `dev_fixed` job |
+| 4 | P25 oligo QSglob failures concentrate on antibody/Fv rows while non-antibody exact oligos show signal | O5b repaired-input antibody/Fv shards | Target-lab Fv diagnostics were positive, and O5b promotes the rule without hand-picking targets | Run only the six `server_v2_attack_scoreable_input_repair_antibody_fv_shard*` specs; preflight is `6/6 ok`, MSA `146/146`, 0 stale |
+| 5 | P25 is mostly capped by `missing_reference` while predictions are otherwise usable | P15/v4 or V5 refmap work, not more GPU | Additional predictions cannot score without references; reference work must be versioned | Do not patch v2/v4 in place; use accepted refmap rows and a new benchmark version when needed |
+
+For a selected deferred run, record the decision before launch:
+
+```bash
+./casp16 mark-run --run-id <run_id> --status pending --message "selected after complete P25 readout: <reason>"
+./casp16 run-one --run-id <run_id> --dry-run
+ssh login1 'cd /scratch/10992/liaorunlong93/casp16-leaderboard && RUN_ID=<run_id> sbatch --export=ALL slurm/casp16_run_one_gh200.slurm'
+```
+
+For target-disjoint shard branches, submit each selected shard run id with the
+same `RUN_ID=... sbatch` pattern. Do not use `--allow-parallel` unless the
+target-shard manifest has already proven the selected shards are disjoint.
+
 ## Next To Run
 
 | Priority | Run | Benchmark | Status | Why It Matters | Next Gate |
@@ -40,7 +70,7 @@ The queue is allowed to change quickly; benchmark definitions are not.
 | done | `target_lab/domain_fragment_batch_v1` | target_lab only | job `810862` complete; 12/12 structures and confidence files | Compact domain-decomposition reproduction for D2 winner recipe | Diagnostic confidence is high on most fragments; promote only target-agnostic segmentation, not CASP-domain hand crops |
 | target_lab | `811918` | `targetlab_protenix_yang_antibody_fv_seed101` | target_lab only | complete on `c620-142`; 8/8 CIFs, confidence summaries, and DockQ diagnostics | Eight full-MSA/template Fv-only antibody-antigen jobs from `yang_antibody_fv_fragment_inputs_v1`; DockQ strong positives `H0233__fv=0.916` and `H1233__fv=0.891`; never ranked |
 | superseded P18 | `casp16_server_attack_protenix25_scoreable_nofail` | `casp16_server_protein_v2_aliasfix` | prepared, not queued; target+seed shard manifest has 30 rows for the pre-P17 74-target input | Winner-like compute is likely more than five candidates, but this artifact predates P17's 79-target input repair | Do not launch the old 74-target P18 grid; use the repaired P25 plan below if P17 justifies scale-up |
-| P25 submitted | `casp16_server_attack_protenix25_scoreable_input_repair` | `casp16_server_protein_v2_aliasfix` | submitted Slurm jobs `812935..812958` for the 24 seed106-125 target-seed shards; latest live gate at `2026-07-07 11:54 CDT` is `ready=false`, `compatible=true`, 19 running, 5 pending behind `QOSMaxJobsPerUserLimit`, `828` observed candidates, `1222` shard-level missing, complete MSA reuse, and clean error scans | This is the winner-like 25-candidate successor to P17 on the repaired 79-target scoreable input | Wait for all jobs to finish, merge with the overlay, then score/leaderboard the complete 25-candidate row; do not score partial output or launch O5b/P27b early |
+| P25 submitted | `casp16_server_attack_protenix25_scoreable_input_repair` | `casp16_server_protein_v2_aliasfix` | submitted Slurm jobs `812935..812958` for the 24 seed106-125 target-seed shards; latest live gate at `2026-07-07 12:12 CDT` is `ready=false`, `compatible=true`, 19 running, 5 pending behind `QOSMaxJobsPerUserLimit`, `852` observed candidates, `1198` shard-level missing, complete MSA reuse, and clean error scans | This is the winner-like 25-candidate successor to P17 on the repaired 79-target scoreable input | Wait for all jobs to finish, merge with the overlay, then score/leaderboard the complete 25-candidate row; do not score partial output or launch O5b/P27b early |
 | P19 | `casp16_server_attack_protenix25_nofail` | `casp16_server_protein_v2_aliasfix` | planned, not queued; keep as full-input ablation while references are incomplete | Same 25-seed budget on the 165-job oligo-recovery nofail stack, with exact-sequence MSA paths reused across shards | Do not launch before reference recovery or a recorded decision to spend compute on full-input ablation |
 | design P27 | `casp16_server_attack_msa_model_diversity_v1` | post-P17 server benchmark, likely `casp16_server_protein_v2_aliasfix` unless v4 is selected first | non-executable budget design recorded in `attack_budgets/casp16_server_attack_msa_model_diversity_v1.json`; selector hook `diversity_confidence_consensus_v1` is implemented; P27a below is the first concrete model/config variant | Reproduces the MULTICOM4/QA4-style lesson: diverse MSA/model generation plus QA, with real MSA/template settings, rather than just turning one Protenix input through more seeds | Build broader MSA/model variants only if P17 and P27a evidence show that model/config diversity is worth more than seed scaling, reference recovery, or input repair |
 | P27a | `server_v2_attack_scoreable_defaultparams_shard01..06_msa_reuse_protenix5_seed101_105` | `casp16_server_protein_v2_aliasfix` | prepared, not submitted; budget JSON and shard TSV are checked in; all six run specs are `deferred:await_p14_score`, rank-ineligible, `server_attack`, and batch preflight is `6/6 ok` with complete MSA reuse | First executable model/config diversity probe on the pre-P17 74-target scoreable target shards, seeds `101..105`, sample count, real MSA/template, and selector, flipping only `use_default_params:false -> true` | Retarget after P17 if model/config diversity is selected; keep as a separate attack row, never merge into P17 |
