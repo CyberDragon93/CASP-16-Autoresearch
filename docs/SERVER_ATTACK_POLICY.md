@@ -142,8 +142,8 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 `rank_eligible=false` until merged. They were submitted as Slurm jobs
 `812239..812244` with `./casp16 run-one --allow-parallel`.
 
-Current launch gate as of `2026-07-06 23:49 CDT`: those six P14 shards are
-still running and not merge-ready. `check-shards` observes 63/370 expected
+Current launch gate as of `2026-07-07 00:40 CDT`: those six P14 shards are
+still running and not merge-ready. `check-shards` observes 115/370 expected
 candidate CIFs and reports `ready=false`. Do not submit the deferred v4 P15
 shards, the 25-seed scoreable grid, or the antibody-Fv scoreable branch until
 P14 is either merged/scored or explicitly abandoned with an append-only status
