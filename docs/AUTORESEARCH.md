@@ -106,6 +106,16 @@ where methods should change.
   `T1278/T2278`, and the unresolved H0217/H0267 oligo alias groups. Do not
   spend another loop on search-depth-only refmap probing unless the worklist or
   acceptance rule changes.
+- `2026-07-07` v5 reference-recovery plan:
+  `docs/REFERENCE_RECOVERY_V5_PLAN.md` splits missing-reference repair into
+  strict work lanes. `T1228V1` is the only near-term unaccepted domain
+  candidate class, but it still needs native provenance plus explicit
+  `T1228V1-D1..D4` crop mapping. `H0217/H1217/H2217` and
+  `H0267/H1267/H2267` remain oligo candidates blocked by biological assembly
+  and QSglob mapping. Five rows are input/alias repair before reference work.
+  The rest are manual native-search targets, grouped by phase alias. Any
+  accepted expansion must become `casp16_server_protein_v5_refmap`; do not
+  mutate v2/v4 in place.
 - `2026-07-06 18:57 CDT` reference-gap audit update: several high-priority
   `missing_reference` rows first need input-kind repair, not native hunting.
   `T1276`, `T1228V1`, and `T2276` were locally represented as short DNA jobs
@@ -225,6 +235,13 @@ where methods should change.
   previous check; the remaining wait is still Protenix forward on large
   targets, not repeated MSA search or a cache failure. Keep P15/P18/P25/P27a/O5
   and D6a gated until P14/P16 closeout finishes.
+- `2026-07-07 05:18 CDT` P14 health check: all six shard jobs
+  `812239..812244` are still RUNNING at about 6h58m. Replay-safe
+  `finish-shards` observes `337/370` candidates, `33` missing candidates,
+  `41/74` complete target tasks, `0/6` complete shards, and `ready=false`.
+  Error scans remain clean. This continues to look like slow Protenix forward
+  on the last large targets, not repeated MSA work. Do not launch the deferred
+  P15/P18/P25/P27a/O5/D6a branches or inspect partial target scores.
 - Post-P14 winner-recipe branch `casp16_server_attack_msa_model_diversity_v1`
   is now documented as a design gate in `docs/CASP16_WINNER_RECIPES.md`. It
   captures the MULTICOM4/QA4-style lesson: if P14 is complete and valid but
