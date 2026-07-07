@@ -287,7 +287,12 @@ def select_prediction_for_target(
             "selected_model_policy": policy,
         }
 
-    if policy not in {"protenix_confidence_v1", "diversity_confidence_consensus_v1"}:
+    if policy not in {
+        "protenix_confidence_v1",
+        "diversity_confidence_consensus_v1",
+        "protenix_ranking_score_v1",
+        "protenix_ranking_consensus_v1",
+    }:
         return {
             "status": "selection_failed",
             "selected_model_policy": policy,
@@ -302,6 +307,10 @@ def select_prediction_for_target(
         confidence = read_confidence_json(confidence_path)
         if policy == "diversity_confidence_consensus_v1":
             score = diversity_confidence_consensus_v1_score(confidence)
+        elif policy == "protenix_ranking_score_v1":
+            score = protenix_ranking_score_v1_score(confidence)
+        elif policy == "protenix_ranking_consensus_v1":
+            score = protenix_ranking_consensus_v1_score(confidence)
         else:
             score = protenix_confidence_v1_score(confidence)
         if score is None or not math.isfinite(score):
@@ -409,6 +418,50 @@ def diversity_confidence_consensus_v1_score(confidence: Mapping[str, Any]) -> fl
         ),
     )
     return (0.70 * base) + (0.20 * (consensus or 0.0)) + (0.10 * (cluster_support or 0.0))
+
+
+def protenix_ranking_score_v1_score(confidence: Mapping[str, Any]) -> float | None:
+    ranking_score = _first_confidence_float(
+        confidence,
+        (
+            "ranking_score",
+            "ranking_confidence",
+            "confidence_score",
+            "aggregate_score",
+        ),
+    )
+    if ranking_score is None:
+        return protenix_confidence_v1_score(confidence)
+    if ranking_score > 1.0:
+        ranking_score /= 100.0
+    disorder = _confidence_float(confidence.get("disorder")) or 0.0
+    clash_penalty = 1.0 if bool(confidence.get("has_clash")) else 0.0
+    return ranking_score - (0.05 * disorder) - (0.20 * clash_penalty)
+
+
+def protenix_ranking_consensus_v1_score(confidence: Mapping[str, Any]) -> float | None:
+    base = protenix_ranking_score_v1_score(confidence)
+    if base is None:
+        return None
+    consensus = _first_confidence_float(
+        confidence,
+        (
+            "consensus_score",
+            "consensus",
+            "mean_pairwise_tm",
+            "mean_pairwise_tmscore",
+            "cluster_score",
+        ),
+    )
+    cluster_support = _first_confidence_float(
+        confidence,
+        (
+            "cluster_support",
+            "cluster_fraction",
+            "cluster_size_fraction",
+        ),
+    )
+    return (0.80 * base) + (0.15 * (consensus or 0.0)) + (0.05 * (cluster_support or 0.0))
 
 
 def _first_confidence_float(confidence: Mapping[str, Any], keys: Sequence[str]) -> float | None:

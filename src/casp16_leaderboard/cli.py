@@ -210,11 +210,11 @@ def finish_prediction_shards(
     tmscore_bin: Path | None,
     dockq_bin: Path | None,
     qsglob_bin: Path | None,
-    replay_run_id: str = "",
-    replay_selected_model_policy: str = "diversity_confidence_consensus_v1",
-    replay_strategy: str = "",
+    replay_run_id: str | Sequence[str] = "",
+    replay_selected_model_policy: str | Sequence[str] = "diversity_confidence_consensus_v1",
+    replay_strategy: str | Sequence[str] = "",
     replay_rank_eligible: bool | None = None,
-    replay_selection_qa_output_csv: Path | None = None,
+    replay_selection_qa_output_csv: Path | Sequence[Path] | None = None,
     replay_min_cluster_score: float = 0.5,
     post_p14_readout_output_json: Path | None = None,
     post_p25_readout_output_json: Path | None = None,
@@ -268,22 +268,33 @@ def finish_prediction_shards(
         merged_input_json=merged_input_json.resolve(),
         allow_target_shards=allow_target_shards,
     )
-    replay_summary: dict[str, object] = {}
-    if replay_run_id:
-        replay_summary = register_prediction_selection_replay(
-            root=root,
-            benchmark=benchmark,
-            source_run_id=run_id,
-            replay_run_id=replay_run_id,
-            output_dir=Path(str(merge_summary["output_dir"])),
-            input_json=merged_input_json.resolve(),
-            selected_model_policy=replay_selected_model_policy,
-            strategy=replay_strategy,
-            rank_eligible=rank_eligible if replay_rank_eligible is None else replay_rank_eligible,
-            tmscore_bin=tmscore_bin,
-            output_csv=replay_selection_qa_output_csv,
-            min_cluster_score=replay_min_cluster_score,
+    replay_run_ids = _normalize_replay_values(replay_run_id)
+    replay_policies = _normalize_replay_values(replay_selected_model_policy)
+    replay_strategies = _normalize_replay_values(replay_strategy)
+    replay_output_csvs = _normalize_replay_paths(replay_selection_qa_output_csv)
+    replay_summaries: list[dict[str, object]] = []
+    for index, current_replay_run_id in enumerate(replay_run_ids):
+        replay_summaries.append(
+            register_prediction_selection_replay(
+                root=root,
+                benchmark=benchmark,
+                source_run_id=run_id,
+                replay_run_id=current_replay_run_id,
+                output_dir=Path(str(merge_summary["output_dir"])),
+                input_json=merged_input_json.resolve(),
+                selected_model_policy=_indexed_or_last(replay_policies, index, default="diversity_confidence_consensus_v1"),
+                strategy=_indexed_or_last(replay_strategies, index, default=""),
+                rank_eligible=rank_eligible if replay_rank_eligible is None else replay_rank_eligible,
+                tmscore_bin=tmscore_bin,
+                output_csv=_indexed_or_none(replay_output_csvs, index),
+                min_cluster_score=replay_min_cluster_score,
+            )
         )
+    replay_summary: dict[str, object] = {}
+    if len(replay_summaries) == 1:
+        replay_summary = replay_summaries[0]
+    elif replay_summaries:
+        replay_summary = {"count": len(replay_summaries), "rows": replay_summaries}
     score_summary = score_benchmark_runs(
         project_root=root,
         benchmark=benchmark,
@@ -301,7 +312,7 @@ def finish_prediction_shards(
     )
     readout_summary: dict[str, object] = {}
     if post_p14_readout_output_json:
-        replay_id = replay_run_id or f"{run_id}_consensus_replay"
+        replay_id = replay_run_ids[0] if replay_run_ids else f"{run_id}_consensus_replay"
         readout_summary = post_p14_readout(
             project_root=root,
             benchmark=benchmark,
@@ -337,6 +348,44 @@ def finish_prediction_shards(
         "post_p14_readout": readout_summary,
         "post_p25_readout": post_p25_summary,
     }
+
+
+def _normalize_replay_values(value: str | Sequence[str] | None) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        values = [value]
+    else:
+        values = [str(item) for item in value]
+    out: list[str] = []
+    for item in values:
+        for part in str(item or "").split(","):
+            part = part.strip()
+            if part:
+                out.append(part)
+    return out
+
+
+def _normalize_replay_paths(value: Path | Sequence[Path] | None) -> list[Path]:
+    if value is None:
+        return []
+    if isinstance(value, Path):
+        return [value]
+    return [Path(str(item)) for item in value if str(item)]
+
+
+def _indexed_or_last(values: Sequence[str], index: int, *, default: str) -> str:
+    if not values:
+        return default
+    if index < len(values):
+        return values[index]
+    return values[-1]
+
+
+def _indexed_or_none(values: Sequence[Path], index: int) -> Path | None:
+    if index < len(values):
+        return values[index]
+    return None
 
 
 def register_prediction_selection_replay(
@@ -1064,11 +1113,11 @@ def build_parser() -> argparse.ArgumentParser:
     finish_shards.add_argument("--tmscore-bin", type=Path, default=None)
     finish_shards.add_argument("--dockq-bin", type=Path, default=None)
     finish_shards.add_argument("--qsglob-bin", type=Path, default=None)
-    finish_shards.add_argument("--replay-run-id", default="", help="Optional run id to register against the merged outputs before scoring.")
-    finish_shards.add_argument("--replay-selected-model-policy", default="diversity_confidence_consensus_v1")
-    finish_shards.add_argument("--replay-strategy", default="", help="Defaults to <merged strategy>_selection_replay.")
+    finish_shards.add_argument("--replay-run-id", action="append", default=None, help="Optional run id to register against the merged outputs before scoring; repeatable.")
+    finish_shards.add_argument("--replay-selected-model-policy", action="append", default=None, help="Selection policy for each replay; repeatable.")
+    finish_shards.add_argument("--replay-strategy", action="append", default=None, help="Strategy label for each replay; defaults to <merged strategy>_selection_replay.")
     finish_shards.add_argument("--replay-rank-eligible", action=argparse.BooleanOptionalAction, default=None)
-    finish_shards.add_argument("--replay-selection-qa-output-csv", type=Path, default=None)
+    finish_shards.add_argument("--replay-selection-qa-output-csv", type=Path, action="append", default=None)
     finish_shards.add_argument("--replay-min-cluster-score", type=float, default=0.5)
     finish_shards.add_argument("--post-p14-readout-output-json", type=Path, default=None, help="Optional read-only post-P14 branch recommendation JSON written after successful scoring.")
     finish_shards.add_argument("--post-p25-readout-output-json", type=Path, default=None, help="Optional read-only post-P25 branch recommendation JSON written after successful scoring.")

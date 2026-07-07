@@ -2067,6 +2067,22 @@ competitive result.
      `launch_ready_after_p25_selection=false`; P27b, D6a, O5b, and P15/v4
      remain launch-ready after complete P25 selection. Validation:
      `python -m pytest tests/test_decisions.py` passed 25 tests.
+144. `2026-07-07 17:05 CDT` P25 remains incomplete but is advancing:
+     `ready=false`, `1598` observed candidates, `468` shard-level missing
+     candidates, `407` full 25-candidate slots missing, and `35/79`
+     full-budget tasks complete. Slurm still has 19 P25 GH jobs running and 5
+     P25 jobs pending behind `QOSMaxJobsPerUserLimit`; error scan is clean and
+     latest prediction writes reached 17:00 CDT. Added two no-oracle model
+     selection policies to the scorer: `protenix_ranking_score_v1`, which uses
+     Protenix's native `ranking_score` with confidence fallback, and
+     `protenix_ranking_consensus_v1`, which adds prediction-only consensus
+     support. Extended `finish-shards` to register multiple selection replays
+     and updated the P25 closeout wrapper to score both the existing
+     `diversity_confidence_consensus_v1` replay and a new
+     `protenix_ranking_consensus_v1` replay from the same merged P25
+     predictions. This is a QA/model-ranking winner-recipe test with no extra
+     GPU prediction work. Validation: `python -m pytest tests/test_scoring.py
+     tests/test_runs.py` passed 64 tests.
 
 ## Run Discipline
 

@@ -110,10 +110,15 @@ from being mistaken for the MULTICOM-style MSA-diversity recipe.
 `scripts/finish_p25_scoreable_input_repair.sh` is now the preferred P25 closeout
 entrypoint because it calls `finish-shards` with the predeclared
 `server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125_consensus_replay`
+row and the
+`server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125_ranking_consensus_replay`
 row. When P25 becomes ready, the wrapper will score the normal
-`protenix_confidence_v1` selector and the no-GPU
-`diversity_confidence_consensus_v1` replay from the same merged predictions
-before any post-P25 branch is selected. It also writes
+`protenix_confidence_v1` selector plus two no-GPU replays from the same merged
+predictions: `diversity_confidence_consensus_v1` and
+`protenix_ranking_consensus_v1`. The second replay uses Protenix's native
+`ranking_score` when available and then adds prediction-only consensus support;
+it is a QA/model-ranking experiment, not new prediction compute. The wrapper
+also writes
 `diagnostics/score_probes/server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125.post_p25_readout.json`
 after a successful leaderboard refresh.
 

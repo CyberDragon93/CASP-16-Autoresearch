@@ -835,6 +835,62 @@ def test_diversity_confidence_consensus_policy_uses_prediction_only_qa(tmp_path)
     assert selected["selection_score"] == "0.646500"
 
 
+def test_protenix_ranking_score_policy_uses_native_ranking_score(tmp_path) -> None:
+    output_dir = tmp_path / "predictions" / "protenix-v2"
+    high_plddt_dir = output_dir / "T1234" / "seed_101" / "predictions"
+    high_ranking_dir = output_dir / "T1234" / "seed_102" / "predictions"
+    high_plddt_dir.mkdir(parents=True)
+    high_ranking_dir.mkdir(parents=True)
+    high_plddt = high_plddt_dir / "T1234_sample_0.cif"
+    high_ranking = high_ranking_dir / "T1234_sample_0.cif"
+    high_plddt.write_text("data_high_plddt\n", encoding="utf-8")
+    high_ranking.write_text("data_high_ranking\n", encoding="utf-8")
+    (high_plddt_dir / "T1234_summary_confidence_sample_0.json").write_text(
+        '{"ranking_score": 0.40, "plddt": 95.0, "ptm": 0.90, "iptm": 0.90}\n',
+        encoding="utf-8",
+    )
+    confidence = high_ranking_dir / "T1234_summary_confidence_sample_0.json"
+    confidence.write_text(
+        '{"ranking_score": 0.70, "plddt": 70.0, "ptm": 0.40, "iptm": 0.30}\n',
+        encoding="utf-8",
+    )
+
+    selected = select_prediction_for_target(output_dir, "T1234", selected_model_policy="protenix_ranking_score_v1")
+
+    assert selected["status"] == "ok"
+    assert selected["prediction_path"] == str(high_ranking)
+    assert selected["confidence_path"] == str(confidence)
+    assert selected["selection_score"] == "0.700000"
+
+
+def test_protenix_ranking_consensus_policy_uses_prediction_only_qa(tmp_path) -> None:
+    output_dir = tmp_path / "predictions" / "protenix-v2"
+    high_ranking_dir = output_dir / "T1234" / "seed_101" / "predictions"
+    consensus_dir = output_dir / "T1234" / "seed_102" / "predictions"
+    high_ranking_dir.mkdir(parents=True)
+    consensus_dir.mkdir(parents=True)
+    high_ranking = high_ranking_dir / "T1234_sample_0.cif"
+    consensus = consensus_dir / "T1234_sample_0.cif"
+    high_ranking.write_text("data_high_ranking\n", encoding="utf-8")
+    consensus.write_text("data_consensus\n", encoding="utf-8")
+    (high_ranking_dir / "T1234_summary_confidence_sample_0.json").write_text(
+        '{"ranking_score": 0.70, "consensus_score": 0.0, "cluster_support": 0.0}\n',
+        encoding="utf-8",
+    )
+    confidence = consensus_dir / "T1234_summary_confidence_sample_0.json"
+    confidence.write_text(
+        '{"ranking_score": 0.50, "consensus_score": 1.0, "cluster_support": 1.0}\n',
+        encoding="utf-8",
+    )
+
+    selected = select_prediction_for_target(output_dir, "T1234", selected_model_policy="protenix_ranking_consensus_v1")
+
+    assert selected["status"] == "ok"
+    assert selected["prediction_path"] == str(consensus)
+    assert selected["confidence_path"] == str(confidence)
+    assert selected["selection_score"] == "0.600000"
+
+
 def test_diversity_selector_reads_selection_qa_sidecar(tmp_path) -> None:
     output_dir = tmp_path / "predictions" / "protenix-v2"
     candidate_dir = output_dir / "T1234" / "seed_101" / "predictions"

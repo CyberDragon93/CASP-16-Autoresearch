@@ -121,10 +121,13 @@ scripts/finish_p25_scoreable_input_repair.sh
 The P25 closeout wrapper is replay-safe: once all declared candidates exist,
 it merges the 25-candidate pool, registers
 `server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125_consensus_replay`
-against the same predictions with `diversity_confidence_consensus_v1`, writes
-prediction-only selection QA sidecars, and then scores both rows together. This
-adds no GPU work and must be interpreted as candidate-selection evidence, not a
-new prediction budget. On a successful closeout it also writes
+against the same predictions with `diversity_confidence_consensus_v1`, also
+registers
+`server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125_ranking_consensus_replay`
+with `protenix_ranking_consensus_v1`, writes prediction-only selection QA
+sidecars, and then scores all rows together. This adds no GPU work and must be
+interpreted as candidate-selection evidence, not a new prediction budget. On a
+successful closeout it also writes
 `diagnostics/score_probes/server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125.post_p25_readout.json`
 so the next branch decision is captured with the leaderboard refresh.
 

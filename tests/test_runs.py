@@ -754,7 +754,7 @@ def test_finish_shards_status_summary_waits_for_missing_candidates(tmp_path, cap
     pred_dir.mkdir(parents=True)
     (pred_dir / "T1234_sample_0.cif").write_text("data_T1234\n", encoding="utf-8")
     (pred_dir / "T1234_summary_confidence_sample_0.json").write_text(
-        '{"plddt": 80.0, "ptm": 0.5, "iptm": 0.1}\n',
+        '{"ranking_score": 0.55, "plddt": 80.0, "ptm": 0.5, "iptm": 0.1}\n',
         encoding="utf-8",
     )
     spec = {
@@ -883,6 +883,7 @@ def test_finish_shards_can_register_selection_replay_before_scoring(tmp_path, ca
     tm_tool.write_text("#!/usr/bin/env bash\necho 'TM-score = 1.000'\n", encoding="utf-8")
     tm_tool.chmod(0o755)
     qa_csv = tmp_path / "diagnostics" / "selection_qa" / "merged_consensus.selection_qa.csv"
+    ranking_qa_csv = tmp_path / "diagnostics" / "selection_qa" / "merged_ranking_consensus.selection_qa.csv"
     readout_json = tmp_path / "diagnostics" / "score_probes" / "post_p14_readout.json"
     post_p25_readout_json = tmp_path / "diagnostics" / "score_probes" / "post_p25_readout.json"
 
@@ -906,6 +907,12 @@ def test_finish_shards_can_register_selection_replay_before_scoring(tmp_path, ca
             "diversity_confidence_consensus_v1",
             "--replay-selection-qa-output-csv",
             str(qa_csv),
+            "--replay-run-id",
+            "target_sharded_merged_ranking_consensus",
+            "--replay-selected-model-policy",
+            "protenix_ranking_consensus_v1",
+            "--replay-selection-qa-output-csv",
+            str(ranking_qa_csv),
             "--post-p14-readout-output-json",
             str(readout_json),
             "--post-p25-readout-output-json",
@@ -922,8 +929,16 @@ def test_finish_shards_can_register_selection_replay_before_scoring(tmp_path, ca
     assert payload["finish_status"] == "finished"
     assert payload["status_summary"]["action"] == "run_post_closeout_readout"
     assert payload["status_summary"]["can_score_now"] is True
-    assert payload["replay"]["run_id"] == "target_sharded_merged_consensus"
-    assert payload["score"]["run_ids"] == ["target_sharded_merged", "target_sharded_merged_consensus"]
+    assert payload["replay"]["count"] == 2
+    assert [row["run_id"] for row in payload["replay"]["rows"]] == [
+        "target_sharded_merged_consensus",
+        "target_sharded_merged_ranking_consensus",
+    ]
+    assert payload["score"]["run_ids"] == [
+        "target_sharded_merged",
+        "target_sharded_merged_consensus",
+        "target_sharded_merged_ranking_consensus",
+    ]
     assert payload["post_p14_readout"]["run_id"] == "target_sharded_merged"
     assert payload["post_p14_readout"]["replay_run_id"] == "target_sharded_merged_consensus"
     assert readout_json.exists()
@@ -936,18 +951,30 @@ def test_finish_shards_can_register_selection_replay_before_scoring(tmp_path, ca
     assert replay_spec["source_run_id"] == "target_sharded_merged"
     assert replay_spec["selected_model_policy"] == "diversity_confidence_consensus_v1"
     assert replay_spec["budget_tier"] == "server_attack"
+    ranking_replay_spec = json.loads(
+        (tmp_path / "runs" / "target_sharded_merged_ranking_consensus" / "run_spec.json").read_text(encoding="utf-8")
+    )
+    assert ranking_replay_spec["selection_replay"] is True
+    assert ranking_replay_spec["source_run_id"] == "target_sharded_merged"
+    assert ranking_replay_spec["selected_model_policy"] == "protenix_ranking_consensus_v1"
 
     merged_output = Path(payload["merge"]["output_dir"])
     sidecar = merged_output / "T1234" / "seed_101" / "predictions" / "T1234_summary_confidence_sample_0.selection_qa.json"
     assert sidecar.exists()
     assert qa_csv.exists()
+    assert ranking_qa_csv.exists()
     with (tmp_path / "leaderboards" / benchmark / "target_scores.csv").open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
-    assert {row["run_id"] for row in rows} == {"target_sharded_merged", "target_sharded_merged_consensus"}
+    assert {row["run_id"] for row in rows} == {
+        "target_sharded_merged",
+        "target_sharded_merged_consensus",
+        "target_sharded_merged_ranking_consensus",
+    }
     assert {row["status"] for row in rows} == {"missing_reference"}
     policies = {row["run_id"]: row["selected_model_policy"] for row in rows}
     assert policies["target_sharded_merged"] == "protenix_confidence_v1"
     assert policies["target_sharded_merged_consensus"] == "diversity_confidence_consensus_v1"
+    assert policies["target_sharded_merged_ranking_consensus"] == "protenix_ranking_consensus_v1"
 
 
 def test_run_next_blocks_pending_when_benchmark_run_is_running(tmp_path) -> None:

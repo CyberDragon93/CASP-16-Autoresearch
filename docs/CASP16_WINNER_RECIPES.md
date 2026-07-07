@@ -198,7 +198,9 @@ Candidate budget sketch:
   official scores, or prior target-score rows. The initial selector hook is
   `diversity_confidence_consensus_v1`, which reads only run-local prediction
   confidence/QA JSON fields; `./casp16 selection-qa` can generate consensus
-  sidecars from prediction-vs-prediction TMscore/USalign.
+  sidecars from prediction-vs-prediction TMscore/USalign. P25 closeout now also
+  registers `protenix_ranking_consensus_v1`, a no-GPU replay that uses the
+  predictor's native `ranking_score` plus prediction-only consensus support.
 - rank rule: score only after every declared candidate exists, or mark the row
   partial/unranked
 
