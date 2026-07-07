@@ -484,6 +484,7 @@ def build_parser() -> argparse.ArgumentParser:
     check_shards.add_argument("--merged-run-id", default="", help="Merged run id to include in the suggested merge command when ready.")
     check_shards.add_argument("--merged-input-json", type=Path, default=None, help="Full input JSON to include in the suggested target-shard merge command.")
     check_shards.add_argument("--candidate-count", type=int, default=None, help="Override expected candidates per task.")
+    check_shards.add_argument("--merged-candidate-count", type=int, default=None, help="Final merged candidates expected per full-input task; useful for seed-block plus target-shard attacks.")
     check_shards.add_argument("--output-tsv", type=Path, default=None, help="Optional per-shard readiness TSV.")
 
     collect = subparsers.add_parser("collect", help="Collect local run artifacts into CSV/Markdown.")
@@ -948,6 +949,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             merged_run_id=args.merged_run_id,
             merged_input_json=args.merged_input_json.resolve() if args.merged_input_json else None,
             candidate_count_override=args.candidate_count,
+            merged_candidate_count_override=args.merged_candidate_count,
         )
         if args.output_tsv:
             write_tsv(args.output_tsv.resolve(), summary["rows"], SHARD_READINESS_FIELDS)

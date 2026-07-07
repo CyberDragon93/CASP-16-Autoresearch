@@ -162,6 +162,15 @@ prediction candidates, writes a per-shard TSV when requested, and emits the
 exact `merge-shards --allow-target-shards` command only when every target has
 the declared candidate count.
 
+For a larger run that combines target-size shards with seed-block shards, keep
+`--candidate-count` equal to the expected candidates in each execution shard
+and pass the final per-target budget with `--merged-candidate-count`. For
+example, a 25-candidate attack split into five 5-seed blocks should check each
+execution shard with `--candidate-count 5 --merged-candidate-count 25`; the
+readiness summary then verifies the full merged input has 25 observed
+candidates for every target before emitting a `merge-shards --candidate-count
+25` command.
+
 When the launch gate opens, generate each shard with the TSV row's fields:
 
 ```bash

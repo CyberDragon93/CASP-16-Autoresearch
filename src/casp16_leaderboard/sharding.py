@@ -335,9 +335,12 @@ def check_prediction_shards(
     merged_run_id: str = "",
     merged_input_json: Path | None = None,
     candidate_count_override: int | None = None,
+    merged_candidate_count_override: int | None = None,
 ) -> dict[str, Any]:
     if not shard_run_ids:
         raise ValueError("provide at least one shard_run_id")
+    if merged_candidate_count_override is not None and merged_candidate_count_override <= 0:
+        raise ValueError("merged_candidate_count_override must be positive")
     specs_by_id = {str(spec.get("run_id", "")): spec for spec in load_run_specs(project_root / "runs", registered_only=False)}
     status_by_run = latest_status_by_run(project_root)
     rows: list[dict[str, Any]] = []
@@ -350,6 +353,7 @@ def check_prediction_shards(
     total_complete_tasks = 0
     total_observed = 0
     total_missing_candidates = 0
+    observed_by_task: dict[str, int] = {}
     benchmark_values: set[str] = set()
     selected_policies: set[str] = set()
     input_hashes: set[str] = set()
@@ -373,6 +377,7 @@ def check_prediction_shards(
         missing_candidate_count = 0
         for task in tasks:
             observed = len(_prediction_candidates_for_task(output_dir, task.name))
+            observed_by_task[task.name] = observed_by_task.get(task.name, 0) + observed
             observed_candidate_count += observed
             if observed >= expected_candidates:
                 complete_task_count += 1
@@ -402,6 +407,27 @@ def check_prediction_shards(
             }
         )
 
+    merged_candidate_count = int(merged_candidate_count_override or 0)
+    full_task_count = 0
+    full_complete_task_count = 0
+    full_missing_candidate_count = 0
+    full_missing_tasks: list[str] = []
+    if merged_candidate_count:
+        if merged_input_json is None:
+            raise ValueError("merged_input_json is required when merged_candidate_count_override is provided")
+        full_tasks = load_protenix_tasks(merged_input_json) if merged_input_json.exists() else []
+        if not full_tasks:
+            all_ready = False
+        full_task_count = len(full_tasks)
+        for task in full_tasks:
+            observed = observed_by_task.get(task.name, 0)
+            if observed >= merged_candidate_count:
+                full_complete_task_count += 1
+            else:
+                all_ready = False
+                full_missing_tasks.append(f"{task.name}:{observed}/{merged_candidate_count}")
+                full_missing_candidate_count += merged_candidate_count - observed
+
     merge_command: list[str] = []
     requested_benchmark = benchmark_name or next(iter(benchmark_values), "")
     if all_ready and merged_run_id and requested_benchmark and merged_input_json is not None:
@@ -416,7 +442,7 @@ def check_prediction_shards(
         ]
         if merged_input_json is not None:
             merge_command.extend(["--merged-input-json", str(merged_input_json)])
-        declared_count = candidate_count_override or max((int(row["expected_candidate_count"]) for row in rows), default=0)
+        declared_count = merged_candidate_count_override or candidate_count_override or max((int(row["expected_candidate_count"]) for row in rows), default=0)
         if declared_count:
             merge_command.extend(["--candidate-count", str(declared_count)])
         for run_id in shard_run_ids:
@@ -440,6 +466,11 @@ def check_prediction_shards(
         "incomplete_task_count": total_tasks - total_complete_tasks,
         "observed_candidate_count": total_observed,
         "missing_candidate_count": total_missing_candidates,
+        "merged_candidate_count": merged_candidate_count,
+        "full_task_count": full_task_count,
+        "full_complete_task_count": full_complete_task_count,
+        "full_missing_candidate_count": full_missing_candidate_count,
+        "full_missing_tasks": ",".join(full_missing_tasks),
         "benchmark_values": sorted(benchmark_values),
         "selected_model_policies": sorted(selected_policies),
         "source_input_sha256s": sorted(input_hashes),

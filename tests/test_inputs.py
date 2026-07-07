@@ -128,7 +128,15 @@ def test_write_input_shards_balances_and_preserves_tasks(tmp_path) -> None:
     assert "large_b" in task_rows
 
 
-def _write_shard_run(tmp_path, run_id: str, tasks: list[dict[str, object]], observed_by_task: dict[str, int]) -> None:
+def _write_shard_run(
+    tmp_path,
+    run_id: str,
+    tasks: list[dict[str, object]],
+    observed_by_task: dict[str, int],
+    *,
+    seeds: str = "101,102",
+    seed_start: int = 101,
+) -> None:
     run_dir = tmp_path / "runs" / run_id
     input_json = run_dir / "inputs" / "inputs.json"
     output_dir = run_dir / "predictions" / "protenix-v2"
@@ -145,7 +153,7 @@ def _write_shard_run(tmp_path, run_id: str, tasks: list[dict[str, object]], obse
         "input_manifest_sha256": "shared-manifest",
         "references_sha256": "shared-references",
         "output_dir": str(output_dir),
-        "seeds": "101,102",
+        "seeds": seeds,
         "sample": 1,
         "candidate_count": 2,
         "selected_model_policy": "protenix_confidence_v1",
@@ -155,7 +163,7 @@ def _write_shard_run(tmp_path, run_id: str, tasks: list[dict[str, object]], obse
     for task in tasks:
         task_name = str(task["name"])
         for index in range(observed_by_task.get(task_name, 0)):
-            pred_dir = output_dir / task_name / f"seed_{101 + index}" / "predictions"
+            pred_dir = output_dir / task_name / f"seed_{seed_start + index}" / "predictions"
             pred_dir.mkdir(parents=True, exist_ok=True)
             (pred_dir / f"{task_name}_sample_0.cif").write_text(f"data_{task_name}\n", encoding="utf-8")
 
@@ -203,3 +211,64 @@ def test_check_prediction_shards_reports_missing_and_merge_command(tmp_path) -> 
         "--allow-target-shards",
     ]
     assert ready["merge_command"].count("--shard-run-id") == 2
+
+
+def test_check_prediction_shards_validates_merged_candidate_count(tmp_path) -> None:
+    full_input = tmp_path / "full.inputs.json"
+    full_input.write_text(json.dumps([_task("T0001", 10), _task("H0002", 12)], indent=2) + "\n", encoding="utf-8")
+    _write_shard_run(tmp_path, "t_shard_seed101_102", [_task("T0001", 10)], {"T0001": 2}, seeds="101,102", seed_start=101)
+    _write_shard_run(tmp_path, "t_shard_seed103_104", [_task("T0001", 10)], {"T0001": 2}, seeds="103,104", seed_start=103)
+    _write_shard_run(tmp_path, "h_shard_seed101_102", [_task("H0002", 12)], {"H0002": 2}, seeds="101,102", seed_start=101)
+    _write_shard_run(tmp_path, "h_shard_seed103_104", [_task("H0002", 12)], {"H0002": 1}, seeds="103,104", seed_start=103)
+    shard_ids = [
+        "t_shard_seed101_102",
+        "t_shard_seed103_104",
+        "h_shard_seed101_102",
+        "h_shard_seed103_104",
+    ]
+
+    not_ready = check_prediction_shards(
+        project_root=tmp_path,
+        shard_run_ids=shard_ids,
+        benchmark_name="casp16_server_protein_v2_aliasfix",
+        merged_run_id="merged_attack",
+        merged_input_json=full_input,
+        candidate_count_override=2,
+        merged_candidate_count_override=4,
+    )
+
+    assert not_ready["ready"] is False
+    assert not_ready["merged_candidate_count"] == 4
+    assert not_ready["full_task_count"] == 2
+    assert not_ready["full_complete_task_count"] == 1
+    assert not_ready["full_missing_candidate_count"] == 1
+    assert not_ready["full_missing_tasks"] == "H0002:3/4"
+    assert not_ready["merge_command"] == []
+
+    pred_dir = tmp_path / "runs" / "h_shard_seed103_104" / "predictions" / "protenix-v2" / "H0002" / "seed_104" / "predictions"
+    pred_dir.mkdir(parents=True, exist_ok=True)
+    (pred_dir / "H0002_sample_0.cif").write_text("data_H0002\n", encoding="utf-8")
+
+    ready = check_prediction_shards(
+        project_root=tmp_path,
+        shard_run_ids=shard_ids,
+        benchmark_name="casp16_server_protein_v2_aliasfix",
+        merged_run_id="merged_attack",
+        merged_input_json=full_input,
+        candidate_count_override=2,
+        merged_candidate_count_override=4,
+    )
+
+    assert ready["ready"] is True
+    assert ready["full_complete_task_count"] == 2
+    assert ready["full_missing_candidate_count"] == 0
+    assert ready["merge_command"][:7] == [
+        "./casp16",
+        "merge-shards",
+        "--run-id",
+        "merged_attack",
+        "--benchmark",
+        "casp16_server_protein_v2_aliasfix",
+        "--allow-target-shards",
+    ]
+    assert ready["merge_command"][ready["merge_command"].index("--candidate-count") + 1] == "4"
