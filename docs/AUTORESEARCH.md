@@ -1856,6 +1856,15 @@ competitive result.
      future P28a-style production MSA mode probe. This is not a launch
      decision: keep P28a behind complete P25 and the prepared P27b probe, keep
      `use_msa=true`, and do not substitute a no-MSA toy row.
+128. `2026-07-07 15:45 CDT` P25 remains not merge-ready at the same
+     `1357` observed / `701` shard-missing / `631` full-missing gate, with the
+     same 19 running and 5 pending P25 GH jobs. Added a lightweight
+     `env_manifest.json` runtime probe that records where Protenix's generic
+     `runner.batch_inference` import resolves after the run script prepends
+     `Protenix-Insta` to `PYTHONPATH`. This directly guards the P27/P28
+     diversity path against the observed OpenDDE shadowing failure without
+     importing the Protenix model stack or touching GPU work. Validation:
+     `tests/test_runs.py` now has 25 passing tests under the protein env.
 
 ## Run Discipline
 

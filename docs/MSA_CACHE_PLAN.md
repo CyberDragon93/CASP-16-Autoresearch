@@ -250,7 +250,10 @@ stale paths.
    `run_spec.json`. A future P28a-style branch can compare the default Protenix
    MSA service with ColabFold/MMseqs-compatible A3M generation, but it must
    keep `use_msa=true`, keep templates unless explicitly declared otherwise,
-   and preflight generated/reused MSA paths before GPU launch.
+   and preflight generated/reused MSA paths before GPU launch. Also inspect the
+   run's `env_manifest.json`: `protenix_runtime.matches_expected_source` should
+   be true so the console script resolves `runner.batch_inference` from
+   Protenix-Insta rather than OpenDDE.
 6. Do not broaden matching beyond exact protein sequence without a new rule and
    tests. Target-id, subsequence, or homology-based reuse can easily leak wrong
    alignments into modified constructs.

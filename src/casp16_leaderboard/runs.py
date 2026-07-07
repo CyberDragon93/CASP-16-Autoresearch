@@ -814,6 +814,67 @@ def write_run_script(path: Path, command: Sequence[str], *, protenix_root_dir: P
     path.chmod(0o755)
 
 
+def probe_protenix_runtime_import(*, protenix_bin: Path = DEFAULT_PROTENIX_BIN, protenix_source: Path | None = None) -> dict[str, object]:
+    """Lightweight check that Protenix's generic `runner` import resolves to Protenix."""
+
+    protenix_source = protenix_source or DEFAULT_PROTENIX_SOURCE
+    python_bin = protenix_bin.parent / "python"
+    if not python_bin.exists():
+        python_bin = Path(shutil.which("python3") or shutil.which("python") or "")
+    expected_origin = (protenix_source / "runner" / "batch_inference.py").resolve()
+    console_text = ""
+    try:
+        console_text = protenix_bin.read_text(encoding="utf-8", errors="replace")[:1000]
+    except OSError:
+        console_text = ""
+    base = {
+        "python": str(python_bin),
+        "python_exists": python_bin.exists(),
+        "pythonpath_prepend": str(protenix_source),
+        "expected_runner_batch_inference": str(expected_origin),
+        "expected_source_exists": expected_origin.exists(),
+        "console_imports_runner_batch_inference": "runner.batch_inference" in console_text,
+        "runner_batch_inference_origin": "",
+        "matches_expected_source": False,
+        "error": "",
+    }
+    if not python_bin.exists():
+        return {**base, "error": "python_not_found"}
+
+    code = (
+        "import importlib.util, json\n"
+        "spec = importlib.util.find_spec('runner.batch_inference')\n"
+        "print(json.dumps({'origin': '' if spec is None else (spec.origin or '')}))\n"
+    )
+    env = os.environ.copy()
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = str(protenix_source) + ((os.pathsep + existing_pythonpath) if existing_pythonpath else "")
+    try:
+        completed = subprocess.run(
+            [str(python_bin), "-c", code],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=10,
+            check=False,
+            env=env,
+        )
+    except Exception as exc:
+        return {**base, "error": f"{type(exc).__name__}: {exc}"}
+    if completed.returncode != 0:
+        return {**base, "error": completed.stderr.strip().splitlines()[-1][:300] if completed.stderr.strip() else f"returncode={completed.returncode}"}
+    try:
+        payload = json.loads(completed.stdout.strip().splitlines()[-1])
+    except (IndexError, json.JSONDecodeError) as exc:
+        return {**base, "error": f"invalid_probe_output: {exc}"}
+    origin = str(payload.get("origin", ""))
+    return {
+        **base,
+        "runner_batch_inference_origin": origin,
+        "matches_expected_source": bool(origin) and Path(origin).resolve() == expected_origin,
+    }
+
+
 def check_environment(*, project_root: Path | None = None, protenix_bin: Path = DEFAULT_PROTENIX_BIN) -> dict[str, object]:
     tools: dict[str, dict[str, object]] = {}
     for name, candidate in {
@@ -842,6 +903,7 @@ def check_environment(*, project_root: Path | None = None, protenix_bin: Path = 
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "cwd": os.getcwd(),
         "git_commit": git_commit(project_root) if project_root else "",
+        "protenix_runtime": probe_protenix_runtime_import(protenix_bin=protenix_bin),
         "tools": tools,
     }
 

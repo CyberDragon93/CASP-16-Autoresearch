@@ -8,7 +8,7 @@ import pytest
 
 from casp16_leaderboard.cli import main
 from casp16_leaderboard.msa_cache import reuse_msa_paths
-from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, preflight_run_specs, register_existing_run, register_run_spec, run_next, run_one, write_run_script, write_runs_manifest
+from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, check_environment, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, preflight_run_specs, register_existing_run, register_run_spec, run_next, run_one, write_run_script, write_runs_manifest
 
 
 def test_build_protenix_command_contains_strategy_knobs() -> None:
@@ -194,6 +194,31 @@ def test_write_run_script_sets_protenix_runtime_environment(tmp_path) -> None:
     assert "export CUDA_HOME=" in text
     assert "cusparse.h" in text
     assert "export CPATH=" in text
+
+
+def test_check_environment_records_protenix_import_source(tmp_path, monkeypatch) -> None:
+    source = tmp_path / "Protenix-Insta"
+    runner = source / "runner"
+    runner.mkdir(parents=True)
+    (runner / "__init__.py").write_text("", encoding="utf-8")
+    expected = runner / "batch_inference.py"
+    expected.write_text("def protenix_cli():\n    return 0\n", encoding="utf-8")
+    protenix_bin = tmp_path / "bin" / "protenix"
+    protenix_bin.parent.mkdir()
+    protenix_bin.write_text(
+        "#!/usr/bin/env python\nfrom runner.batch_inference import protenix_cli\n",
+        encoding="utf-8",
+    )
+    protenix_bin.chmod(0o755)
+    monkeypatch.setattr("casp16_leaderboard.runs.DEFAULT_PROTENIX_SOURCE", source)
+
+    env = check_environment(project_root=tmp_path, protenix_bin=protenix_bin)
+
+    runtime = env["protenix_runtime"]
+    assert runtime["console_imports_runner_batch_inference"] is True
+    assert runtime["expected_runner_batch_inference"] == str(expected.resolve())
+    assert runtime["runner_batch_inference_origin"] == str(expected.resolve())
+    assert runtime["matches_expected_source"] is True
 
 
 def test_create_benchmark_run_spec_uses_run_local_input_copy(tmp_path) -> None:
