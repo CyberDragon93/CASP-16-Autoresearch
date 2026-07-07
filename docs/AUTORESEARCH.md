@@ -1296,6 +1296,14 @@ competitive result.
     confirms the blocker is slow Protenix forward plus queued shard06 jobs, not
     MSA-cache reuse. The only valid next gate is full P25 merge and scoring
     after every declared candidate exists; keep O5b/P27b deferred.
+79. `2026-07-07 11:20 CDT` P25 live gate: progress is monotonic but still far
+    from merge-ready. Four new shard02 candidates appeared for `T1269`
+    (`seed_106`, `111`, `116`, and `121`), raising readiness to
+    `observed_candidate_count=643`, `missing_candidate_count=1407`, and
+    `full_missing_candidate_count=1332`. Slurm still shows 19 P25 jobs running
+    and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; error scanning
+    remains clean. Do not score partial P25 or launch O5b/P27b from this
+    incremental progress.
 
 ## Run Discipline
 

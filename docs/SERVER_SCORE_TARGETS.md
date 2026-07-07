@@ -189,13 +189,13 @@ This helper reads only `runs.csv`, `target_scores.csv`, and benchmark target
 metadata. It does not read native structures, official per-target score tables,
 or prediction outputs, and it does not submit jobs.
 
-Current live P25 status, checked `2026-07-07 11:16 CDT`: P17 overlay is merged
+Current live P25 status, checked `2026-07-07 11:20 CDT`: P17 overlay is merged
 and scored. The 24 seed106-125 GH200 target-seed jobs `812935..812958` are
 submitted after `24/24 ok` preflight with complete MSA reuse and 0 stale paths.
 Slurm currently has 19 P25 jobs running and 5 P25 jobs pending behind
 `QOSMaxJobsPerUserLimit`. The latest readiness check is `ready=false`,
-`compatible=true`, with 639 observed candidates, 1411 shard-level candidates
-missing, and 1336 full merged candidate slots still missing. Use
+`compatible=true`, with 643 observed candidates, 1407 shard-level candidates
+missing, and 1332 full merged candidate slots still missing. Use
 `--candidate-count 5 --merged-candidate-count 25` for target+seed readiness.
 Do not score the 25-candidate row, launch a competing branch, or make a
 winner-comparison claim before those jobs finish and are merged with the
