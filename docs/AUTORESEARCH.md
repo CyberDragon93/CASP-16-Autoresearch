@@ -1340,6 +1340,18 @@ competitive result.
     seed121-125 and all shard06 seed blocks remain at zero observed candidates.
     Error scanning remains clean. Do not merge, score, or launch the deferred
     O5b/P27b branches from this partial row.
+84. `2026-07-07 11:36 CDT` P25 live gate: the repaired-input target-seed grid
+    continues to produce artifacts but remains far from a valid score point.
+    Readiness is `ready=false`, `compatible=true`, with `724` observed
+    candidates, `1326` shard-level candidates missing, and `1251` full
+    25-candidate slots missing. Slurm still shows 19 P25 jobs running and 5 P25
+    jobs pending behind `QOSMaxJobsPerUserLimit`; shard05 seed121-125 and all
+    shard06 seed blocks are still at zero observed candidates. New outputs in
+    the last window include shard01/02/03/05 rows such as `H2204`, `H0222`,
+    `H0223`, `T1201O`, `T1212`, `T2210`, `H1220`, `T1235`, `T1206O`,
+    `T1249V2O`, and `T2235O`. Error scanning over recent logs found no
+    traceback/OOM/CUDA killed/disk/timeout signatures. Keep waiting for full
+    P25 readiness; no partial score, merge, O5b, or P27b launch yet.
 
 ## Run Discipline
 
