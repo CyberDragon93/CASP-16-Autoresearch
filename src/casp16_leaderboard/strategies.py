@@ -32,6 +32,7 @@ STRATEGY_YANG_OLIGO_STOICHIOMETRY_RECOVERY = "yang_oligo_stoichiometry_recovery_
 STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE = "yang_oligo_stoichiometry_token_safe_v1"
 STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_STOICH_TOKEN_SAFE = "yang_protein_oligo_sequence_stoich_token_safe_v1"
 STRATEGY_SCOREABLE_TARGET_SUBSET = "scoreable_target_subset_v1"
+STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_FIRST = "scoreable_target_subset_oligo_first_v1"
 SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_TERMINAL_TAG_CLEANUP,
     STRATEGY_YANG_EPITOPE_TAG_CLEANUP,
@@ -50,6 +51,7 @@ SUPPORTED_STRATEGIES = (
     STRATEGY_YANG_OLIGO_STOICHIOMETRY_TOKEN_SAFE,
     STRATEGY_YANG_PROTEIN_OLIGO_SEQUENCE_STOICH_TOKEN_SAFE,
     STRATEGY_SCOREABLE_TARGET_SUBSET,
+    STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_FIRST,
 )
 PROTENIX_TOKEN_LIMIT = 2560
 MIN_REMAINING_PROTEIN_LENGTH = 30
@@ -504,7 +506,7 @@ def derive_strategy_inputs(
             official_sequences_path=official_sequences_path,
             official_targets_path=official_targets_path,
         )
-    if strategy == STRATEGY_SCOREABLE_TARGET_SUBSET:
+    if strategy in {STRATEGY_SCOREABLE_TARGET_SUBSET, STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_FIRST}:
         if targets_path is None:
             raise ValueError("targets_path is required for scoreable target subset strategy")
         return derive_scoreable_target_subset_inputs(
@@ -512,6 +514,8 @@ def derive_strategy_inputs(
             output_json=output_json,
             manifest_path=manifest_path,
             targets_path=targets_path,
+            strategy_name=strategy,
+            oligo_first=(strategy == STRATEGY_SCOREABLE_TARGET_SUBSET_OLIGO_FIRST),
         )
 
     with input_json.open(encoding="utf-8") as handle:
@@ -779,27 +783,42 @@ def derive_scoreable_target_subset_inputs(
     output_json: Path,
     manifest_path: Path,
     targets_path: Path,
+    strategy_name: str = STRATEGY_SCOREABLE_TARGET_SUBSET,
+    oligo_first: bool = False,
 ) -> dict[str, object]:
     with input_json.open(encoding="utf-8") as handle:
         jobs = json.load(handle)
 
-    scoreable_by_alias = scoreable_target_alias_index(load_target_rows(targets_path))
-    kept_jobs: list[dict[str, Any]] = []
+    target_rows = load_target_rows(targets_path)
+    scoreable_by_alias = scoreable_target_alias_index(target_rows)
+    track_by_target = {normalized_strategy_target_id(row.get("target_id", "")): row.get("track", "") for row in target_rows}
+    kept_jobs: list[tuple[int, int, dict[str, Any]]] = []
     rows: list[dict[str, str]] = []
     skipped = 0
-    for job in jobs:
+    prioritized_jobs = 0
+    for original_index, job in enumerate(jobs):
         job_name = str(job.get("name", ""))
         aliases = job_target_aliases(job_name)
         kept_for = sorted({target_id for alias in aliases for target_id in scoreable_by_alias.get(alias, set())})
         if kept_for:
-            kept_jobs.append(job)
+            priority = scoreable_subset_job_priority(
+                job_name=job_name,
+                kept_for_targets=kept_for,
+                track_by_target=track_by_target,
+                oligo_first=oligo_first,
+            )
+            prioritized_jobs += int(priority == 0 and oligo_first)
+            kept_jobs.append((priority, original_index, job))
+            rules = "has_available_reference"
+            if oligo_first:
+                rules += ",priority:exact_oligo_target_first" if priority == 0 else ",priority:original_order_after_exact_oligo_targets"
             rows.append(
                 {
                     "job_name": job_name,
                     "status": "kept",
                     "kept_for_targets": ",".join(kept_for),
                     "skipped_target_refs": "",
-                    "rules": "has_available_reference",
+                    "rules": rules,
                 }
             )
             continue
@@ -814,21 +833,47 @@ def derive_scoreable_target_subset_inputs(
             }
         )
 
+    ordered_jobs = [job for _, _, job in sorted(kept_jobs, key=lambda item: (item[0], item[1]))]
     ensure_dir(output_json.parent)
-    output_json.write_text(json.dumps(kept_jobs, indent=2) + "\n", encoding="utf-8")
+    output_json.write_text(json.dumps(ordered_jobs, indent=2) + "\n", encoding="utf-8")
     write_manifest(manifest_path, rows, SCOREABLE_TARGET_SUBSET_MANIFEST_FIELDS)
     return {
-        "strategy": STRATEGY_SCOREABLE_TARGET_SUBSET,
+        "strategy": strategy_name,
         "input_json": str(input_json),
         "output_json": str(output_json),
         "manifest": str(manifest_path),
         "input_sha256": file_sha256(input_json),
         "output_sha256": file_sha256(output_json),
-        "jobs": len(kept_jobs),
+        "jobs": len(ordered_jobs),
         "original_jobs": len(jobs),
-        "kept_jobs": len(kept_jobs),
+        "kept_jobs": len(ordered_jobs),
         "skipped_jobs": skipped,
+        "prioritized_jobs": prioritized_jobs,
     }
+
+
+def scoreable_subset_job_priority(
+    *,
+    job_name: str,
+    kept_for_targets: Sequence[str],
+    track_by_target: Mapping[str, str],
+    oligo_first: bool,
+) -> int:
+    if not oligo_first:
+        return 0
+    normalized_job = job_name.strip().upper()
+    exact_target_tracks = {
+        track_by_target.get(normalized_strategy_target_id(target_id), "")
+        for target_id in kept_for_targets
+        if normalized_strategy_target_id(target_id) == normalized_job
+    }
+    if "protein_oligo" in exact_target_tracks:
+        return 0
+    return 1
+
+
+def normalized_strategy_target_id(target_id: str) -> str:
+    return str(target_id).strip().upper()
 
 
 def scoreable_target_alias_index(target_rows: Sequence[Mapping[str, str]]) -> dict[str, set[str]]:

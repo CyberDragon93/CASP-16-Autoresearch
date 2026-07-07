@@ -488,6 +488,24 @@ leaderboard progress.
       with five planned five-seed shards covering seeds `101..125`.
     - The older 165-job `protenix25_nofail` budget remains a full-input
       ablation until local references are recovered.
+37. Added `scoreable_target_subset_oligo_first_v1` as a cache-complete
+    successor to the running scoreable `protenix5` row.
+    - Source input:
+      `strategies/scoreable_target_subset_v1/casp16_server_protein_v2_aliasfix/inputs.json`,
+      74 jobs.
+    - New strategy artifact:
+      `strategies/scoreable_target_subset_oligo_first_v1/casp16_server_protein_v2_aliasfix/`,
+      same 74 kept jobs, 0 skipped jobs, and 14 prioritized exact `*O` jobs.
+    - New run spec:
+      `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`,
+      same five-candidate `server_attack` budget and confidence-only selector
+      as the running scoreable row.
+    - MSA preflight: 141/141 protein-chain paths reused from
+      `data/msa_cache/index.tsv`, 0 missing sources, 0 stale paths.
+    - Queue guard: `run-next --dry-run` is blocked by the currently running
+      `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
+      Do not submit the successor unless the current row stalls before exact
+      oligo artifacts or needs a clean retry.
 
 ## Strategy Decision Log
 
@@ -513,6 +531,26 @@ Guardrail: do not interpret this as official server-track completeness. The
 fixed benchmark scoring set stays at 175 targets, and skipped no-reference
 targets remain 0 locally. Recovering references is still required before a
 full official-compatible server claim.
+
+### 2026-07-06 Scoreable Oligo-First MSA Successor
+
+Decision: prepare, but do not submit, a reordered scoreable attack input that
+puts exact `*O` oligo jobs before the long H-complex block.
+
+Rationale: the running scoreable attack already avoids repeated MSA search, but
+its original order reaches exact `T...O` oligo jobs only after many domain/base
+jobs and large H complexes. Reordering does not change the eligible benchmark
+set, candidate budget, selector, or MSA source, but it can surface exact oligo
+artifacts much earlier if a retry or replacement run is needed.
+
+Implementation: `scoreable_target_subset_oligo_first_v1` is derived from the
+existing 74-job scoreable artifact, not from a regenerated benchmark input, so
+it keeps exactly the same job set. The first 14 tasks are exact `*O` jobs, and
+`check-msa-cache --require-complete` reports 141/141 reusable protein chains.
+
+Guardrail: this successor must remain pending while the current scoreable
+`protenix5` job is running. Use it only after recording why the current run is
+insufficient.
 
 ### 2026-07-06 Hydrophobic Leader Nofail Derivative
 

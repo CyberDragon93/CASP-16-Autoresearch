@@ -1,6 +1,6 @@
 # MSA Cache Report
 
-Generated: 2026-07-06T23:36:41.733054+00:00
+Generated: 2026-07-06T23:57:31.255439+00:00
 
 ## Cache Health
 
@@ -26,5 +26,5 @@ Top source runs:
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | `casp16_server_protein_v2_aliasfix` | 264 | 114316 | 264 | 1.000 | 1.000 | 0 | complete |
 | `strategies_scoreable_target_subset_v1_casp16_server_protein_v2_aliasfix_inputs` | 141 | 53062 | 141 | 1.000 | 1.000 | 0 | complete |
+| `strategies_scoreable_target_subset_oligo_first_v1_casp16_server_protein_v2_aliasfix_inputs` | 141 | 53062 | 141 | 1.000 | 1.000 | 0 | complete |
 | `strategies_yang_oligo_sequence_stoich_low_complexity_large_fallback_v1_casp16_server_protein_v2_aliasfix_inputs` | 268 | 106131 | 268 | 1.000 | 1.000 | 0 | complete |
-
