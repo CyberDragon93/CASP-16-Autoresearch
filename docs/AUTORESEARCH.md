@@ -1514,6 +1514,16 @@ competitive result.
     `decision_status=not_scored` and `next_branch=finish_or_score_p25`;
     baseline P17 is `79/79` scoreable `ok` with fixed-set mean `0.114371554`
     and 96 no-reference zero rows.
+100. `2026-07-07 13:02 CDT` P25 gate: still `ready=false` and
+     `compatible=true`, now with `927` observed candidates, `1123`
+     shard-level missing candidates, and `1049` full 25-candidate slots
+     missing. One target is now complete at the full 25-candidate budget, but
+     only the seed101-105 overlay shard is complete as a shard. Slurm remains
+     19 P25 jobs running plus 5 P25 jobs pending behind
+     `QOSMaxJobsPerUserLimit`; the pending jobs are shard05 seed121-125 and all
+     shard06 seed blocks. Error keyword scanning across P25 logs is clean, so
+     this is still normal long-target inference and queue waiting. No partial
+     scoring and no deferred P27b/O5b/D6a launch.
 
 ## Run Discipline
 

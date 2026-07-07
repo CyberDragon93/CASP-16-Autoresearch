@@ -5,9 +5,11 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 ## Post-P25 Fast Decision Queue
 
-Current live P25 gate, checked `2026-07-07 12:57 CDT`: `ready=false`,
-`compatible=true`, `897` observed candidates, `1153` shard-level candidates
-missing, and `1078` full 25-candidate slots missing. Slurm has 19 P25 jobs
+Current live P25 gate, checked `2026-07-07 13:02 CDT`: `ready=false`,
+`compatible=true`, `927` observed candidates, `1123` shard-level candidates
+missing, and `1049` full 25-candidate slots missing. One target is now complete
+at the full 25-candidate budget, but the merged P25 row is not scoreable yet.
+Slurm has 19 P25 jobs
 running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`. Do not submit
 any branch in this section until the complete P25 row is merged and scored.
 Current running shards show normal large-complex inference and queue waiting,
