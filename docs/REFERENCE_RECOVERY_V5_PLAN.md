@@ -156,6 +156,18 @@ These are not low-priority forever; they can unlock high-value QSglob rows.
 But they are unsafe to accept until assembly and QSglob chain mapping are
 audited.
 
+2026-07-07 15:17 CDT follow-up:
+`diagnostics/reference_gap/casp16_server_protein_v5_lane_d_oligo_assembly_review.tsv`
+condenses the oligo assembly audit for both Lane D families. The AcP10/eIF2B
+family (`H0217/H1217/H2217`) has 60 reviewed assembly rows across 20 candidate
+PDB IDs, but every biological assembly is a 10-18 polymer-chain complex while
+the benchmark target rows have 6 polymer chains. The XauSPARDA family
+(`H0267/H1267/H2267`) has 9 reviewed rows across `9qbl`, `9qbq`, and `9qcc`,
+but the biological assemblies are tetrameric or 34-meric while the target rows
+have 2 polymer chains. Both families remain `audit_first_not_accepted`; do not
+promote the current candidates without native assembly provenance plus explicit
+QSglob chain/interface mapping.
+
 ### Lane F: Manual Oligo Native Search
 
 2026-07-07 14:58 CDT follow-up: a focused relaxed RCSB sequence probe covered

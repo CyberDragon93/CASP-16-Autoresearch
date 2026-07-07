@@ -138,6 +138,12 @@ promotion: `10br` is only a short HtrA fragment, the H0215-family hits do not
 match the mNeonGreen-nanobody target assembly, and the T1295/T1295O TM_Ag hits
 are partial/domain/template structures. Keep these rows in manual native search
 unless native provenance plus explicit crop or QSglob mapping appears.
+The Lane D oligo assembly review is recorded in
+`diagnostics/reference_gap/casp16_server_protein_v5_lane_d_oligo_assembly_review.tsv`.
+It rejects the current H0217/H1217/H2217 and H0267/H1267/H2267 candidate
+assemblies for refmap promotion because none matches the benchmark target
+polymer-chain count. Keep these rows in manual native assembly/provenance work
+unless target-stoichiometry agreement or explicit QSglob mapping appears.
 The first high-value Lane F relaxed RCSB probe is also recorded:
 `diagnostics/reference_gap/rcsb_relaxed90_probe_20260707_lane_f_high_value_oligo_targets.tsv`
 and its candidate TSV show `15` oligo rows checked at identity `0.90`.

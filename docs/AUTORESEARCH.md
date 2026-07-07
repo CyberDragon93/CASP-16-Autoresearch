@@ -1800,6 +1800,19 @@ competitive result.
      T1295/T1295O TM_Ag hits are partial/template structures. No accepted
      references are added; these rows move to manual native/provenance plus
      explicit domain-crop or QSglob assembly mapping.
+124. `2026-07-07 15:17 CDT` P25 live gate plus Lane D oligo assembly review:
+     P25 is still not merge-ready: `ready=false`, `compatible=true`, `1331`
+     observed candidates, `727` shard-level missing candidates, and `657`
+     full 25-candidate slots missing. Slurm still has 19 P25 jobs running and
+     5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`. While waiting,
+     recorded
+     `diagnostics/reference_gap/casp16_server_protein_v5_lane_d_oligo_assembly_review.tsv`.
+     It condenses the existing oligo assembly audit for H0217/H1217/H2217 and
+     H0267/H1267/H2267: the AcP10/eIF2B candidates are 10-18 polymer-chain
+     assemblies versus 6-chain target rows, and the XauSPARDA candidates are
+     tetrameric or 34-meric assemblies versus 2-chain target rows. No current
+     Lane D assembly is accepted for refmap promotion; future progress needs
+     native assembly provenance plus explicit QSglob chain/interface mapping.
 
 ## Run Discipline
 
