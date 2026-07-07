@@ -969,6 +969,15 @@ competitive result.
     so a full multi-target diversity run can generate prediction-only consensus
     sidecars without manually enumerating targets. The MSA/model-diversity
     budget now records this run-id based command.
+62. `2026-07-07 02:31 CDT` P14/P-next readiness checkpoint: P14 remains live
+    and not merge-ready at 194/370 observed candidates, 176 missing candidates,
+    0/6 complete shards, and 74 incomplete target tasks. All six jobs
+    `812239..812244` are still RUNNING at about 4h12m on GH200 nodes, with no
+    error-scan hits. The next wave is mechanically ready but still gated on
+    P14 scoring: P18/P25 target+seed shards preflight `30/30 ok`, P15 v4
+    target shards preflight `6/6 ok`, and D6a domain-sequence recovery
+    preflight `1/1 ok`, all with complete MSA reuse and 0 stale paths. Do not
+    launch them until P14 is merged/scored or explicitly abandoned.
 
 ## Run Discipline
 
