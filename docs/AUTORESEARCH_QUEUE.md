@@ -5,9 +5,9 @@ The queue is allowed to change quickly; benchmark definitions are not.
 
 ## Post-P25 Fast Decision Queue
 
-Current live P25 gate, checked `2026-07-07 13:37 CDT`: `ready=false`,
-`compatible=true`, `1091` observed candidates, `959` shard-level candidates
-missing, and `889` full 25-candidate slots missing. One target is now complete
+Current live P25 gate, checked `2026-07-07 13:51 CDT`: `ready=false`,
+`compatible=true`, `1105` observed candidates, `945` shard-level candidates
+missing, and `875` full 25-candidate slots missing. One target is now complete
 at the full 25-candidate budget, but the merged P25 row is not scoreable yet.
 Slurm has 19 P25 jobs
 running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`. Do not submit
@@ -79,6 +79,11 @@ into 42 target-family tasks, with explicit lanes for `T1228V1` provenance,
 deferred sequence-hit review, domain manual native search, oligo assembly
 mapping, input/alias repair, and oligo manual native search. This queue is not
 prediction guidance and must not be used for target-specific strategy tuning.
+The Lane C input-alias details are now split out in
+`diagnostics/reference_gap/casp16_server_protein_v5_input_alias_repair_candidates.tsv`:
+`T1228V2/T1294V2` can move through D6a-style repaired inputs, but all five
+Lane C rows remain `not_reference_ready` until explicit native/domain or
+assembly/QSglob mapping proof exists.
 
 For a selected deferred run, record the decision before launch:
 

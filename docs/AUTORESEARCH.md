@@ -1555,6 +1555,20 @@ competitive result.
      and all shard06 seed blocks. Error keyword scanning across P25 logs is
      clean. This confirms the bottleneck is still large-complex inference plus
      queue limits, not MSA cache, scorer failure, or a branch-selection point.
+104. `2026-07-07 13:51 CDT` P25 gate: still not ready, now with `1105`
+     observed candidates, `945` shard-level missing candidates, and `875`
+     full 25-candidate slots missing. Slurm still shows 19 P25 jobs running
+     and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`, so the correct
+     action remains wait-for-complete closeout rather than partial scoring or
+     launching P27b/O5b/D6a. While waiting, the Lane C missing-reference
+     boundary was made explicit in
+     `diagnostics/reference_gap/casp16_server_protein_v5_input_alias_repair_candidates.tsv`:
+     `T1228V2` and `T1294V2` already have D6a-style sequence inheritance and
+     exact-sequence MSA cache coverage, while `H1265_V1/V2/V3` still need a
+     versioned score-table variant input-alias repair. All five remain
+     `not_reference_ready`; realistic input coverage can move forward, but
+     accepted v5 references still require native-state/domain or
+     assembly/QSglob mapping proof.
 
 ## Run Discipline
 

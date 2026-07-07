@@ -14,6 +14,7 @@ Source artifacts:
 - `diagnostics/reference_gap/casp16_server_protein_latest_all_refmap_review.tsv`
 - `diagnostics/reference_gap/casp16_server_protein_latest_oligo_assembly_audit.tsv`
 - `diagnostics/reference_gap/casp16_server_protein_v5_refmap_recovery_queue.tsv`
+- `diagnostics/reference_gap/casp16_server_protein_v5_input_alias_repair_candidates.tsv`
 
 `casp16_server_protein_v4_refmap` has severe reference-limited score caps:
 
@@ -155,6 +156,23 @@ Fix sequence/alias representation first. Reference promotion before input
 repair would make the benchmark look more complete without making the
 prediction pipeline more real.
 
+Detailed repair evidence lives in
+`diagnostics/reference_gap/casp16_server_protein_v5_input_alias_repair_candidates.tsv`.
+The current split is:
+
+- `T1228V2` and `T1294V2` already have non-oracular sequence inheritance in
+  the D6a input-repair artifact and exact-sequence MSA cache coverage. They
+  should stay in the D6a-style input lane until native-state/reference
+  provenance and explicit domain crop mapping exist.
+- `H1265_V1`, `H1265_V2`, and `H1265_V3` are score-table variant rows without
+  target-list sequence rows. They need a versioned input-alias repair that
+  inherits H1265 sequence metadata before any oligo assembly or QSglob
+  reference mapping can be accepted.
+
+Do not promote these five rows by copying H1265/T1228/T1294 references. The
+first deliverable is realistic input coverage; accepted references still need
+the proof listed in the TSV.
+
 ### Lane E: Manual Native Search Targets
 
 Most missing-reference rows still have zero usable sequence-search candidates.
@@ -193,12 +211,16 @@ really match.
 2. While GPU runs continue, keep `T1228V1` as an audit target, but do not
    accept it until the 545-residue protein input and native-state mapping are
    both fixed.
-3. If `T1228V1` eventually passes, create
+3. Use the Lane C input-alias TSV to keep D6a and future input-repair branches
+   honest: repaired inputs can be predicted, but the five rows remain
+   reference-blocked until their explicit native/domain or assembly/QSglob
+   proof exists.
+4. If `T1228V1` eventually passes, create
    `diagnostics/reference_gap/casp16_server_protein_v5_refmap_accepted_reference_map.tsv`
    by copying the v4 accepted rows and adding only the audited row.
-4. Generate `casp16_server_protein_v5_refmap` with `server-benchmark`.
-5. Run `reference-gap-report` on v5 and compare caps.
-6. Keep oligo families in Lane D as audit work until biological assembly and
+5. Generate `casp16_server_protein_v5_refmap` with `server-benchmark`.
+6. Run `reference-gap-report` on v5 and compare caps.
+7. Keep oligo families in Lane D as audit work until biological assembly and
    QSglob mapping are explicit.
 
 This plan raises evaluation coverage without changing the prediction strategy
