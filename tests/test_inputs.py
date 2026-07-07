@@ -5,7 +5,7 @@ import json
 import pytest
 
 from casp16_leaderboard.inputs import build_protenix_job, chain_id_for, index_sequences_by_target, oligo_state_counts, sanitize_sequence, target_lookup_aliases
-from casp16_leaderboard.sharding import protenix_task_size, write_input_shards
+from casp16_leaderboard.sharding import check_prediction_shards, protenix_task_size, write_input_shards
 
 
 def test_build_protenix_job_mixed_entities() -> None:
@@ -126,3 +126,80 @@ def test_write_input_shards_balances_and_preserves_tasks(tmp_path) -> None:
     task_rows = (tmp_path / "shards" / "shard_tasks.tsv").read_text(encoding="utf-8")
     assert "large_a" in task_rows
     assert "large_b" in task_rows
+
+
+def _write_shard_run(tmp_path, run_id: str, tasks: list[dict[str, object]], observed_by_task: dict[str, int]) -> None:
+    run_dir = tmp_path / "runs" / run_id
+    input_json = run_dir / "inputs" / "inputs.json"
+    output_dir = run_dir / "predictions" / "protenix-v2"
+    input_json.parent.mkdir(parents=True)
+    input_json.write_text(json.dumps(tasks, indent=2) + "\n", encoding="utf-8")
+    spec = {
+        "run_id": run_id,
+        "benchmark_name": "casp16_server_protein_v2_aliasfix",
+        "backend": "protenix",
+        "strategy": "target_shard",
+        "model_name": "protenix-v2",
+        "input_json": str(input_json),
+        "input_sha256": f"{run_id}-input",
+        "input_manifest_sha256": "shared-manifest",
+        "references_sha256": "shared-references",
+        "output_dir": str(output_dir),
+        "seeds": "101,102",
+        "sample": 1,
+        "candidate_count": 2,
+        "selected_model_policy": "protenix_confidence_v1",
+        "rank_eligible": False,
+    }
+    (run_dir / "run_spec.json").write_text(json.dumps(spec, indent=2) + "\n", encoding="utf-8")
+    for task in tasks:
+        task_name = str(task["name"])
+        for index in range(observed_by_task.get(task_name, 0)):
+            pred_dir = output_dir / task_name / f"seed_{101 + index}" / "predictions"
+            pred_dir.mkdir(parents=True, exist_ok=True)
+            (pred_dir / f"{task_name}_sample_0.cif").write_text(f"data_{task_name}\n", encoding="utf-8")
+
+
+def test_check_prediction_shards_reports_missing_and_merge_command(tmp_path) -> None:
+    _write_shard_run(tmp_path, "shard01", [_task("T0001", 10)], {"T0001": 2})
+    _write_shard_run(tmp_path, "shard02", [_task("H0002", 12)], {"H0002": 1})
+
+    not_ready = check_prediction_shards(
+        project_root=tmp_path,
+        shard_run_ids=["shard01", "shard02"],
+        benchmark_name="casp16_server_protein_v2_aliasfix",
+        merged_run_id="merged_attack",
+        merged_input_json=tmp_path / "full.inputs.json",
+    )
+
+    assert not_ready["ready"] is False
+    assert not_ready["complete_task_count"] == 1
+    assert not_ready["missing_candidate_count"] == 1
+    assert not_ready["rows"][1]["missing_tasks"] == "H0002:1/2"
+    assert not_ready["merge_command"] == []
+
+    pred_dir = tmp_path / "runs" / "shard02" / "predictions" / "protenix-v2" / "H0002" / "seed_102" / "predictions"
+    pred_dir.mkdir(parents=True, exist_ok=True)
+    (pred_dir / "H0002_sample_0.cif").write_text("data_H0002\n", encoding="utf-8")
+
+    ready = check_prediction_shards(
+        project_root=tmp_path,
+        shard_run_ids=["shard01", "shard02"],
+        benchmark_name="casp16_server_protein_v2_aliasfix",
+        merged_run_id="merged_attack",
+        merged_input_json=tmp_path / "full.inputs.json",
+    )
+
+    assert ready["ready"] is True
+    assert ready["complete_task_count"] == 2
+    assert ready["missing_candidate_count"] == 0
+    assert ready["merge_command"][:7] == [
+        "./casp16",
+        "merge-shards",
+        "--run-id",
+        "merged_attack",
+        "--benchmark",
+        "casp16_server_protein_v2_aliasfix",
+        "--allow-target-shards",
+    ]
+    assert ready["merge_command"].count("--shard-run-id") == 2

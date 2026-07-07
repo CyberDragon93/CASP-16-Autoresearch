@@ -22,7 +22,7 @@ from .msa_cache import audit_msa_reuse_report, build_msa_cache_index, file_sha25
 from .official import ensure_dir, ingest_official_data
 from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, run_next, run_one
 from .scoring import probe_qsglob_targets, score_benchmark_runs
-from .sharding import write_input_shards
+from .sharding import SHARD_READINESS_FIELDS, check_prediction_shards, write_input_shards, write_tsv
 from .strategies import STRATEGY_YANG_TERMINAL_TAG_CLEANUP, derive_strategy_inputs
 
 
@@ -478,6 +478,14 @@ def build_parser() -> argparse.ArgumentParser:
     merge_shards.add_argument("--merged-input-json", type=Path, default=None, help="Full input JSON to attach to a target-sharded merged run.")
     merge_shards.add_argument("--allow-target-shards", action="store_true", help="Allow shards with different subset input JSON hashes; requires --merged-input-json.")
 
+    check_shards = subparsers.add_parser("check-shards", help="Check whether prediction shards are complete enough to merge.")
+    check_shards.add_argument("--benchmark", default="")
+    check_shards.add_argument("--shard-run-id", action="append", required=True, help="Shard run id; repeat in merge order.")
+    check_shards.add_argument("--merged-run-id", default="", help="Merged run id to include in the suggested merge command when ready.")
+    check_shards.add_argument("--merged-input-json", type=Path, default=None, help="Full input JSON to include in the suggested target-shard merge command.")
+    check_shards.add_argument("--candidate-count", type=int, default=None, help="Override expected candidates per task.")
+    check_shards.add_argument("--output-tsv", type=Path, default=None, help="Optional per-shard readiness TSV.")
+
     collect = subparsers.add_parser("collect", help="Collect local run artifacts into CSV/Markdown.")
     collect.add_argument("--output-dir", type=Path, default=None, help="Defaults to <root>/leaderboards.")
 
@@ -929,6 +937,21 @@ def main(argv: Sequence[str] | None = None) -> int:
             merged_input_json=args.merged_input_json,
             allow_target_shards=args.allow_target_shards,
         )
+        print_json(summary)
+        return 0
+
+    if args.command == "check-shards":
+        summary = check_prediction_shards(
+            project_root=root,
+            shard_run_ids=split_csv_args(args.shard_run_id),
+            benchmark_name=args.benchmark,
+            merged_run_id=args.merged_run_id,
+            merged_input_json=args.merged_input_json.resolve() if args.merged_input_json else None,
+            candidate_count_override=args.candidate_count,
+        )
+        if args.output_tsv:
+            write_tsv(args.output_tsv.resolve(), summary["rows"], SHARD_READINESS_FIELDS)
+            summary["output_tsv"] = str(args.output_tsv.resolve())
         print_json(summary)
         return 0
 

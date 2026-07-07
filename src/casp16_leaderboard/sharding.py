@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .official import ensure_dir
-from .runs import file_sha256
+from .runs import candidate_count, file_sha256, latest_status_by_run, load_run_specs
 
 
 PROTENIX_SEQUENCE_KEYS = ("proteinChain", "rnaSequence", "dnaSequence", "ligand")
@@ -34,6 +34,19 @@ SHARD_TASK_FIELDS = [
     "token_estimate",
     "chain_count",
     "entity_count",
+]
+SHARD_READINESS_FIELDS = [
+    "shard_run_id",
+    "status",
+    "input_json",
+    "output_dir",
+    "task_count",
+    "complete_task_count",
+    "incomplete_task_count",
+    "expected_candidate_count",
+    "observed_candidate_count",
+    "missing_candidate_count",
+    "missing_tasks",
 ]
 
 
@@ -295,4 +308,143 @@ def write_input_shards(
         **payload,
         "manifest_json": str(manifest_json),
         "shards": manifest_rows,
+    }
+
+
+def _prediction_candidates_for_task(output_dir: Path, task_name: str) -> list[Path]:
+    if not output_dir.exists():
+        return []
+    task_low = task_name.lower()
+    matches: list[Path] = []
+    for path in sorted(output_dir.glob("**/*.cif")) + sorted(output_dir.glob("**/*.pdb")):
+        try:
+            parts = path.relative_to(output_dir).parts
+        except ValueError:
+            parts = path.parts
+        parts_low = [part.lower() for part in parts]
+        if task_low in path.name.lower() or task_low in parts_low[:-1]:
+            matches.append(path)
+    return matches
+
+
+def check_prediction_shards(
+    *,
+    project_root: Path,
+    shard_run_ids: Sequence[str],
+    benchmark_name: str = "",
+    merged_run_id: str = "",
+    merged_input_json: Path | None = None,
+    candidate_count_override: int | None = None,
+) -> dict[str, Any]:
+    if not shard_run_ids:
+        raise ValueError("provide at least one shard_run_id")
+    specs_by_id = {str(spec.get("run_id", "")): spec for spec in load_run_specs(project_root / "runs", registered_only=False)}
+    status_by_run = latest_status_by_run(project_root)
+    rows: list[dict[str, Any]] = []
+    missing_specs = [run_id for run_id in shard_run_ids if run_id not in specs_by_id]
+    if missing_specs:
+        raise FileNotFoundError(f"missing shard run specs: {', '.join(missing_specs)}")
+
+    all_ready = True
+    total_tasks = 0
+    total_complete_tasks = 0
+    total_observed = 0
+    total_missing_candidates = 0
+    benchmark_values: set[str] = set()
+    selected_policies: set[str] = set()
+    input_hashes: set[str] = set()
+    manifest_hashes: set[str] = set()
+    reference_hashes: set[str] = set()
+
+    for run_id in shard_run_ids:
+        spec = specs_by_id[run_id]
+        benchmark_values.add(str(spec.get("benchmark_name", "")))
+        selected_policies.add(str(spec.get("selected_model_policy", "") or "first_output_only"))
+        input_hashes.add(str(spec.get("input_sha256", "")))
+        manifest_hashes.add(str(spec.get("input_manifest_sha256", "")))
+        reference_hashes.add(str(spec.get("references_sha256", "")))
+        input_json = Path(str(spec.get("input_json", "")))
+        output_dir = Path(str(spec.get("output_dir", "")))
+        tasks = load_protenix_tasks(input_json) if input_json.exists() else []
+        expected_candidates = int(candidate_count_override or spec.get("candidate_count") or candidate_count(str(spec.get("seeds", "101")), spec.get("sample", 1)))
+        complete_task_count = 0
+        observed_candidate_count = 0
+        missing_tasks: list[str] = []
+        missing_candidate_count = 0
+        for task in tasks:
+            observed = len(_prediction_candidates_for_task(output_dir, task.name))
+            observed_candidate_count += observed
+            if observed >= expected_candidates:
+                complete_task_count += 1
+            else:
+                all_ready = False
+                missing_tasks.append(f"{task.name}:{observed}/{expected_candidates}")
+                missing_candidate_count += expected_candidates - observed
+        if not tasks:
+            all_ready = False
+        total_tasks += len(tasks)
+        total_complete_tasks += complete_task_count
+        total_observed += observed_candidate_count
+        total_missing_candidates += missing_candidate_count
+        rows.append(
+            {
+                "shard_run_id": run_id,
+                "status": status_by_run.get(run_id, {}).get("status", "pending"),
+                "input_json": str(input_json),
+                "output_dir": str(output_dir),
+                "task_count": len(tasks),
+                "complete_task_count": complete_task_count,
+                "incomplete_task_count": len(tasks) - complete_task_count,
+                "expected_candidate_count": expected_candidates,
+                "observed_candidate_count": observed_candidate_count,
+                "missing_candidate_count": missing_candidate_count,
+                "missing_tasks": ",".join(missing_tasks),
+            }
+        )
+
+    merge_command: list[str] = []
+    requested_benchmark = benchmark_name or next(iter(benchmark_values), "")
+    if all_ready and merged_run_id and requested_benchmark and merged_input_json is not None:
+        merge_command = [
+            "./casp16",
+            "merge-shards",
+            "--run-id",
+            merged_run_id,
+            "--benchmark",
+            requested_benchmark,
+            "--allow-target-shards",
+        ]
+        if merged_input_json is not None:
+            merge_command.extend(["--merged-input-json", str(merged_input_json)])
+        declared_count = candidate_count_override or max((int(row["expected_candidate_count"]) for row in rows), default=0)
+        if declared_count:
+            merge_command.extend(["--candidate-count", str(declared_count)])
+        for run_id in shard_run_ids:
+            merge_command.extend(["--shard-run-id", run_id])
+
+    compatibility_ok = (
+        (not benchmark_name or benchmark_values == {benchmark_name})
+        and len(benchmark_values) == 1
+        and len(selected_policies) == 1
+        and len(manifest_hashes) == 1
+        and len(reference_hashes) == 1
+    )
+    return {
+        "ready": all_ready and compatibility_ok,
+        "compatible": compatibility_ok,
+        "benchmark": requested_benchmark,
+        "shard_count": len(rows),
+        "complete_shard_count": sum(1 for row in rows if int(row["incomplete_task_count"]) == 0 and int(row["task_count"]) > 0),
+        "task_count": total_tasks,
+        "complete_task_count": total_complete_tasks,
+        "incomplete_task_count": total_tasks - total_complete_tasks,
+        "observed_candidate_count": total_observed,
+        "missing_candidate_count": total_missing_candidates,
+        "benchmark_values": sorted(benchmark_values),
+        "selected_model_policies": sorted(selected_policies),
+        "source_input_sha256s": sorted(input_hashes),
+        "input_manifest_sha256s": sorted(manifest_hashes),
+        "references_sha256s": sorted(reference_hashes),
+        "rows": rows,
+        "merge_command": merge_command,
     }

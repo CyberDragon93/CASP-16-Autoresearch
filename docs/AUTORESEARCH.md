@@ -660,6 +660,14 @@ competitive result.
     `98/98/98/81/0`). Both partial artifacts remain useful diagnostics, but
     neither should occupy GH200 time ahead of the six v2 target-sharded
     scoreable jobs `812239..812244`.
+33. `2026-07-06 21:12 CDT` shard readiness automation: added
+    `./casp16 check-shards` for target-sharded attacks. It verifies run-spec
+    compatibility, counts observed prediction candidates per Protenix task, can
+    write a readiness TSV, and emits the exact target-shard merge command only
+    when every shard has the declared candidate count. Current scoreable
+    target-shard status is compatible but not ready: `0/370` candidates across
+    74 tasks, recorded in
+    `diagnostics/score_probes/target_shards_scoreable_size_balanced_readiness.tsv`.
 
 ## Run Discipline
 

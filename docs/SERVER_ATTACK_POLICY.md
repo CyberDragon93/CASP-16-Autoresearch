@@ -145,6 +145,23 @@ Use `run-one --allow-parallel` only for target-disjoint shards that will be
 merged later. Normal strategy rows should still use `run-next`, which preserves
 the benchmark-wide running lock.
 
+Before merging target shards, run the readiness check:
+
+```bash
+./casp16 check-shards \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --merged-run-id <merged_run_id> \
+  --merged-input-json <full_strategy_input_json> \
+  --candidate-count <declared_candidates> \
+  --shard-run-id <target_shard_1> \
+  --shard-run-id <target_shard_2>
+```
+
+The check is read-only. It verifies shard compatibility, counts per-task
+prediction candidates, writes a per-shard TSV when requested, and emits the
+exact `merge-shards --allow-target-shards` command only when every target has
+the declared candidate count.
+
 When the launch gate opens, generate each shard with the TSV row's fields:
 
 ```bash
