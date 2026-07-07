@@ -142,6 +142,20 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 `rank_eligible=false` until merged. They were submitted as Slurm jobs
 `812239..812244` with `./casp16 run-one --allow-parallel`.
 
+Current launch gate as of `2026-07-06 23:49 CDT`: those six P14 shards are
+still running and not merge-ready. `check-shards` observes 63/370 expected
+candidate CIFs and reports `ready=false`. Do not submit the deferred v4 P15
+shards, the 25-seed scoreable grid, or the antibody-Fv scoreable branch until
+P14 is either merged/scored or explicitly abandoned with an append-only status
+reason. The next decision should be based on fixed-set server scores, not on a
+partial shard snapshot.
+
+The prepared v4 successor uses
+`casp16_server_protein_v4_refmap` and 76 scoreable jobs because audited
+reference-map rows add `T1278` and `T2278`. It is a different benchmark version
+from v2. If launched, report it as v4 reference-coverage recovery plus the same
+five-candidate attack budget; do not mix its results into v2 leaderboards.
+
 Use `run-one --allow-parallel` only for target-disjoint shards that will be
 merged later. Normal strategy rows should still use `run-next`, which preserves
 the benchmark-wide running lock.

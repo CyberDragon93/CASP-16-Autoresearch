@@ -841,6 +841,21 @@ competitive result.
     `1.0` and zero stale rows. These specs are explicitly marked
     `deferred:await_p14_score` to prevent accidental `run-next` launch before
     P14 has a real score.
+51. `2026-07-06 23:49 CDT` P14 readiness check: the live v2 scoreable
+    target-sharded attack is still incomplete. `check-shards` sees 63/370
+    expected candidate CIFs, 307 missing candidates, 0/6 complete shards, and
+    74 incomplete target tasks. The jobs are still running on six GH200 nodes,
+    so the correct move is to wait for completion rather than score a partial
+    row. Partial artifacts may be inspected only as diagnostics, never as a
+    ranked five-candidate result.
+52. `2026-07-06 23:49 CDT` launch discipline update: `missing_reference`
+    recovery is useful for scoreability, but it is a benchmark-version task,
+    not a prediction trick. Continue accepting reference rows only through the
+    audited `reference_map.tsv` overlay path with native provenance plus
+    chain/domain or assembly mapping. While P14 is running, the highest-value
+    ready work is to keep MSA reuse complete for deferred P15/P25 shards and to
+    prepare target-agnostic input-repair branches; do not open a new GPU run
+    merely because a no-reference target looks tempting.
 
 ## Run Discipline
 

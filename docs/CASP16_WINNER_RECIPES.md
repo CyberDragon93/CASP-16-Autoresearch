@@ -61,6 +61,7 @@ benchmark target set or inspect references.
 | D6 | Sequence recovery | server-style coverage fails if target sequence archives are parsed or aliased incorrectly | `./casp16 strategy-inputs --strategy yang_sequence_recovery_v1 --input-json strategies/yang_terminal_tag_cleanup_v1/.../inputs.json` recovers protein-like records as `proteinChain` | queue after active jobs; do not use references or scores to choose recovered targets |
 | D6a | V2 nofail domain sequence recovery | reference-gap triage exposed protein-domain inputs that were locally represented as short DNA or empty jobs before scoring could be trusted | `yang_domain_sequence_recovery_oligo_nofail_v1` composes D6 onto the strongest v2 nofail stack, changing 8 domain jobs including the `T1276/T1228V1/T1239V1/T2276` class; `domain_sequence_recovery_msa_warmup_v1` isolates the 4 unique fresh-MSA sequences | pending single-seed run allows 7 fresh MSA chains; warmup is rank-ineligible and only materializes MSA before full-set promotion |
 | D7 | Coverage-first stack | realistic attack compute should not be spent on missing-sequence or token-limit hard zeros | `yang_sequence_recovery_large_target_fallback_v1` stacks sequence recovery with the large-target fallback on terminal-tag-cleaned inputs | queue after the component runs or when the queue needs a single combined coverage candidate |
+| D8 | Reference/input registry discipline | server-style domain comparison is only meaningful when native provenance, chain mapping, and crop mapping are explicit | `casp16_server_protein_v3_refmap` and `v4_refmap` add only accepted reference-map rows such as `T1278/T2278 -> 9hav` with chain `A` crop `34-370`; input-kind bugs such as `T1228V1` stay as input-repair work until mapping is strict | create a new benchmark version for accepted mappings; never patch v2/v4 TSVs by hand or use scores to select references |
 
 ## Protein Oligos
 
@@ -99,6 +100,7 @@ wrong assemblies should score poorly on the oligo track.
 | O5 | Antibody docking branch | kozakovvajda did especially well on antibody-antigen targets without AFM/AF3 as the core engine | `yang_antibody_fv_cleanup_v1` completed a full-set run; `targetlab_protenix_yang_antibody_fv_seed101` completed as a target_lab Fv-only diagnostic with DockQ positives H0233=0.916 and H1233=0.891 | do not promote until QSglob assembly mapping can evaluate the antibody oligo predictions |
 | O6 | First-model ranking | PEZYFoldings was noted for stronger first-model selection | evaluate confidence/consensus/geometry features after full predictions exist | selection rule fixed before scoring a new full run |
 | O7 | Oversize complex fallback | complex targets can exceed AF3-like token limits, and the baseline lost H0217/H0258/H0272/H1217/H1258/H1272 before any model was produced | `yang_large_target_split_or_fallback_v1` keeps under-budget chain/copy prefixes and records dropped chains | score as coverage recovery until QSglob and assembly mapping are trustworthy |
+| O8 | Scoreable target sharding | realistic complex attacks need multiple candidates, but one 2500-token assembly should not stall every smaller target | P14 uses six target-balanced shards for the 74-job v2 scoreable subset; P15 prepares the same five-candidate budget on the 76-job v4 refmap subset with complete MSA reuse | merge all target shards before scoring; partial shards stay unranked and skipped no-reference targets remain fixed-set zeros |
 
 ## AF3-Style Systems
 
@@ -313,3 +315,14 @@ Useful strategy hypotheses:
 34. Model-selection research: collect confidence/consensus after predictions,
     but keep ranked `first_output_only` unless a new benchmark version is
     created.
+35. P14 live scoreable target-sharded attack: as of `2026-07-06 23:49 CDT`,
+    all six v2 shards are still running, with 63/370 expected candidate CIFs
+    observed and 307 missing. Do not score or compare it yet. The next valid
+    action is `check-shards`; only when it reports `ready=true` should the run
+    be merged, scored, and added to the v2 server leaderboard.
+36. P15/P25 launch gate: the v4 scoreable target shards and the v2 25-seed
+    scoreable target-seed grid are preparation, not permission to spend more
+    GPU. If P14 shows broad fixed-set signal, prefer the v4 P15 row when the
+    extra `T1278/T2278` reference coverage matters, or the 25-seed row when
+    candidate selection is the bottleneck. If P14 is weak, shift to input
+    repair or a smaller target-lab-derived branch before scaling.
