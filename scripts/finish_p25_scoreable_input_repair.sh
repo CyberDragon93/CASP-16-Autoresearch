@@ -7,8 +7,10 @@ cd "${ROOT}"
 SHARD_TABLE="attack_budgets/casp16_server_attack_protenix25_scoreable_input_repair_target_seed_shards.tsv"
 BENCHMARK="casp16_server_protein_v2_aliasfix"
 RUN_ID="server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125"
+REPLAY_RUN_ID="server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125_consensus_replay"
 MERGED_INPUT_JSON="strategies/scoreable_target_subset_input_repair_v1/casp16_server_protein_v2_aliasfix/inputs.json"
 READINESS_TSV="diagnostics/score_probes/protenix25_scoreable_input_repair_target_seed_readiness.tsv"
+REPLAY_QA_CSV="diagnostics/selection_qa/server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125_consensus_replay.selection_qa.csv"
 OVERLAY_RUN_ID="server_v2_attack_scoreable_input_repair_overlay_msa_reuse_protenix5_seed101_105"
 TMSCORE_BIN="/scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore"
 
@@ -27,6 +29,10 @@ args=(
   --allow-target-shards
   --output-tsv "${READINESS_TSV}"
   --tmscore-bin "${TMSCORE_BIN}"
+  --replay-run-id "${REPLAY_RUN_ID}"
+  --replay-selected-model-policy "diversity_confidence_consensus_v1"
+  --replay-strategy "scoreable_target_subset_input_repair_v1_consensus_selector_replay"
+  --replay-selection-qa-output-csv "${REPLAY_QA_CSV}"
   --shard-run-id "${OVERLAY_RUN_ID}"
 )
 

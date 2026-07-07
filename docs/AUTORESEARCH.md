@@ -359,6 +359,13 @@ truth log.
   closeout path for P14/P16: it writes prediction-only `selection-qa` sidecars,
   registers the `diversity_confidence_consensus_v1` replay row, and only then
   runs `score` and `leaderboard`.
+- `scripts/finish_p25_scoreable_input_repair.sh` now uses the same replay-safe
+  closeout path for P25. After the 25-candidate repaired-input pool is complete
+  it will register
+  `server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125_consensus_replay`
+  from the merged predictions, write prediction-only QA sidecars, and score the
+  confidence selector plus consensus selector together before any new GPU branch
+  is selected.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and
@@ -1655,6 +1662,14 @@ competitive result.
      `deferred:await_p25_score` lifecycle rows, while D6a and P15/v4 still
      carry older `deferred:await_p14_score` labels but have complete run specs
      and `ok` preflights. This command does not submit jobs or inspect scores.
+112. `2026-07-07 14:29 CDT` P25 closeout now includes no-GPU selector replay:
+     `scripts/finish_p25_scoreable_input_repair.sh` passes `--replay-run-id`
+     for
+     `server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125_consensus_replay`.
+     Once all declared candidates exist, the wrapper will merge P25, write
+     prediction-only `selection-qa` sidecars, register the
+     `diversity_confidence_consensus_v1` replay row, and score both selectors
+     together. This tests QA/model selection before spending another GPU branch.
 
 ## Run Discipline
 

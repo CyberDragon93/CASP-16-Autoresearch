@@ -66,6 +66,14 @@ scripts/finish_p25_scoreable_input_repair.sh
 ./casp16 post-p25-branch-readiness
 ```
 
+The P25 closeout wrapper is replay-safe: once all declared candidates exist,
+it merges the 25-candidate pool, registers
+`server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125_consensus_replay`
+against the same predictions with `diversity_confidence_consensus_v1`, writes
+prediction-only selection QA sidecars, and then scores both rows together. This
+adds no GPU work and must be interpreted as candidate-selection evidence, not a
+new prediction budget.
+
 Decision order:
 
 1. P25 improves broadly over P17: analyze target deltas and selector behavior

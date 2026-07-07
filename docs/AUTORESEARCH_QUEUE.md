@@ -94,6 +94,14 @@ It should report P27b, D6a, O5b, and P15/v4 as launch-ready before any branch
 is selected. A stale deferred status label is not itself a blocker; missing run
 specs or non-`ok` preflight rows are blockers.
 
+`scripts/finish_p25_scoreable_input_repair.sh` is now the preferred P25 closeout
+entrypoint because it calls `finish-shards` with the predeclared
+`server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125_consensus_replay`
+row. When P25 becomes ready, the wrapper will score the normal
+`protenix_confidence_v1` selector and the no-GPU
+`diversity_confidence_consensus_v1` replay from the same merged predictions
+before any post-P25 branch is selected.
+
 Use this queue immediately after the complete P25 score exists:
 
 | Priority | Trigger After P25 | Branch | Why This Beats Waiting | Launch Gate |
