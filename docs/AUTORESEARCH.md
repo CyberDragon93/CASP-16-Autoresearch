@@ -209,6 +209,14 @@ where methods should change.
   `ready=false`. The latest error scan again found no
   traceback/OOM/CUDA/killed signatures. Progress is still monotonic, so do not
   launch P15/P18/P25/P27a/O5/D6a or score partial shard outputs.
+- `2026-07-07 04:34 CDT` post-P14 readiness refresh: all deferred next-branch
+  preflights remain launch-clean without opening a GPU branch. P15 v4 target
+  shards are `6/6 ok`, P18/P25 scoreable 25-candidate target+seed grid is
+  `30/30 ok`, P27a default-params model/config shards are `6/6 ok`, D6a domain
+  sequence recovery is `1/1 ok`, and O5 antibody-Fv target shards are `6/6 ok`.
+  Every refreshed preflight reports complete MSA reuse and 0 stale paths. The
+  exact branch is still gated on the P14/P16 score readout in
+  `docs/SERVER_SCORE_TARGETS.md`.
 - Post-P14 winner-recipe branch `casp16_server_attack_msa_model_diversity_v1`
   is now documented as a design gate in `docs/CASP16_WINNER_RECIPES.md`. It
   captures the MULTICOM4/QA4-style lesson: if P14 is complete and valid but

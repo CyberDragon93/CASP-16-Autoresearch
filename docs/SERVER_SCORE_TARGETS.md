@@ -154,14 +154,42 @@ After P14 is merged and scored, inspect `runs.csv`, `target_scores.csv`, and
 `coverage.md` for the merged run. The next branch should be selected by the
 failure mode, not by impatience to spend more GPU time.
 
+Readout order:
+
+1. Verify closeout integrity first: merged P14 and P16 replay rows exist,
+   `candidate_count=5`, `partial_candidate_targets=0`, no metric-unavailable
+   rows, and the leaderboard was regenerated after the replay row was
+   registered.
+2. Separate expected fixed-set zeros from true failures. No-reference targets
+   still score `0`; the actionable failures are scoreable-input
+   `missing_prediction`, `metric_failed`, exact-artifact lookup misses, and
+   newly exposed input-kind mistakes.
+3. Compare P14 against the current v2 diagnostic floor, not against a partial
+   shard snapshot: domain fixed mean `0.049685`, exact-domain partial probe
+   mean `0.099576`, and exact protein-oligo QSglob positives currently at
+   zero after the exact-artifact gate.
+4. Pick one next GPU branch. Do not launch P15, P18/P25, P27a, D6a, and O5 in
+   parallel unless a later score readout records why the extra spend is worth
+   it.
+
 | P14 observation | Interpretation | Next branch |
 | --- | --- | --- |
-| Broad fixed-set improvement, more nonzero domain targets, and several exact protein-oligo QSglob positives | Five candidates plus the scoreable input stack have real signal; candidate budget and selector are plausible bottlenecks | Launch the deferred 25-candidate scoreable target+seed grid |
-| Good v2 signal, but the useful scoreable set is still capped by reference availability | Reference recovery can unlock a little more local measurement without changing the prediction recipe | Launch P15 on `casp16_server_protein_v4_refmap`, and keep broader refmap work versioned |
-| Many scoreable rows are still `missing_prediction`, `metric_failed`, or exact oligo rows are not found | This is a pipeline/input/scorer failure, not a sampling failure | Fix the failure class before launching P25 |
-| Domain score is weak because input-kind or sequence-alias repairs are missing | More seeds will repeat bad inputs | Run D6a single-seed domain sequence recovery after MSA warmup |
-| Exact QSglob remains weak mainly on antibody/Fv rows after phase-alias stoichiometry is fixed | Oligo branch may need Fv/docking-inspired input handling | Launch the prepared O5 antibody-Fv target shards |
-| Predictions and metrics are valid but the five-candidate attack is broadly weak | Current Protenix recipe is not enough; scaling seeds alone is low leverage | Launch the prepared P27a default-params model/config variant first; if that is also weak, build the broader MSA/model-variant budget before spending winner-scale compute |
+| Domain fixed mean clears the exact-domain partial probe (`>0.099576`) and exact protein-oligo rows include several nonzero QSglob scores | Five candidates plus the scoreable input stack have real signal; candidate budget and selector are plausible bottlenecks | Launch the deferred 25-candidate scoreable target+seed grid |
+| P14 has good scoreable-target signal but most full-set zeros are still no-reference rows | Reference recovery can unlock more local measurement without changing the prediction recipe | Launch P15 on `casp16_server_protein_v4_refmap`, and keep broader refmap work versioned |
+| Scoreable rows are still `missing_prediction`, `metric_failed`, exact oligo rows are not found, or P16 replay cannot be registered before scoring | This is a pipeline/input/scorer failure, not a sampling failure | Fix the failure class before launching P25 |
+| Domain zeros concentrate on known input-kind or sequence-alias repair classes such as `T1276/T1228V1/T1239V1/T2276` | More seeds will repeat bad inputs | Run D6a single-seed domain sequence recovery after MSA warmup |
+| Exact QSglob remains weak mainly on antibody/Fv rows after phase-alias stoichiometry is fixed, while non-antibody exact oligos are no longer all zero | Oligo branch may need Fv/docking-inspired input handling | Launch the prepared O5 antibody-Fv target shards |
+| Predictions and metrics are valid, but P14 remains near the v2 diagnostic floor and exact oligo QSglob is mostly zero | Current Protenix recipe is not enough; scaling seeds alone is low leverage | Launch the prepared P27a default-params model/config variant first; if that is also weak, build the broader MSA/model-variant budget before spending winner-scale compute |
+
+Current post-P14 launch readiness, refreshed `2026-07-07 04:34 CDT`:
+
+| Branch | Preflight | Evidence |
+| --- | --- | --- |
+| P15 v4 refmap target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_v4_scoreable_target_run_preflight.tsv` |
+| P18/P25 25-candidate scoreable grid | `30/30 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix25_scoreable_target_seed_run_preflight.tsv` |
+| P27a default-params model/config variant | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_defaultparams_model_variant_preflight.tsv` |
+| D6a domain sequence recovery | `1/1 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/domain_sequence_recovery_after_warmup_preflight.tsv` |
+| O5 antibody-Fv target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_antibody_fv_target_run_preflight.tsv` |
 
 ## What Counts As Progress
 
