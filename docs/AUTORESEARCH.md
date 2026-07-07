@@ -1865,6 +1865,20 @@ competitive result.
      diversity path against the observed OpenDDE shadowing failure without
      importing the Protenix model stack or touching GPU work. Validation:
      `tests/test_runs.py` now has 25 passing tests under the protein env.
+129. `2026-07-07 15:50 CDT` P25 still cannot be merged or scored:
+     `ready=false`, `compatible=true`, `1363` observed candidates, `695`
+     shard-level candidates missing, and `625` full 25-candidate slots still
+     missing. This is monotonic progress from the 15:45 gate, not a new
+     failure. Slurm still shows 19 P25 jobs running plus 5 P25 jobs pending
+     behind `QOSMaxJobsPerUserLimit`; the zero-output rows are shard05
+     seed121-125 and all shard06 seed blocks. Error-keyword scanning over P25
+     stdout/stderr found no traceback/OOM/killed signatures, and recent
+     prediction artifacts reached 15:50 CDT (`H0258`, `T0234`, and `T0235`
+     from shard01 seed blocks). Missing-reference repair remains necessary for
+     a complete future server-style benchmark, but it is not the active P25
+     blocker and must stay versioned through v5 rather than patching v2/v4 in
+     place. Keep waiting for complete declared candidates; do not score a
+     partial P25 row or launch O5b/P27b/D6a yet.
 
 ## Run Discipline
 

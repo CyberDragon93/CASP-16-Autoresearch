@@ -28,6 +28,23 @@ So reference recovery is necessary for a full server-track comparison. It is
 not a substitute for better predictions, and it must not change v2/v4 in
 place.
 
+Current priority relative to P25:
+
+- Fixing `missing_reference` is necessary before claiming a complete official
+  server-style benchmark, because missing references score 0 and cap the
+  measurable fixed-set mean.
+- It is not the active P25 blocker. P25 is a 79-job scoreable-target candidate
+  budget probe, and the live blocker is still missing declared prediction
+  candidates from running or pending GH200 shards.
+- Do not patch `casp16_server_protein_v2_aliasfix` or v4 references in place
+  to make P25 look better. Accepted rows must create a new benchmark version
+  after provenance, chain/domain or assembly/QSglob mapping, and mmCIF hashes
+  are explicit.
+- The next reference-recovery work should happen only while GPU jobs are
+  waiting or after a complete P25 readout shows that measurement coverage is
+  the dominant cap. Until then, post-P25 prediction branches such as P27b,
+  D6a, or O5b take priority when their decision conditions are met.
+
 ## Machine-Readable Queue
 
 `diagnostics/reference_gap/casp16_server_protein_v5_refmap_recovery_queue.tsv`

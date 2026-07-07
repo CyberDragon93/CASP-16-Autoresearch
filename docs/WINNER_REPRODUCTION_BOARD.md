@@ -26,19 +26,19 @@ per-target scores during prediction.
 
 ## Active Gate
 
-Checked `2026-07-07 15:37 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 15:50 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1357` |
-| shard-level missing candidates | `701` |
-| full 25-candidate slots still missing | `631` |
+| observed candidates | `1363` |
+| shard-level missing candidates | `695` |
+| full 25-candidate slots still missing | `625` |
 | complete full-budget tasks | `1 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; `gh` `MaxJobsPU=20` and one `tacc-vscode` job is also running |
-| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes still advancing |
+| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 15:50 CDT |
 | action | wait for declared candidates, then run the P25 closeout wrapper |
 
 Do not score the P25 row or launch O5b/P27b/D6a from partial outputs. The
