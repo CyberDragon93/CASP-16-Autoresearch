@@ -67,3 +67,24 @@ and chain/domain mapping are explicit.
 - Do not fill local scores from official score tables.
 - Accept a reference only after native structure provenance, sequence/construct coverage, chain mapping, and domain/assembly mapping are explicit.
 - Any accepted registry expansion should become a new benchmark version such as `casp16_server_protein_v3_refmap`, not an in-place rewrite of v2.
+
+## Exact-Sequence RCSB Probe
+
+`rcsb_exact_sequence_probe_v2_prediction_waiting.tsv` probes the 40
+`prediction_waiting_on_reference` rows against the RCSB sequence-search API
+with `identity_cutoff=1.0`. It resolves CASP phase aliases before querying.
+
+Summary:
+
+- probed rows: 40
+- rows with sequence-search hits: 6
+- full target/entity sequence exact candidates: 8 entity rows across
+  `T1228V1` and `T1278`
+- partial/local sequence hits that must not be promoted: `T1270/T0270` and
+  `T1270O/T0270O` via `10BR_1`, plus the `T1278` `13MI..13MN` rows
+
+Companion metadata lives in
+`rcsb_exact_sequence_probe_v2_candidates.tsv`. Treat these as
+`candidate_reference` diagnostics only. A future `casp16_server_protein_v3_refmap`
+can accept a candidate only after native provenance, full construct coverage,
+and domain/assembly chain mapping are explicit.

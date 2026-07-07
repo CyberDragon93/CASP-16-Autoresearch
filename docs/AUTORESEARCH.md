@@ -266,6 +266,12 @@ where methods should change.
   wrapper exits, so P14 can start without manual queue babysitting. This is
   scheduling glue only; it does not change benchmark eligibility, budget, or
   scoring.
+- Reference recovery probe: the RCSB exact-sequence diagnostic on 40
+  `prediction_waiting_on_reference` rows found full target/entity candidates
+  for `T1228V1` and `T1278` only; partial hits such as `10BR_1` for
+  `T1270/T0270` are marked non-promotable. Keep this as
+  `casp16_server_protein_v3_refmap` groundwork; it should not block the
+  current scoreable attack line or mutate v2.
 - Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   produced 39/165 CIFs and then spent extended GPU time on `T1295`, which is

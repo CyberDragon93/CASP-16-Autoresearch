@@ -142,3 +142,24 @@ Rule for future reference recovery:
   checks pass
 - create a new benchmark version such as `casp16_server_protein_v3_refmap`
   for any accepted reference-registry expansion; do not mutate v2 in place
+
+## RCSB Exact-Sequence Probe
+
+A follow-up probe on the 40 `prediction_waiting_on_reference` rows queried the
+RCSB sequence-search API with `identity_cutoff=1.0`, after resolving
+`0xxx/1xxx/2xxx` CASP phase aliases. The generated artifacts are:
+
+- `diagnostics/reference_gap/rcsb_exact_sequence_probe_v2_prediction_waiting.tsv`
+- `diagnostics/reference_gap/rcsb_exact_sequence_probe_v2_candidates.tsv`
+
+The probe found sequence-search hits for 6 rows, but only 8 candidate entity
+rows are full target/entity sequence exact matches:
+
+- `T1228V1`: `9DXH_1`, `9DXJ_1`, `9DXK_1`, `9Y66_1`
+- `T1278`: `9HAV_1`, `9HAW_1`, `9HAX_1`, `9HAY_1`
+
+Other hits are explicitly marked non-promotable without mapping. For example,
+`10BR_1` matches only a 204-residue HtrA PDZ construct for `T1270/T0270`, and
+the `T1278` `13MI..13MN` rows are local sequence-search hits rather than full
+construct matches. None of these candidates should be written into v2. They are
+the first concrete worklist for a possible `casp16_server_protein_v3_refmap`.

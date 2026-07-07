@@ -1,0 +1,41 @@
+priority	target_id	track	blocker_class	sequence_lookup_id	source_alias	sequence_kind	length	hit_count	hits
+1	T1276	protein_domain	prediction_waiting_on_reference	T1276	T1276	dnaSequence	196	0	
+2	T1284	protein_domain	prediction_waiting_on_reference	T1284	T1284	proteinChain	120	0	
+3	T1228V1	protein_domain	prediction_waiting_on_reference	T1228V1	T1228V1	dnaSequence	545	8	9DXD_1,9DXF_1,9DXG_1,9DXH_1,9DXJ_1,9DXK_1,9Y66_1,9Y6V_1
+4	T1226	protein_domain	prediction_waiting_on_reference	T1226	T1226	proteinChain	123	0	
+5	T1231	protein_domain	prediction_waiting_on_reference	T1231	T1231	proteinChain	142	0	
+6	T1207	protein_domain	prediction_waiting_on_reference	T1207	T1207	proteinChain	144	0	
+7	T1274	protein_domain	prediction_waiting_on_reference	T1274	T1274	proteinChain	167	0	
+8	T0246	protein_domain	prediction_waiting_on_reference	T0246	T1246	proteinChain	168	0	
+9	T1246	protein_domain	prediction_waiting_on_reference	T1246	T1246	proteinChain	168	0	
+10	T1259	protein_domain	prediction_waiting_on_reference	T1259	T1259	proteinChain	243	0	
+11	T0259	protein_domain	prediction_waiting_on_reference	T0259	T1259	proteinChain	243	0	
+12	T1243	protein_domain	prediction_waiting_on_reference	T1243	T1243	proteinChain	293	0	
+13	T1278	protein_domain	prediction_waiting_on_reference	T1278	T1278	proteinChain	380	10	9HAV_1,9HAW_1,9HAX_1,9HAY_1,13MI_1,13MJ_1,13MK_1,13ML_1,13MM_1,13MN_1
+14	T1292	protein_domain	prediction_waiting_on_reference	T1292	T1292	proteinChain	196	0	
+15	T1294V1	protein_domain	prediction_waiting_on_reference	T1294V1	T1294V1	proteinChain	214	0	
+16	T1279	protein_domain	prediction_waiting_on_reference	T1279	T1279	proteinChain	428	0	
+17	T0270	protein_domain	prediction_waiting_on_reference	T0270	T1270	proteinChain	437	1	10BR_1
+18	T1270	protein_domain	prediction_waiting_on_reference	T1270	T1270	proteinChain	437	1	10BR_1
+19	T0237	protein_domain	prediction_waiting_on_reference	T0237	T1237	proteinChain	488	0	
+20	T1237	protein_domain	prediction_waiting_on_reference	T1237	T1237	proteinChain	488	0	
+21	T0240	protein_domain	prediction_waiting_on_reference	T0240	T1240	proteinChain	653	0	
+22	T1240	protein_domain	prediction_waiting_on_reference	T1240	T1240	proteinChain	653	0	
+23	T1218	protein_domain	prediction_waiting_on_reference	T1218	T1218	proteinChain	1164	0	
+24	T0218	protein_domain	prediction_waiting_on_reference	T0218	T1218	proteinChain	1164	0	
+25	T1257	protein_domain	prediction_waiting_on_reference	T1257	T1257	proteinChain	1263	0	
+26	T0257	protein_domain	prediction_waiting_on_reference	T0257	T1257	proteinChain	1263	0	
+27	T1259O	protein_oligo	prediction_waiting_on_reference	T1259	T1259	proteinChain	243	0	
+28	T0259O	protein_oligo	prediction_waiting_on_reference	T0259	T1259	proteinChain	243	0	
+29	T1292O	protein_oligo	prediction_waiting_on_reference	T1292	T1292	proteinChain	196	0	
+30	T1294V1O	protein_oligo	prediction_waiting_on_reference	T1294V1	T1294V1	proteinChain	214	0	
+31	T1270O	protein_oligo	prediction_waiting_on_reference	T1270	T1270	proteinChain	437	1	10BR_1
+32	T0270O	protein_oligo	prediction_waiting_on_reference	T0270	T1270	proteinChain	437	1	10BR_1
+33	T1237O	protein_oligo	prediction_waiting_on_reference	T1237	T1237	proteinChain	488	0	
+34	T0237O	protein_oligo	prediction_waiting_on_reference	T0237	T1237	proteinChain	488	0	
+35	T1240O	protein_oligo	prediction_waiting_on_reference	T1240	T1240	proteinChain	653	0	
+36	T0240O	protein_oligo	prediction_waiting_on_reference	T0240	T1240	proteinChain	653	0	
+37	T1218O	protein_oligo	prediction_waiting_on_reference	T1218	T1218	proteinChain	1164	0	
+38	T0218O	protein_oligo	prediction_waiting_on_reference	T0218	T1218	proteinChain	1164	0	
+39	T1257O	protein_oligo	prediction_waiting_on_reference	T1257	T1257	proteinChain	1263	0	
+40	T0257O	protein_oligo	prediction_waiting_on_reference	T0257	T1257	proteinChain	1263	0	
