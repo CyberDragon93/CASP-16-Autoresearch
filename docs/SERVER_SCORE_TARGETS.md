@@ -164,6 +164,14 @@ This helper reads only `runs.csv`, `target_scores.csv`, and benchmark target
 metadata. It does not read native structures, official per-target score tables,
 or prediction outputs, and it does not submit jobs.
 
+Current live P14 status, checked `2026-07-07 04:51 CDT`: all six shard jobs
+`812239..812244` are still running, replay-safe `finish-shards` reports
+`311/370` candidates with `59` missing, `21/74` target tasks complete, `0/6`
+shards complete, and `ready=false`. Error scans remain clean, and the current
+bottleneck is Protenix forward on large targets rather than repeated MSA
+search. Do not launch a next GPU branch or inspect partial P14 target scores
+before P14 merge plus P16 replay closeout.
+
 ## Post-P14 Decision Matrix
 
 After P14 is merged and scored, inspect `runs.csv`, `target_scores.csv`, and

@@ -217,6 +217,14 @@ where methods should change.
   Every refreshed preflight reports complete MSA reuse and 0 stale paths. The
   exact branch is still gated on the P14/P16 score readout in
   `docs/SERVER_SCORE_TARGETS.md`.
+- `2026-07-07 04:51 CDT` P14 health check: all six shard jobs remain running,
+  and replay-safe `finish-shards` observes `311/370` candidates with `59`
+  missing, `21/74` target tasks complete, `0/6` shards complete, and
+  `ready=false`. The latest error scan again found no
+  traceback/OOM/CUDA/killed signatures. Shards 5 and 6 advanced since the
+  previous check; the remaining wait is still Protenix forward on large
+  targets, not repeated MSA search or a cache failure. Keep P15/P18/P25/P27a/O5
+  and D6a gated until P14/P16 closeout finishes.
 - Post-P14 winner-recipe branch `casp16_server_attack_msa_model_diversity_v1`
   is now documented as a design gate in `docs/CASP16_WINNER_RECIPES.md`. It
   captures the MULTICOM4/QA4-style lesson: if P14 is complete and valid but
