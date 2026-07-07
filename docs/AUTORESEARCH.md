@@ -152,6 +152,14 @@ where methods should change.
   `H0258/H1258/H2258`) behind 44 smaller exact-oligo jobs while preserving
   run-local `A1B4` stoichiometry and 141/141 complete MSA reuse. `run-next
   --dry-run` correctly blocks it behind the running scoreable `protenix5` row.
+- Pending antibody-Fv scoreable successor:
+  `server_v2_attack_scoreable_antibody_fv_oligo_size_first_phase_alias_msa_reuse_protenix5_seed101_105`.
+  It is queued behind the size-first phase-alias row, keeps the same 74
+  scoreable jobs and five-candidate budget, trims only sequence-detected
+  antibody constant regions on 12 H targets, re-sorts exact oligos after
+  cleanup, and preflights at 141/141 MSA reuse using the target-lab Fv MSA
+  source plus the global cache. Treat it as a risky O5 branch, not as a
+  replacement for the safer phase-alias scheduler.
 - Single-seed `dev_fixed` rows are for debugging and ablations only. Any claim
   about chasing CASP16 server winners must report the attack budget, candidates
   per target, selector, and GPU cost. Run specs and manifests expose
@@ -218,6 +226,11 @@ where methods should change.
   (`N_token=2535`) as item 33/74. This is a slow large-target blocker rather
   than an MSA-cache miss; the size-first successor exists to avoid repeating
   this early-blocker schedule on the retry.
+- `2026-07-06 19:54 CDT` partial diagnostic refresh: P13 now has 33 seed-101
+  CIFs. The added `H0258` row is scorer-ok but `QSglob=0.000`, so it did not
+  improve the fixed-set oligo mean. Domain mean remains `0.099576`; oligo mean
+  remains `0.011346`; nonzero exact H-oligo targets remain `H0223`, `H0225`,
+  `H0233`, `H0222`, and `H0227`.
 - Superseded oligo-first scoreable-subset successor:
   `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`
   uses the same 74 scoreable jobs, fixed five-candidate budget, confidence-only
@@ -240,6 +253,13 @@ where methods should change.
   keeps 74 scoreable jobs, restores `H0220/H1220/H2220` to `A1B4`, preflights
   at 141/141 MSA reuse, and is now the next v2 `run-next` candidate after P13
   finishes.
+- Queued antibody-Fv scoreable-subset successor:
+  `server_v2_attack_scoreable_antibody_fv_oligo_size_first_phase_alias_msa_reuse_protenix5_seed101_105`
+  uses
+  `strategies/scoreable_antibody_fv_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json`,
+  keeps 74 scoreable jobs, trims antibody constant regions on
+  `H0222/H0223/H0225/H0233` phase families, preflights at 141/141 MSA reuse,
+  and remains behind the size-first phase-alias row.
 - Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   produced 39/165 CIFs and then spent extended GPU time on `T1295`, which is
