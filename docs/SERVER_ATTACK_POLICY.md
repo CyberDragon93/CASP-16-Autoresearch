@@ -168,18 +168,18 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 `rank_eligible=false` until merged. They were submitted as Slurm jobs
 `812239..812244` with `./casp16 run-one --allow-parallel`.
 
-Current launch gate as of `2026-07-07 04:30 CDT`: those six P14 shards are
-still running and not merge-ready. `finish-shards` observes 299/370 expected
-candidate CIFs, 71 missing, 17/74 target tasks complete, 0/6 complete shards,
-and reports `ready=false`. The run is live rather than stalled: all shards are
-continuing to emit candidates, and the latest log scan has no
-traceback/OOM/CUDA/killed signatures. The active bottleneck is Protenix forward
-on 1304-2535 token complex targets, not repeated MSA search; one measured
-example was `H2258 [seed:104]` at 2660.01s model-forward time. Do not submit
-the deferred v4 P15 shards, the 25-seed scoreable grid, P27a, D6a, or the
-antibody-Fv scoreable branch until P14 is either merged/scored or explicitly
-abandoned with an append-only status reason. The next decision should be based
-on fixed-set server scores, not on a partial shard snapshot.
+P14 is now historical: it completed, merged, and scored as the five-candidate
+scoreable baseline, then P17 added the five repaired scoreable targets through
+an overlay. The current live launch gate is P25, checked `2026-07-07 11:38
+CDT`: seed106-125 target-seed shards `812935..812958` are submitted, with 19
+P25 jobs running and 5 pending behind `QOSMaxJobsPerUserLimit`. `check-shards`
+reports `ready=false`, `compatible=true`, `746` observed candidates, `1304`
+shard-level candidates missing, and `1229` full 25-candidate slots missing.
+Shard05 seed121-125 and all shard06 seed blocks are still zero-output. Error
+scanning remains clean, and the bottleneck is still Protenix forward plus queue
+limits rather than repeated MSA search. Do not merge, score, submit O5b/P27b,
+or make winner-comparison claims until P25 is complete and merged with the
+P17 seed101-105 overlay.
 
 The first prepared model/config-diversity successor is
 `attack_budgets/casp16_server_attack_protenix5_defaultparams_model_variant.json`.

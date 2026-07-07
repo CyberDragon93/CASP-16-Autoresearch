@@ -80,12 +80,13 @@ and produced a `candidate_limited_signal`. The active gate is now P25:
 wait for the submitted seed106-125 target-seed shards, merge them with the
 seed101-105 overlay, then score the complete 25-candidate row.
 
-Latest live checkpoint, `2026-07-07 11:30 CDT`: P25 is still not merge-ready.
-`check-shards` reports `ready=false`, `compatible=true`, `672` observed
-candidates, `1378` shard-level candidates missing, and `1303` full
+Latest live checkpoint, `2026-07-07 11:38 CDT`: P25 is still not merge-ready.
+`check-shards` reports `ready=false`, `compatible=true`, `746` observed
+candidates, `1304` shard-level candidates missing, and `1229` full
 25-candidate slots missing. Slurm still has 19 P25 jobs running and 5 P25 jobs
-pending behind `QOSMaxJobsPerUserLimit`; error scanning is clean. Do not use a
-partial P25 row for score comparisons or for launching O5b/P27b.
+pending behind `QOSMaxJobsPerUserLimit`; shard05 seed121-125 and all shard06
+seed blocks remain zero-output. Error scanning is clean. Do not use a partial
+P25 row for score comparisons or for launching O5b/P27b.
 
 1. Historical P14 closeout command sequence, now complete:
    `server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105`.
@@ -196,13 +197,13 @@ This helper reads only `runs.csv`, `target_scores.csv`, and benchmark target
 metadata. It does not read native structures, official per-target score tables,
 or prediction outputs, and it does not submit jobs.
 
-Current live P25 status, checked `2026-07-07 11:36 CDT`: P17 overlay is merged
+Current live P25 status, checked `2026-07-07 11:38 CDT`: P17 overlay is merged
 and scored. The 24 seed106-125 GH200 target-seed jobs `812935..812958` are
 submitted after `24/24 ok` preflight with complete MSA reuse and 0 stale paths.
 Slurm currently has 19 P25 jobs running and 5 P25 jobs pending behind
 `QOSMaxJobsPerUserLimit`. The latest readiness check is `ready=false`,
-`compatible=true`, with 724 observed candidates, 1326 shard-level candidates
-missing, and 1251 full merged candidate slots still missing. Shard05
+`compatible=true`, with 746 observed candidates, 1304 shard-level candidates
+missing, and 1229 full merged candidate slots still missing. Shard05
 seed121-125 and all shard06 seed blocks still have zero observed candidates,
 so the merged 25-candidate row is not scoreable yet. Use `--candidate-count 5
 --merged-candidate-count 25` for target+seed readiness. Do not score the

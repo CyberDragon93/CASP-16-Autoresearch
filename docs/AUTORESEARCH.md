@@ -1352,6 +1352,15 @@ competitive result.
     `T1249V2O`, and `T2235O`. Error scanning over recent logs found no
     traceback/OOM/CUDA killed/disk/timeout signatures. Keep waiting for full
     P25 readiness; no partial score, merge, O5b, or P27b launch yet.
+85. `2026-07-07 11:38 CDT` P25 live gate: still healthy and incomplete.
+    `check-shards` reports `ready=false`, `compatible=true`, `746` observed
+    candidates, `1304` shard-level candidates missing, and `1229` full
+    25-candidate slots missing. Slurm state is unchanged at 19 P25 jobs
+    running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; the
+    pending rows are shard05 seed121-125 and all shard06 seed blocks, which
+    explains the five zero-output readiness rows. Recent log scanning again
+    found no traceback/OOM/CUDA killed/disk/timeout signatures. This is still
+    a waiting gate, not a score gate.
 
 ## Run Discipline
 
