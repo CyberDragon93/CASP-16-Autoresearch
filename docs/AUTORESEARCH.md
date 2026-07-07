@@ -116,6 +116,13 @@ where methods should change.
   The rest are manual native-search targets, grouped by phase alias. Any
   accepted expansion must become `casp16_server_protein_v5_refmap`; do not
   mutate v2/v4 in place.
+- `2026-07-07` latest all-gap chain audit:
+  `diagnostics/reference_gap/casp16_server_protein_latest_all_chain_audit.tsv`
+  audits 81 candidate structures and 1021 chain rows. It confirms that
+  `T1228V1` has domain-covering chains in `9DXK` and `9Y66`, while
+  `9DXH/9DXJ` miss two N-terminal domain positions. This is not an accepted
+  refmap row: `T1228V1` still needs D6a input-kind repair plus native-state
+  provenance before a future v5 benchmark can promote it.
 - `2026-07-06 18:57 CDT` reference-gap audit update: several high-priority
   `missing_reference` rows first need input-kind repair, not native hunting.
   `T1276`, `T1228V1`, and `T2276` were locally represented as short DNA jobs
@@ -242,6 +249,13 @@ where methods should change.
   Error scans remain clean. This continues to look like slow Protenix forward
   on the last large targets, not repeated MSA work. Do not launch the deferred
   P15/P18/P25/P27a/O5/D6a branches or inspect partial target scores.
+- `2026-07-07 05:27 CDT` P14 health check: shard03 completed and appended
+  `ok/run_one_finished` to `runs/status.tsv`, while the other five GH200 shard
+  jobs remain running. Replay-safe `finish-shards` observes `342/370`
+  candidates, `28` missing candidates, `46/74` complete target tasks, `1/6`
+  complete shards, and `ready=false`. This is the first complete P14 execution
+  shard, but the merged P14/P16 readout is still gated until all shards reach
+  the declared five candidates for every task.
 - Post-P14 winner-recipe branch `casp16_server_attack_msa_model_diversity_v1`
   is now documented as a design gate in `docs/CASP16_WINNER_RECIPES.md`. It
   captures the MULTICOM4/QA4-style lesson: if P14 is complete and valid but

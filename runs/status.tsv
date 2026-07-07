@@ -196,3 +196,4 @@ timestamp	benchmark	run_id	status	message
 2026-07-07T08:11:29.457345+00:00	casp16_server_protein_v2_aliasfix	server_v2_attack_scoreable_defaultparams_shard05_msa_reuse_protenix5_seed101_105	deferred:await_p14_score	prepared P27a default-params model/config variant; launch only after P14 score selects model diversity
 2026-07-07T08:11:38.183360+00:00	casp16_server_protein_v2_aliasfix	server_v2_attack_scoreable_defaultparams_shard06_msa_reuse_protenix5_seed101_105	pending	run_spec_created
 2026-07-07T08:11:38.366085+00:00	casp16_server_protein_v2_aliasfix	server_v2_attack_scoreable_defaultparams_shard06_msa_reuse_protenix5_seed101_105	deferred:await_p14_score	prepared P27a default-params model/config variant; launch only after P14 score selects model diversity
+2026-07-07T10:26:11.162880+00:00	casp16_server_protein_v2_aliasfix	server_v2_attack_scoreable_size_balanced_shard03_msa_reuse_protenix5_seed101_105	ok	run_one_finished

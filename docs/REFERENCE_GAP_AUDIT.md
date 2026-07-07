@@ -310,6 +310,24 @@ current domain ranges in this coarse audit, so it still needs stricter
 multi-domain crop review before promotion. This audit is evidence only; it does
 not install references or change benchmark eligibility.
 
+The latest all-gap chain audit was refreshed on `2026-07-07`:
+
+```bash
+./casp16 refmap-chain-audit \
+  --benchmark casp16_server_protein_v4_refmap \
+  --review-tsv diagnostics/reference_gap/casp16_server_protein_latest_all_refmap_review.tsv \
+  --structures-tsv diagnostics/reference_gap/casp16_server_protein_latest_all_candidate_structures.tsv \
+  --output-tsv diagnostics/reference_gap/casp16_server_protein_latest_all_chain_audit.tsv
+```
+
+It audits 81 candidate structures, 1021 chain rows, and 9 target classes. The
+only domain targets with complete-covering candidate chains are `T1278` and
+`T1228V1`. For `T1228V1`, the complete-covering chains are still four `9DXK`
+chains and one `9Y66` chain. `9DXH/9DXJ` are biologically plausible
+pre/post-rotation candidates, but their atom-site coverage starts at residue 3
+for the main integrase chains. This keeps `T1228V1` in audit status rather
+than accepted status.
+
 The scorer now applies domain crops for server-domain benchmarks when an
 accepted benchmark `reference_map.tsv` row supplies explicit scoring mapping.
 `score_benchmark_runs` reads accepted `reference_map.tsv` rows, parses
@@ -445,9 +463,13 @@ near-winner predictions.
 `T1228V1` should stay out of the next refmap promotion despite exact-sequence
 candidate chains. The current server benchmark input is a 121-token
 misclassified record, while the official T target and domain summary describe a
-545-residue protein with four domains. Candidate structures such as `9DXK` and
-`9Y66` can cover the domain residue ranges, but accepting them against the
-locked v4 input would mix reference recovery with an input-kind repair. Treat
-this as D6a input recovery first; only a later benchmark version with the
-545-residue protein input and explicit chain/domain mapping should consider
-promoting the native reference.
+545-residue protein with four domains. Public CASP/structure-provider context
+describes M1228v1/M1228v2 as alternate conformational states of a SPbeta
+integrase-DNA homotetramer, so residue coverage alone is not enough to choose a
+native state. Candidate structures such as `9DXK` and `9Y66` can cover the
+domain residue ranges, but accepting them against the locked v4 input would mix
+reference recovery with an input-kind repair and may pick the wrong
+conformation. Treat this as D6a input recovery first; only a later benchmark
+version with the 545-residue protein input, explicit native-state provenance,
+and explicit chain/domain mapping should consider promoting the native
+reference.

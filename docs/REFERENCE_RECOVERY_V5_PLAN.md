@@ -65,11 +65,21 @@ construct candidates in the current review:
 
 | Target | Candidates | Current blocker | Required next proof |
 | --- | --- | --- | --- |
-| `T1228V1` | `9dxh,9dxj,9dxk,9y66` | needs native provenance and explicit 4-domain crop mapping | identify the native CASP target structure, select the correct chain, map `T1228V1-D1..D4` residue ranges to the chosen chain, then run `refmap-chain-audit` before accepting |
+| `T1228V1` | `9dxh,9dxj,9dxk,9y66` | needs input-kind repair, native-state provenance, and explicit 4-domain crop mapping | use D6a-style 545-residue protein input first; identify whether the native M1228v1 state maps to pre/post-rotation or attP-bound candidate structures; select the correct reference chain; map `T1228V1-D1..D4` residue ranges to that chain; then regenerate a versioned refmap |
 
-This lane can plausibly produce the first v5 accepted row, but only after the
-domain crop mapping is explicit. Do not promote all four PDB IDs or choose the
-one with the best local prediction score.
+Latest chain evidence:
+`diagnostics/reference_gap/casp16_server_protein_latest_all_chain_audit.tsv`
+audits the current all-gap candidate set. For `T1228V1`, four `9dxk` chains
+and one `9y66` chain cover the union of domain ranges exactly, while `9dxh`
+and `9dxj` miss two N-terminal domain positions. That is still not enough to
+accept a row: the current v4 benchmark input is the wrong 121-token local
+record, and coverage alone does not prove the correct native M1228v1
+conformational state.
+
+This lane can plausibly produce a future accepted row, but only after input
+repair plus native-state/domain-crop mapping are explicit. Do not promote all
+four PDB IDs, and do not choose the one with the best local prediction score or
+best residue coverage.
 
 ### Lane B: Oligo Candidates Blocked By Assembly
 
@@ -128,9 +138,10 @@ really match.
 ## Execution Order
 
 1. Do not interrupt P14/P16 closeout for this.
-2. While GPU runs continue, audit `T1228V1` chain/domain mapping and document
-   whether one candidate can be accepted for v5.
-3. If `T1228V1` passes, create
+2. While GPU runs continue, keep `T1228V1` as an audit target, but do not
+   accept it until the 545-residue protein input and native-state mapping are
+   both fixed.
+3. If `T1228V1` eventually passes, create
    `diagnostics/reference_gap/casp16_server_protein_v5_refmap_accepted_reference_map.tsv`
    by copying the v4 accepted rows and adding only the audited row.
 4. Generate `casp16_server_protein_v5_refmap` with `server-benchmark`.
