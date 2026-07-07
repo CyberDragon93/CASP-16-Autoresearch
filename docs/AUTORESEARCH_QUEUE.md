@@ -37,6 +37,12 @@ submitted seed106-125 target-shard run id, `--candidate-count 5`,
 `--merged-candidate-count 25`, `--allow-target-shards`, the scoreable repaired
 input JSON, and the TMscore binary. It writes the readiness TSV and returns
 `finish_status=not_ready` while any declared candidate is still missing.
+The JSON now includes a compact `status_summary`; for P25 polling, read
+`status_summary.action` first. `wait_for_declared_candidates` means keep
+waiting and do not score or branch, while `run_finish_without_dry_run` means
+the same wrapper can be rerun without `--dry-run`. `zero_output_shards` and
+`largest_missing_shards` identify queue-blocked or slow execution shards
+without inspecting partial target scores.
 
 After the wrapper succeeds and the leaderboard is regenerated, run the
 aggregate branch gate before selecting any deferred branch:

@@ -694,10 +694,91 @@ def test_finish_shards_cli_dry_run_checks_without_merging(tmp_path, capsys) -> N
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["finish_status"] == "ready_dry_run"
+    assert payload["status_summary"]["action"] == "run_finish_without_dry_run"
+    assert payload["status_summary"]["can_merge_now"] is True
+    assert payload["status_summary"]["zero_output_shard_count"] == 0
     assert payload["check"]["ready"] is True
     assert payload["check"]["merge_command"][0:2] == ["./casp16", "merge-shards"]
     assert output_tsv.exists()
     assert not (tmp_path / "runs" / "target_sharded_merged" / "run_spec.json").exists()
+
+
+def test_finish_shards_status_summary_waits_for_missing_candidates(tmp_path, capsys) -> None:
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    benchmark_dir = tmp_path / "benchmarks" / benchmark
+    benchmark_dir.mkdir(parents=True)
+    full_input_json = benchmark_dir / "inputs.full.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    full_input_json.write_text('[{"name":"T1234","sequences":[]},{"name":"H1202","sequences":[]}]\n', encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\nT1234\tok\nH1202\tok\n", encoding="utf-8")
+    references.write_text("target_id\treference_path\n", encoding="utf-8")
+
+    shard_id = "target_shard_partial"
+    run_dir = tmp_path / "runs" / shard_id
+    subset_input = run_dir / "inputs" / "inputs.json"
+    subset_input.parent.mkdir(parents=True)
+    subset_input.write_text('[{"name":"T1234","sequences":[]},{"name":"H1202","sequences":[]}]\n', encoding="utf-8")
+    pred_dir = run_dir / "predictions" / "protenix-v2" / "T1234" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    (pred_dir / "T1234_sample_0.cif").write_text("data_T1234\n", encoding="utf-8")
+    (pred_dir / "T1234_summary_confidence_sample_0.json").write_text(
+        '{"plddt": 80.0, "ptm": 0.5, "iptm": 0.1}\n',
+        encoding="utf-8",
+    )
+    spec = {
+        "run_id": shard_id,
+        "backend": "protenix",
+        "strategy": "target_shard",
+        "benchmark_name": benchmark,
+        "benchmark_version": "2",
+        "benchmark_dir": str(benchmark_dir),
+        "model_name": "protenix-v2",
+        "input_json": str(subset_input),
+        "input_manifest": str(input_manifest),
+        "input_sha256": "subset-input",
+        "input_manifest_sha256": "same-manifest",
+        "references_manifest": str(references),
+        "references_sha256": "same-references",
+        "output_dir": str(run_dir / "predictions" / "protenix-v2"),
+        "seeds": "101",
+        "sample": 1,
+        "candidate_count": 1,
+        "budget_tier": "server_attack",
+        "fixed_budget": True,
+        "selected_model_policy": "protenix_confidence_v1",
+        "rank_eligible": False,
+    }
+    (run_dir / "run_spec.json").write_text(json.dumps(spec), encoding="utf-8")
+
+    rc = main(
+        [
+            "--root",
+            str(tmp_path),
+            "finish-shards",
+            "--run-id",
+            "target_sharded_merged",
+            "--benchmark",
+            benchmark,
+            "--merged-input-json",
+            str(full_input_json),
+            "--allow-target-shards",
+            "--candidate-count",
+            "1",
+            "--dry-run",
+            "--shard-run-id",
+            shard_id,
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["finish_status"] == "not_ready"
+    assert payload["status_summary"]["action"] == "wait_for_declared_candidates"
+    assert payload["status_summary"]["can_merge_now"] is False
+    assert payload["status_summary"]["observed_candidate_count"] == 1
+    assert payload["status_summary"]["missing_candidate_count"] == 1
+    assert payload["status_summary"]["largest_missing_shards"][0]["shard_run_id"] == shard_id
 
 
 def test_finish_shards_can_register_selection_replay_before_scoring(tmp_path, capsys) -> None:
@@ -805,6 +886,8 @@ def test_finish_shards_can_register_selection_replay_before_scoring(tmp_path, ca
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["finish_status"] == "finished"
+    assert payload["status_summary"]["action"] == "run_post_closeout_readout"
+    assert payload["status_summary"]["can_score_now"] is True
     assert payload["replay"]["run_id"] == "target_sharded_merged_consensus"
     assert payload["score"]["run_ids"] == ["target_sharded_merged", "target_sharded_merged_consensus"]
     assert payload["post_p14_readout"]["run_id"] == "target_sharded_merged"

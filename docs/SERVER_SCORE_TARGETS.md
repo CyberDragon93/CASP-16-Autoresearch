@@ -99,6 +99,12 @@ scripts/finish_p25_scoreable_input_repair.sh --dry-run
 scripts/finish_p25_scoreable_input_repair.sh
 ```
 
+The dry-run JSON includes `status_summary`. The only safe pre-closeout action
+for `status_summary.action=wait_for_declared_candidates` is to wait or inspect
+execution health; it is not a scoring point and not permission to launch
+P27b/O5b/D6a. `status_summary.action=run_finish_without_dry_run` is the merge
+and score gate.
+
 1. Historical P14 closeout command sequence, now complete:
    `server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105`.
    The six execution shards are rank-ineligible until every one has all five

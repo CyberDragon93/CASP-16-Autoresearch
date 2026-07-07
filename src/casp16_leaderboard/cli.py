@@ -5,7 +5,7 @@ import csv
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Sequence
+from typing import Mapping, Sequence
 
 from .benchmark import (
     BENCHMARK_NAME,
@@ -119,6 +119,77 @@ def selection_qa_context_from_run_id(root: Path, run_id: str) -> dict[str, objec
     return payload
 
 
+def _int_field(row: Mapping[str, object], key: str) -> int:
+    try:
+        return int(float(str(row.get(key, 0) or 0)))
+    except ValueError:
+        return 0
+
+
+def summarize_shard_closeout_status(*, finish_status: str, check_summary: Mapping[str, object]) -> dict[str, object]:
+    """Return a compact, read-only action summary for shard closeout output."""
+
+    rows_obj = check_summary.get("rows", [])
+    rows = [row for row in rows_obj if isinstance(row, Mapping)]
+    ready = bool(check_summary.get("ready"))
+    compatible = bool(check_summary.get("compatible"))
+    full_missing = _int_field(check_summary, "full_missing_candidate_count")
+    shard_missing = _int_field(check_summary, "missing_candidate_count")
+    total_missing = full_missing if _int_field(check_summary, "merged_candidate_count") else shard_missing
+    zero_output_shards = [
+        str(row.get("shard_run_id", ""))
+        for row in rows
+        if _int_field(row, "task_count") > 0 and _int_field(row, "observed_candidate_count") == 0
+    ]
+    largest_missing_shards = [
+        {
+            "shard_run_id": str(row.get("shard_run_id", "")),
+            "missing_candidate_count": _int_field(row, "missing_candidate_count"),
+            "observed_candidate_count": _int_field(row, "observed_candidate_count"),
+        }
+        for row in sorted(rows, key=lambda item: _int_field(item, "missing_candidate_count"), reverse=True)
+        if _int_field(row, "missing_candidate_count") > 0
+    ][:5]
+
+    if finish_status == "finished":
+        action = "run_post_closeout_readout"
+        reason = "shards were merged, scored, and the leaderboard was refreshed"
+    elif ready and compatible:
+        action = "run_finish_without_dry_run"
+        reason = "all declared candidates are present and shard metadata is compatible"
+    elif not compatible:
+        action = "repair_shard_compatibility"
+        reason = "shard benchmark, input manifest, references, or selection policy metadata disagree"
+    elif total_missing > 0:
+        action = "wait_for_declared_candidates"
+        reason = "declared candidate files are still missing"
+    else:
+        action = "inspect_readiness"
+        reason = "readiness is false without missing candidates; inspect shard rows"
+
+    return {
+        "action": action,
+        "reason": reason,
+        "ready": ready,
+        "compatible": compatible,
+        "can_merge_now": ready and compatible and finish_status == "ready_dry_run",
+        "can_score_now": finish_status == "finished",
+        "can_launch_next_branch": False,
+        "observed_candidate_count": _int_field(check_summary, "observed_candidate_count"),
+        "missing_candidate_count": shard_missing,
+        "full_missing_candidate_count": full_missing,
+        "complete_shard_count": _int_field(check_summary, "complete_shard_count"),
+        "shard_count": _int_field(check_summary, "shard_count"),
+        "complete_task_count": _int_field(check_summary, "complete_task_count"),
+        "task_count": _int_field(check_summary, "task_count"),
+        "full_complete_task_count": _int_field(check_summary, "full_complete_task_count"),
+        "full_task_count": _int_field(check_summary, "full_task_count"),
+        "zero_output_shard_count": len(zero_output_shards),
+        "zero_output_shards": zero_output_shards,
+        "largest_missing_shards": largest_missing_shards,
+    }
+
+
 def finish_prediction_shards(
     *,
     root: Path,
@@ -159,8 +230,10 @@ def finish_prediction_shards(
         write_tsv(output_tsv.resolve(), check_summary["rows"], SHARD_READINESS_FIELDS)
         check_summary["output_tsv"] = str(output_tsv.resolve())
     if not check_summary["ready"]:
+        status_summary = summarize_shard_closeout_status(finish_status="not_ready", check_summary=check_summary)
         return {
             "finish_status": "not_ready",
+            "status_summary": status_summary,
             "check": check_summary,
             "merge": {},
             "replay": {},
@@ -169,8 +242,10 @@ def finish_prediction_shards(
             "post_p14_readout": {},
         }
     if dry_run:
+        status_summary = summarize_shard_closeout_status(finish_status="ready_dry_run", check_summary=check_summary)
         return {
             "finish_status": "ready_dry_run",
+            "status_summary": status_summary,
             "check": check_summary,
             "merge": {},
             "replay": {},
@@ -233,8 +308,10 @@ def finish_prediction_shards(
         ensure_dir(output_json.parent)
         output_json.write_text(json.dumps(readout_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         readout_summary["output_json"] = str(output_json)
+    status_summary = summarize_shard_closeout_status(finish_status="finished", check_summary=check_summary)
     return {
         "finish_status": "finished",
+        "status_summary": status_summary,
         "check": check_summary,
         "merge": merge_summary,
         "replay": replay_summary,
