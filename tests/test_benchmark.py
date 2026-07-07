@@ -12,6 +12,7 @@ from casp16_leaderboard.benchmark import (
     SERVER_REFMAP_BENCHMARK_VERSION,
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
+    generate_reference_map_audit_report,
     generate_reference_map_review,
     materialize_reference_map_candidates,
 )
@@ -666,3 +667,69 @@ def test_materialize_reference_map_candidates_uses_cached_files(tmp_path) -> Non
     assert rows[0]["download_status"] == "cached"
     assert rows[0]["sha256"]
     assert rows[0]["bytes"] == str(len("data_9abc\n"))
+
+
+def test_generate_reference_map_audit_report(tmp_path) -> None:
+    official_root = tmp_path / "official"
+    project_root = tmp_path / "project"
+    write_fixture_official(official_root)
+    build_casp16_server_protein_benchmark(project_root=project_root, official_root=official_root)
+    review = tmp_path / "review.tsv"
+    write_tsv(
+        review,
+        [
+            {
+                "target_id": "T1201",
+                "pdb_ids": "9abc",
+                "status": "candidate",
+                "source": "rcsb_exact_sequence_probe",
+                "native_provenance": "",
+                "construct_coverage": "full_construct_exact_sequence",
+                "chain_mapping": "candidate_entity=1",
+                "scoring_mapping": "candidate_domain=T1201-D1; residue_ranges=1-3; verify_chain_and_crop",
+                "notes": "candidate row",
+                "source_path": "",
+            },
+            {
+                "target_id": "T1201",
+                "pdb_ids": "9def",
+                "status": "rejected",
+                "source": "rcsb_exact_sequence_probe",
+                "native_provenance": "",
+                "construct_coverage": "local_sequence_hit_not_full_construct_do_not_promote",
+                "chain_mapping": "",
+                "scoring_mapping": "",
+                "notes": "rejected row",
+                "source_path": "",
+            },
+        ],
+        ["target_id", "pdb_ids", "status", "source", "native_provenance", "construct_coverage", "chain_mapping", "scoring_mapping", "notes", "source_path"],
+    )
+    structures = tmp_path / "structures.tsv"
+    write_tsv(
+        structures,
+        [
+            {
+                "target_id": "T1201",
+                "pdb_id": "9abc",
+                "status": "candidate",
+                "source": "rcsb_exact_sequence_probe",
+                "reference_path": "/tmp/9abc.cif",
+                "download_status": "cached",
+                "sha256": "0123456789abcdef",
+                "bytes": "10",
+                "notes": "candidate row",
+            }
+        ],
+        ["target_id", "pdb_id", "status", "source", "reference_path", "download_status", "sha256", "bytes", "notes"],
+    )
+    output = tmp_path / "audit.md"
+
+    summary = generate_reference_map_audit_report(project_root=project_root, benchmark="casp16_server_protein_v1", review_tsv=review, structures_tsv=structures, output_md=output)
+
+    text = output.read_text(encoding="utf-8")
+    assert summary["targets"] == 1
+    assert "## T1201" in text
+    assert "verify_native_provenance_then_chain_and_domain_crop_mapping" in text
+    assert "`0123456789ab`" in text
+    assert "rejected row" in text

@@ -163,6 +163,16 @@ This writes
 and stores ignored mmCIF files under
 `diagnostics/reference_gap/refmap_candidate_mmcif/`.
 
+The current candidate worklist can be rendered with:
+
+```bash
+./casp16 refmap-audit
+```
+
+This writes
+`diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_audit.md`
+and should be read before changing any reference-map row to `accepted`.
+
 `docs/REFERENCE_GAP_AUDIT.md` records a high-impact alias issue: CASP phase
 ids such as `T2201` and `H2202` should be allowed to inherit metadata and PDB
 references from matching `T1201`/`H1202` rows. A temporary rebuild with

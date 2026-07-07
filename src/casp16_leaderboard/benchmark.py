@@ -332,6 +332,104 @@ def _download_mmcif(pdb_id: str, path: Path, *, force: bool = False) -> str:
     return "downloaded"
 
 
+def generate_reference_map_audit_report(
+    *,
+    project_root: Path,
+    benchmark: str,
+    review_tsv: Path,
+    structures_tsv: Path,
+    output_md: Path,
+) -> dict[str, object]:
+    benchmark_dir = default_benchmark_dir(project_root, benchmark)
+    targets = {row["target_id"]: row for row in read_tsv(benchmark_dir / "targets.tsv")}
+    review_rows = read_tsv(review_tsv)
+    structures = {(row.get("target_id", ""), row.get("pdb_id", "")): row for row in read_tsv(structures_tsv)} if structures_tsv.exists() else {}
+    by_target: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in review_rows:
+        by_target[row.get("target_id", "")].append(row)
+
+    lines = [
+        "# CASP16 Server V3 Refmap Candidate Audit",
+        "",
+        "This report summarizes reference-map candidates. It does not promote any",
+        "candidate to `accepted`; accepted rows still require explicit native",
+        "provenance plus chain/domain or assembly mapping.",
+        "",
+        f"- benchmark: `{benchmark}`",
+        f"- review TSV: `{review_tsv}`",
+        f"- structure manifest: `{structures_tsv}`",
+        f"- targets with candidates/rejections: {len(by_target)}",
+        f"- review rows: {len(review_rows)}",
+        f"- candidate rows: {sum(1 for row in review_rows if row.get('status') == 'candidate')}",
+        f"- rejected rows: {sum(1 for row in review_rows if row.get('status') == 'rejected')}",
+        "",
+    ]
+    for target_id in sorted(by_target):
+        target = targets.get(target_id, {})
+        rows = by_target[target_id]
+        candidate_rows = [row for row in rows if row.get("status") == "candidate"]
+        rejected_rows = [row for row in rows if row.get("status") == "rejected"]
+        lines.extend(
+            [
+                f"## {target_id}",
+                "",
+                f"- track: `{target.get('track', '')}`",
+                f"- sequence lookup: `{target.get('sequence_lookup_id', target_id)}`",
+                f"- domains: `{target.get('domain_ids', '')}`",
+                f"- current reference status: `{target.get('reference_status', '')}`",
+                f"- server best score: `{target.get('server_best_score', '')}`",
+                f"- next action: `{_reference_audit_next_action(candidate_rows, rejected_rows)}`",
+                "",
+                "| status | pdb | download | sha256 | construct coverage | mapping blocker | notes |",
+                "| --- | --- | --- | --- | --- | --- | --- |",
+            ]
+        )
+        for row in rows:
+            pdb_id = row.get("pdb_ids", "")
+            structure = structures.get((target_id, pdb_id), {})
+            lines.append(
+                "| "
+                f"{_md_cell(row.get('status', ''))} | "
+                f"`{_md_cell(pdb_id)}` | "
+                f"{_md_cell(structure.get('download_status', 'not_materialized'))} | "
+                f"`{_md_cell(structure.get('sha256', '')[:12])}` | "
+                f"{_md_cell(row.get('construct_coverage', ''))} | "
+                f"{_md_cell(row.get('scoring_mapping', '') or row.get('chain_mapping', ''))} | "
+                f"{_md_cell(row.get('notes', ''))} |"
+            )
+        lines.append("")
+
+    output_md.write_text("\n".join(lines), encoding="utf-8")
+    return {
+        "benchmark": benchmark,
+        "review_tsv": str(review_tsv),
+        "structures_tsv": str(structures_tsv),
+        "output_md": str(output_md),
+        "targets": len(by_target),
+        "rows": len(review_rows),
+        "candidate": sum(1 for row in review_rows if row.get("status") == "candidate"),
+        "rejected": sum(1 for row in review_rows if row.get("status") == "rejected"),
+    }
+
+
+def _reference_audit_next_action(candidate_rows: Sequence[Mapping[str, str]], rejected_rows: Sequence[Mapping[str, str]]) -> str:
+    if candidate_rows:
+        mappings = " ".join(row.get("scoring_mapping", "") for row in candidate_rows)
+        if "multi_domain_target" in mappings:
+            return "verify_native_provenance_then_explicit_domain_crop_mapping"
+        if "protein_oligo" in mappings:
+            return "verify_native_provenance_then_assembly_chain_interface_mapping"
+        return "verify_native_provenance_then_chain_and_domain_crop_mapping"
+    if rejected_rows:
+        return "no_promotable_candidate_from_current_probe"
+    return "no_review_rows"
+
+
+def _md_cell(value: object) -> str:
+    text = str(value or "").replace("\n", " ").replace("|", "\\|")
+    return text
+
+
 def _candidate_construct_coverage(row: Mapping[str, str]) -> str:
     equals_entity = str(row.get("target_sequence_equals_entity", "")).lower() == "true"
     contained = str(row.get("target_sequence_contained_in_entity", "")).lower() == "true"

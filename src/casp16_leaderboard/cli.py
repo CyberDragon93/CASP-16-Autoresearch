@@ -16,6 +16,7 @@ from .benchmark import (
     build_casp16_protein_benchmark,
     build_casp16_server_protein_benchmark,
     default_benchmark_dir,
+    generate_reference_map_audit_report,
     generate_reference_map_review,
     load_benchmark,
     materialize_reference_map_candidates,
@@ -380,6 +381,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
     refmap_materialize.add_argument("--force", action="store_true", help="Re-download existing candidate mmCIF files.")
 
+    refmap_audit = subparsers.add_parser("refmap-audit", help="Write a Markdown audit report for reference-map candidates and materialized structures.")
+    refmap_audit.add_argument("--benchmark", default=SERVER_ALIASFIX_BENCHMARK_NAME, help=f"Benchmark with target/domain metadata. Defaults to {SERVER_ALIASFIX_BENCHMARK_NAME}.")
+    refmap_audit.add_argument(
+        "--review-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_v3_refmap_review.tsv.",
+    )
+    refmap_audit.add_argument(
+        "--structures-tsv",
+        type=Path,
+        default=None,
+        help="Defaults to diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_structures.tsv.",
+    )
+    refmap_audit.add_argument("--output-md", type=Path, default=None, help="Defaults to diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_audit.md.")
+
     make_inputs = subparsers.add_parser("make-inputs", help="Generate Protenix input JSON from CASP16 sequence records.")
     make_inputs.add_argument("--official-dir", type=Path, default=None, help="Defaults to <root>/data/official.")
     make_inputs.add_argument("--output-json", type=Path, default=None, help="Defaults to <root>/data/inputs/casp16_all.json.")
@@ -645,6 +662,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             manifest_tsv=(args.manifest_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_candidate_structures.tsv")).resolve(),
             statuses=split_csv_args(args.status) or ["candidate"],
             force=args.force,
+        )
+        print_json(summary)
+        return 0
+
+    if args.command == "refmap-audit":
+        summary = generate_reference_map_audit_report(
+            project_root=root,
+            benchmark=args.benchmark,
+            review_tsv=(args.review_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_review.tsv")).resolve(),
+            structures_tsv=(args.structures_tsv or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_candidate_structures.tsv")).resolve(),
+            output_md=(args.output_md or (root / "diagnostics" / "reference_gap" / "casp16_server_protein_v3_refmap_candidate_audit.md")).resolve(),
         )
         print_json(summary)
         return 0

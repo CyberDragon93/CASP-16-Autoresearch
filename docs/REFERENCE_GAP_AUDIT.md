@@ -205,6 +205,20 @@ It records 8 downloaded candidate mmCIF files, their byte sizes, and sha256
 hashes. The mmCIF payloads live under the ignored cache directory
 `diagnostics/reference_gap/refmap_candidate_mmcif/`.
 
+Use `refmap-audit` to render the review and materialized-structure manifest
+into a compact Markdown worklist:
+
+```bash
+./casp16 refmap-audit
+```
+
+The current report is
+`diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_audit.md`.
+It identifies `T1278` as the nearest single-domain candidate class, still
+blocked on native provenance plus chain/domain crop confirmation. `T1228V1`
+has full-construct candidates too, but remains harder because the server-domain
+target has four domains and needs explicit crop mapping.
+
 ## RCSB Exact-Sequence Probe
 
 A follow-up probe on the 40 `prediction_waiting_on_reference` rows queried the

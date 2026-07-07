@@ -757,6 +757,13 @@ competitive result.
     under `diagnostics/reference_gap/refmap_candidate_mmcif/`. This prepares
     offline native-provenance and chain/domain mapping review without changing
     the locked v2 benchmark or accepting any reference automatically.
+44. `2026-07-06 22:52 CDT` added `./casp16 refmap-audit` and generated
+    `diagnostics/reference_gap/casp16_server_protein_v3_refmap_candidate_audit.md`.
+    It groups the 22 review rows by target, attaches materialized-structure
+    hashes, and assigns next actions. `T1278` is the nearest v3 refmap unlock
+    because it is single-domain (`T1278-D1`, residues `34-370`) with four
+    full-construct candidates; `T1228V1` remains a harder four-domain crop
+    mapping problem. No row was promoted to `accepted`.
 
 ## Run Discipline
 
