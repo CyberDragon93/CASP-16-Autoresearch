@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 
 import pytest
 
+from casp16_leaderboard.cli import main
 from casp16_leaderboard.msa_cache import reuse_msa_paths
-from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, register_run_spec, run_next, run_one, write_run_script, write_runs_manifest
+from casp16_leaderboard.runs import DEFAULT_PROTENIX_SOURCE, append_status, build_protenix_command, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, preflight_run_specs, register_existing_run, register_run_spec, run_next, run_one, write_run_script, write_runs_manifest
 
 
 def test_build_protenix_command_contains_strategy_knobs() -> None:
@@ -689,3 +691,100 @@ def test_run_next_blocks_stale_msa_reuse_before_launch(tmp_path) -> None:
     assert not script_marker.exists()
     rows = list_run_rows(tmp_path, benchmark="casp16_server_protein_v1")
     assert rows[0]["status"] == "blocked:msa_preflight"
+
+
+def write_msa_reuse_run(tmp_path: Path, *, run_id: str, sequence: str, stale: bool = False) -> Path:
+    msa_dir = tmp_path / "msa" / run_id
+    msa_dir.mkdir(parents=True)
+    unpaired = msa_dir / "non_pairing.a3m"
+    unpaired.write_text(f">q\n{sequence}\n", encoding="utf-8")
+    source_json = tmp_path / "sources" / f"{run_id}-update-msa.json"
+    source_json.parent.mkdir(parents=True, exist_ok=True)
+    source_json.write_text(
+        json.dumps(
+            [
+                {
+                    "name": f"{run_id}_source",
+                    "sequences": [
+                        {"proteinChain": {"sequence": sequence, "count": 1, "id": ["A"], "unpairedMsaPath": str(unpaired)}}
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    input_json = tmp_path / f"{run_id}.json"
+    input_json.write_text(
+        json.dumps([{"name": run_id, "sequences": [{"proteinChain": {"sequence": sequence, "count": 1, "id": ["A"]}}]}]),
+        encoding="utf-8",
+    )
+    run_dir = tmp_path / "runs" / run_id
+    report_tsv = run_dir / "inputs" / "msa_reuse.tsv"
+    reuse_msa_paths(
+        input_json=input_json,
+        msa_source_jsons=[source_json],
+        output_json=run_dir / "inputs" / "inputs.msa-reuse.json",
+        report_tsv=report_tsv,
+    )
+    if stale:
+        unpaired.unlink()
+    spec = {
+        "run_id": run_id,
+        "benchmark_name": "bench_v1",
+        "backend": "protenix",
+        "strategy": "cache_reuse",
+        "model_name": "protenix-v2",
+        "seeds": "101",
+        "sample": 1,
+        "rank_eligible": False,
+        "use_msa": True,
+        "msa_reuse": {"report_tsv": str(report_tsv), "require_complete": True},
+    }
+    (run_dir / "run_spec.json").write_text(json.dumps(spec), encoding="utf-8")
+    register_run_spec(tmp_path, spec)
+    return run_dir
+
+
+def test_preflight_run_specs_batches_msa_audits(tmp_path) -> None:
+    write_msa_reuse_run(tmp_path, run_id="cached_ok", sequence="AAAA")
+    write_msa_reuse_run(tmp_path, run_id="cached_stale", sequence="CCCC", stale=True)
+
+    summary = preflight_run_specs(tmp_path, benchmark="bench_v1", run_ids=["cached_ok", "cached_stale", "missing_run"])
+
+    assert summary["ok"] == 1
+    assert summary["blocked"] == 1
+    assert summary["missing"] == 1
+    rows = {row["run_id"]: row for row in summary["rows"]}
+    assert rows["cached_ok"]["result"] == "ok"
+    assert rows["cached_ok"]["msa_usable_covered"] == 1
+    assert rows["cached_stale"]["result"] == "blocked:msa_preflight"
+    assert rows["missing_run"]["result"] == "missing_run"
+
+
+def test_preflight_runs_cli_reads_attack_tsv(tmp_path, capsys) -> None:
+    write_msa_reuse_run(tmp_path, run_id="cached_ok", sequence="AAAA")
+    shard_tsv = tmp_path / "attack_shards.tsv"
+    shard_tsv.write_text("shard_id\trun_id\n01\tcached_ok\n02\tmissing_run\n", encoding="utf-8")
+    output_tsv = tmp_path / "preflight.tsv"
+
+    rc = main(
+        [
+            "--root",
+            str(tmp_path),
+            "preflight-runs",
+            "--benchmark",
+            "bench_v1",
+            "--run-id-tsv",
+            str(shard_tsv),
+            "--output-tsv",
+            str(output_tsv),
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["total"] == 2
+    with output_tsv.open(encoding="utf-8", newline="") as handle:
+        rows = {row["run_id"]: row for row in csv.DictReader(handle, delimiter="\t")}
+    assert rows["cached_ok"]["result"] == "ok"
+    assert rows["missing_run"]["result"] == "missing_run"

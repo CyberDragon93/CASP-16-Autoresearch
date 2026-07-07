@@ -20,7 +20,19 @@ from .inputs import generate_protenix_inputs
 from .leaderboard import collect_local_runs, generate_benchmark_leaderboard, generate_official_leaderboard, write_coverage_report
 from .msa_cache import audit_msa_reuse_report, build_msa_cache_index, file_sha256, plan_msa_reuse, reuse_msa_paths, summarize_msa_cache_indexes
 from .official import ensure_dir, ingest_official_data
-from .runs import DEFAULT_PROTENIX_BIN, DEFAULT_PROTENIX_ROOT, create_run_spec, list_run_rows, load_run_specs, merge_prediction_shards, register_existing_run, run_next, run_one
+from .runs import (
+    DEFAULT_PROTENIX_BIN,
+    DEFAULT_PROTENIX_ROOT,
+    RUN_PREFLIGHT_FIELDS,
+    create_run_spec,
+    list_run_rows,
+    load_run_specs,
+    merge_prediction_shards,
+    preflight_run_specs,
+    register_existing_run,
+    run_next,
+    run_one,
+)
 from .scoring import probe_qsglob_targets, score_benchmark_runs
 from .sharding import SHARD_READINESS_FIELDS, check_prediction_shards, write_input_shards, write_tsv
 from .strategies import STRATEGY_YANG_TERMINAL_TAG_CLEANUP, derive_strategy_inputs
@@ -492,6 +504,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     list_runs = subparsers.add_parser("list-runs", help="List run specs with latest append-only status.")
     list_runs.add_argument("--benchmark", default=None)
+
+    preflight_runs = subparsers.add_parser("preflight-runs", help="Batch-check run specs before launch, including MSA reuse reports.")
+    preflight_runs.add_argument("--benchmark", default=None)
+    preflight_runs.add_argument("--run-id", action="append", default=None, help="Run id(s), repeat or comma-separate.")
+    preflight_runs.add_argument("--run-id-tsv", type=Path, default=None, help="TSV containing run ids, for attack budget shard manifests.")
+    preflight_runs.add_argument("--run-id-column", default="run_id", help="Column name in --run-id-tsv. Defaults to run_id.")
+    preflight_runs.add_argument("--status", action="append", default=None, help="Filter by latest run status; repeat or comma-separate.")
+    preflight_runs.add_argument("--output-tsv", type=Path, default=None, help="Optional preflight result TSV.")
 
     run_next_parser = subparsers.add_parser("run-next", help="Run the next pending run spec.")
     run_next_parser.add_argument("--benchmark", default=None)
@@ -965,6 +985,25 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "list-runs":
         print_json(list_run_rows(root, benchmark=args.benchmark))
+        return 0
+
+    if args.command == "preflight-runs":
+        run_ids = split_csv_args(args.run_id)
+        if args.run_id_tsv:
+            tsv_rows = read_tsv_rows(args.run_id_tsv.resolve())
+            if tsv_rows and args.run_id_column not in tsv_rows[0]:
+                raise ValueError(f"column {args.run_id_column!r} not found in {args.run_id_tsv}")
+            run_ids.extend([row.get(args.run_id_column, "") for row in tsv_rows])
+        summary = preflight_run_specs(
+            root,
+            benchmark=args.benchmark,
+            run_ids=run_ids or None,
+            statuses=split_csv_args(args.status),
+        )
+        if args.output_tsv:
+            write_tsv(args.output_tsv.resolve(), summary["rows"], RUN_PREFLIGHT_FIELDS)
+            summary["output_tsv"] = str(args.output_tsv.resolve())
+        print_json(summary)
         return 0
 
     if args.command == "run-next":

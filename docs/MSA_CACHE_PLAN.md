@@ -34,6 +34,11 @@ Preferred run creation path:
   --input-json <new_inputs.json> \
   --require-complete
 
+./casp16 preflight-runs \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --run-id-tsv <attack_shard_manifest.tsv> \
+  --output-tsv diagnostics/msa_cache/<attack>_run_preflight.tsv
+
 ./casp16 run-spec \
   --run-id <run_id> \
   --benchmark casp16_server_protein_v2_aliasfix \
@@ -125,6 +130,12 @@ stale, the run is blocked as `blocked:msa_preflight` instead of silently letting
 Protenix redo MSA search. Rebuild the index and recreate the run spec after
 moving or deleting source run directories.
 
+`preflight-runs` is the batch version of that launch check. It reads explicit
+run ids or a TSV with a `run_id` column, audits each `run_spec.json`, and writes
+one row per run with MSA coverage, stale-path counts, and `ok` or
+`blocked:msa_preflight`. Use it for target-sharded or seed-sharded attack grids
+where `run-next --dry-run` would only inspect one selected run.
+
 ## Rules
 
 - Reuse MSA only for exact sequence matches.
@@ -148,6 +159,8 @@ moving or deleting source run directories.
 - Use a coverage guard (`--require-complete` or `--min-reuse-fraction`) for
   queued attack runs so a typo in the cache source cannot silently trigger a
   full MSA rerun.
+- Before launching or undefering an attack shard manifest, run
+  `preflight-runs --run-id-tsv <manifest>` and require every row to be `ok`.
 
 ## Priority Use Cases
 
@@ -184,6 +197,13 @@ moving or deleting source run directories.
    should not each repeat MSA search for the same 165 jobs.
 7. For strategy ablations, reuse only unchanged chains. The TSV report should
    show which changed chains will force fresh MSA search.
+
+Current scoreable target+seed grid audit:
+`diagnostics/msa_cache/protenix25_scoreable_target_seed_run_preflight.tsv`.
+It checks the 30 rows in
+`attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv`;
+all 30 are `ok`, with complete MSA coverage and 0 stale covered paths. The 24
+seed106-125 rows remain deferred by policy, not by MSA readiness.
 
 ## Next Upgrade Path
 

@@ -118,10 +118,11 @@ where methods should change.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and
-  `run-next` stale-path auditing. The scoreable v2 attack input checks at
-  141/141 reusable protein chains, 0 missing sources, and 0 stale cached paths
-  against `data/msa_cache/index.tsv`; future MSA-heavy shards should pass this
-  check before Slurm submission.
+  `run-next` stale-path auditing. It also has `preflight-runs` for batch
+  auditing target-shard or seed-shard manifests before submission. The
+  scoreable v2 attack input checks at 141/141 reusable protein chains, 0
+  missing sources, and 0 stale cached paths against `data/msa_cache/index.tsv`;
+  future MSA-heavy shards should pass this check before Slurm submission.
 - `2026-07-06 19:21 CDT` MSA-cache implementation status: commit `09ff0e4`
   adds incremental cache-index refresh, `run-spec --refresh-global-msa-cache`,
   path-specific `check-msa-cache` report labels, and tests proving that
@@ -692,6 +693,13 @@ competitive result.
     `diagnostics/score_probes/protenix25_scoreable_target_seed_readiness.tsv`
     verifies compatibility and records the full merged budget gate:
     `--candidate-count 5 --merged-candidate-count 25`.
+36. `2026-07-06 22:00 CDT` added `./casp16 preflight-runs` and audited the
+    same P18 target+seed shard manifest before any seed106-125 submission. The
+    launch preflight artifact
+    `diagnostics/msa_cache/protenix25_scoreable_target_seed_run_preflight.tsv`
+    reports `30/30 ok`, complete MSA coverage for every shard, and 0 stale
+    covered paths. The current blocker for P18 remains the policy gate
+    `await_protenix5_score`, not MSA readiness.
 
 ## Run Discipline
 

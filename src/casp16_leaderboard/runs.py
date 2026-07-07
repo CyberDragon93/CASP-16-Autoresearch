@@ -16,6 +16,25 @@ from .msa_cache import audit_msa_reuse_report, reuse_msa_paths
 from .official import ensure_dir
 
 
+RUN_PREFLIGHT_FIELDS = [
+    "run_id",
+    "benchmark",
+    "status",
+    "result",
+    "message",
+    "budget_tier",
+    "candidate_count",
+    "rank_eligible",
+    "use_msa",
+    "msa_checked",
+    "msa_protein_chains",
+    "msa_usable_covered",
+    "msa_stale_covered",
+    "msa_coverage_fraction",
+    "run_dir",
+]
+
+
 DEFAULT_PROTENIX_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/protenix")
 DEFAULT_DOCKQ_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/DockQ")
 DEFAULT_TMSCORE_BIN = Path("/scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore")
@@ -1004,6 +1023,109 @@ def write_runs_manifest(project_root: Path, specs: Sequence[Mapping[str, Any]] |
         for row in rows:
             writer.writerow(row)
     return path
+
+
+def preflight_run_specs(
+    project_root: Path,
+    *,
+    benchmark: str | None = None,
+    run_ids: Sequence[str] | None = None,
+    statuses: Sequence[str] | None = None,
+) -> dict[str, object]:
+    requested_ids = [str(run_id).strip() for run_id in run_ids or [] if str(run_id).strip()]
+    requested_set = set(requested_ids)
+    status_set = {str(status).strip() for status in statuses or [] if str(status).strip()}
+    all_rows = list_run_rows(project_root, benchmark=benchmark)
+    if requested_ids:
+        rows_by_id = {str(row.get("run_id", "")): row for row in all_rows}
+        rows = [rows_by_id[run_id] for run_id in requested_ids if run_id in rows_by_id]
+        missing_ids = [run_id for run_id in requested_ids if run_id not in rows_by_id]
+    else:
+        rows = [row for row in all_rows if not status_set or str(row.get("status", "")) in status_set]
+        missing_ids = []
+    if requested_set and status_set:
+        rows = [row for row in rows if str(row.get("status", "")) in status_set]
+
+    preflight_rows: list[dict[str, object]] = []
+    for row in rows:
+        run_id = str(row.get("run_id", ""))
+        run_dir = Path(str(row.get("run_dir", "")))
+        spec_path = run_dir / "run_spec.json"
+        base = {
+            "run_id": run_id,
+            "benchmark": str(row.get("benchmark", "")),
+            "status": str(row.get("status", "")),
+            "budget_tier": str(row.get("budget_tier", "")),
+            "candidate_count": str(row.get("candidate_count", "")),
+            "rank_eligible": str(row.get("rank_eligible", "")),
+            "use_msa": "",
+            "msa_checked": "false",
+            "msa_protein_chains": "",
+            "msa_usable_covered": "",
+            "msa_stale_covered": "",
+            "msa_coverage_fraction": "",
+            "run_dir": str(run_dir),
+        }
+        if not spec_path.exists():
+            preflight_rows.append({**base, "result": "missing_run_spec", "message": str(spec_path)})
+            continue
+        try:
+            with spec_path.open(encoding="utf-8") as handle:
+                spec = json.load(handle)
+            audit = preflight_msa_reuse(spec)
+        except RuntimeError as exc:
+            preflight_rows.append({**base, "result": "blocked:msa_preflight", "message": str(exc)})
+            continue
+        except (OSError, json.JSONDecodeError) as exc:
+            preflight_rows.append({**base, "result": "invalid_run_spec", "message": str(exc)})
+            continue
+        preflight_rows.append(
+            {
+                **base,
+                "result": "ok",
+                "message": "",
+                "use_msa": str(spec_bool(spec.get("use_msa"), default=False)).lower(),
+                "msa_checked": str(bool(audit.get("checked", False))).lower(),
+                "msa_protein_chains": audit.get("protein_chains", ""),
+                "msa_usable_covered": audit.get("usable_covered", ""),
+                "msa_stale_covered": audit.get("stale_covered", ""),
+                "msa_coverage_fraction": audit.get("coverage_fraction", ""),
+            }
+        )
+
+    for run_id in missing_ids:
+        preflight_rows.append(
+            {
+                "run_id": run_id,
+                "benchmark": benchmark or "",
+                "status": "missing",
+                "result": "missing_run",
+                "message": "run_id not found in manifest",
+                "budget_tier": "",
+                "candidate_count": "",
+                "rank_eligible": "",
+                "use_msa": "",
+                "msa_checked": "false",
+                "msa_protein_chains": "",
+                "msa_usable_covered": "",
+                "msa_stale_covered": "",
+                "msa_coverage_fraction": "",
+                "run_dir": "",
+            }
+        )
+
+    counts: dict[str, int] = {}
+    for row in preflight_rows:
+        result = str(row.get("result", ""))
+        counts[result] = counts.get(result, 0) + 1
+    return {
+        "total": len(preflight_rows),
+        "ok": counts.get("ok", 0),
+        "blocked": sum(count for result, count in counts.items() if result.startswith("blocked")),
+        "missing": counts.get("missing_run", 0) + counts.get("missing_run_spec", 0),
+        "counts": counts,
+        "rows": preflight_rows,
+    }
 
 
 def register_run_spec(project_root: Path, spec: Mapping[str, Any]) -> Path:

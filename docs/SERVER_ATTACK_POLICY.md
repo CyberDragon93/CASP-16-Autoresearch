@@ -200,6 +200,21 @@ For the scoreable nofail tier, use
 It has 30 execution rows: six existing P14 reuse rows for seeds `101..105` and
 24 deferred rows for seeds `106..125`.
 
+Before submitting or undefering any execution shard manifest, batch-preflight
+the run specs:
+
+```bash
+./casp16 preflight-runs \
+  --benchmark casp16_server_protein_v2_aliasfix \
+  --run-id-tsv attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv \
+  --output-tsv diagnostics/msa_cache/protenix25_scoreable_target_seed_run_preflight.tsv
+```
+
+This check is launch hygiene only: it reads run specs and MSA reuse reports, not
+references or scores. The current scoreable target+seed grid is `30/30 ok`,
+with complete MSA coverage and 0 stale covered paths. The seed106-125 rows stay
+`deferred:await_protenix5_score` until P14 is scored or explicitly superseded.
+
 After every shard has completed, register the merged attack row before scoring.
 For the scoreable target+seed grid, do not hand-write the final merge command;
 first run the readiness check with the full input and final candidate budget:
