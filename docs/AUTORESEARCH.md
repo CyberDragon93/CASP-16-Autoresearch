@@ -1682,6 +1682,16 @@ competitive result.
      configured no-GPU P25 consensus replay, and named P27b as the prepared
      model/config child. True MSA-variant generation stays gated behind
      complete P25 plus P27b evidence, not partial target scores.
+114. `2026-07-07 14:41 CDT` P25 queue-cause check: P25 is still incomplete
+     but advancing (`ready=false`, `compatible=true`, `1206` observed
+     candidates, `850` shard-level missing candidates, and `780` full
+     25-candidate slots missing). `qlimits` reports `gh` `MaxJobsPU=20`; Slurm
+     currently has 19 P25 jobs running plus one running `tacc-vscode` job, so
+     the five remaining P25 jobs are expected to sit behind
+     `QOSMaxJobsPerUserLimit` until a running job exits. Error-keyword scans
+     over P25 stdout/stderr found no traceback/OOM/killed signatures, and
+     `post-p25-branch-readiness` still reports all four deferred branches
+     launch-ready. No new GPU branch should be submitted from this state.
 
 ## Run Discipline
 
