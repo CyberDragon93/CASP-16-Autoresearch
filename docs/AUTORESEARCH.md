@@ -1137,6 +1137,20 @@ competitive result.
     the next agent is that MSA reuse is working; current wall time is dominated
     by Protenix forward on large scoreable targets. Continue waiting for full
     readiness instead of opening another GPU branch from a partial snapshot.
+68. `2026-07-07 07:28 CDT` post-P17 scale-up preparation: P17 input-repair
+    shards `812765..812770` are still RUNNING, clean of traceback/OOM/killed
+    signatures, and the refreshed dry-run closeout reports `38/395` observed
+    candidates, `357` missing candidates, and `0/6` complete shards. While
+    waiting, the old pre-P17 74-target `protenix25_scoreable_nofail` plan was
+    superseded for launches by
+    `attack_budgets/casp16_server_attack_protenix25_scoreable_input_repair.json`.
+    The repaired 25-candidate plan uses the P17 79-target input, reuses the
+    six running seed101-105 target shards, and prepares 24 deferred
+    seed106-125 run specs. `preflight-runs` is `30/30 ok` with complete MSA
+    reuse and 0 stale covered paths; readiness is correctly `ready=false`
+    until P17 finishes and the deferred seed blocks are explicitly launched.
+    Do not submit those seed106-125 jobs unless P17 scores as a broad,
+    candidate-limited signal.
 
 ## Run Discipline
 

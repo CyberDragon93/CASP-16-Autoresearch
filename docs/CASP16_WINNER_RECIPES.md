@@ -128,7 +128,7 @@ by how interesting the trick is.
 | Gate | Winner clue | Local reproduction | Current status | Next decision |
 | --- | --- | --- | --- | --- |
 | G1 | Strong CASP16 systems did careful input preparation before spending sampling budget | v2 nofail scoreable stack plus P17 input repair: protein-oligo sequence recovery, phase-alias stoichiometry, low-complexity cleanup, token fallback, full MSA reuse, and target-agnostic `O`/`Vn`/phase alias repair | P14 completed all 370 candidates and scored, but exposed 5 locally scoreable `missing_prediction` targets; P17 repaired input covers 79/79 scoreable targets and six GH200 shards `812765..812770` are running | Merge/score P17 before any candidate-count scale-up; input coverage remains the live bottleneck |
-| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and prepared `protenix25_scoreable_nofail` budgets with `protenix_confidence_v1` | `protenix25` is prepared, not launched | Launch 25 seeds only if P17 has broad fixed-set signal and failures are mostly selection/sampling, not missing references or wrong inputs |
+| G2 | CASP16 winners/top groups used more than one generated model, but ranking was still a bottleneck | `protenix5` and repaired `protenix25_scoreable_input_repair` budgets with `protenix_confidence_v1` | repaired `protenix25` is prepared and preflighted `30/30 ok`, but not launched | Launch seed106-125 only if P17 has broad fixed-set signal and failures are mostly selection/sampling, not missing references or wrong inputs |
 | G3 | First-model QA/ranking can change apparent method quality without more GPU | P16 consensus replay used the same P14 five-candidate pool with `selection-qa` and `diversity_confidence_consensus_v1` | scored but slightly below P14 (`0.102218` domain, `0.115250` oligo) | Do not tune selectors again until P17 removes scoreable missing predictions and shows candidate selection is the limiting factor |
 | G4 | Yang-style protein-domain gains came from sequence/construct optimization and domain-aware handling | D6a domain sequence recovery after MSA warmup, domain-fragment target-lab evidence, large-target fallback | D6a is MSA-ready but deferred behind P17 | If P17 is weak on domains because inputs are missing/wrong, run D6a before scaling candidates |
 | G5 | MULTICOM-style gains emphasize diverse MSAs, model generation, and quality assessment | Current repo has MSA reuse/cache and P27a as the first concrete Protenix model/config variant, but not true MSA-variant or multi-engine generation | P27a prepared/deferred; broader variants not queued | Add broader MSA/model-variant budgets only after current Protenix input repairs stop yielding easy coverage gains |
@@ -143,7 +143,7 @@ Post-P14 branch:
 
 Default branch after P17:
 
-- P17 strong and candidate-limited: launch the scoreable 25-seed grid.
+- P17 strong and candidate-limited: launch the repaired scoreable 25-seed grid.
 - P17 strong but reference-limited: launch P15 on
   `casp16_server_protein_v4_refmap` and keep further refmap work versioned.
 - P17 has many `missing_prediction`, `metric_failed`, or exact-oligo lookup
@@ -367,13 +367,19 @@ Useful strategy hypotheses:
     single-seed D6a ablation is now MSA-ready but explicitly
     `deferred:await_p14_score`.
 17. `casp16_server_attack_protenix25_scoreable_nofail`: prepared but not queued.
-    It is the winner-scale 25-seed successor to the scoreable `protenix5`
-    attack. The target+seed shard manifest now points at the size-first
-    phase-alias scoreable input, reuses the active P14 seed101-105 target
-    shards, and prepares 24 deferred seed106-125 run specs with complete MSA
-    reuse. Launch only if the 5-seed scoreable row gives a reason to spend the
-    GPU-hours; keep the older 165-job `protenix25_nofail` plan as a full-input
-    ablation until reference recovery.
+    It was the first winner-scale 25-seed successor to the scoreable
+    `protenix5` attack, but it uses the pre-P17 74-target input. Keep it for
+    provenance only; do not launch it while the repaired P17 input is the main
+    branch.
+    Current repaired successor:
+    `casp16_server_attack_protenix25_scoreable_input_repair` is prepared but
+    not queued. It is the current winner-scale 25-seed successor to P17. The
+    target+seed shard manifest points at the repaired 79-target input, reuses
+    the running P17 seed101-105 target shards, and prepares 24 deferred
+    seed106-125 run specs with complete MSA reuse. Preflight is `30/30 ok`;
+    launch only if the 5-seed P17 row gives a reason to spend the GPU-hours.
+    Keep the older 165-job `protenix25_nofail` plan as a full-input ablation
+    until reference recovery.
 18. `scoreable_antibody_fv_oligo_size_first_phase_alias_v1`: queued behind the
     size-first phase-alias row as a risky O5 branch. It promotes the Fv
     target-lab signal into a sequence-only, predeclared scoreable attack input:

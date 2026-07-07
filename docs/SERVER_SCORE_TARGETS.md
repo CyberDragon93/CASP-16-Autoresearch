@@ -188,9 +188,11 @@ This helper reads only `runs.csv`, `target_scores.csv`, and benchmark target
 metadata. It does not read native structures, official per-target score tables,
 or prediction outputs, and it does not submit jobs.
 
-Current live P17 status, checked `2026-07-07`: six repaired-input GH200 shard
-jobs `812765..812770` are running. They cover 79/79 locally scoreable targets,
-have complete exact-sequence MSA reuse, and are rank-ineligible until merged.
+Current live P17 status, checked `2026-07-07 07:28 CDT`: six repaired-input
+GH200 shard jobs `812765..812770` are running. They cover 79/79 locally
+scoreable targets, have complete exact-sequence MSA reuse, and are
+rank-ineligible until merged. Dry-run closeout currently sees `38/395`
+candidates, `357` missing candidates, and `0/6` complete shards.
 Do not launch P15, P18/P25, P27a, D6a, or O5 before P17 merge plus scoring.
 
 ## Post-P17 Decision Matrix
@@ -218,7 +220,7 @@ Readout order:
 
 | P17 observation | Interpretation | Next branch |
 | --- | --- | --- |
-| Domain and/or oligo fixed means improve over P14 and exact protein-oligo rows include broad nonzero QSglob scores | Five candidates plus the repaired scoreable input stack have real signal; candidate budget and selector are plausible bottlenecks | Retarget and launch a repaired-input 25-candidate scoreable target+seed grid |
+| Domain and/or oligo fixed means improve over P14 and exact protein-oligo rows include broad nonzero QSglob scores | Five candidates plus the repaired scoreable input stack have real signal; candidate budget and selector are plausible bottlenecks | Launch the prepared repaired-input 25-candidate scoreable target+seed grid |
 | P17 has good scoreable-target signal but most full-set zeros are still no-reference rows | Reference recovery can unlock more local measurement without changing the prediction recipe | Launch/refresh P15 on a versioned refmap benchmark, and keep broader refmap work versioned |
 | Scoreable rows are still `missing_prediction`, `metric_failed`, or exact oligo rows are not found | This is a pipeline/input/scorer failure, not a sampling failure | Fix the failure class before launching P25 |
 | Domain zeros concentrate on known input-kind or sequence-alias repair classes such as `T1276/T1228V1/T1239V1/T2276` | More seeds will repeat bad inputs | Run D6a single-seed domain sequence recovery after MSA warmup |
@@ -230,7 +232,8 @@ Prepared branch readiness to revisit after P17:
 | Branch | Preflight | Evidence |
 | --- | --- | --- |
 | P15 v4 refmap target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_v4_scoreable_target_run_preflight.tsv` |
-| P18/P25 25-candidate scoreable grid | `30/30 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix25_scoreable_target_seed_run_preflight.tsv` |
+| superseded P18 74-target scoreable grid | `30/30 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix25_scoreable_target_seed_run_preflight.tsv` |
+| P25 repaired 79-target scoreable grid | `30/30 ok`, complete MSA reuse, 0 stale; readiness intentionally `ready=false` until P17 and deferred seed blocks finish | `diagnostics/msa_cache/protenix25_scoreable_input_repair_target_seed_run_preflight.tsv`, `diagnostics/score_probes/protenix25_scoreable_input_repair_target_seed_readiness.tsv` |
 | P27a default-params model/config variant | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_defaultparams_model_variant_preflight.tsv` |
 | D6a domain sequence recovery | `1/1 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/domain_sequence_recovery_after_warmup_preflight.tsv` |
 | O5 antibody-Fv target shards | `6/6 ok`, complete MSA reuse, 0 stale | `diagnostics/msa_cache/protenix5_antibody_fv_target_run_preflight.tsv` |

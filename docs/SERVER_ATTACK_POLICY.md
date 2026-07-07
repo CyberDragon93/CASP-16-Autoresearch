@@ -90,24 +90,27 @@ spend winner-scale compute on the older nofail artifact unless the run is
 explicitly labeled as an ablation.
 
 `attack_budgets/casp16_server_attack_protenix25_scoreable_nofail.json` is the
-current scoreable-target winner-scale plan. It keeps the same 25-seed
-candidate budget and selector, but predicts only the 74 jobs that currently
-have at least one locally available reference alias. It points at the
-size-first phase-alias scoreable artifact, so `H0220/H1220/H2220` use recovered
-protein `A1B4` and the exact-oligo block is ordered from small to large before
-the 2515-2535 token jobs. The fixed benchmark scoring set remains 175 targets;
-skipped no-reference targets stay local zeros. Each shard must inject
-`data/msa_cache/index.tsv` with `--msa-reuse-require-complete`. Launch it only
-after the running scoreable `protenix5` attack is scored or explicitly
-superseded.
+older scoreable-target winner-scale plan. It keeps the same 25-seed candidate
+budget and selector, but predicts only the pre-P17 74 jobs that had at least
+one locally available reference alias. It is superseded for launch by the P17
+input-repair plan below; keep it for provenance and ablation accounting only.
+
+`attack_budgets/casp16_server_attack_protenix25_scoreable_input_repair.json`
+is the current scoreable-target winner-scale plan. It uses the same budget and
+selector on the repaired P17 79-job target set. It preserves the fixed
+benchmark scoring set, skips no-reference jobs as local zeros, and requires
+complete `data/msa_cache/index.tsv` reuse for every execution shard. Launch it
+only after P17 is merged/scored and the post-P17 decision matrix says the next
+bottleneck is sampling/selection rather than input repair, reference mapping,
+or scorer failure.
 
 Because Protenix loops serially over seeds and large assemblies can block a
-whole serial run, this budget is prepared as a target-shard x seed-block grid:
-six target-balanced shards times five 5-seed blocks. The first seed block
-(`101..105`) is the already submitted P14 `protenix5` target-sharded attack,
-so the 25-candidate plan reuses those six run specs instead of spending that
-compute twice. The remaining 24 run specs for seeds `106..125` are prepared as
-`deferred:await_protenix5_score` and must not be submitted before P14 is
+whole serial run, the repaired budget is prepared as a target-shard x
+seed-block grid: six target-balanced shards times five 5-seed blocks. The
+first seed block (`101..105`) reuses the already submitted P17 input-repair
+target-sharded attack, so the 25-candidate plan does not spend that compute
+twice. The remaining 24 run specs for seeds `106..125` are prepared as
+`deferred:await_p17_score` and must not be submitted before P17 is
 merged/scored or explicitly superseded. A partial 25-seed attempt is unranked
 unless it is explicitly reported as partial.
 
@@ -234,10 +237,13 @@ When the launch gate opens, generate each shard with the TSV row's fields:
 For the nofail tier, use the shard TSV rows from
 `attack_budgets/casp16_server_attack_protenix25_nofail_shards.tsv`; do not
 reuse the older `protenix25` input artifact by accident.
-For the scoreable nofail tier, use
-`attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv`.
-It has 30 execution rows: six existing P14 reuse rows for seeds `101..105` and
-24 deferred rows for seeds `106..125`.
+For the repaired scoreable input tier, use
+`attack_budgets/casp16_server_attack_protenix25_scoreable_input_repair_target_seed_shards.tsv`.
+It has 30 execution rows: six P17 reuse rows for seeds `101..105` and 24
+deferred rows for seeds `106..125`. Do not use the older
+`attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv`
+for a post-P17 launch unless the decision is explicitly recorded as a 74-target
+ablation.
 
 Before submitting or undefering any execution shard manifest, batch-preflight
 the run specs:
@@ -245,28 +251,29 @@ the run specs:
 ```bash
 ./casp16 preflight-runs \
   --benchmark casp16_server_protein_v2_aliasfix \
-  --run-id-tsv attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv \
-  --output-tsv diagnostics/msa_cache/protenix25_scoreable_target_seed_run_preflight.tsv
+  --run-id-tsv attack_budgets/casp16_server_attack_protenix25_scoreable_input_repair_target_seed_shards.tsv \
+  --output-tsv diagnostics/msa_cache/protenix25_scoreable_input_repair_target_seed_run_preflight.tsv
 ```
 
 This check is launch hygiene only: it reads run specs and MSA reuse reports, not
-references or scores. The current scoreable target+seed grid is `30/30 ok`,
+references or scores. The repaired scoreable target+seed grid is `30/30 ok`,
 with complete MSA coverage and 0 stale covered paths. The seed106-125 rows stay
-`deferred:await_protenix5_score` until P14 is scored or explicitly superseded.
+`deferred:await_p17_score` until P17 is scored or explicitly superseded.
 
 After every shard has completed, register the merged attack row before scoring.
-For the scoreable target+seed grid, do not hand-write the final merge command;
-first run the readiness check with the full input and final candidate budget:
+For the repaired scoreable target+seed grid, do not hand-write the final merge
+command; first run the readiness check with the full input and final candidate
+budget:
 
 ```bash
 ./casp16 check-shards \
   --benchmark casp16_server_protein_v2_aliasfix \
-  --merged-run-id server_v2_attack_scoreable_size_balanced_msa_reuse_protenix25_seed101_125 \
-  --merged-input-json strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json \
+  --merged-run-id server_v2_attack_scoreable_input_repair_size_balanced_msa_reuse_protenix25_seed101_125 \
+  --merged-input-json strategies/scoreable_target_subset_input_repair_v1/casp16_server_protein_v2_aliasfix/inputs.json \
   --candidate-count 5 \
   --merged-candidate-count 25 \
-  --output-tsv diagnostics/score_probes/protenix25_scoreable_target_seed_readiness.tsv \
-  --shard-run-id <each row from attack_budgets/casp16_server_attack_protenix25_scoreable_target_seed_shards.tsv>
+  --output-tsv diagnostics/score_probes/protenix25_scoreable_input_repair_target_seed_readiness.tsv \
+  --shard-run-id <each row from attack_budgets/casp16_server_attack_protenix25_scoreable_input_repair_target_seed_shards.tsv>
 ```
 
 When the readiness result is `ready=true`, use its emitted
