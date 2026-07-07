@@ -40,6 +40,7 @@ from .runs import (
     merge_prediction_shards,
     preflight_run_specs,
     register_existing_run,
+    spec_bool,
     run_next,
     run_one,
 )
@@ -126,6 +127,12 @@ def finish_prediction_shards(
     tmscore_bin: Path | None,
     dockq_bin: Path | None,
     qsglob_bin: Path | None,
+    replay_run_id: str = "",
+    replay_selected_model_policy: str = "diversity_confidence_consensus_v1",
+    replay_strategy: str = "",
+    replay_rank_eligible: bool | None = None,
+    replay_selection_qa_output_csv: Path | None = None,
+    replay_min_cluster_score: float = 0.5,
     dry_run: bool = False,
 ) -> dict[str, object]:
     check_summary = check_prediction_shards(
@@ -145,6 +152,7 @@ def finish_prediction_shards(
             "finish_status": "not_ready",
             "check": check_summary,
             "merge": {},
+            "replay": {},
             "score": {},
             "leaderboard": {},
         }
@@ -153,6 +161,7 @@ def finish_prediction_shards(
             "finish_status": "ready_dry_run",
             "check": check_summary,
             "merge": {},
+            "replay": {},
             "score": {},
             "leaderboard": {},
         }
@@ -166,6 +175,22 @@ def finish_prediction_shards(
         merged_input_json=merged_input_json.resolve(),
         allow_target_shards=allow_target_shards,
     )
+    replay_summary: dict[str, object] = {}
+    if replay_run_id:
+        replay_summary = register_prediction_selection_replay(
+            root=root,
+            benchmark=benchmark,
+            source_run_id=run_id,
+            replay_run_id=replay_run_id,
+            output_dir=Path(str(merge_summary["output_dir"])),
+            input_json=merged_input_json.resolve(),
+            selected_model_policy=replay_selected_model_policy,
+            strategy=replay_strategy,
+            rank_eligible=rank_eligible if replay_rank_eligible is None else replay_rank_eligible,
+            tmscore_bin=tmscore_bin,
+            output_csv=replay_selection_qa_output_csv,
+            min_cluster_score=replay_min_cluster_score,
+        )
     score_summary = score_benchmark_runs(
         project_root=root,
         benchmark=benchmark,
@@ -185,8 +210,90 @@ def finish_prediction_shards(
         "finish_status": "finished",
         "check": check_summary,
         "merge": merge_summary,
+        "replay": replay_summary,
         "score": score_summary,
         "leaderboard": leaderboard_summary,
+    }
+
+
+def register_prediction_selection_replay(
+    *,
+    root: Path,
+    benchmark: str,
+    source_run_id: str,
+    replay_run_id: str,
+    output_dir: Path,
+    input_json: Path,
+    selected_model_policy: str,
+    strategy: str = "",
+    rank_eligible: bool = True,
+    tmscore_bin: Path | None = None,
+    output_csv: Path | None = None,
+    min_cluster_score: float = 0.5,
+) -> dict[str, object]:
+    if replay_run_id == source_run_id:
+        raise ValueError("replay_run_id must differ from the source merged run_id")
+    source_spec = selection_qa_context_from_run_id(root, source_run_id)
+    benchmark_dir = Path(str(source_spec.get("benchmark_dir", "") or (root / "benchmarks" / benchmark)))
+    input_manifest = Path(str(source_spec.get("input_manifest", "") or (benchmark_dir / "input_manifest.tsv")))
+    references_manifest = Path(str(source_spec.get("references_manifest", "") or (benchmark_dir / "references.tsv")))
+    replay_strategy = strategy or f"{source_spec.get('strategy', 'merged_shards')}_selection_replay"
+    summary = register_existing_run(
+        project_root=root,
+        run_id=replay_run_id,
+        output_dir=output_dir.resolve(),
+        input_json=input_json.resolve(),
+        input_manifest=input_manifest,
+        benchmark_name=benchmark,
+        benchmark_version=str(source_spec.get("benchmark_version", "")),
+        benchmark_dir=benchmark_dir,
+        references_manifest=references_manifest if references_manifest.exists() else None,
+        backend=str(source_spec.get("backend", "protenix")),
+        strategy=replay_strategy,
+        model_name=str(source_spec.get("model_name", "protenix-v2")),
+        source_run_id=source_run_id,
+        seeds=str(source_spec.get("seeds", "101")),
+        sample=int(source_spec.get("sample", 1) or 1),
+        candidate_count_override=int(source_spec.get("candidate_count", 1) or 1),
+        budget_tier="server_attack",
+        fixed_budget=spec_bool(source_spec.get("fixed_budget"), default=True),
+        selected_model_policy=selected_model_policy,
+        rank_eligible=rank_eligible and spec_bool(source_spec.get("rank_eligible"), default=True),
+        dtype=str(source_spec.get("dtype", "")),
+        cycle=source_spec.get("cycle"),
+        step=source_spec.get("step"),
+        use_msa=spec_bool(source_spec.get("use_msa"), default=True),
+        use_template=spec_bool(source_spec.get("use_template"), default=True),
+        use_default_params=spec_bool(source_spec.get("use_default_params"), default=False),
+    )
+    target_ids = selection_qa_targets_from_input_json(input_json.resolve())
+    selection_qa_csv = (
+        output_csv.resolve()
+        if output_csv
+        else (root / "diagnostics" / "selection_qa" / f"{replay_run_id}.selection_qa.csv").resolve()
+    )
+    tm_tool = resolve_tool(tmscore_bin or DEFAULT_TMSCORE_BIN, ["TMscore", "USalign"])
+    qa_summary = write_prediction_selection_qa(
+        output_dir=output_dir.resolve(),
+        target_ids=target_ids,
+        tm_tool=tm_tool,
+        output_csv=selection_qa_csv,
+        min_cluster_score=min_cluster_score,
+    )
+    spec_path = Path(str(summary["run_spec"]))
+    spec_payload = json.loads(spec_path.read_text(encoding="utf-8"))
+    spec_payload["selection_replay"] = True
+    spec_payload["selection_replay_source_run_id"] = source_run_id
+    spec_payload["selection_qa_csv"] = str(selection_qa_csv)
+    spec_payload["selection_qa_min_cluster_score"] = min_cluster_score
+    spec_payload["selection_qa_tm_tool"] = tm_tool
+    spec_path.write_text(json.dumps(spec_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return {
+        "run_id": replay_run_id,
+        "source_run_id": source_run_id,
+        "selected_model_policy": selected_model_policy,
+        "register": summary,
+        "selection_qa": qa_summary,
     }
 
 
@@ -786,6 +893,12 @@ def build_parser() -> argparse.ArgumentParser:
     finish_shards.add_argument("--tmscore-bin", type=Path, default=None)
     finish_shards.add_argument("--dockq-bin", type=Path, default=None)
     finish_shards.add_argument("--qsglob-bin", type=Path, default=None)
+    finish_shards.add_argument("--replay-run-id", default="", help="Optional run id to register against the merged outputs before scoring.")
+    finish_shards.add_argument("--replay-selected-model-policy", default="diversity_confidence_consensus_v1")
+    finish_shards.add_argument("--replay-strategy", default="", help="Defaults to <merged strategy>_selection_replay.")
+    finish_shards.add_argument("--replay-rank-eligible", action=argparse.BooleanOptionalAction, default=None)
+    finish_shards.add_argument("--replay-selection-qa-output-csv", type=Path, default=None)
+    finish_shards.add_argument("--replay-min-cluster-score", type=float, default=0.5)
     finish_shards.add_argument("--dry-run", action="store_true", help="Return ready/not-ready status without merging or scoring.")
 
     collect = subparsers.add_parser("collect", help="Collect local run artifacts into CSV/Markdown.")
@@ -1392,6 +1505,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             tmscore_bin=args.tmscore_bin,
             dockq_bin=args.dockq_bin or None,
             qsglob_bin=args.qsglob_bin,
+            replay_run_id=args.replay_run_id,
+            replay_selected_model_policy=args.replay_selected_model_policy,
+            replay_strategy=args.replay_strategy,
+            replay_rank_eligible=args.replay_rank_eligible,
+            replay_selection_qa_output_csv=args.replay_selection_qa_output_csv,
+            replay_min_cluster_score=args.replay_min_cluster_score,
             dry_run=args.dry_run,
         )
         print_json(summary)

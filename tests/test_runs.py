@@ -659,6 +659,130 @@ def test_finish_shards_cli_dry_run_checks_without_merging(tmp_path, capsys) -> N
     assert not (tmp_path / "runs" / "target_sharded_merged" / "run_spec.json").exists()
 
 
+def test_finish_shards_can_register_selection_replay_before_scoring(tmp_path, capsys) -> None:
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    benchmark_dir = tmp_path / "benchmarks" / benchmark
+    benchmark_dir.mkdir(parents=True)
+    full_input_json = benchmark_dir / "inputs.json"
+    input_manifest = benchmark_dir / "input_manifest.tsv"
+    references = benchmark_dir / "references.tsv"
+    full_input_json.write_text('[{"name":"T1234","sequences":[]}]\n', encoding="utf-8")
+    input_manifest.write_text("target_id\tstatus\nT1234\tok\n", encoding="utf-8")
+    (benchmark_dir / "targets.tsv").write_text(
+        "target_id\ttrack\trank_eligible\tinput_status\treference_status\treference_path\tofficial_metric\n"
+        "T1234\tprotein_domain\ttrue\tok\tno_reference_pdb\t\tGDT_TS\n",
+        encoding="utf-8",
+    )
+    references.write_text(
+        "target_id\ttrack\tpdb_ids\tselected_pdb_id\treference_status\treference_path\tsha256\n"
+        "T1234\tprotein_domain\t\t\tno_reference_pdb\t\t\n",
+        encoding="utf-8",
+    )
+    (benchmark_dir / "domain_definitions.tsv").write_text("target_id\tdomain_id\tresidue_ranges\n", encoding="utf-8")
+    official_header = (
+        "category\trank\tgroup\tgroup_type\teligible_target_count\tsubmitted_target_count\t"
+        "missing_target_count\tmean_fixed_score\tmean_submitted_score\tbest_score\tprimary_metric\n"
+    )
+    (benchmark_dir / "official_server_groups.tsv").write_text(official_header, encoding="utf-8")
+    (benchmark_dir / "official_all_groups.tsv").write_text(official_header, encoding="utf-8")
+
+    shard_id = "target_shard_complete"
+    run_dir = tmp_path / "runs" / shard_id
+    subset_input = run_dir / "inputs" / "inputs.json"
+    subset_input.parent.mkdir(parents=True)
+    subset_input.write_text('[{"name":"T1234","sequences":[]}]\n', encoding="utf-8")
+    pred_dir = run_dir / "predictions" / "protenix-v2" / "T1234" / "seed_101" / "predictions"
+    pred_dir.mkdir(parents=True)
+    (pred_dir / "T1234_sample_0.cif").write_text("data_T1234\n", encoding="utf-8")
+    (pred_dir / "T1234_summary_confidence_sample_0.json").write_text(
+        '{"plddt": 80.0, "ptm": 0.5, "iptm": 0.1}\n',
+        encoding="utf-8",
+    )
+    shard_spec = {
+        "run_id": shard_id,
+        "backend": "protenix",
+        "strategy": "target_shard_attack",
+        "benchmark_name": benchmark,
+        "benchmark_version": "2",
+        "benchmark_dir": str(benchmark_dir),
+        "model_name": "protenix-v2",
+        "input_json": str(subset_input),
+        "input_manifest": str(input_manifest),
+        "input_sha256": "subset-input",
+        "input_manifest_sha256": "same-manifest",
+        "references_manifest": str(references),
+        "references_sha256": "same-references",
+        "output_dir": str(run_dir / "predictions" / "protenix-v2"),
+        "seeds": "101",
+        "sample": 1,
+        "candidate_count": 1,
+        "budget_tier": "server_attack",
+        "fixed_budget": True,
+        "selected_model_policy": "protenix_confidence_v1",
+        "rank_eligible": True,
+        "dtype": "bf16",
+        "use_msa": True,
+        "use_template": True,
+        "use_default_params": True,
+    }
+    (run_dir / "run_spec.json").write_text(json.dumps(shard_spec), encoding="utf-8")
+    tm_tool = tmp_path / "TMscore"
+    tm_tool.write_text("#!/usr/bin/env bash\necho 'TM-score = 1.000'\n", encoding="utf-8")
+    tm_tool.chmod(0o755)
+    qa_csv = tmp_path / "diagnostics" / "selection_qa" / "merged_consensus.selection_qa.csv"
+
+    rc = main(
+        [
+            "--root",
+            str(tmp_path),
+            "finish-shards",
+            "--run-id",
+            "target_sharded_merged",
+            "--benchmark",
+            benchmark,
+            "--merged-input-json",
+            str(full_input_json),
+            "--allow-target-shards",
+            "--candidate-count",
+            "1",
+            "--replay-run-id",
+            "target_sharded_merged_consensus",
+            "--replay-selected-model-policy",
+            "diversity_confidence_consensus_v1",
+            "--replay-selection-qa-output-csv",
+            str(qa_csv),
+            "--tmscore-bin",
+            str(tm_tool),
+            "--shard-run-id",
+            shard_id,
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["finish_status"] == "finished"
+    assert payload["replay"]["run_id"] == "target_sharded_merged_consensus"
+    assert payload["score"]["run_ids"] == ["target_sharded_merged", "target_sharded_merged_consensus"]
+
+    replay_spec = json.loads((tmp_path / "runs" / "target_sharded_merged_consensus" / "run_spec.json").read_text(encoding="utf-8"))
+    assert replay_spec["selection_replay"] is True
+    assert replay_spec["source_run_id"] == "target_sharded_merged"
+    assert replay_spec["selected_model_policy"] == "diversity_confidence_consensus_v1"
+    assert replay_spec["budget_tier"] == "server_attack"
+
+    merged_output = Path(payload["merge"]["output_dir"])
+    sidecar = merged_output / "T1234" / "seed_101" / "predictions" / "T1234_summary_confidence_sample_0.selection_qa.json"
+    assert sidecar.exists()
+    assert qa_csv.exists()
+    with (tmp_path / "leaderboards" / benchmark / "target_scores.csv").open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert {row["run_id"] for row in rows} == {"target_sharded_merged", "target_sharded_merged_consensus"}
+    assert {row["status"] for row in rows} == {"missing_reference"}
+    policies = {row["run_id"]: row["selected_model_policy"] for row in rows}
+    assert policies["target_sharded_merged"] == "protenix_confidence_v1"
+    assert policies["target_sharded_merged_consensus"] == "diversity_confidence_consensus_v1"
+
+
 def test_run_next_blocks_pending_when_benchmark_run_is_running(tmp_path) -> None:
     running_spec = {
         "run_id": "server_full",

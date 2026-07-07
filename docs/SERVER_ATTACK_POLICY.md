@@ -142,10 +142,10 @@ declare `candidate_count=5`, use `protenix_confidence_v1`, and are explicitly
 `rank_eligible=false` until merged. They were submitted as Slurm jobs
 `812239..812244` with `./casp16 run-one --allow-parallel`.
 
-Current launch gate as of `2026-07-07 01:57 CDT`: those six P14 shards are
-still running and not merge-ready. `check-shards` observes 189/370 expected
+Current launch gate as of `2026-07-07 03:00 CDT`: those six P14 shards are
+still running and not merge-ready. `finish-shards` observes 225/370 expected
 candidate CIFs and reports `ready=false`. The run is live rather than stalled:
-all shards are progressing through seed 103, including the same class of
+all shards are continuing to emit candidates, including the same class of
 1929-2535 token complex targets that previously blocked the serial attack. Do
 not submit the
 deferred v4 P15 shards, the 25-seed scoreable grid, or the antibody-Fv
@@ -184,6 +184,12 @@ Use `finish-shards` when the desired behavior is "check now, and if ready,
 merge plus refresh scoring/leaderboard." It shares the same readiness checks as
 `check-shards`; while not ready, it only returns `finish_status=not_ready` and
 does not merge or score.
+
+For predeclared selector replays such as P16, prefer
+`finish-shards --replay-run-id ... --replay-selected-model-policy ...`. The
+replay row is registered against the merged prediction directory and
+prediction-only `selection-qa` sidecars are written before `score` or
+`leaderboard` runs, preserving the no-oracle window.
 
 For a larger run that combines target-size shards with seed-block shards, keep
 `--candidate-count` equal to the expected candidates in each execution shard

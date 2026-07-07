@@ -123,7 +123,9 @@ The preferred shard closeout command is `finish-shards`. It is intentionally
 safe to run while shards are still live: if readiness is false, it only writes
 the readiness report and returns `finish_status=not_ready`. Once readiness is
 true, it performs the merge, full benchmark scoring refresh, and leaderboard
-refresh in one audited step.
+refresh in one audited step. The P14 closeout should include the predeclared
+P16 replay arguments so the consensus selector row is registered before any
+P14 score table is inspected.
 
 ```bash
 ./casp16 finish-shards \
@@ -133,6 +135,11 @@ refresh in one audited step.
   --allow-target-shards \
   --candidate-count 5 \
   --output-tsv diagnostics/score_probes/target_shards_scoreable_size_balanced_readiness.tsv \
+  --replay-run-id server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105_consensus_replay \
+  --replay-selected-model-policy diversity_confidence_consensus_v1 \
+  --replay-strategy scoreable_target_subset_oligo_size_first_phase_alias_v1_consensus_selector_replay \
+  --replay-selection-qa-output-csv diagnostics/selection_qa/server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105_consensus_replay.selection_qa.csv \
+  --tmscore-bin /scratch/10992/liaorunlong93/conda/envs/protein/bin/TMscore \
   --shard-run-id server_v2_attack_scoreable_size_balanced_shard01_msa_reuse_protenix5_seed101_105 \
   --shard-run-id server_v2_attack_scoreable_size_balanced_shard02_msa_reuse_protenix5_seed101_105 \
   --shard-run-id server_v2_attack_scoreable_size_balanced_shard03_msa_reuse_protenix5_seed101_105 \

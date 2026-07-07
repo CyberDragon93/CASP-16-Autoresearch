@@ -189,6 +189,11 @@ where methods should change.
   QA JSON and still fails closed without confidence data. `./casp16
   selection-qa` can now generate those sidecar QA fields by running
   prediction-vs-prediction TMscore/USalign only, with no reference access.
+- `./casp16 finish-shards` can now register a predeclared selector replay with
+  `--replay-run-id` after shard merge but before scoring. This is the preferred
+  closeout path for P14/P16: it writes prediction-only `selection-qa` sidecars,
+  registers the `diversity_confidence_consensus_v1` replay row, and only then
+  runs `score` and `leaderboard`.
 - MSA cache infra now has a read-only `check-msa-cache` preflight,
   incremental materialized local A3M storage under ignored
   `data/msa_cache/store/`, `run-spec --refresh-global-msa-cache`, and
@@ -1002,6 +1007,16 @@ competitive result.
     missing candidates, 0/6 complete shards, and all six jobs `812239..812244`
     still RUNNING at about 4h28m. Error scans across shard and Slurm logs are
     clean. Continue waiting for full readiness; do not score partial output.
+66. `2026-07-07 03:00 CDT` added replay-safe shard closeout. `finish-shards`
+    now accepts `--replay-run-id`, registers that row against the merged P14
+    prediction directory, generates prediction-only `selection-qa` sidecars,
+    and only then runs benchmark `score`/`leaderboard`. Targeted tests plus
+    `tests/test_runs.py tests/test_scoring.py` pass in the protein env. A live
+    P14 replay-safe closeout check still reports `finish_status=not_ready`,
+    now with 225/370 observed candidates and 145 missing candidates; it left
+    `merge`, `replay`, `score`, and `leaderboard` empty and did not create the
+    P16 replay run spec. The action remains to wait for complete shards before
+    using the same replay-safe closeout command.
 
 ## Run Discipline
 
