@@ -1945,6 +1945,18 @@ competitive result.
      still appearing and pending shards are queue-blocked, wait rather than
      launching another GPU branch or treating partial outputs as a strategy
      signal.
+135. `2026-07-07 16:11 CDT` P25 live gate plus launch-snippet hardening:
+     P25 is still not merge-ready, but continues moving: `ready=false`,
+     `compatible=true`, `1449` observed candidates, `613` shard-level missing
+     candidates, `550` full 25-candidate slots missing, and `13/79`
+     full-budget tasks complete. Slurm remains 19 running P25 jobs plus 5 P25
+     jobs pending behind `QOSMaxJobsPerUserLimit`, and the error-keyword scan
+     is still clean. Recent prediction artifacts reached 16:10 CDT. Added
+     exact post-P25 launch snippets to `docs/WINNER_MATCH_RUNBOOK.md` for the
+     prepared branch families: P27b model/config diversity, O5b antibody/Fv,
+     D6a domain input repair, and P15/v4 refmap comparison. These snippets are
+     not a launch decision; they are meant to remove friction only after a
+     complete scored P25 readout selects exactly one branch.
 
 ## Run Discipline
 

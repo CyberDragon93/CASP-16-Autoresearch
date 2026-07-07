@@ -53,19 +53,19 @@ infrastructure. It is:
 
 ## Active Gate
 
-Checked `2026-07-07 16:09 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 16:11 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1442` |
-| shard-level missing candidates | `618` |
-| full 25-candidate slots still missing | `553` |
-| complete full-budget tasks | `11 / 79` |
+| observed candidates | `1449` |
+| shard-level missing candidates | `613` |
+| full 25-candidate slots still missing | `550` |
+| complete full-budget tasks | `13 / 79` |
 | Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; `gh` `MaxJobsPU=20` and one `tacc-vscode` job is also running |
-| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 16:09 CDT |
+| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 16:10 CDT |
 | action | wait for declared candidates, then run the P25 closeout wrapper |
 
 Do not score the P25 row or launch O5b/P27b/D6a from partial outputs. The

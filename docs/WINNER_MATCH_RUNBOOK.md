@@ -79,7 +79,7 @@ scores to tune target-specific inputs.
 
 ## Ready Branches
 
-The read-only readiness audit at `2026-07-07 16:05 CDT` reported all four
+The read-only readiness audit at `2026-07-07 16:11 CDT` reported all four
 deferred branch families as launch-ready after P25 selection:
 
 | Branch | Prepared artifact | Preflight |
@@ -102,12 +102,71 @@ ssh login1 'cd /scratch/10992/liaorunlong93/casp16-leaderboard && RUN_ID=<run_id
 Do not launch a branch unless the expected aggregate winner-gap reduction is
 named before submission.
 
+## Launch Snippets
+
+Use exactly one selected branch from `./casp16 post-p25-readout`. These snippets
+are convenience wrappers around existing run specs; run the dry-run line first,
+then submit only if it stays clean.
+
+P27b model/config diversity:
+
+```bash
+set -euo pipefail
+awk 'NR > 1 {print $2}' \
+  attack_budgets/casp16_server_attack_protenix5_input_repair_defaultparams_model_variant_shards.tsv |
+while read -r run_id; do
+  ./casp16 mark-run --run-id "$run_id" --status pending \
+    --message "selected after complete P25 readout: p27b_model_config_diversity"
+  ./casp16 run-one --run-id "$run_id" --dry-run
+  ssh login1 "cd /scratch/10992/liaorunlong93/casp16-leaderboard && RUN_ID=$run_id sbatch --export=ALL slurm/casp16_run_one_gh200.slurm"
+done
+```
+
+O5b antibody/Fv:
+
+```bash
+set -euo pipefail
+awk 'NR > 1 {print $2}' \
+  attack_budgets/casp16_server_attack_protenix5_input_repair_antibody_fv_shards.tsv |
+while read -r run_id; do
+  ./casp16 mark-run --run-id "$run_id" --status pending \
+    --message "selected after complete P25 readout: o5b_antibody_fv"
+  ./casp16 run-one --run-id "$run_id" --dry-run
+  ssh login1 "cd /scratch/10992/liaorunlong93/casp16-leaderboard && RUN_ID=$run_id sbatch --export=ALL slurm/casp16_run_one_gh200.slurm"
+done
+```
+
+D6a domain input repair:
+
+```bash
+set -euo pipefail
+run_id=server_v2_domain_sequence_recovery_oligo_nofail_msa_reuse_after_warmup_seed101
+./casp16 mark-run --run-id "$run_id" --status pending \
+  --message "selected after complete P25 readout: d6a_domain_sequence_recovery"
+./casp16 run-one --run-id "$run_id" --dry-run
+ssh login1 "cd /scratch/10992/liaorunlong93/casp16-leaderboard && RUN_ID=$run_id sbatch --export=ALL slurm/casp16_run_one_gh200.slurm"
+```
+
+P15/v4 refmap comparison:
+
+```bash
+set -euo pipefail
+awk 'NR > 1 {print $3}' \
+  attack_budgets/casp16_server_attack_protenix5_v4_scoreable_target_shards.tsv |
+while read -r run_id; do
+  ./casp16 mark-run --run-id "$run_id" --status pending \
+    --message "selected after complete P25 readout: p15_v4_refmap"
+  ./casp16 run-one --run-id "$run_id" --dry-run
+  ssh login1 "cd /scratch/10992/liaorunlong93/casp16-leaderboard && RUN_ID=$run_id sbatch --export=ALL slurm/casp16_run_one_gh200.slurm"
+done
+```
+
 ## Current Live Note
 
-At `2026-07-07 16:09 CDT`, P25 was still not ready:
-`ready=false`, `1442` observed candidates, `618` shard-level missing
-candidates, `553` full 25-candidate slots missing, and `11/79` full-budget
+At `2026-07-07 16:11 CDT`, P25 was still not ready:
+`ready=false`, `1449` observed candidates, `613` shard-level missing
+candidates, `550` full 25-candidate slots missing, and `13/79` full-budget
 tasks complete. Slurm showed 19 P25 jobs running and 5 P25 jobs pending behind
 `QOSMaxJobsPerUserLimit`; the zero-output rows were shard05 seed121-125 and all
 four shard06 seed blocks. The error keyword scan was clean, and prediction
-artifacts were still being written at 16:09 CDT.
+artifacts were still being written at 16:10 CDT.
