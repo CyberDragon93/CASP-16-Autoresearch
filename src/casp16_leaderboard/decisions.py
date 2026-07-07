@@ -88,6 +88,27 @@ def run_readout_summary(
     scoreable_scores = [row for row in selected_scores if row.get("target_id", "") in scoreable_target_ids]
     no_reference_scores = [row for row in selected_scores if row.get("target_id", "") in no_reference_target_ids]
     track_rows = {row.get("track", ""): row for row in selected_run_rows}
+    exact_nonzero_oligo = [
+        row
+        for row in scoreable_scores
+        if row.get("track") == "protein_oligo"
+        and row.get("status") == "ok"
+        and row.get("prediction_match_type") == "exact"
+        and as_float(row.get("qsglob") or row.get("score")) > 0.0
+    ]
+    d6a_problem_rows = [
+        row
+        for row in scoreable_scores
+        if row.get("target_id") in D6A_INPUT_REPAIR_TARGETS
+        and (row.get("status") != "ok" or as_float(row.get("score")) <= 0.0)
+    ]
+    antibody_rows = [row for row in scoreable_scores if row.get("target_id") in ANTIBODY_FV_TARGETS]
+    antibody_nonzero = [
+        row for row in antibody_rows if row.get("status") == "ok" and as_float(row.get("qsglob") or row.get("score")) > 0.0
+    ]
+    non_antibody_exact_oligo_nonzero = [
+        row for row in exact_nonzero_oligo if row.get("target_id") not in ANTIBODY_FV_TARGETS
+    ]
 
     fixed_numerator = 0.0
     fixed_denominator = 0
@@ -145,6 +166,15 @@ def run_readout_summary(
             "scoreable_nonzero_targets": sum(
                 1 for row in scoreable_scores if row.get("status") == "ok" and as_float(row.get("score")) > 0.0
             ),
+        },
+        "diagnostics": {
+            "d6a_problem_targets": sorted({row.get("target_id", "") for row in d6a_problem_rows}),
+            "exact_nonzero_oligo_targets": sorted({row.get("target_id", "") for row in exact_nonzero_oligo}),
+            "non_antibody_exact_nonzero_oligo_targets": sorted(
+                {row.get("target_id", "") for row in non_antibody_exact_oligo_nonzero}
+            ),
+            "antibody_score_rows": len(antibody_rows),
+            "antibody_nonzero_targets": sorted({row.get("target_id", "") for row in antibody_nonzero}),
         },
     }
 
@@ -397,6 +427,18 @@ def post_p25_readout(
         decision_status = "seed_scaling_signal"
         next_branch = "analyze_p25_aggregate_deltas_then_pick_model_variant"
         reason = "P25 improves the fixed-set aggregate or one ranked track over the P17 baseline"
+    elif p25["diagnostics"]["d6a_problem_targets"]:
+        decision_status = "input_repair_signal"
+        next_branch = "launch_d6a_domain_sequence_recovery_after_p25"
+        reason = "predeclared scoreable domain input-repair targets remain missing or zero after P25"
+    elif (
+        p25["diagnostics"]["antibody_score_rows"]
+        and p25["diagnostics"]["non_antibody_exact_nonzero_oligo_targets"]
+        and not p25["diagnostics"]["antibody_nonzero_targets"]
+    ):
+        decision_status = "antibody_fv_signal"
+        next_branch = "launch_o5b_antibody_fv_after_p25"
+        reason = "non-antibody exact oligos have signal while predeclared antibody/Fv scoreable rows remain zero"
     elif no_reference_target_ids and scoreable_nonzero_fraction >= strong_scoreable_nonzero_fraction:
         decision_status = "reference_limited_signal"
         next_branch = "continue_versioned_refmap_or_score_p15_v4"

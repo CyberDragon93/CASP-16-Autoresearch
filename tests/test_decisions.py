@@ -279,25 +279,221 @@ def write_p25_readout_fixture(
     )
 
     score_rows = [
-        {"run_id": baseline_id, "track": "protein_domain", "target_id": "T1", "status": "ok", "score": baseline_domain_mean},
-        {"run_id": baseline_id, "track": "protein_domain", "target_id": "T2", "status": "ok", "score": baseline_domain_mean},
-        {"run_id": baseline_id, "track": "protein_oligo", "target_id": "H1", "status": "ok", "score": baseline_oligo_mean},
-        {"run_id": baseline_id, "track": "protein_oligo", "target_id": "H2", "status": "ok", "score": baseline_oligo_mean},
-        {"run_id": baseline_id, "track": "protein_domain", "target_id": "T3", "status": "missing_reference", "score": "0.000000"},
+        {
+            "run_id": baseline_id,
+            "track": "protein_domain",
+            "target_id": "T1",
+            "status": "ok",
+            "score": baseline_domain_mean,
+            "prediction_match_type": "exact",
+            "qsglob": "",
+        },
+        {
+            "run_id": baseline_id,
+            "track": "protein_domain",
+            "target_id": "T2",
+            "status": "ok",
+            "score": baseline_domain_mean,
+            "prediction_match_type": "exact",
+            "qsglob": "",
+        },
+        {
+            "run_id": baseline_id,
+            "track": "protein_oligo",
+            "target_id": "H1",
+            "status": "ok",
+            "score": baseline_oligo_mean,
+            "prediction_match_type": "exact",
+            "qsglob": baseline_oligo_mean,
+        },
+        {
+            "run_id": baseline_id,
+            "track": "protein_oligo",
+            "target_id": "H2",
+            "status": "ok",
+            "score": baseline_oligo_mean,
+            "prediction_match_type": "exact",
+            "qsglob": baseline_oligo_mean,
+        },
+        {
+            "run_id": baseline_id,
+            "track": "protein_domain",
+            "target_id": "T3",
+            "status": "missing_reference",
+            "score": "0.000000",
+            "prediction_match_type": "",
+            "qsglob": "",
+        },
     ]
     if include_p25:
         p25_status = "partial_candidates" if p25_partial else "ok"
         p25_score = "0.000000" if p25_partial else p25_domain_mean
         score_rows.extend(
             [
-                {"run_id": p25_id, "track": "protein_domain", "target_id": "T1", "status": p25_status, "score": p25_score},
-                {"run_id": p25_id, "track": "protein_domain", "target_id": "T2", "status": "ok", "score": p25_domain_mean},
-                {"run_id": p25_id, "track": "protein_oligo", "target_id": "H1", "status": "ok", "score": p25_oligo_mean},
-                {"run_id": p25_id, "track": "protein_oligo", "target_id": "H2", "status": "ok", "score": p25_oligo_mean},
-                {"run_id": p25_id, "track": "protein_domain", "target_id": "T3", "status": "missing_reference", "score": "0.000000"},
+                {
+                    "run_id": p25_id,
+                    "track": "protein_domain",
+                    "target_id": "T1",
+                    "status": p25_status,
+                    "score": p25_score,
+                    "prediction_match_type": "exact" if not p25_partial else "",
+                    "qsglob": "",
+                },
+                {
+                    "run_id": p25_id,
+                    "track": "protein_domain",
+                    "target_id": "T2",
+                    "status": "ok",
+                    "score": p25_domain_mean,
+                    "prediction_match_type": "exact",
+                    "qsglob": "",
+                },
+                {
+                    "run_id": p25_id,
+                    "track": "protein_oligo",
+                    "target_id": "H1",
+                    "status": "ok",
+                    "score": p25_oligo_mean,
+                    "prediction_match_type": "exact",
+                    "qsglob": p25_oligo_mean,
+                },
+                {
+                    "run_id": p25_id,
+                    "track": "protein_oligo",
+                    "target_id": "H2",
+                    "status": "ok",
+                    "score": p25_oligo_mean,
+                    "prediction_match_type": "exact",
+                    "qsglob": p25_oligo_mean,
+                },
+                {
+                    "run_id": p25_id,
+                    "track": "protein_domain",
+                    "target_id": "T3",
+                    "status": "missing_reference",
+                    "score": "0.000000",
+                    "prediction_match_type": "",
+                    "qsglob": "",
+                },
             ]
         )
-    write_csv(leaderboard_dir / "target_scores.csv", score_rows, ["run_id", "track", "target_id", "status", "score"])
+    write_csv(
+        leaderboard_dir / "target_scores.csv",
+        score_rows,
+        ["run_id", "track", "target_id", "status", "score", "prediction_match_type", "qsglob"],
+    )
+    return benchmark, p25_id, baseline_id
+
+
+def write_p25_branch_signal_fixture(tmp_path, *, signal: str):
+    benchmark = "casp16_server_protein_v2_aliasfix"
+    baseline_id = "p17"
+    p25_id = "p25"
+    leaderboard_dir = tmp_path / "leaderboards" / benchmark
+    benchmark_dir = tmp_path / "benchmarks" / benchmark
+    target_rows = [
+        {"target_id": "T1239V1", "track": "protein_domain", "rank_eligible": "true", "reference_status": "available"},
+        {"target_id": "T1234", "track": "protein_domain", "rank_eligible": "true", "reference_status": "available"},
+        {"target_id": "H1204", "track": "protein_oligo", "rank_eligible": "true", "reference_status": "available"},
+        {"target_id": "H0222", "track": "protein_oligo", "rank_eligible": "true", "reference_status": "available"},
+        {"target_id": "T1295", "track": "protein_domain", "rank_eligible": "true", "reference_status": "no_reference_pdb"},
+    ]
+    write_tsv(benchmark_dir / "targets.tsv", target_rows, ["target_id", "track", "rank_eligible", "reference_status"])
+    run_rows = []
+    for run_id in (baseline_id, p25_id):
+        run_rows.extend(
+            [
+                {
+                    "run_id": run_id,
+                    "track": "protein_domain",
+                    "mean_score": "0.050000",
+                    "eligible_targets": "3",
+                    "ok_targets": "2",
+                    "partial_candidate_targets": "0",
+                    "metric_unavailable_targets": "0",
+                },
+                {
+                    "run_id": run_id,
+                    "track": "protein_oligo",
+                    "mean_score": "0.050000",
+                    "eligible_targets": "2",
+                    "ok_targets": "2",
+                    "partial_candidate_targets": "0",
+                    "metric_unavailable_targets": "0",
+                },
+            ]
+        )
+    write_csv(
+        leaderboard_dir / "runs.csv",
+        run_rows,
+        [
+            "run_id",
+            "track",
+            "mean_score",
+            "eligible_targets",
+            "ok_targets",
+            "partial_candidate_targets",
+            "metric_unavailable_targets",
+        ],
+    )
+    d6a_score = "0.000000" if signal == "d6a" else "0.200000"
+    antibody_score = "0.000000" if signal == "antibody" else "0.200000"
+    score_rows = []
+    for run_id in (baseline_id, p25_id):
+        score_rows.extend(
+            [
+                {
+                    "run_id": run_id,
+                    "track": "protein_domain",
+                    "target_id": "T1239V1",
+                    "status": "ok",
+                    "score": d6a_score if run_id == p25_id else "0.200000",
+                    "prediction_match_type": "exact",
+                    "qsglob": "",
+                },
+                {
+                    "run_id": run_id,
+                    "track": "protein_domain",
+                    "target_id": "T1234",
+                    "status": "ok",
+                    "score": "0.200000",
+                    "prediction_match_type": "exact",
+                    "qsglob": "",
+                },
+                {
+                    "run_id": run_id,
+                    "track": "protein_oligo",
+                    "target_id": "H1204",
+                    "status": "ok",
+                    "score": "0.300000",
+                    "prediction_match_type": "exact",
+                    "qsglob": "0.300000",
+                },
+                {
+                    "run_id": run_id,
+                    "track": "protein_oligo",
+                    "target_id": "H0222",
+                    "status": "ok",
+                    "score": antibody_score if run_id == p25_id else "0.200000",
+                    "prediction_match_type": "exact",
+                    "qsglob": antibody_score if run_id == p25_id else "0.200000",
+                },
+                {
+                    "run_id": run_id,
+                    "track": "protein_domain",
+                    "target_id": "T1295",
+                    "status": "missing_reference",
+                    "score": "0.000000",
+                    "prediction_match_type": "",
+                    "qsglob": "",
+                },
+            ]
+        )
+    write_csv(
+        leaderboard_dir / "target_scores.csv",
+        score_rows,
+        ["run_id", "track", "target_id", "status", "score", "prediction_match_type", "qsglob"],
+    )
     return benchmark, p25_id, baseline_id
 
 
@@ -326,6 +522,27 @@ def test_post_p25_readout_selects_seed_scaling_signal(tmp_path) -> None:
 
     assert summary["decision_status"] == "seed_scaling_signal"
     assert summary["comparison"]["fixed_set_delta"] > 0.01
+
+
+def test_post_p25_readout_selects_d6a_for_predeclared_domain_input_signal(tmp_path) -> None:
+    benchmark, p25_id, baseline_id = write_p25_branch_signal_fixture(tmp_path, signal="d6a")
+
+    summary = post_p25_readout(project_root=tmp_path, benchmark=benchmark, run_id=p25_id, baseline_run_id=baseline_id)
+
+    assert summary["decision_status"] == "input_repair_signal"
+    assert summary["next_branch"] == "launch_d6a_domain_sequence_recovery_after_p25"
+    assert summary["p25"]["diagnostics"]["d6a_problem_targets"] == ["T1239V1"]
+
+
+def test_post_p25_readout_selects_o5b_for_antibody_fv_signal(tmp_path) -> None:
+    benchmark, p25_id, baseline_id = write_p25_branch_signal_fixture(tmp_path, signal="antibody")
+
+    summary = post_p25_readout(project_root=tmp_path, benchmark=benchmark, run_id=p25_id, baseline_run_id=baseline_id)
+
+    assert summary["decision_status"] == "antibody_fv_signal"
+    assert summary["next_branch"] == "launch_o5b_antibody_fv_after_p25"
+    assert summary["p25"]["diagnostics"]["non_antibody_exact_nonzero_oligo_targets"] == ["H1204"]
+    assert summary["p25"]["diagnostics"]["antibody_nonzero_targets"] == []
 
 
 def test_post_p25_readout_cli_writes_json(tmp_path, capsys) -> None:
