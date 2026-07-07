@@ -2100,6 +2100,30 @@ competitive result.
      casp16_server_protein_v2_aliasfix`; `winner-gap` remains `not_matched`
      with domain `11.66%`, oligo `20.41%`, and combined `15.87%` of the
      server winners.
+146. `2026-07-07 17:30 CDT` Re-centered the active loop on winner matching
+     rather than incidental infrastructure. `./casp16 winner-gap --benchmark
+     casp16_server_protein_v2_aliasfix` still reports `not_matched`: the best
+     complete local row is P17 at domain `0.107690` versus `110s`
+     MIEnsembles-Server `0.923321` (`11.66%` of winner) and oligo `0.118933`
+     versus `456s` Yang-Multimer `0.582615` (`20.41%` of winner). Added a
+     winner-match operating thesis to `docs/CASP16_WINNER_RECIPES.md` that maps
+     public CASP16 top-family clues to local reproduction hooks: MIEnsembles
+     style model/MSA/QA diversity, Yang optimized inputs, Zheng-style
+     MSA/template/model variants, Guijun-style paired complex handling, and
+     MULTICOM/QA-style candidate-pool selection. Updated
+     `docs/WINNER_REPRODUCTION_BOARD.md`, `docs/WINNER_MATCH_RUNBOOK.md`,
+     `docs/AUTORESEARCH_QUEUE.md`, and `docs/SERVER_SCORE_TARGETS.md` to the
+     latest P25 gate. P25 is still incomplete but healthy:
+     `ready=false`, `compatible=true`, `1648` observed candidates, `418`
+     shard-level missing candidates, `373` full 25-candidate slots missing,
+     and `44/79` full-budget tasks complete. Slurm shows 19 P25 jobs running
+     and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; artifact writes
+     reached 17:30 CDT and the error-keyword scan is clean. Decision remains:
+     do not score partial P25 and do not launch P27b/O5b/D6a/P15 before the
+     complete P25 closeout. This is winner matching in progress: P25 tests
+     whether winner-like candidate budget plus the predeclared selector moves
+     the repaired P17 baseline; P27b/P28a/D6a/O5b are gated follow-ups, not
+     substitutes for a complete P25 readout.
 
 ## Run Discipline
 

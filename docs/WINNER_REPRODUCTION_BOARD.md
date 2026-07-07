@@ -67,19 +67,19 @@ infrastructure. It is:
 
 ## Active Gate
 
-Checked `2026-07-07 16:47 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 17:30 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1530` |
-| shard-level missing candidates | `536` |
-| full 25-candidate slots still missing | `473` |
-| complete full-budget tasks | `28 / 79` |
-| Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; one `gh` `tacc-vscode` job is also running |
-| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF writes reached 16:43 CDT; log tails show slow large-complex forwards such as `H0272`, `H1272`, `H1220`, and `H2236` rather than wrapper failure |
+| observed candidates | `1648` |
+| shard-level missing candidates | `418` |
+| full 25-candidate slots still missing | `373` |
+| complete full-budget tasks | `44 / 79` |
+| Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; one `gb` `tacc-vscode` job is also running |
+| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF/JSON writes reached 17:30 CDT; zero-output shards are still queue-blocked pending jobs |
 | action | wait for declared candidates, then run the P25 closeout wrapper |
 
 Do not score the P25 row or launch O5b/P27b/D6a from partial outputs. The
@@ -163,8 +163,8 @@ explain aggregate gains/losses and selector behavior; do not use those target
 deltas to tune prediction inputs target by target.
 Use `./casp16 post-p25-branch-readiness` while P25 is still running to verify
 that all deferred branch artifacts remain launch-clean. Latest read-only audit
-at `2026-07-07 16:47 CDT`: P27b, D6a, O5b, and P15/v4 are all launch-ready
-after P25 selection, and all guarded variants report `ok`. The audit also
+at `2026-07-07 17:30 CDT`: P27b, D6a, O5b, and P15/v4 are all launch-ready
+after P25 selection. The audit also
 reports P28a as a guarded future design only: it is not launch-ready after P25
 selection and cannot become a no-MSA shortcut.
 

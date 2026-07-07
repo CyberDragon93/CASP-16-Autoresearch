@@ -80,18 +80,17 @@ and produced a `candidate_limited_signal`. The active gate is now P25:
 wait for the submitted seed106-125 target-seed shards, merge them with the
 seed101-105 overlay, then score the complete 25-candidate row.
 
-Latest live checkpoint, `2026-07-07 16:05 CDT`: P25 is still not merge-ready.
+Latest live checkpoint, `2026-07-07 17:30 CDT`: P25 is still not merge-ready.
 `finish_p25_scoreable_input_repair.sh --dry-run` reports `ready=false`,
-`compatible=true`, `1413` observed candidates, `645` shard-level candidates
-missing, and `580` full 25-candidate slots missing. Slurm still has 19 P25
-jobs running and 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; `gh`
-`MaxJobsPU=20` and one `tacc-vscode` job is also running, so shard05
-seed121-125 and all shard06 seed blocks remain pending. Do not use a partial
-P25 row for score comparisons or for launching O5b/P27b/D6a. Current runtime
-is normal large-complex inference plus queue limits, not an MSA-cache miss or a
-silent failure class. The latest P25 MSA audit remains `24/24 ok` with
-`584/584` protein-chain paths covered and `0` stale paths. The latest error
-keyword scan is clean, and recent prediction artifacts reached 16:05 CDT.
+`compatible=true`, `1648` observed candidates, `418` shard-level candidates
+missing, `373` full 25-candidate slots missing, and `44/79` full-budget tasks
+complete. Slurm still has 19 P25 jobs running and 5 P25 jobs pending behind
+`QOSMaxJobsPerUserLimit`; the zero-output rows are shard05 seed121-125 and all
+shard06 seed blocks, still pending. Do not use a partial P25 row for score
+comparisons or for launching O5b/P27b/D6a. Current runtime is normal
+large-complex inference plus queue limits, not an MSA-cache miss or a silent
+failure class. The latest P25 MSA audit remains clean. The latest error
+keyword scan is clean, and recent prediction artifacts reached 17:30 CDT.
 
 Current P25 closeout command:
 
