@@ -1274,6 +1274,16 @@ competitive result.
     Preflight is `6/6 ok` with complete MSA reuse (`146/146`, 0 stale), and all
     six rows are `deferred:await_p25_score`. Do not submit O5b before P25 is
     complete and scored.
+77. `2026-07-07 10:53 CDT` P25 live gate: the seed106-125 target-seed grid is
+    still not merge-ready, but it is progressing rather than stalled. Slurm
+    still shows 19 P25 jobs running and 5 pending behind
+    `QOSMaxJobsPerUserLimit`; refreshed readiness is `ready=false`,
+    `compatible=true`, `607` observed candidates, `1443` shard-level candidates
+    missing, and `1368` full 25-candidate slots missing. Log tails show the
+    running jobs are spending time on expected slow, large scoreable complexes
+    such as `H0258`, `H2258`, `H1220`, and `H1272`; error scanning remains
+    clean for traceback/OOM/killed/disk/timeout signatures. Keep waiting for
+    complete P25 readiness; do not launch O5b/P27b or score partial outputs.
 
 ## Run Discipline
 
