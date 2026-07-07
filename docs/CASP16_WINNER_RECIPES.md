@@ -200,7 +200,9 @@ Useful strategy hypotheses:
     scoreable `protenix5` row. It keeps the same 74-job set, moves all 50
     exact `protein_oligo` jobs to the front, and preflights at 141/141
     exact-sequence MSA paths. Use only as a clean retry or replacement if
-    faster exact-oligo feedback is needed.
+    faster exact-oligo feedback is needed. The running P13 row has now reached
+    exact H oligos; seed101 diagnostic QSglob has H0223 `0.591`, H0225
+    `0.270`, and H0233 `0.221`, so keep P13 running unless it fails.
     Related D6a artifact:
     `yang_domain_sequence_recovery_oligo_nofail_v1` was generated after
     reference-gap triage exposed protein-domain input-kind bugs. It changes 8

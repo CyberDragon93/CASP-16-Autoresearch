@@ -507,6 +507,23 @@ leaderboard progress.
       `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
       Do not submit the successor unless the current row stalls before exact
       oligo artifacts or needs a clean retry.
+38. Registered a rank-ineligible seed101 diagnostic for the running scoreable
+    attack:
+    `server_v2_scoreable_attack_seed101_partial_diagnostic_20260707`.
+    - Source predictions:
+      `runs/server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105/predictions/protenix-v2`,
+      32 CIFs available at registration time.
+    - This diagnostic uses `candidate_count=1`, `rank_eligible=false`, and
+      `first_output_only` so it can score partial seed101 artifacts without
+      weakening the real five-candidate attack rules.
+    - Domain diagnostic fixed mean is `0.099576` over the 71 server-domain
+      targets, with 24 `ok` rows and 17 nonzero rows.
+    - Exact H-oligo diagnostic fixed mean is `0.011346` over the 104 oligo
+      targets, with 8 `ok` rows and 5 nonzero exact QSglob values:
+      H0223 `0.591`, H0225 `0.270`, H0233 `0.221`, H0222 `0.074`, H0227
+      `0.024`.
+    - Decision: keep P13 running. P14 remains a clean retry/successor, not an
+      immediate replacement, because P13 has already reached exact H oligos.
 
 ## Strategy Decision Log
 
@@ -553,6 +570,25 @@ reusable protein chains.
 Guardrail: this successor must remain pending while the current scoreable
 `protenix5` job is running. Use it only after recording why the current run is
 insufficient.
+
+### 2026-07-06 Scoreable Attack Seed101 Diagnostic
+
+Decision: register and score the current 32 seed101 outputs from the running
+P13 attack as a rank-ineligible diagnostic row.
+
+Rationale: the official five-candidate row correctly remains unscored until all
+declared candidates exist, but waiting for all five seeds hides whether the
+current input stack has any exact oligo signal. A diagnostic row with
+`candidate_count=1` preserves leaderboard fairness while giving strategy
+feedback.
+
+Result: exact H oligos are not all zeros. H0223 scores QSglob `0.591`, H0225
+`0.270`, H0233 `0.221`, H0222 `0.074`, and H0227 `0.024`. Domain positives
+remain similar to the earlier seed101 probe, with fixed mean `0.099576`.
+
+Decision consequence: do not cancel the running P13 job merely to launch the
+oligo-first successor. Let P13 continue unless it fails or stalls; use P14 as a
+clean retry path if needed.
 
 ### 2026-07-06 Domain Sequence-Recovery Nofail Ablation
 

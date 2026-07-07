@@ -136,8 +136,8 @@ where methods should change.
 - First attack run spec:
   `server_attack_protenix_terminal_tag_seed101_105`, using terminal-tag cleanup
   inputs with seeds `101..105` and `protenix_confidence_v1`. Slurm job `810719`
-  is running. The `2026-07-06 18:44 CDT` check found seed CIF counts
-  `98/98/81/0/0`; the log still hits the known `n_token > 2560` classes, so it
+  is running. The `2026-07-06 19:08 CDT` check found seed CIF counts
+  `98/98/98/1/0`; the log still hits the known `n_token > 2560` classes, so it
   is incomplete and must not be scored as a five-candidate result.
 - Superseded second attack run spec:
   `server_attack_protenix_coverage_stoich_seed101_105`, using the stacked
@@ -176,8 +176,13 @@ where methods should change.
   changed: skipped no-reference targets still score 0 locally. `run-next
   --dry-run` selected this row. Slurm job `811751` is now running on
   `c636-072`; the Protenix log confirms `inputs.msa-reuse.json` and skips MSA
-  update. The `2026-07-06 18:39 CDT` check found 24/74 seed-101 CIFs; no
-  later seeds have started, so it remains incomplete and unranked.
+  update. The `2026-07-06 19:03 CDT` diagnostic registered the 32 available
+  seed-101 CIFs as rank-ineligible
+  `server_v2_scoreable_attack_seed101_partial_diagnostic_20260707`: domain
+  fixed mean is `0.099576`, and exact H-oligo QSglob is already nonzero for
+  H0223 `0.591`, H0225 `0.270`, H0233 `0.221`, H0222 `0.074`, and H0227
+  `0.024`. The full five-candidate attack remains incomplete and unranked, but
+  the running job is now producing useful exact oligo signal.
 - Pending oligo-first scoreable-subset successor:
   `server_v2_attack_scoreable_oligo_first_msa_reuse_protenix5_seed101_105`
   uses the same 74 scoreable jobs, fixed five-candidate budget, confidence-only
@@ -185,8 +190,9 @@ where methods should change.
   attack, but reorders the input so the 50 exact `protein_oligo` jobs run
   first. This is a scheduling/signal-latency optimization only; it does not
   change the 175-target scoring denominator or rank rules. Launch it only after
-  the running scoreable attack completes, stalls before exact oligo artifacts,
-  or is explicitly superseded.
+  the running scoreable attack completes, fails, or is explicitly superseded;
+  do not cancel P13 just to reach H oligos faster because P13 has already
+  reached exact H-oligo jobs.
 - Cancelled full-input v2 no-over-token dev row:
   `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
   produced 39/165 CIFs and then spent extended GPU time on `T1295`, which is
