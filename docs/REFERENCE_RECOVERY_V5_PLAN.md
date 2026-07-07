@@ -125,6 +125,22 @@ Examples include `T0270/T1270/T2270` and `T0270O/T1270O/T2270O` with `10br`,
 plus `T1295/T1295O` and `H0215/H1215/H2215`. The first action is review, not
 score-table mutation and not prediction tuning.
 
+2026-07-07 15:14 CDT follow-up:
+`diagnostics/reference_gap/casp16_server_protein_v5_lane_b_deferred_hit_review.tsv`
+reviews all five queued Lane B families and rejects every deferred hit for
+refmap promotion:
+
+- `T0270/T1270/T2270` and `T0270O/T1270O/T2270O -> 10br`: short 204-residue
+  HtrA PDZ1-2 fragment versus 437-residue targets; not a full construct or
+  oligo/native QSglob reference.
+- `H0215/H1215/H2215 -> 5ltr,8y6h,8y6i,9fem`: mNeonGreen-only or unrelated
+  Fab/P-glycoprotein complexes, not the target mNeonGreen-nanobody assembly.
+- `T1295/T1295O -> 3bve/3bvf/.../9ptm`: partial TM_Ag/domain/template hits
+  only, without full-construct/native proof or accepted assembly mapping.
+
+These rows now move to manual native/provenance search. Do not promote any
+Lane B candidate from sequence-search evidence alone.
+
 ### Lane D: Oligo Candidates Blocked By Assembly
 
 The all-gap sequence probe found full-construct candidates for these oligo

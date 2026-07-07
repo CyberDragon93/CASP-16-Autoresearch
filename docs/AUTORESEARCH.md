@@ -1786,6 +1786,20 @@ competitive result.
      pending behind the `gh` `MaxJobsPU=20` cap. Slurm has 19 P25 jobs running
      and 5 P25 jobs pending. Keep waiting; do not score P25, launch O5b/P27b,
      or make a winner-comparison claim from this partial state.
+123. `2026-07-07 15:14 CDT` P25 live gate plus Lane B deferred-hit review:
+     P25 is still not merge-ready but continues to advance:
+     `ready=false`, `compatible=true`, `1297` observed candidates, `761`
+     shard-level missing candidates, and `691` full 25-candidate slots
+     missing. Slurm still has 19 P25 jobs running and 5 P25 jobs pending
+     behind `QOSMaxJobsPerUserLimit`; an error-keyword scan over P25 run/log
+     files found no traceback/OOM/killed signatures. While waiting, recorded
+     `diagnostics/reference_gap/casp16_server_protein_v5_lane_b_deferred_hit_review.tsv`.
+     It reviews all five Lane B deferred-hit families and rejects them for
+     refmap promotion: `10br` is a short HtrA fragment, the H0215-family hits
+     do not establish the mNeonGreen-nanobody target assembly, and the
+     T1295/T1295O TM_Ag hits are partial/template structures. No accepted
+     references are added; these rows move to manual native/provenance plus
+     explicit domain-crop or QSglob assembly mapping.
 
 ## Run Discipline
 
