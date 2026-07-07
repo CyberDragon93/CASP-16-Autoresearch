@@ -66,11 +66,20 @@ by how interesting the trick is.
 Default branch after P14:
 
 - P14 strong and candidate-limited: launch the scoreable 25-seed grid.
-- P14 strong but v4-only targets matter: launch P15 on `casp16_server_protein_v4_refmap`.
-- P14 weak from input coverage/domain mistakes: run D6a single-seed input repair.
-- P14 weak mainly on antibody/Fv oligos: run the prepared O5 scoreable Fv shards.
-- P14 weak with no clear input/scoring failure: do not scale Protenix; design a
-  new MSA/model-variant budget instead.
+- P14 strong but reference-limited: launch P15 on
+  `casp16_server_protein_v4_refmap` and keep further refmap work versioned.
+- P14 has many `missing_prediction`, `metric_failed`, or exact-oligo lookup
+  failures: fix that class first; do not spend P25 on a broken score path.
+- P14 weak from input coverage/domain mistakes: run D6a single-seed input
+  repair after the rank-ineligible MSA warmup.
+- P14 weak mainly on antibody/Fv oligos: run the prepared O5 scoreable Fv
+  target shards.
+- P14 weak with valid predictions and metrics but no clear input/scoring
+  failure: do not scale Protenix seeds; design a new MSA/model-variant budget
+  instead.
+
+`docs/SERVER_SCORE_TARGETS.md` owns the exact post-P14 readout sequence and
+decision matrix. This file owns the recipe rationale.
 
 ## Protein Domains
 

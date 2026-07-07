@@ -73,18 +73,44 @@ scored as `missing_reference`.
 
 ## Active Score Gates
 
-1. Score the running v2 nofail `dev_fixed` row:
-   `server_v2_attack_scoreable_oligo_recovery_msa_reuse_protenix5_seed101_105`.
-   It must first finish all five declared candidates for the 74-job scoreable
-   input before it can be ranked as a `server_attack` row.
-   The partial seed-101 probe is useful for domain direction, but it is not
-   evidence to launch the planned 25-candidate budget before the current
-   five-candidate row reaches exact oligo jobs and exact/fallback match types
-   are checked.
-   If other v2 rows are pending or partially running, use
-   `./casp16 score --benchmark casp16_server_protein_v2_aliasfix --run-id <run_id> --output-dir diagnostics/...`
-   for the first readout so pending attack rows do not contaminate a diagnostic
-   score table.
+1. Finish and score the live P14 target-sharded five-candidate attack:
+   `server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105`.
+   The six execution shards are rank-ineligible until every one has all five
+   declared candidates for its target subset and has been merged with
+   `./casp16 merge-shards --allow-target-shards`. Do not use a partial shard
+   score to launch the planned 25-candidate budget.
+   Required readout sequence:
+
+   ```bash
+   ./casp16 check-shards \
+     --benchmark casp16_server_protein_v2_aliasfix \
+     --merged-run-id server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105 \
+     --merged-input-json strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json \
+     --candidate-count 5 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard01_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard02_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard03_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard04_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard05_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard06_msa_reuse_protenix5_seed101_105
+
+   ./casp16 merge-shards \
+     --benchmark casp16_server_protein_v2_aliasfix \
+     --run-id server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105 \
+     --merged-input-json strategies/scoreable_target_subset_oligo_size_first_phase_alias_v1/casp16_server_protein_v2_aliasfix/inputs.json \
+     --allow-target-shards \
+     --candidate-count 5 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard01_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard02_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard03_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard04_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard05_msa_reuse_protenix5_seed101_105 \
+     --shard-run-id server_v2_attack_scoreable_size_balanced_shard06_msa_reuse_protenix5_seed101_105
+
+   ./casp16 score --benchmark casp16_server_protein_v2_aliasfix \
+     --run-id server_v2_attack_scoreable_size_balanced_msa_reuse_protenix5_seed101_105
+   ./casp16 leaderboard --benchmark casp16_server_protein_v2_aliasfix
+   ```
 2. Compare only `dev_fixed` to `dev_fixed`. A single-seed row can prove that an
    input strategy is worth more compute, but it is not winner-comparable.
 3. Score `server_attack` rows only after every declared candidate is present.
@@ -92,6 +118,21 @@ scored as `missing_reference`.
    `./casp16 merge-shards` before a 25-candidate row can be scored.
 4. For official server comparison, domains use `GDT_TS`; oligos use `QSglob`.
    DockQ and confidence are diagnostics only.
+
+## Post-P14 Decision Matrix
+
+After P14 is merged and scored, inspect `runs.csv`, `target_scores.csv`, and
+`coverage.md` for the merged run. The next branch should be selected by the
+failure mode, not by impatience to spend more GPU time.
+
+| P14 observation | Interpretation | Next branch |
+| --- | --- | --- |
+| Broad fixed-set improvement, more nonzero domain targets, and several exact protein-oligo QSglob positives | Five candidates plus the scoreable input stack have real signal; candidate budget and selector are plausible bottlenecks | Launch the deferred 25-candidate scoreable target+seed grid |
+| Good v2 signal, but the useful scoreable set is still capped by reference availability | Reference recovery can unlock a little more local measurement without changing the prediction recipe | Launch P15 on `casp16_server_protein_v4_refmap`, and keep broader refmap work versioned |
+| Many scoreable rows are still `missing_prediction`, `metric_failed`, or exact oligo rows are not found | This is a pipeline/input/scorer failure, not a sampling failure | Fix the failure class before launching P25 |
+| Domain score is weak because input-kind or sequence-alias repairs are missing | More seeds will repeat bad inputs | Run D6a single-seed domain sequence recovery after MSA warmup |
+| Exact QSglob remains weak mainly on antibody/Fv rows after phase-alias stoichiometry is fixed | Oligo branch may need Fv/docking-inspired input handling | Launch the prepared O5 antibody-Fv target shards |
+| Predictions and metrics are valid but the five-candidate attack is broadly weak | Current Protenix recipe is not enough; scaling seeds alone is low leverage | Design a new MSA/model-variant budget before spending winner-scale compute |
 
 ## What Counts As Progress
 
