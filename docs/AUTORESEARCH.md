@@ -2124,6 +2124,22 @@ competitive result.
      whether winner-like candidate budget plus the predeclared selector moves
      the repaired P17 baseline; P27b/P28a/D6a/O5b are gated follow-ups, not
      substitutes for a complete P25 readout.
+147. `2026-07-07 17:35 CDT` P25 tail audit: the row is still not ready, but
+     the remaining gap is normal execution/queue tail rather than a failed
+     pipeline. Dry-run reports `ready=false`, `1658` observed candidates,
+     `408` shard-level missing candidates, `367` full 25-candidate slots
+     missing, `44/79` full-budget tasks complete, and `3` complete
+     seed-shards. `post-p25-readout` still returns
+     `decision_status=not_scored`, `next_branch=finish_or_score_p25`, and
+     `target_delta_summary.status=incomplete`. The largest missing shards are
+     the four shard06 seed blocks, each still missing `70/70` candidates, plus
+     shard05 seed121-125, now running and already writing early predictions.
+     Slurm shows shard05 seed121-125 running, shard06 seed106-110/111-115/
+     116-120 starting or initializing in logs, and shard06 seed121-125 still
+     pending behind `QOSMaxJobsPerUserLimit`. Latest prediction artifacts
+     reached 17:35 CDT, and the P25 error-keyword scan remains clean. Decision
+     is unchanged: do not score partial P25 and do not launch P27b/O5b/D6a/P15;
+     wait for the declared candidates, then run the closeout wrapper.
 
 ## Run Discipline
 
