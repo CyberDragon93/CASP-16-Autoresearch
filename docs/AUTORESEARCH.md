@@ -1589,6 +1589,17 @@ competitive result.
      templates for D6a, O5b, P15/v4, or P27b. This keeps the next
      winner-recipe iteration machine-readable without launching anything
      before the P25 gate opens.
+107. `2026-07-07 14:01 CDT` v4 input-alias carryover: regenerated
+     `yang_protein_oligo_sequence_stoich_token_safe_v1` on
+     `casp16_server_protein_v4_refmap` so the H1265 score-table variant alias
+     repair is not v2-only. The v4 artifact now has 168 jobs, changes 6
+     protein-oligo sequence-recovery targets, and turns `H1265_V1/V2/V3` into
+     H1265-derived two-chain protein inputs of total length 293. The read-only
+     MSA cache check is complete (`286/286` protein chains, `0` stale) in
+     `diagnostics/msa_cache/yang_protein_oligo_sequence_stoich_token_safe_v1_v4_refmap.tsv`.
+     `post-p25-readout` also now has a `score_p17_baseline_before_branching`
+     launch plan so a missing baseline score produces executable recovery
+     steps instead of a dead-end branch label.
 
 ## Run Discipline
 

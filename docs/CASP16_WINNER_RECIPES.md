@@ -411,6 +411,9 @@ Useful strategy hypotheses:
     targets and represents `H0220/H1220/H2220` as recovered protein `A1B4`
     jobs. It is still not by itself a no-over-token full-stack artifact because
     unrelated v2 jobs such as `H0272` exceed Protenix's token limit.
+    The same token-safe sequence/stoich artifact has now been regenerated for
+    `casp16_server_protein_v4_refmap`; it carries the H1265 score-table
+    variant alias repair into v4 and preflights with complete MSA reuse.
 14. `yang_oligo_sequence_stoich_low_complexity_large_fallback_v1`: generated
     and registered as both
     `server_v2_protenix_yang_oligo_sequence_stoich_low_complexity_large_fallback_seed101`
