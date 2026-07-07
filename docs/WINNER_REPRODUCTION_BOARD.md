@@ -67,24 +67,24 @@ infrastructure. It is:
 
 ## Active Gate
 
-Checked `2026-07-07 17:30 CDT`: P25 is still incomplete, but the live jobs
+Checked `2026-07-07 18:14 CDT`: P25 is still incomplete, but the live jobs
 look healthy.
 
 | Gate | Status |
 | --- | --- |
 | run family | `casp16_server_attack_protenix25_scoreable_input_repair` |
 | benchmark | `casp16_server_protein_v2_aliasfix` |
-| observed candidates | `1648` |
-| shard-level missing candidates | `418` |
-| full 25-candidate slots still missing | `373` |
-| complete full-budget tasks | `44 / 79` |
-| Slurm | 19 P25 jobs running, 5 P25 jobs pending behind `QOSMaxJobsPerUserLimit`; one `gb` `tacc-vscode` job is also running |
-| health | no traceback/OOM/killed-process signatures in P25 logs; recent CIF/JSON writes reached 17:30 CDT; zero-output shards are still queue-blocked pending jobs |
+| observed candidates | `1725` |
+| shard-level missing candidates | `345` |
+| full 25-candidate slots still missing | `312` |
+| complete full-budget tasks | `50 / 79` |
+| Slurm | all remaining P25 shards are running; the closeout watcher `814295` is running on `gg` |
+| health | no non-empty P25 error logs; recent CIF/JSON writes reached 18:03 CDT; `zero_output_shard_count=0` |
 | action | wait for declared candidates, then run the P25 closeout wrapper |
 
 Do not score the P25 row or launch O5b/P27b/D6a from partial outputs. The
-current wait is queue plus large-complex Protenix forward time; it is not an
-MSA-cache failure or a reason to open another infrastructure detour.
+current wait is large-complex Protenix forward time; it is not an MSA-cache
+failure or a reason to open another infrastructure detour.
 
 Winner-match-first rule: every next GPU branch must answer a specific gap
 against the official server winners. P25 answers whether winner-like candidate
@@ -163,7 +163,7 @@ explain aggregate gains/losses and selector behavior; do not use those target
 deltas to tune prediction inputs target by target.
 Use `./casp16 post-p25-branch-readiness` while P25 is still running to verify
 that all deferred branch artifacts remain launch-clean. Latest read-only audit
-at `2026-07-07 17:30 CDT`: P27b, D6a, O5b, and P15/v4 are all launch-ready
+at `2026-07-07 18:14 CDT`: P27b, D6a, O5b, and P15/v4 are all launch-ready
 after P25 selection. The audit also
 reports P28a as a guarded future design only: it is not launch-ready after P25
 selection and cannot become a no-MSA shortcut.

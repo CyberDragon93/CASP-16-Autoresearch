@@ -80,17 +80,16 @@ and produced a `candidate_limited_signal`. The active gate is now P25:
 wait for the submitted seed106-125 target-seed shards, merge them with the
 seed101-105 overlay, then score the complete 25-candidate row.
 
-Latest live checkpoint, `2026-07-07 17:30 CDT`: P25 is still not merge-ready.
+Latest live checkpoint, `2026-07-07 18:14 CDT`: P25 is still not merge-ready.
 `finish_p25_scoreable_input_repair.sh --dry-run` reports `ready=false`,
-`compatible=true`, `1648` observed candidates, `418` shard-level candidates
-missing, `373` full 25-candidate slots missing, and `44/79` full-budget tasks
-complete. Slurm still has 19 P25 jobs running and 5 P25 jobs pending behind
-`QOSMaxJobsPerUserLimit`; the zero-output rows are shard05 seed121-125 and all
-shard06 seed blocks, still pending. Do not use a partial P25 row for score
-comparisons or for launching O5b/P27b/D6a. Current runtime is normal
-large-complex inference plus queue limits, not an MSA-cache miss or a silent
-failure class. The latest P25 MSA audit remains clean. The latest error
-keyword scan is clean, and recent prediction artifacts reached 17:30 CDT.
+`compatible=true`, `1725` observed candidates, `345` shard-level candidates
+missing, `312` full 25-candidate slots missing, and `50/79` full-budget tasks
+complete. Slurm shows all remaining P25 shards running plus the `gg` closeout
+watcher `814295`; `zero_output_shard_count=0`. Do not use a partial P25 row for
+score comparisons or for launching O5b/P27b/D6a. Current runtime is normal
+large-complex inference, not an MSA-cache miss, queue-pending state, or silent
+failure class. The latest P25 MSA audit remains clean. The latest P25 error
+logs are empty, and recent prediction artifacts reached 18:03 CDT.
 
 Current P25 closeout command:
 

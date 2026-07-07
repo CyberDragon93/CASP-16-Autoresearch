@@ -2168,6 +2168,27 @@ competitive result.
      `ssh login1` as job `814295` and is running on `i615-061`. This is not a
      new prediction branch and does not change benchmark rules; it is a watcher
      for the already-declared P25 closeout gate.
+150. `2026-07-07 18:14 CDT` Winner-match checkpoint: the current best complete
+     local row is still far from the official server leaders and should be
+     treated as a floor, not a near match. `winner-gap` reports domain
+     `0.107690` versus `110s` MIEnsembles-Server `0.923321` (`11.66%` of
+     winner, gap `0.815631`), oligo `0.118933` versus `456s` Yang-Multimer
+     `0.582615` (`20.41%` of winner, gap `0.463682`), and target-weighted
+     combined local `0.114371554` versus winner `0.720844291` (`15.87%` of
+     winner). P25 remains the active winner-recipe test rather than a completed
+     comparison: dry-run still reports `ready=false`,
+     `action=wait_for_declared_candidates`, `1725` observed candidates, `345`
+     shard-level missing, `312` full 25-candidate slots missing, `50/79`
+     full-budget tasks complete, and `zero_output_shard_count=0`. Slurm shows
+     all remaining P25 shards running plus closeout watcher `814295`; P25 error
+     logs are empty and the newest artifacts reached 18:03 CDT. The right next
+     move is still to let P25 finish and close out the predeclared 25-candidate
+     selector/replay rows, then use the aggregate post-P25 readout to choose
+     exactly one winner-recipe branch: P27b for model/config diversity, D6a for
+     domain input repair, O5b for antibody/Fv oligo weakness, or versioned
+     refmap work if scoring coverage is the cap. Do not launch a
+     partial-response GPU branch and do not treat the current P17/P25-incomplete
+     state as matching the CASP16 server winners.
 
 ## Run Discipline
 

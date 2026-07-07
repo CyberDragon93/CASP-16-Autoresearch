@@ -88,7 +88,7 @@ scores to tune target-specific inputs.
 
 ## Ready Branches
 
-The read-only readiness audit at `2026-07-07 17:30 CDT` reported all four
+The read-only readiness audit at `2026-07-07 18:14 CDT` reported all four
 deferred branch families as launch-ready after P25 selection:
 
 | Branch | Prepared artifact | Preflight |
@@ -172,12 +172,11 @@ done
 
 ## Current Live Note
 
-At `2026-07-07 17:30 CDT`, P25 was still not ready:
-`ready=false`, `1648` observed candidates, `418` shard-level missing
-candidates, `373` full 25-candidate slots missing, and `44/79` full-budget
-tasks complete. Slurm showed 19 P25 jobs running and 5 P25 jobs pending behind
-`QOSMaxJobsPerUserLimit`; the zero-output rows were shard05 seed121-125 and all
-four shard06 seed blocks, which are still pending. The error keyword scan was
-clean, and prediction artifacts were still being written at 17:30 CDT. The
-waiting state is active large-complex Protenix inference plus queue limits, not
-MSA-cache or wrapper failure.
+At `2026-07-07 18:14 CDT`, P25 was still not ready:
+`ready=false`, `1725` observed candidates, `345` shard-level missing
+candidates, `312` full 25-candidate slots missing, and `50/79` full-budget
+tasks complete. Slurm showed all remaining P25 shards running, with the CPU
+closeout watcher `814295` active on `gg`; `zero_output_shard_count=0`. P25 error
+logs were empty, and prediction artifacts had reached 18:03 CDT. The waiting
+state is active large-complex Protenix inference, not MSA-cache, queue-pending,
+or wrapper failure.
